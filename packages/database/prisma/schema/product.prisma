@@ -1,0 +1,49 @@
+model Product {
+  id                String                 @id @default(auto()) @map("_id") @db.ObjectId
+  v                 Int                    @default(0) @map("__v")
+  cartLabel         String                 @unique(map: "cartLabel_1")
+  createdAt         DateTime               @default(now()) @db.Date
+  description       String
+  featuredImageText String?
+  featuresText      String[]
+  fullLabel         String[]
+  isNewProduct      Boolean                @default(true)
+  name              String                 @unique(map: "name_1")
+  price             Int
+  shortLabel        String                 @unique(map: "shortLabel_1")
+  showCaseImageText String?
+  category          Category               @relation(fields: [categoryId], references: [id])
+  categoryId        String                 @db.ObjectId
+  includedItems     ProductIncludedItems[]
+  images            ProductImages
+  slug              String                 @unique(map: "slug_1")
+}
+
+type ProductIncludedItems {
+  item     String
+  quantity Int
+}
+
+type ProductImages {
+  featuredImage       ProductImagesProperties?
+  galleryImages       ProductImagesProperties[]
+  introImage          ProductImagesProperties
+  primaryImage        ProductImagesProperties
+  showCaseImage       ProductImagesProperties?
+  thumbnail           ProductsImagesThumbnail
+  relatedProductImage ProductImagesProperties
+}
+
+type ProductImagesProperties {
+  altText    String
+  ariaLabel  String
+  desktopSrc String
+  mobileSrc  String
+  tabletSrc  String
+}
+
+type ProductsImagesThumbnail {
+  altText   String
+  ariaLabel String
+  src       String
+}

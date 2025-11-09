@@ -1,0 +1,14 @@
+model Config {
+  id               String                  @id @default(auto()) @map("_id") @db.ObjectId
+  v                Int                     @default(0) @map("__v")
+  createdAt        DateTime                @default(now()) @db.Date
+  name             String                  @unique(map: "name_1") @default("default")
+  featuredProduct  String                  @db.ObjectId
+  showCaseProducts ConfigsShowCaseProducts
+}
+
+type ConfigsShowCaseProducts {
+  cover String @db.ObjectId
+  grid  String @db.ObjectId
+  wide  String @db.ObjectId
+}
