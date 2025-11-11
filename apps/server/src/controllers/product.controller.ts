@@ -1,11 +1,11 @@
 import { prisma } from "@repo/database";
-import { Request } from "express";
+import { Request, RequestHandler } from "express";
 import * as commonSchema from "../schemas/common.schema";
 import * as productSchema from "../schemas/product.schema";
 import PrismaAPIFeatures from "../utils/apiFeatures";
 import catchAsync from "../utils/catchAsync";
 
-export const getAllProducts = catchAsync(async (req, res) => {
+export const getAllProducts: RequestHandler = catchAsync(async (req, res) => {
   const query = new PrismaAPIFeatures(req.query)
     .filter()
     .sort()
@@ -20,8 +20,8 @@ export const getAllProducts = catchAsync(async (req, res) => {
   });
 });
 
-export const getProductById = catchAsync<Request<commonSchema.getByIdParams>>(
-  async (req, res) => {
+export const getProductById: RequestHandler<commonSchema.getByIdParams> =
+  catchAsync(async (req, res) => {
     const { id } = req.params;
     const product = await prisma.product.findUniqueOrThrow({
       where: {
@@ -33,63 +33,63 @@ export const getProductById = catchAsync<Request<commonSchema.getByIdParams>>(
       status: "success",
       data: product,
     });
+  });
+
+export const getProductBySlug: RequestHandler<productSchema.ReadBySlugInput> =
+  catchAsync(async (req, res) => {
+    const { slug } = req.params;
+    const product = await prisma.product.findUniqueOrThrow({
+      where: {
+        slug,
+      },
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: product,
+    });
+  });
+
+export const getRelatedProducts: RequestHandler<commonSchema.getByIdParams> =
+  catchAsync(async (req, res) => {
+    const { id } = req.params;
+
+    const relatedProducts = await prisma.product.getRelatedProducts(id);
+    res.status(200).json({
+      status: "success",
+      data: relatedProducts,
+    });
+  });
+
+export const getProductsByCategoryName: RequestHandler<productSchema.ReadByNameInput> =
+  catchAsync(async (req, res) => {
+    const products = await prisma.product.getProductsByCategory(
+      req.params.category
+    );
+
+    res.status(200).json({
+      status: "success",
+      data: products,
+    });
+  });
+
+export const getShowCaseProducts: RequestHandler = catchAsync(
+  async (req, res) => {
+    const showCaseProducts = await prisma.product.getShowCaseProducts();
+    res.status(200).json({
+      status: "success",
+      data: showCaseProducts,
+    });
   }
 );
 
-export const getProductBySlug = catchAsync<
-  Request<productSchema.ReadBySlugInput>
->(async (req, res) => {
-  const { slug } = req.params;
-  const product = await prisma.product.findUniqueOrThrow({
-    where: {
-      slug,
-    },
-  });
+export const getFeaturedProduct: RequestHandler = catchAsync(
+  async (req, res) => {
+    const featuredProduct = await prisma.product.getFeaturedProduct();
 
-  res.status(200).json({
-    status: "success",
-    data: product,
-  });
-});
-
-export const getRelatedProducts = catchAsync<
-  Request<commonSchema.getByIdParams>
->(async (req, res) => {
-  const { id } = req.params;
-
-  const relatedProducts = await prisma.product.getRelatedProducts(id);
-  res.status(200).json({
-    status: "success",
-    data: relatedProducts,
-  });
-});
-
-export const getProductsByCategoryName = catchAsync<
-  Request<productSchema.ReadByNameInput>
->(async (req, res) => {
-  const products = await prisma.product.getProductsByCategory(
-    req.params.category
-  );
-
-  res.status(200).json({
-    status: "success",
-    data: products,
-  });
-});
-
-export const getShowCaseProducts = catchAsync(async (req, res) => {
-  const showCaseProducts = await prisma.product.getShowCaseProducts();
-  res.status(200).json({
-    status: "success",
-    data: showCaseProducts,
-  });
-});
-
-export const getFeaturedProduct = catchAsync(async (req, res) => {
-  const featuredProduct = await prisma.product.getFeaturedProduct();
-
-  res.status(200).json({
-    status: "success",
-    data: featuredProduct,
-  });
-});
+    res.status(200).json({
+      status: "success",
+      data: featuredProduct,
+    });
+  }
+);

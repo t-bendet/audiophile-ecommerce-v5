@@ -1,10 +1,11 @@
 import { ZodSchema } from "zod";
+import { RequestHandler } from "express";
 import AppError from "../utils/appError";
 import catchAsync from "../utils/catchAsync";
 
 // * Middleware to validate request body against a Zod schema
 
-export const validateSchema = (schema: ZodSchema) =>
+export const validateSchema = (schema: ZodSchema): RequestHandler =>
   catchAsync(async (req, _res, next) => {
     const parsedRequest = schema.safeParse({
       params: req.params,

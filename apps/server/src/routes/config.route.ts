@@ -4,7 +4,7 @@ import * as authController from "../controllers/auth.controller";
 import { validateSchema } from "../middlewares/validation.middleware";
 import * as configSchema from "../schemas/config.schema";
 
-const configRouter = express.Router();
+const configRouter: express.Router = express.Router();
 
 configRouter.get("/", configController.getConfig);
 

@@ -1,11 +1,11 @@
-import { Router } from "express";
+import express from "express";
 import categoryRouter from "./category.route";
 import productRouter from "./product.route";
 import userRouter from "./user.route";
 import configRouter from "./config.route";
 import authRouter from "./auth.route";
 
-const indexRoute = Router();
+const indexRoute: express.Router = express.Router();
 
 indexRoute.use("/users", userRouter);
 indexRoute.use("/auth", authRouter); // Assuming userRouter handles auth as well
