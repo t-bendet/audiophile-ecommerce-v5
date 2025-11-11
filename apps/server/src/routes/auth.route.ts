@@ -3,7 +3,7 @@ import * as authController from "../controllers/auth.controller";
 import { validateSchema } from "../middlewares/validation.middleware";
 import * as userSchema from "../schemas/user.schema";
 
-const authRouter = express.Router();
+const authRouter: express.Router = express.Router();
 
 // * AUTH ROUTES (open for all)
 

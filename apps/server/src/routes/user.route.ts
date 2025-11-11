@@ -5,7 +5,7 @@ import { validateSchema } from "../middlewares/validation.middleware";
 import * as userSchema from "../schemas/user.schema";
 import * as commonSchema from "../schemas/common.schema";
 
-const userRouter = express.Router();
+const userRouter: express.Router = express.Router();
 
 // * USER ROUTES (protected)
 

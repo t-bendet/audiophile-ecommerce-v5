@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import * as userSchema from "../schemas/user.schema";
 import AppError from "../utils/appError";
@@ -46,8 +46,8 @@ export const createAndSendToken = (
   });
 };
 
-export const signup = catchAsync<Request<{}, {}, userSchema.CreateInput>>(
-  async (req, res, next) => {
+export const signup: RequestHandler<{}, any, userSchema.CreateInput> =
+  catchAsync(async (req, res, next) => {
     const newUser = await prisma.user.create({
       data: {
         ...req.body,
@@ -55,10 +55,9 @@ export const signup = catchAsync<Request<{}, {}, userSchema.CreateInput>>(
     });
 
     createAndSendToken(newUser, 201, req, res);
-  }
-);
+  });
 
-export const login = catchAsync<Request<{}, {}, userSchema.ReadInput>>(
+export const login: RequestHandler<{}, any, userSchema.ReadInput> = catchAsync(
   async (req, res, next) => {
     const { email, password } = req.body;
     // * 2) Check if user exists && password is correct
@@ -87,56 +86,58 @@ export const logout = (_req: Request, res: Response) => {
   res.status(200).json({ statusText: "success", date: null });
 };
 
-export const authenticate = catchAsync(async (req, _res, next) => {
-  // * 1) Getting token and check if it's there
-  const { authorization } = req.headers;
-  let token;
-  if (authorization?.startsWith("Bearer")) {
-    token = authorization.replace("Bearer ", "");
-  } else if (req.cookies?.jwt) {
-    token = req.cookies.jwt;
-  }
-  if (!token) {
-    return next(
-      new AppError("You ar not logged in! Please log in to again access", 401)
-    );
-  }
+export const authenticate: RequestHandler = catchAsync(
+  async (req, _res, next) => {
+    // * 1) Getting token and check if it's there
+    const { authorization } = req.headers;
+    let token;
+    if (authorization?.startsWith("Bearer")) {
+      token = authorization.replace("Bearer ", "");
+    } else if (req.cookies?.jwt) {
+      token = req.cookies.jwt;
+    }
+    if (!token) {
+      return next(
+        new AppError("You ar not logged in! Please log in to again access", 401)
+      );
+    }
 
-  //* 2) Validate Token
-  const decoded = jwt.verify(token, env.JWT_SECRET);
-  if (!decoded || typeof decoded === "string") {
-    return next(new AppError("Invalid token", 401));
-  }
-  // //* 3) check if user still exists
-  const currentUser = await prisma.user.findUnique({
-    where: { id: decoded.id },
-  });
-  if (!currentUser) {
-    return next(
-      new AppError(
-        "The user belonging to this token does no longer exists",
-        401
-      )
+    //* 2) Validate Token
+    const decoded = jwt.verify(token, env.JWT_SECRET);
+    if (!decoded || typeof decoded === "string") {
+      return next(new AppError("Invalid token", 401));
+    }
+    // //* 3) check if user still exists
+    const currentUser = await prisma.user.findUnique({
+      where: { id: decoded.id },
+    });
+    if (!currentUser) {
+      return next(
+        new AppError(
+          "The user belonging to this token does no longer exists",
+          401
+        )
+      );
+    }
+    // //* 4) check if user changed password after the token was issued
+    const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
+      decoded.iat!,
+      currentUser.passwordChangedAt
     );
-  }
-  // //* 4) check if user changed password after the token was issued
-  const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
-    decoded.iat!,
-    currentUser.passwordChangedAt
-  );
-  if (hasPasswordChanged) {
-    return next(
-      new AppError(
-        "User recently changed password! Please log in to again",
-        401
-      )
-    );
-  }
+    if (hasPasswordChanged) {
+      return next(
+        new AppError(
+          "User recently changed password! Please log in to again",
+          401
+        )
+      );
+    }
 
-  req.user = currentUser;
+    req.user = currentUser;
 
-  return next();
-});
+    return next();
+  }
+);
 
 export const checkAuthorization = (
   ...roles: userSchema.UserPublicInfo["role"][]
@@ -152,9 +153,11 @@ export const checkAuthorization = (
   };
 };
 
-export const updatePassword = catchAsync<
-  Request<{}, {}, userSchema.UpdatePasswordInput>
->(async (req, res, next) => {
+export const updatePassword: RequestHandler<
+  {},
+  any,
+  userSchema.UpdatePasswordInput
+> = catchAsync(async (req, res, next) => {
   // 1) Get user from collection
   const { currentPassword, password, passwordConfirm } = req.body;
   const user = await prisma.user.findUniqueOrThrow({

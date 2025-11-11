@@ -4,7 +4,7 @@ import { validateSchema } from "../middlewares/validation.middleware";
 import * as commonSchema from "../schemas/common.schema";
 import * as productSchema from "../schemas/product.schema";
 
-const productRouter = express.Router();
+const productRouter: express.Router = express.Router();
 
 productRouter.param("id", validateSchema(commonSchema.GetByIdSchema));
 
