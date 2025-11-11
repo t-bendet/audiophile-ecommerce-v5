@@ -15,20 +15,12 @@ export type ProductCreateResult = Prisma.Result<
 
 // *  Product Read
 
-// TODO make category union dynamic
-
 export const ReadByNameSchema = z.object({
   params: z
     .object({
-      category: z.union([
-        z.literal("Headphones"),
-        z.literal("Earphones"),
-        z.literal("Speakers"),
-      ]),
+      category: z.enum(categorySchema.CategoryName),
     })
-    .strict() satisfies z.Schema<{
-    category: categorySchema.TCategoryName;
-  }>,
+    .strict(),
 });
 
 export type ReadByNameInput = z.infer<typeof ReadByNameSchema.shape.params>;
