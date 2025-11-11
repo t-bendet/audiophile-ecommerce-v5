@@ -24,7 +24,6 @@
 // TODO go over prisma relations
 // TODO go over prisma data types
 // TODO go over express basic principles
-// TODO go over pnpm workspaces
 
 // TODO consider if this asserts are useful, or if they are just a way to make typescript happy
 // type User = {

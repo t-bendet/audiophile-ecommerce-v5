@@ -1,7 +1,5 @@
 import z from "zod";
 
-// TODO consider moving types to a separate file and keeping only validators here
-
 export const IdValidator = (identifier: string = "Document") =>
   z
     .string({ message: `${identifier} Id is required` })
