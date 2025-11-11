@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Express } from "express";
 import globalErrorHandler from "./middlewares/error.middleware";
 import indexRoute from "./routes";
 import { UserPublicInfo } from "./schemas/user.schema";
@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-const app = express();
+const app: Express = express();
 app.set("query parser", "extended");
 
 app.use(express.json());
