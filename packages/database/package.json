@@ -9,7 +9,6 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx src/seed/index.ts",
-    "dev": "tsup src/* --watch",
     "format": "prisma format",
     "generate": "prisma generate",
     "lint": "eslint . --max-warnings 0",
@@ -31,8 +30,7 @@
     "eslint": "^8.57.0",
     "prisma": "latest",
     "rimraf": "^5.0.5",
-    "tsup": "^8.0.2",
-    "tsx": "^4.20.3",
+    "tsx": "^4.20.6",
     "typescript": "^5.8.3"
   },
   "prisma": {

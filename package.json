@@ -12,13 +12,14 @@
     "db:seed": "turbo run db:seed",
     "dev": "turbo run dev",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "dev:server": "pnpm --filter \"server\" run dev:start",
     "generate": "turbo run generate",
     "lint": "turbo run lint"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
     "prisma": "latest",
-    "tsx": "4.19.1",
+    "tsx": "^4.20.6",
     "turbo": "^2.6.0"
   },
   "engines": {
