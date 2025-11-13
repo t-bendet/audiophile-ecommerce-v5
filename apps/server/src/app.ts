@@ -1,8 +1,8 @@
 import express, { Express } from "express";
-import globalErrorHandler from "./middlewares/error.middleware";
-import indexRoute from "./routes";
-import { UserPublicInfo } from "./schemas/user.schema";
-import AppError from "./utils/appError";
+import globalErrorHandler from "./middlewares/error.middleware.js";
+import indexRoute from "./routes/index.js";
+import { UserPublicInfo } from "./schemas/user.schema.js";
+import AppError from "./utils/appError.js";
 
 declare global {
   namespace Express {

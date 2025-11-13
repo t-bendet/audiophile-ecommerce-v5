@@ -1,5 +1,5 @@
-import { prisma, Prisma } from "../../index";
-import { CategoryName, ReadOutput } from "./categories.seed";
+import { prisma, Prisma } from "../client.js";
+import { CategoryName, ReadOutput } from "./categories.seed.js";
 
 export type ProductCreateWithoutCategoryInput =
   Prisma.ProductCreateWithoutCategoryInput;

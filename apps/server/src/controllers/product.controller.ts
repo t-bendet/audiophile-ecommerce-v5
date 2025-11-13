@@ -1,9 +1,9 @@
 import { prisma } from "@repo/database";
 import { Request, RequestHandler } from "express";
-import * as commonSchema from "../schemas/common.schema";
-import * as productSchema from "../schemas/product.schema";
-import PrismaAPIFeatures from "../utils/apiFeatures";
-import catchAsync from "../utils/catchAsync";
+import * as commonSchema from "../schemas/common.schema.js";
+import * as productSchema from "../schemas/product.schema.js";
+import PrismaAPIFeatures from "../utils/apiFeatures.js";
+import catchAsync from "../utils/catchAsync.js";
 
 export const getAllProducts: RequestHandler = catchAsync(async (req, res) => {
   const query = new PrismaAPIFeatures(req.query)

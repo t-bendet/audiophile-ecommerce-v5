@@ -1,7 +1,7 @@
 import figlet from "figlet";
-import app from "./app";
+import app from "./app.js";
 import { prisma } from "@repo/database";
-import { env } from "./utils/env";
+import { env } from "./utils/env.js";
 
 const port = env.PORT;
 

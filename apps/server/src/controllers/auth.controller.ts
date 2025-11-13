@@ -1,10 +1,10 @@
 import { prisma } from "@repo/database";
 import { NextFunction, Request, Response, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-import * as userSchema from "../schemas/user.schema";
-import AppError from "../utils/appError";
-import catchAsync from "../utils/catchAsync";
-import { env } from "../utils/env";
+import * as userSchema from "../schemas/user.schema.js";
+import AppError from "../utils/appError.js";
+import catchAsync from "../utils/catchAsync.js";
+import { env } from "../utils/env.js";
 
 const signToken = (id: string) => {
   return jwt.sign({ id }, env.JWT_SECRET, {

@@ -1,8 +1,8 @@
-import { prisma } from "../../index";
-import seedCategories from "./categories.seed";
-import seedConfigs from "./config.seed";
-import seedProducts from "./products.seed";
-import seedUsers from "./users.seed";
+import { prisma } from "../client.js";
+import seedCategories from "./categories.seed.js";
+import seedConfigs from "./config.seed.js";
+import seedProducts from "./products.seed.js";
+import seedUsers from "./users.seed.js";
 
 async function main() {
   console.log(`Start dropping old DB ...`);

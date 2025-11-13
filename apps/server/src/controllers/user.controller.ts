@@ -1,9 +1,9 @@
 import { prisma } from "@repo/database";
 import { NextFunction, Request, Response, RequestHandler } from "express";
-import * as commonSchema from "../schemas/common.schema";
-import * as userSchema from "../schemas/user.schema";
-import PrismaAPIFeatures from "../utils/apiFeatures";
-import catchAsync from "../utils/catchAsync";
+import * as commonSchema from "../schemas/common.schema.js";
+import * as userSchema from "../schemas/user.schema.js";
+import PrismaAPIFeatures from "../utils/apiFeatures.js";
+import catchAsync from "../utils/catchAsync.js";
 
 export const getMe = (req: Request, _res: Response, next: NextFunction) => {
   req.params.id = req.user?.id!;

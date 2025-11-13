@@ -1,8 +1,15 @@
 {
   "name": "@repo/database",
   "version": "1.0.0",
+  "type": "module",
+  "main": "dist/src/client.js",
+  "types": "dist/src/client.d.ts",
   "exports": {
-    ".": "./src/client.ts"
+    ".": {
+      "import": "./dist/src/client.js",
+      "default": "./dist/src/client.js",
+      "types": "./dist/src/client.d.ts"
+    }
   },
   "scripts": {
     "db:migrate:deploy": "prisma migrate deploy",
@@ -11,9 +18,12 @@
     "db:seed": "tsx src/seed/index.ts",
     "format": "prisma format",
     "generate": "prisma generate",
+    "postgenerate": "node ./scripts/fix-prisma-imports-robust.cjs",
     "lint": "eslint . --max-warnings 0",
     "prebuild": "npm run generate",
     "predev": "npm run generate",
+    "build": "tsc -p tsconfig.build.json",
+    "postbuild": "node ./scripts/fix-prisma-imports-robust.cjs",
     "studio": "prisma studio"
   },
   "dependencies": {

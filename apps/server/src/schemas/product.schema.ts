@@ -1,6 +1,6 @@
 import { Prisma, prisma } from "@repo/database";
 import z from "zod";
-import * as categorySchema from "./category.schema";
+import * as categorySchema from "./category.schema.js";
 
 // ** Base Types
 
@@ -18,7 +18,9 @@ export type ProductCreateResult = Prisma.Result<
 export const ReadByNameSchema = z.object({
   params: z
     .object({
-      category: z.enum(categorySchema.CategoryName),
+      category: z.enum(
+        categorySchema.CategoryName as unknown as readonly string[]
+      ),
     })
     .strict(),
 });
