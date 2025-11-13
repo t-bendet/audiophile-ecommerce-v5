@@ -2,7 +2,8 @@
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
     "rootDir": ".",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
   "include": ["src/**/*.ts", "generated/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
