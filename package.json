@@ -6,12 +6,12 @@
   },
   "scripts": {
     "dev": "turbo run dev --parallel",
+    "start": "turbo run start --parallel",
     "dev:client": "pnpm --filter \"client\" run dev",
     "dev:server": "pnpm --filter \"server\" run dev",
     "prod:client": "pnpm --filter \"client\" run start",
     "prod:server": "pnpm --filter \"server\" run start",
     "build": "turbo run build",
-    "start": "turbo run start --parallel",
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
     "generate": "turbo run generate",
