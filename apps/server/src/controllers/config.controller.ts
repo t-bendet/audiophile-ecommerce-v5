@@ -1,7 +1,7 @@
 import { prisma } from "@repo/database";
 import { Request, RequestHandler } from "express";
-import * as configSchema from "../schemas/config.schema";
-import catchAsync from "../utils/catchAsync";
+import * as configSchema from "../schemas/config.schema.js";
+import catchAsync from "../utils/catchAsync.js";
 
 export const createConfig: RequestHandler<{}, any, configSchema.CreateInput> =
   catchAsync(async (req, res) => {

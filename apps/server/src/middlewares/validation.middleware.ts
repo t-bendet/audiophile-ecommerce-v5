@@ -1,7 +1,7 @@
 import { ZodSchema } from "zod";
 import { RequestHandler } from "express";
-import AppError from "../utils/appError";
-import catchAsync from "../utils/catchAsync";
+import AppError from "../utils/appError.js";
+import catchAsync from "../utils/catchAsync.js";
 
 // * Middleware to validate request body against a Zod schema
 

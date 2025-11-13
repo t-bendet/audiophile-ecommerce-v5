@@ -1,9 +1,9 @@
 import express from "express";
-import * as authController from "../controllers/auth.controller";
-import * as userController from "../controllers/user.controller";
-import { validateSchema } from "../middlewares/validation.middleware";
-import * as userSchema from "../schemas/user.schema";
-import * as commonSchema from "../schemas/common.schema";
+import * as authController from "../controllers/auth.controller.js";
+import * as userController from "../controllers/user.controller.js";
+import { validateSchema } from "../middlewares/validation.middleware.js";
+import * as userSchema from "../schemas/user.schema.js";
+import * as commonSchema from "../schemas/common.schema.js";
 
 const userRouter: express.Router = express.Router();
 

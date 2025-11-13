@@ -1,4 +1,4 @@
-import { prisma, Prisma } from "../../index";
+import { prisma, Prisma } from "../client.js";
 
 export type ProductCreateWithoutCategoryInput =
   Prisma.ProductCreateWithoutCategoryInput;

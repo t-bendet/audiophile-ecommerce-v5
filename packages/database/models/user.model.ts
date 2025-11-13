@@ -1,15 +1,16 @@
-import { Prisma } from "../generated/prisma/client";
+import { Prisma } from "../generated/prisma/client.js";
 import bcrypt from "bcrypt";
 
 const hashPassword = async (password: string) => {
   return await bcrypt.hash(password, 12);
 };
 
-export const UserExtensions = Prisma.defineExtension((client) => {
+export const UserExtensions = Prisma.defineExtension((client: any) => {
   return client.$extends({
     query: {
       user: {
-        $allOperations({ model: _model, operation, args, query }) {
+        $allOperations(params: any) {
+          const { model: _model, operation, args, query } = params;
           const findMethods = [
             "findFirst",
             "findMany",
@@ -34,13 +35,13 @@ export const UserExtensions = Prisma.defineExtension((client) => {
           return query(queryArgs);
         },
         // ** user input should be validated before this functions are called
-        async create({ args, query }) {
+        async create({ args, query }: any) {
           const hashedPassword = await hashPassword(args.data.password);
           args.data.password = hashedPassword;
           args.data.passwordConfirm = hashedPassword;
           return query(args);
         },
-        async update({ args, query }) {
+        async update({ args, query }: any) {
           // if password and password confirm exist ,iit can only be update password route
           if (args.data.password && args.data.passwordConfirm) {
             const hashedPassword = await hashPassword(

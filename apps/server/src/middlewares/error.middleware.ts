@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { Prisma } from "@repo/database";
-import AppError from "../utils/appError";
-import { env } from "../utils/env";
+import AppError from "../utils/appError.js";
+import { env } from "../utils/env.js";
 
 // TODO refactor response structure,so we need status ?,reshape the error object for a normal error response
 // https://www.youtube.com/watch?v=T4Q1NvSePxs
@@ -47,6 +47,45 @@ const sendErrorDev = (err: any, _req: Request, res: Response) => {
   });
 };
 
+// ------------------ Type guards ------------------
+const isPrismaKnownRequestError = (
+  err: unknown
+): err is Prisma.PrismaClientKnownRequestError => {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    ("code" in err || (err as any).name === "PrismaClientKnownRequestError")
+  );
+};
+
+const isPrismaValidationError = (
+  err: unknown
+): err is Prisma.PrismaClientValidationError => {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as any).name === "PrismaClientValidationError"
+  );
+};
+
+const isJwtError = (err: unknown): err is Error => {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    ((err as any).name === "JsonWebTokenError" ||
+      (err as any).name === "TokenExpiredError")
+  );
+};
+
+const isJwtExpiredError = (err: unknown): boolean => {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as any).name === "TokenExpiredError"
+  );
+};
+// -------------------------------------------------
+
 const sendErrorProd = (
   err: AppError | unknown,
   _req: Request,
@@ -76,25 +115,29 @@ export default (
   next: NextFunction
 ) => {
   if (env.NODE_ENV === "development") {
-    //* don't really need to check type for dev?
-    sendErrorDev(err, req, res);
-  } else if (env.NODE_ENV === "production") {
+    // show full error for development
+    sendErrorDev(err as any, req, res);
+    return;
+  }
+
+  if (env.NODE_ENV === "production") {
     let error: AppError | null = null;
 
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      if (err.code === "P2023") error = handleCastErrorDB(err); // PrismaClientKnownRequestError
-      if (err.code === "P2002") error = handleDuplicateFieldsDB(err); // PrismaClientKnownRequestError
-      if (err.code === "P2025") error = handleMissingDocumentDB(err); // PrismaClientKnownRequestError
+    if (isPrismaKnownRequestError(err)) {
+      if (err.code === "P2023") error = handleCastErrorDB(err);
+      if (err.code === "P2002") error = handleDuplicateFieldsDB(err);
+      if (err.code === "P2025") error = handleMissingDocumentDB(err);
     }
-    if (err instanceof Prisma.PrismaClientValidationError) {
-      error = handleValidationErrorDB(err); // PrismaClientValidationError
+
+    if (isPrismaValidationError(err)) {
+      error = handleValidationErrorDB(err);
     }
-    if (err instanceof JsonWebTokenError) {
-      if (err.name === "JsonWebTokenError") error = handleJWTError();
+
+    if (isJwtError(err)) {
+      if (isJwtExpiredError(err)) error = handleJWTExpiredError();
+      else error = handleJWTError();
     }
-    if (err instanceof TokenExpiredError) {
-      if (err.name === "TokenExpiredError") error = handleJWTExpiredError();
-    }
+
     if (err instanceof AppError) {
       error = err;
     }

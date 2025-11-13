@@ -1,4 +1,4 @@
-import { $Enums, prisma, Prisma } from "../../index";
+import { $Enums, prisma, Prisma } from "../client.js";
 
 export type CategoryCreateInput = Prisma.CategoryCreateInput;
 

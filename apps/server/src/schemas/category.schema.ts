@@ -1,10 +1,10 @@
-import { $Enums, NAME, Prisma, prisma } from "@repo/database";
+import { $Enums, Prisma, prisma } from "@repo/database";
 
 // ** Base Types
 
 export type TCategoryName = $Enums.NAME;
 
-export const CategoryName = Object.values(NAME);
+export const CategoryName = Object.values($Enums.NAME);
 
 export type CategoryCreateInput = Prisma.CategoryCreateInput;
 
