@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev:start": "nodemon --exec tsx src/index.ts",
+    "dev": "nodemon --exec tsx src/index.ts",
     "build": "tsc",
-    "prod:start": "node dist/src/index.js"
+    "start": "node dist/src/index.js"
   },
   "dependencies": {
     "@repo/database": "workspace:*",
