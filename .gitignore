@@ -33,3 +33,4 @@ yarn-error.log*
 .turbo
 apps/server/dist
 packages/database/dist
+packages/database/generated
