@@ -14,7 +14,7 @@
     "build": "turbo run build",
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
-    "generate": "turbo run generate",
+    "db:generate": "turbo run db:generate",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint"
   },
