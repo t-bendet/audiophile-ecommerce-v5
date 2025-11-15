@@ -11,6 +11,9 @@ importers:
       '@prisma/client':
         specifier: latest
         version: 6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3)
+      zod:
+        specifier: latest
+        version: 4.1.12
     devDependencies:
       prettier:
         specifier: ^3.2.5
@@ -145,6 +148,28 @@ importers:
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  packages/types:
+    dependencies:
+      zod:
+        specifier: latest
+        version: 4.1.12
+    devDependencies:
+      '@repo/database':
+        specifier: workspace:*
+        version: link:../database
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../config-eslint
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../config-typescript
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.1
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
