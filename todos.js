@@ -9,7 +9,6 @@
 
 // TODO add type folder for shared types, zod schemas, prisma types etc
 // TODO add web folder and react ts config
-// TODO rethink server database logic, after separating server and client, maybe move to a separate package
 // TODO the prisma client extensions and custom methods organization and usage across packages,check what types i am getting
 
 // ============================================================================
@@ -20,14 +19,12 @@
 //      Location: apps/server/src/utils/env.ts
 //      Note: The error is thrown inside the createEnv function
 
-// TODO consider prisma push when building a pros script, needed if there is no database
-// TODO prod script for database
+// TODO prod script for database -  add prisma push, needed if there is no database
 
 // ============================================================================
 // SERVER & API
 // ============================================================================
 
-// TODO go over server changes and make sure everything is optimal
 // TODO handel CORS in server
 // TODO implement forgot password and reset password
 // TODO switch to cloudinary upload images and products from dashboard? url or image upload
@@ -58,9 +55,8 @@
 // DATABASE & MODELS
 // ============================================================================
 
-// TODO product.model.ts and user.model.ts files changes, why any?!?!?
+// TODO Create a one to one relation with config
 //      Location: packages/database/models/product.model.ts
-//      Note: Create a one to one relation with config? This is a temporary solution
 // ** to product schema
 //           featuredProductId  String                  @db.ObjectId
 // featuredProduct  Product                 @relation(fields: [featuredProductId], references: [id])
@@ -144,16 +140,3 @@
 // TODO go over prisma relations (one to many, one to one, many to many)
 // TODO go over prisma data types
 // TODO go over express basic principles
-
-// ============================================================================
-// COMPLETED / ADDRESSED
-// ============================================================================
-
-// ✅ go over tsconfigs differences and make sure they are optimal
-//    Status: Standardized tsconfig.json and tsconfig.build.json for both server and database
-//    Date: 2025-11-13
-
-// ✅ fixprisma import check file
-//    Status: Implemented robust postgenerate/postbuild fixer for .js extensions
-//    Location: packages/database/scripts/fix-prisma-imports-robust.cjs
-//    Date: 2025-11-13
