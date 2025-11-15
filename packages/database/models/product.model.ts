@@ -64,7 +64,6 @@ export const ProductExtensions = Prisma.defineExtension((client: any) => {
           return relatedProducts;
         },
         async getShowCaseProducts() {
-          // TODO create a one to one relation with config? but this is a temporary solution
           const config = await client.config.findFirstOrThrow();
 
           type ShowCaseProductsKeys = keyof typeof config.showCaseProducts;
@@ -124,12 +123,6 @@ export const ProductExtensions = Prisma.defineExtension((client: any) => {
           return thisIsDisgusting;
         },
         async getFeaturedProduct() {
-          // TODO create a one to one relation with config,add this changes and test
-          // ** to product schema
-          //           featuredProductId  String                  @db.ObjectId
-          // featuredProduct  Product                 @relation(fields: [featuredProductId], references: [id])
-          // ** to config seed
-          //       featuredProductId: createdProductsMap["xx99 mark two headphones"],
           const config = await client.config.findFirstOrThrow();
 
           const product = await client.product.findFirstOrThrow({
