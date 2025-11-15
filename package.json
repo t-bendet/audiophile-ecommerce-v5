@@ -29,7 +29,8 @@
   },
   "name": "with-prisma",
   "dependencies": {
-    "@prisma/client": "latest"
+    "@prisma/client": "latest",
+    "zod": "latest"
   },
   "packageManager": "pnpm@10.14.0"
 }
