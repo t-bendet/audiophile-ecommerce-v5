@@ -34,3 +34,4 @@ yarn-error.log*
 apps/server/dist
 packages/database/dist
 packages/database/generated
+CONCEPTS.md
