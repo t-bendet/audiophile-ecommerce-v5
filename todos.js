@@ -10,6 +10,7 @@
 // TODO add type folder for shared types, zod schemas, prisma types etc
 // TODO add web folder and react ts config
 // TODO rethink server database logic, after separating server and client, maybe move to a separate package
+// TODO the prisma client extensions and custom methods organization and usage across packages,check what types i am getting
 
 // ============================================================================
 // BUILD & CONFIGURATION
