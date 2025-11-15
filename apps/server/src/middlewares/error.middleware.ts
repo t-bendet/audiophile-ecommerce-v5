@@ -1,12 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
 import { Prisma } from "@repo/database";
 import AppError from "../utils/appError.js";
 import { env } from "../utils/env.js";
-
-// TODO refactor response structure,so we need status ?,reshape the error object for a normal error response
-// https://www.youtube.com/watch?v=T4Q1NvSePxs
-// (e.g., "warning", "partial").
 
 const handleCastErrorDB = (err: Prisma.PrismaClientKnownRequestError) => {
   const message = `${err.meta?.message}`;
