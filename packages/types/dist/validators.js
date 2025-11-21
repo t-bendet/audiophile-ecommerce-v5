@@ -6,4 +6,15 @@ export const NameValidator = (identifier = "Document") => z
     .string({ message: `${identifier} Name is required` })
     .min(2)
     .max(30);
+export const EmailValidator = z
+    .string()
+    .email({ message: "Please provide a valid email!" });
+export const PasswordValidator = (identifier = "Password") => {
+    return z
+        .string({
+        message: `${identifier} is required`,
+    })
+        .min(8)
+        .max(20);
+};
 //# sourceMappingURL=validators.js.map

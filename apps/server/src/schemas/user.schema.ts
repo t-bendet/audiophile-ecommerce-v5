@@ -1,6 +1,11 @@
 import { $Enums, Prisma } from "@repo/database";
 import { z } from "zod";
-import { IdValidator, NameValidator } from "@repo/types";
+import {
+  IdValidator,
+  NameValidator,
+  PasswordValidator,
+  EmailValidator,
+} from "@repo/types";
 
 // ** Base Types
 
@@ -17,19 +22,6 @@ export type UserPublicInfo = Prisma.UserGetPayload<{
     active: true;
   };
 }>;
-
-// ** Base Validators
-
-const EmailValidator = z.email({ message: "Please provide a valid email!" });
-
-const PasswordValidator = (identifier: string = "Password") => {
-  return z
-    .string({
-      message: `${identifier} is required`,
-    })
-    .min(8)
-    .max(20);
-};
 
 // *  User Create
 
