@@ -33,6 +33,9 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@repo/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       dotenv:
         specifier: ^17.2.1
         version: 17.2.3
