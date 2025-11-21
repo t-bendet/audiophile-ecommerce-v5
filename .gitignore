@@ -39,3 +39,6 @@ packages/types/dist/api.js
 packages/types/dist/common.d.ts
 packages/types/dist/common.d.ts.map
 packages/types/dist/common.js
+packages/types/dist/validators.d.ts.map
+packages/types/dist/validators.d.ts
+packages/types/dist/validators.js
