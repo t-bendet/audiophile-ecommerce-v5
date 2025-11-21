@@ -9,13 +9,13 @@ const authRouter: express.Router = express.Router();
 
 authRouter.post(
   "/signup",
-  validateSchema(userSchema.CreateSchema),
+  validateSchema(userSchema.CreateUserSchema),
   authController.signup
 );
 
 authRouter.post(
   "/login",
-  validateSchema(userSchema.ReadSchema),
+  validateSchema(userSchema.LoginUserSchema),
   authController.login
 );
 
@@ -30,7 +30,7 @@ authRouter.get("/logout", authController.logout);
 
 authRouter.patch(
   "/updateMyPassword",
-  validateSchema(userSchema.UpdatePasswordSchema),
+  validateSchema(userSchema.UpdateUserPasswordSchema),
   authController.updatePassword
 );
 

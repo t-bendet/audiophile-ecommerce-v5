@@ -4,7 +4,7 @@ import { IdValidator, NameValidator } from "./common.schema.js";
 
 // *  Config Create
 
-export const CreateSchema = z.object({
+export const CreateConfigSchema = z.object({
   body: z
     .object({
       name: NameValidator("Config"),
@@ -21,4 +21,4 @@ export const CreateSchema = z.object({
     .strict() satisfies z.Schema<Prisma.ConfigCreateInput>,
 });
 
-export type CreateInput = z.infer<typeof CreateSchema.shape.body>;
+export type CreateConfigInput = z.infer<typeof CreateConfigSchema.shape.body>;

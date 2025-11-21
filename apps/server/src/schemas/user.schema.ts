@@ -4,7 +4,7 @@ import { IdValidator, NameValidator } from "./common.schema.js";
 
 // ** Base Types
 
-type UserRole = $Enums.ROLE;
+type TUserRole = $Enums.ROLE;
 
 type UserUpdateInput = Prisma.UserUpdateInput;
 
@@ -20,9 +20,7 @@ export type UserPublicInfo = Prisma.UserGetPayload<{
 
 // ** Base Validators
 
-const EmailValidator = z
-  .string({ message: "Email is required" })
-  .email("Please provide a valid email!");
+const EmailValidator = z.email({ message: "Please provide a valid email!" });
 
 const PasswordValidator = (identifier: string = "Password") => {
   return z
@@ -35,7 +33,7 @@ const PasswordValidator = (identifier: string = "Password") => {
 
 // *  User Create
 
-export const CreateSchema = z.object({
+export const CreateUserSchema = z.object({
   body: z
     .object({
       name: NameValidator("User"),
@@ -51,11 +49,11 @@ export const CreateSchema = z.object({
     }) satisfies z.Schema<UserCreateInput>,
 });
 
-export type CreateInput = z.infer<typeof CreateSchema.shape.body>;
+export type CreateUserInput = z.infer<typeof CreateUserSchema.shape.body>;
 
 // *  User Read
 
-export const ReadSchema = z.object({
+export const LoginUserSchema = z.object({
   body: z
     .object({
       email: EmailValidator,
@@ -64,15 +62,15 @@ export const ReadSchema = z.object({
     .strict() satisfies z.Schema<UserUpdateInput>,
 }); //
 
-export type ReadInput = z.infer<typeof ReadSchema.shape.body>;
+export type LoginUserInput = z.infer<typeof LoginUserSchema.shape.body>;
 
 // type ReadOutput = Prisma.Result<typeof prisma.user, UserCreateInput, "create">;
 
-export const ReadPublicOutput = z
+export const UserPublicOutput = z
   .object({
     id: IdValidator("User"),
     name: NameValidator("User"),
-    role: z.custom<UserRole>(),
+    role: z.custom<TUserRole>(),
     email: EmailValidator,
     passwordChangedAt: z.date(),
     passwordResetToken: z.string().nullable(),
@@ -85,7 +83,7 @@ export const ReadPublicOutput = z
 
 //* User Update
 
-export const UpdateDetailsSchema = z.object({
+export const UpdateUserDetailsSchema = z.object({
   body: z
     .object({
       name: NameValidator("User").optional(),
@@ -94,9 +92,11 @@ export const UpdateDetailsSchema = z.object({
     .strict() satisfies z.Schema<UserUpdateInput>,
 });
 
-export type UpdateDetailsInput = z.infer<typeof UpdateDetailsSchema.shape.body>;
+export type UpdateUserDetailsInput = z.infer<
+  typeof UpdateUserDetailsSchema.shape.body
+>;
 
-export const UpdatePasswordSchema = z.object({
+export const UpdateUserPasswordSchema = z.object({
   body: z
     .object({
       currentPassword: PasswordValidator("Current Password"),
@@ -111,6 +111,6 @@ export const UpdatePasswordSchema = z.object({
     }) satisfies z.Schema<UserUpdateInput>,
 });
 
-export type UpdatePasswordInput = z.infer<
-  typeof UpdatePasswordSchema.shape.body
+export type UpdateUserPasswordInput = z.infer<
+  typeof UpdateUserPasswordSchema.shape.body
 >;

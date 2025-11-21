@@ -19,4 +19,4 @@ export const GetByIdSchema = z.object({
     .strict(),
 });
 
-export type getByIdParams = z.infer<typeof GetByIdSchema>["params"];
+export type GetByIdParams = z.infer<typeof GetByIdSchema>["params"];
