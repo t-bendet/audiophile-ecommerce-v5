@@ -1,12 +1,6 @@
 import z from "zod";
 import { IdValidator } from "./validators.js";
 
-// ** Common Types (single field types and interfaces - TCategoryName)
-
-// Common Param Types
-
-// Common schemas(get,create, update, delete)
-
 export const GetByIdSchema = z.object({
   params: z
     .object({
@@ -29,28 +23,16 @@ export type GetByIdParams = z.infer<typeof GetByIdSchema>["params"];
 // Schema: <Verb><Entity>[By<Field>]Schema
 // Params: <Verb><Entity>[By<Field>]Params
 // Body Input: <Verb><Entity>Input
+// GetProductBySlugSchema → GetProductBySlugParams
 
-// params is used on controllers
-// schema is used on routes middlewares
-
+// on server params is used on controllers
+// on server schema is used on routes middlewares
 // on front end we need the body,response and params for each request
 
-// PostCategorySchema
-// PostCategoryInput
-// PostCategoryResult
-// PostCategoryParams (not sure all of this is needed in general types,consider moving to server/web only if needed)
-
-// Common
-// GetByIdSchema → GetByIdParams
-
-// Product
-// GetProductBySlugSchema → GetProductBySlugParams
-// GetProductsByCategorySchema → GetProductsByCategoryParams
-
-// User
-// CreateUserSchema → CreateUserInput
-// UpdateUserDetailsSchema → UpdateUserDetailsInput
-// UpdateUserPasswordSchema → UpdateUserPasswordInput
+// CreateCategorySchema
+// CreateCategoryInput
+// CreateCategoryResult
+// CreateCategoryParams (not sure all of this is needed in general types,consider moving to server/web only if needed)
 
 // Auth (special case - use domain verbs)
 // LoginUserSchema → LoginUserInput  // ✅ (not GetUser - login is the action)
