@@ -4,7 +4,10 @@ import { $Enums, Prisma } from "@repo/database";
 
 export type TCategoryName = $Enums.NAME;
 
-export const CategoryNameValues = Object.values($Enums.NAME);
+export const CategoryNameValues = Object.values($Enums.NAME) as [
+  $Enums.NAME,
+  ...$Enums.NAME[],
+];
 
 export type CategoryCreateInput = Prisma.CategoryCreateInput;
 

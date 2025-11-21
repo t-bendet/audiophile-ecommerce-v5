@@ -21,9 +21,7 @@ export type ProductCreateResult = Prisma.ProductGetPayload<{
 export const ReadProductsByCategorySchema = z.object({
   params: z
     .object({
-      category: z.enum(
-        categorySchema.CategoryNameValues as unknown as readonly string[]
-      ),
+      category: z.enum(categorySchema.CategoryNameValues),
     })
     .strict(),
 });
