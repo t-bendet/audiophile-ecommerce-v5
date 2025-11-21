@@ -36,3 +36,5 @@ packages/database/dist
 packages/database/generated
 CONCEPTS.md
 packages/types/dist/api.js
+packages/types/dist/common.d.ts
+packages/types/dist/common.d.ts.map

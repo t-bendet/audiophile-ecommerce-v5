@@ -1,4 +1,4 @@
-import { $Enums, Prisma, prisma } from "@repo/database";
+import { $Enums, Prisma } from "@repo/database";
 
 // ** Base Types
 
@@ -10,8 +10,4 @@ export type CategoryCreateInput = Prisma.CategoryCreateInput;
 
 // *  Category Read
 
-export type CategoryCreateResult = Prisma.Result<
-  typeof prisma.category,
-  CategoryCreateInput,
-  "create"
->;
+export type CategoryCreateResult = Prisma.CategoryGetPayload<{}>;

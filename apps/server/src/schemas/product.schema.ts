@@ -1,4 +1,4 @@
-import { Prisma, prisma } from "@repo/database";
+import { Prisma } from "@repo/database";
 import z from "zod";
 import * as categorySchema from "./category.schema.js";
 
@@ -7,11 +7,14 @@ import * as categorySchema from "./category.schema.js";
 export type ProductCreateWithoutCategoryInput =
   Prisma.ProductCreateWithoutCategoryInput;
 
-export type ProductCreateResult = Prisma.Result<
-  typeof prisma.product,
-  ProductCreateWithoutCategoryInput,
-  "create"
->;
+// Use a simpler type instead of Prisma.Result since we can't rely on runtime prisma instance for types
+export type ProductCreateResult = Prisma.ProductGetPayload<{
+  include: {
+    category: true;
+    images: true;
+    includedItems: true;
+  };
+}>;
 
 // *  Product Read
 
