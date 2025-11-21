@@ -11,9 +11,9 @@ export const NameValidator = (identifier: string = "Document") =>
     .min(2)
     .max(30);
 
-export const EmailValidator = z
-  .string()
-  .email({ message: "Please provide a valid email!" });
+export const EmailValidator = z.email({
+  message: "Please provide a valid email!",
+});
 
 export const PasswordValidator = (identifier: string = "Password") => {
   return z
