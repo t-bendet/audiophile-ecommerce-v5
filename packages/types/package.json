@@ -3,10 +3,19 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    "api": "./src/api.ts",
-    "user": "./src/user.ts"
+    ".": "./dist/index.js",
+    "./api": "./dist/api.js",
+    "./user": "./dist/user.js",
+    "./validators": "./dist/validators.js"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rimraf dist",
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
