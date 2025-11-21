@@ -20,4 +20,6 @@ export type getByIdParams = z.infer<typeof GetByIdSchema>["params"];
 // params is used on controllers
 // schema is used on routes middlewares
 
+// on front end we need the body,response and params for each request
+
 // types (input / output, create, read, update, delete)
