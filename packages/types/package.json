@@ -10,7 +10,8 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
-    "zod": "latest"
+    "zod": "latest",
+    "@repo/database": "workspace:*"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
