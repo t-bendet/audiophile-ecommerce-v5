@@ -20,7 +20,7 @@ export const getAllProducts: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
-export const getProductById: RequestHandler<commonSchema.getByIdParams> =
+export const getProductById: RequestHandler<commonSchema.GetByIdParams> =
   catchAsync(async (req, res) => {
     const { id } = req.params;
     const product = await prisma.product.findUniqueOrThrow({
@@ -35,7 +35,7 @@ export const getProductById: RequestHandler<commonSchema.getByIdParams> =
     });
   });
 
-export const getProductBySlug: RequestHandler<productSchema.ReadBySlugInput> =
+export const getProductBySlug: RequestHandler<productSchema.ReadProductBySlugParams> =
   catchAsync(async (req, res) => {
     const { slug } = req.params;
     const product = await prisma.product.findUniqueOrThrow({
@@ -50,7 +50,7 @@ export const getProductBySlug: RequestHandler<productSchema.ReadBySlugInput> =
     });
   });
 
-export const getRelatedProducts: RequestHandler<commonSchema.getByIdParams> =
+export const getRelatedProducts: RequestHandler<commonSchema.GetByIdParams> =
   catchAsync(async (req, res) => {
     const { id } = req.params;
 
@@ -61,7 +61,7 @@ export const getRelatedProducts: RequestHandler<commonSchema.getByIdParams> =
     });
   });
 
-export const getProductsByCategoryName: RequestHandler<productSchema.ReadByNameInput> =
+export const getProductsByCategoryName: RequestHandler<productSchema.ReadProductsByCategoryParams> =
   catchAsync(async (req, res) => {
     const products = await prisma.product.getProductsByCategory(
       req.params.category

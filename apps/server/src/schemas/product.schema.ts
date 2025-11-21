@@ -15,19 +15,21 @@ export type ProductCreateResult = Prisma.Result<
 
 // *  Product Read
 
-export const ReadByNameSchema = z.object({
+export const ReadProductsByCategorySchema = z.object({
   params: z
     .object({
       category: z.enum(
-        categorySchema.CategoryName as unknown as readonly string[]
+        categorySchema.CategoryNameValues as unknown as readonly string[]
       ),
     })
     .strict(),
 });
 
-export type ReadByNameInput = z.infer<typeof ReadByNameSchema.shape.params>;
+export type ReadProductsByCategoryParams = z.infer<
+  typeof ReadProductsByCategorySchema.shape.params
+>;
 
-export const ReadBySlugSchema = z.object({
+export const ReadProductBySlugSchema = z.object({
   params: z
     .object({
       slug: z.string().min(1, "Slug is required"),
@@ -35,4 +37,6 @@ export const ReadBySlugSchema = z.object({
     .strict(),
 });
 
-export type ReadBySlugInput = z.infer<typeof ReadBySlugSchema.shape.params>;
+export type ReadProductBySlugParams = z.infer<
+  typeof ReadProductBySlugSchema.shape.params
+>;

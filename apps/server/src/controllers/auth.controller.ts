@@ -46,7 +46,7 @@ export const createAndSendToken = (
   });
 };
 
-export const signup: RequestHandler<{}, any, userSchema.CreateInput> =
+export const signup: RequestHandler<{}, any, userSchema.CreateUserInput> =
   catchAsync(async (req, res, next) => {
     const newUser = await prisma.user.create({
       data: {
@@ -57,8 +57,8 @@ export const signup: RequestHandler<{}, any, userSchema.CreateInput> =
     createAndSendToken(newUser, 201, req, res);
   });
 
-export const login: RequestHandler<{}, any, userSchema.ReadInput> = catchAsync(
-  async (req, res, next) => {
+export const login: RequestHandler<{}, any, userSchema.LoginUserInput> =
+  catchAsync(async (req, res, next) => {
     const { email, password } = req.body;
     // * 2) Check if user exists && password is correct
     const user = await prisma.user.findUniqueOrThrow({
@@ -75,8 +75,7 @@ export const login: RequestHandler<{}, any, userSchema.ReadInput> = catchAsync(
     const { password: _, ...userWithoutPassword } = user;
     // * 3) Return new token to client
     createAndSendToken(userWithoutPassword, 200, req, res);
-  }
-);
+  });
 
 export const logout = (_req: Request, res: Response) => {
   res.cookie("jwt", "loggedout", {
@@ -156,7 +155,7 @@ export const checkAuthorization = (
 export const updatePassword: RequestHandler<
   {},
   any,
-  userSchema.UpdatePasswordInput
+  userSchema.UpdateUserPasswordInput
 > = catchAsync(async (req, res, next) => {
   // 1) Get user from collection
   const { currentPassword, password, passwordConfirm } = req.body;

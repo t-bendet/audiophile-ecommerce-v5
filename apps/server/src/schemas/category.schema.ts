@@ -4,13 +4,13 @@ import { $Enums, Prisma, prisma } from "@repo/database";
 
 export type TCategoryName = $Enums.NAME;
 
-export const CategoryName = Object.values($Enums.NAME);
+export const CategoryNameValues = Object.values($Enums.NAME);
 
 export type CategoryCreateInput = Prisma.CategoryCreateInput;
 
 // *  Category Read
 
-export type ReadOutput = Prisma.Result<
+export type CategoryCreateResult = Prisma.Result<
   typeof prisma.category,
   CategoryCreateInput,
   "create"

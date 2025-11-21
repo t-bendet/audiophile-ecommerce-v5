@@ -15,7 +15,7 @@ userRouter.get("/me", userController.getMe, userController.getUser);
 
 userRouter.patch(
   "/updateMe",
-  validateSchema(userSchema.UpdateDetailsSchema),
+  validateSchema(userSchema.UpdateUserDetailsSchema),
   userController.updateMe
 );
 

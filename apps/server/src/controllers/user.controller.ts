@@ -11,7 +11,7 @@ export const getMe = (req: Request, _res: Response, next: NextFunction) => {
 };
 
 // Get a single user
-export const getUser: RequestHandler<commonSchema.getByIdParams> = catchAsync(
+export const getUser: RequestHandler<commonSchema.GetByIdParams> = catchAsync(
   async (req, res, _next) => {
     const { id } = req.params;
     const user = await prisma.user.findUniqueOrThrow({
@@ -61,7 +61,7 @@ export const getAllUsers: RequestHandler = catchAsync(
 );
 
 // deleting a user
-export const deleteUser: RequestHandler<commonSchema.getByIdParams> =
+export const deleteUser: RequestHandler<commonSchema.GetByIdParams> =
   catchAsync(async (req, res, next) => {
     const { id } = req.params;
 
@@ -78,7 +78,7 @@ export const deleteUser: RequestHandler<commonSchema.getByIdParams> =
   });
 
 // updating a single user
-export const updateUser: RequestHandler<commonSchema.getByIdParams> =
+export const updateUser: RequestHandler<commonSchema.GetByIdParams> =
   catchAsync(async (req, res, next) => {
     const { id } = req.params;
 
@@ -98,7 +98,7 @@ export const updateUser: RequestHandler<commonSchema.getByIdParams> =
 export const updateMe: RequestHandler<
   {},
   any,
-  userSchema.UpdateDetailsInput,
+  userSchema.UpdateUserDetailsInput,
   {},
   { user: userSchema.UserPublicInfo }
 > = catchAsync(async (req, res, _next) => {

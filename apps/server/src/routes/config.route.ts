@@ -16,7 +16,7 @@ configRouter.use(
 
 configRouter.post(
   "/",
-  validateSchema(configSchema.CreateSchema),
+  validateSchema(configSchema.CreateConfigSchema),
   configController.createConfig
 );
 

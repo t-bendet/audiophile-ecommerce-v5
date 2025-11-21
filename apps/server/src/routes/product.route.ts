@@ -19,7 +19,7 @@ productRouter
 productRouter
   .route("/category/:category")
   .get(
-    validateSchema(productSchema.ReadByNameSchema),
+    validateSchema(productSchema.ReadProductsByCategorySchema),
     productController.getProductsByCategoryName
   );
 
@@ -28,7 +28,7 @@ productRouter.route("/:id").get(productController.getProductById);
 productRouter
   .route("/slug/:slug")
   .get(
-    validateSchema(productSchema.ReadBySlugSchema),
+    validateSchema(productSchema.ReadProductBySlugSchema),
     productController.getProductBySlug
   );
 
