@@ -9,8 +9,8 @@ export const CategoryNameValues = Object.values($Enums.NAME) as [
   ...$Enums.NAME[],
 ];
 
-export type CategoryCreateInput = Prisma.CategoryCreateInput;
+export type CreateCategoryInput = Prisma.CategoryCreateInput;
 
 // *  Category Read
 
-export type CategoryCreateResult = Prisma.CategoryGetPayload<{}>;
+export type CreateCategoryResult = Prisma.CategoryGetPayload<{}>;
