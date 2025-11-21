@@ -75,3 +75,4 @@ export const UpdatePasswordSchema = z.object({
         path: ["password match"],
     }),
 });
+//# sourceMappingURL=user.js.map

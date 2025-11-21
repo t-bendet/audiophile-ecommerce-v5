@@ -2,17 +2,18 @@
   "name": "@repo/types",
   "version": "0.0.0",
   "type": "module",
-  "exports": {
-    ".": "./dist/index.js",
-    "./api": "./dist/api.js",
-    "./user": "./dist/user.js",
-    "./validators": "./dist/validators.js"
-  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./validators": {
+      "import": "./dist/validators.js",
+      "types": "./dist/validators.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf dist",
