@@ -1,4 +1,4 @@
-import { $Enums, Prisma } from "@repo/database";
+import { $Enums } from "@repo/database";
 
 // ** Base Types
 
@@ -9,8 +9,6 @@ export const CategoryNameValues = Object.values($Enums.NAME) as [
   ...$Enums.NAME[],
 ];
 
-export type CreateCategoryInput = Prisma.CategoryCreateInput;
+// export type CreateCategoryInput = Prisma.CategoryCreateInput;
 
-// *  Category Read
-
-export type CreateCategoryResult = Prisma.CategoryGetPayload<{}>;
+// export type CreateCategoryResult = Prisma.CategoryGetPayload<{}>;
