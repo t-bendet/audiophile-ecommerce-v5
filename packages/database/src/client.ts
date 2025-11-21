@@ -1,28 +1,29 @@
 import { PrismaClient } from "../generated/prisma/client.js";
 import { ProductExtensions } from "../models/product.model.js";
 import { UserExtensions } from "../models/user.model.js";
-// Instantiate the extended Prisma client to infer its type
-const extendedPrisma = new PrismaClient({
-  omit: {
-    user: { password: true, passwordConfirm: true, active: true },
-  },
-})
-  .$extends(UserExtensions)
-  .$extends(ProductExtensions);
 
-type ExtendedPrismaClient = typeof extendedPrisma;
+// Factory function to create extended Prisma client
+function createPrismaClient() {
+  const client = new PrismaClient({
+    omit: {
+      user: { password: true, passwordConfirm: true, active: true },
+    },
+  });
+
+  return client.$extends(UserExtensions).$extends(ProductExtensions);
+}
+
+// Infer type from factory return
+export type ExtendedPrismaClient = ReturnType<typeof createPrismaClient>;
 
 // Use globalThis for broader environment compatibility
-
-// const globalForPrisma = global as unknown as { prisma: ExtendedPrismaClient };
-
 const globalForPrisma = globalThis as typeof globalThis & {
-  prisma: ExtendedPrismaClient;
+  prisma: ExtendedPrismaClient | undefined;
 };
 
 // Named export with global memoization
 export const prisma: ExtendedPrismaClient =
-  globalForPrisma.prisma || extendedPrisma;
+  globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
