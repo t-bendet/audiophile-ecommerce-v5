@@ -6,3 +6,4 @@ export const NameValidator = (identifier = "Document") => z
     .string({ message: `${identifier} Name is required` })
     .min(2)
     .max(30);
+//# sourceMappingURL=validators.js.map

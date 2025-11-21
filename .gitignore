@@ -35,3 +35,4 @@ apps/server/dist
 packages/database/dist
 packages/database/generated
 CONCEPTS.md
+packages/types/dist/api.js
