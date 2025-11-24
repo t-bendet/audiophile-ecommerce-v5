@@ -1,8 +1,6 @@
 import { Prisma } from "@repo/database";
-import z from "zod";
+import { z } from "zod";
 import { IdValidator, NameValidator } from "@repo/validators";
-
-// *  Config Create
 
 export const CreateConfigSchema = z.object({
   body: z

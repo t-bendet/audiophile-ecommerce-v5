@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import { IdValidator } from "@repo/validators";
 
 export const GetByIdSchema = z.object({

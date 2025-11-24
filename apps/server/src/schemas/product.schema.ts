@@ -1,6 +1,6 @@
 import { Prisma } from "@repo/database";
 import z from "zod";
-import { CategoryNameValues } from "@repo/schemas/category";
+import { CategoryNameValues } from "@repo/domain";
 
 // ** Base Types
 
