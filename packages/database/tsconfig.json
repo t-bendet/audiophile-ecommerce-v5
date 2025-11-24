@@ -3,8 +3,15 @@
   "compilerOptions": {
     "rootDir": ".",
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    "composite": true,
+    "outDir": "dist"
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "generated/**"]
+  "include": [
+    "src/**/*.ts",
+    "models/**/*.ts",
+    "prisma.config.ts",
+    "generated/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", ".turbo/**"]
 }

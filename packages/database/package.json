@@ -27,7 +27,6 @@
   "dependencies": {
     "@prisma/client": "^6.19.0",
     "bcrypt": "^6.0.0",
-    "bcryptjs": "^3.0.2",
     "slugify": "^1.6.6"
   },
   "devDependencies": {
