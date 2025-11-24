@@ -1,6 +1,6 @@
 import { Prisma } from "@repo/database";
 import z from "zod";
-import { IdValidator, NameValidator } from "@repo/schemas";
+import { IdValidator, NameValidator } from "@repo/schemas/validators";
 
 // *  Config Create
 

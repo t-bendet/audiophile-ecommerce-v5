@@ -5,7 +5,7 @@ import {
   NameValidator,
   PasswordValidator,
   EmailValidator,
-} from "@repo/schemas";
+} from "@repo/schemas/validators";
 
 // ** Base Types
 

@@ -16,6 +16,10 @@
     "./category": {
       "import": "./dist/category.js",
       "types": "./dist/category.d.ts"
+    },
+    "./common": {
+      "import": "./dist/common.js",
+      "types": "./dist/common.d.ts"
     }
   },
   "scripts": {
