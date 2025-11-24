@@ -1,6 +1,6 @@
 import { Prisma } from "@repo/database";
 import z from "zod";
-import * as categorySchema from "./category.schema.js";
+import { CategoryNameValues } from "@repo/schemas/category";
 
 // ** Base Types
 
@@ -21,7 +21,7 @@ export type ProductCreateResult = Prisma.ProductGetPayload<{
 export const ReadProductsByCategorySchema = z.object({
   params: z
     .object({
-      category: z.enum(categorySchema.CategoryNameValues),
+      category: z.enum(CategoryNameValues),
     })
     .strict(),
 });
