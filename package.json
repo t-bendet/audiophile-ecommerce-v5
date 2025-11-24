@@ -21,6 +21,6 @@
   "engines": {
     "node": ">=18"
   },
-  "name": "with-prisma",
+  "name": "audiophile-ecommerce-v5",
   "packageManager": "pnpm@10.14.0"
 }
