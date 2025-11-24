@@ -3,13 +3,13 @@ import { z } from "zod";
 import {
   IdValidator,
   NameValidator,
-  PasswordValidator,
   EmailValidator,
+  PasswordValidator,
 } from "@repo/validators";
 
 // ** Base Types
 
-type TUserRole = $Enums.ROLE;
+export type TUserRole = $Enums.ROLE;
 
 type UserUpdateInput = Prisma.UserUpdateInput;
 
@@ -23,7 +23,7 @@ export type UserPublicInfo = Prisma.UserGetPayload<{
   };
 }>;
 
-// *  User Create
+// ** Schemas
 
 export const CreateUserSchema = z.object({
   body: z
@@ -33,7 +33,7 @@ export const CreateUserSchema = z.object({
       password: PasswordValidator(),
       passwordConfirm: PasswordValidator("Password confirm"),
     })
-    .strict() // strict mode
+    .strict()
     .refine((data) => data.password === data.passwordConfirm, {
       message: "Password and PasswordConfirm must match!",
       params: { passwordConfirm: "passwordConfirm" },
@@ -43,8 +43,6 @@ export const CreateUserSchema = z.object({
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema.shape.body>;
 
-// *  User Read
-
 export const LoginUserSchema = z.object({
   body: z
     .object({
@@ -52,11 +50,9 @@ export const LoginUserSchema = z.object({
       password: PasswordValidator(),
     })
     .strict() satisfies z.Schema<UserUpdateInput>,
-}); //
+});
 
 export type LoginUserInput = z.infer<typeof LoginUserSchema.shape.body>;
-
-// type ReadOutput = Prisma.Result<typeof prisma.user, UserCreateInput, "create">;
 
 export const UserPublicOutput = z
   .object({
@@ -72,8 +68,6 @@ export const UserPublicOutput = z
     v: z.number(),
   })
   .strict() satisfies z.Schema<UserPublicInfo>;
-
-//* User Update
 
 export const UpdateUserDetailsSchema = z.object({
   body: z

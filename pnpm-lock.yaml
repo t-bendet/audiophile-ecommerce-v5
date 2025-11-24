@@ -33,9 +33,12 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@repo/schemas':
+      '@repo/domain':
         specifier: workspace:*
-        version: link:../../packages/schemas
+        version: link:../../packages/domain
+      '@repo/validators':
+        specifier: workspace:*
+        version: link:../../packages/validators
       dotenv:
         specifier: ^17.2.1
         version: 17.2.3
@@ -155,11 +158,55 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  packages/domain:
+    dependencies:
+      '@repo/database':
+        specifier: workspace:*
+        version: link:../database
+      '@repo/validators':
+        specifier: workspace:*
+        version: link:../validators
+      zod:
+        specifier: latest
+        version: 4.1.13
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../config-eslint
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../config-typescript
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.1
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   packages/schemas:
     dependencies:
       '@repo/database':
         specifier: workspace:*
         version: link:../database
+      zod:
+        specifier: latest
+        version: 4.1.13
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../config-eslint
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../config-typescript
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.1
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  packages/validators:
+    dependencies:
       zod:
         specifier: latest
         version: 4.1.13
