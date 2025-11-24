@@ -1,7 +1,11 @@
 import express from "express";
 import * as authController from "../controllers/auth.controller.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
-import * as userSchema from "../schemas/user.schema.js";
+import {
+  CreateUserSchema,
+  LoginUserSchema,
+  UpdateUserPasswordSchema,
+} from "@repo/domain";
 
 const authRouter: express.Router = express.Router();
 
@@ -9,13 +13,13 @@ const authRouter: express.Router = express.Router();
 
 authRouter.post(
   "/signup",
-  validateSchema(userSchema.CreateUserSchema),
+  validateSchema(CreateUserSchema),
   authController.signup
 );
 
 authRouter.post(
   "/login",
-  validateSchema(userSchema.LoginUserSchema),
+  validateSchema(LoginUserSchema),
   authController.login
 );
 
@@ -30,7 +34,7 @@ authRouter.get("/logout", authController.logout);
 
 authRouter.patch(
   "/updateMyPassword",
-  validateSchema(userSchema.UpdateUserPasswordSchema),
+  validateSchema(UpdateUserPasswordSchema),
   authController.updatePassword
 );
 

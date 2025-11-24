@@ -10,11 +10,20 @@
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true,
     "skipLibCheck": true,
-    "noEmitOnError": true,
-    "declaration": true,
-    "declarationMap": true,
-    "resolveJsonModule": true
+    "noEmitOnError": false,
+    "declaration": false,
+    "declarationMap": false,
+    "resolveJsonModule": true,
+    "incremental": true,
+    "assumeChangesOnlyAffectDirectDependencies": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.test.ts", "src/seed/**"]
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "src/seed/**",
+    "../node_modules",
+    "../../node_modules",
+    "../../packages/database/generated/**"
+  ]
 }

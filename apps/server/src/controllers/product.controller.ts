@@ -1,7 +1,10 @@
 import { prisma } from "@repo/database";
 import { Request, RequestHandler } from "express";
-import * as commonSchema from "../schemas/common.schema.js";
-import * as productSchema from "../schemas/product.schema.js";
+import {
+  GetByIdParams,
+  GetProductBySlugParams,
+  GetProductsByCategoryParams,
+} from "@repo/domain";
 import PrismaAPIFeatures from "../utils/apiFeatures.js";
 import catchAsync from "../utils/catchAsync.js";
 
@@ -20,8 +23,8 @@ export const getAllProducts: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
-export const getProductById: RequestHandler<commonSchema.GetByIdParams> =
-  catchAsync(async (req, res) => {
+export const getProductById: RequestHandler<GetByIdParams> = catchAsync(
+  async (req, res) => {
     const { id } = req.params;
     const product = await prisma.product.findUniqueOrThrow({
       where: {
@@ -33,9 +36,10 @@ export const getProductById: RequestHandler<commonSchema.GetByIdParams> =
       status: "success",
       data: product,
     });
-  });
+  }
+);
 
-export const getProductBySlug: RequestHandler<productSchema.ReadProductBySlugParams> =
+export const getProductBySlug: RequestHandler<GetProductBySlugParams> =
   catchAsync(async (req, res) => {
     const { slug } = req.params;
     const product = await prisma.product.findUniqueOrThrow({
@@ -50,8 +54,8 @@ export const getProductBySlug: RequestHandler<productSchema.ReadProductBySlugPar
     });
   });
 
-export const getRelatedProducts: RequestHandler<commonSchema.GetByIdParams> =
-  catchAsync(async (req, res) => {
+export const getRelatedProducts: RequestHandler<GetByIdParams> = catchAsync(
+  async (req, res) => {
     const { id } = req.params;
 
     const relatedProducts = await prisma.product.getRelatedProducts(id);
@@ -59,9 +63,10 @@ export const getRelatedProducts: RequestHandler<commonSchema.GetByIdParams> =
       status: "success",
       data: relatedProducts,
     });
-  });
+  }
+);
 
-export const getProductsByCategoryName: RequestHandler<productSchema.ReadProductsByCategoryParams> =
+export const getProductsByCategoryName: RequestHandler<GetProductsByCategoryParams> =
   catchAsync(async (req, res) => {
     const products = await prisma.product.getProductsByCategory(
       req.params.category
