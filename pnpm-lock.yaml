@@ -183,28 +183,6 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
-  packages/schemas:
-    dependencies:
-      '@repo/database':
-        specifier: workspace:*
-        version: link:../database
-      zod:
-        specifier: latest
-        version: 4.1.13
-    devDependencies:
-      '@repo/eslint-config':
-        specifier: workspace:*
-        version: link:../config-eslint
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../config-typescript
-      eslint:
-        specifier: ^8.57.0
-        version: 8.57.1
-      typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
-
   packages/validators:
     dependencies:
       zod:
