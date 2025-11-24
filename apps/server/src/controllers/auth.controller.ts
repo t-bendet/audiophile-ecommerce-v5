@@ -1,7 +1,12 @@
 import { prisma } from "@repo/database";
 import { NextFunction, Request, Response, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-import * as userSchema from "../schemas/user.schema.js";
+import {
+  CreateUserInput,
+  LoginUserInput,
+  UpdateUserPasswordInput,
+  UserPublicInfo,
+} from "@repo/domain";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
 import { env } from "../utils/env.js";
@@ -13,7 +18,7 @@ const signToken = (id: string) => {
 };
 
 export const createAndSendToken = (
-  user: userSchema.UserPublicInfo,
+  user: UserPublicInfo,
   statusCode: number,
   req: Request,
   res: Response
@@ -46,8 +51,8 @@ export const createAndSendToken = (
   });
 };
 
-export const signup: RequestHandler<{}, any, userSchema.CreateUserInput> =
-  catchAsync(async (req, res, next) => {
+export const signup: RequestHandler<{}, any, CreateUserInput> = catchAsync(
+  async (req, res, next) => {
     const newUser = await prisma.user.create({
       data: {
         ...req.body,
@@ -55,10 +60,11 @@ export const signup: RequestHandler<{}, any, userSchema.CreateUserInput> =
     });
 
     createAndSendToken(newUser, 201, req, res);
-  });
+  }
+);
 
-export const login: RequestHandler<{}, any, userSchema.LoginUserInput> =
-  catchAsync(async (req, res, next) => {
+export const login: RequestHandler<{}, any, LoginUserInput> = catchAsync(
+  async (req, res, next) => {
     const { email, password } = req.body;
     // * 2) Check if user exists && password is correct
     const user = await prisma.user.findUniqueOrThrow({
@@ -75,7 +81,8 @@ export const login: RequestHandler<{}, any, userSchema.LoginUserInput> =
     const { password: _, ...userWithoutPassword } = user;
     // * 3) Return new token to client
     createAndSendToken(userWithoutPassword, 200, req, res);
-  });
+  }
+);
 
 export const logout = (_req: Request, res: Response) => {
   res.cookie("jwt", "loggedout", {
@@ -138,9 +145,7 @@ export const authenticate: RequestHandler = catchAsync(
   }
 );
 
-export const checkAuthorization = (
-  ...roles: userSchema.UserPublicInfo["role"][]
-) => {
+export const checkAuthorization = (...roles: UserPublicInfo["role"][]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!roles.includes(req.user!.role)) {
       return next(
@@ -152,34 +157,31 @@ export const checkAuthorization = (
   };
 };
 
-export const updatePassword: RequestHandler<
-  {},
-  any,
-  userSchema.UpdateUserPasswordInput
-> = catchAsync(async (req, res, next) => {
-  // 1) Get user from collection
-  const { currentPassword, password, passwordConfirm } = req.body;
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: req.user?.id },
-    omit: {
-      password: false,
-    },
+export const updatePassword: RequestHandler<{}, any, UpdateUserPasswordInput> =
+  catchAsync(async (req, res, next) => {
+    // 1) Get user from collection
+    const { currentPassword, password, passwordConfirm } = req.body;
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: req.user?.id },
+      omit: {
+        password: false,
+      },
+    });
+
+    // 2) Check if POSTed current password is correct
+    if (!(await prisma.user.validatePassword(currentPassword, user.password))) {
+      return next(new AppError("Your current password is wrong.", 401));
+    }
+
+    // 3) If so, update password
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: password,
+        passwordConfirm: passwordConfirm,
+      },
+    });
+    // 4) Log user in, send JWT
+    createAndSendToken(updatedUser, 200, req, res);
   });
-
-  // 2) Check if POSTed current password is correct
-  if (!(await prisma.user.validatePassword(currentPassword, user.password))) {
-    return next(new AppError("Your current password is wrong.", 401));
-  }
-
-  // 3) If so, update password
-
-  const updatedUser = await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      password: password,
-      passwordConfirm: passwordConfirm,
-    },
-  });
-  // 4) Log user in, send JWT
-  createAndSendToken(updatedUser, 200, req, res);
-});

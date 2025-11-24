@@ -1,12 +1,15 @@
 import express from "express";
 import * as productController from "../controllers/product.controller.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
-import * as commonSchema from "../schemas/common.schema.js";
-import * as productSchema from "../schemas/product.schema.js";
+import {
+  GetByIdSchema,
+  GetProductsByCategorySchema,
+  GetProductBySlugSchema,
+} from "@repo/domain";
 
 const productRouter: express.Router = express.Router();
 
-productRouter.param("id", validateSchema(commonSchema.GetByIdSchema));
+productRouter.param("id", validateSchema(GetByIdSchema));
 
 productRouter.route("/").get(productController.getAllProducts);
 productRouter.route("/featured").get(productController.getFeaturedProduct);
@@ -19,7 +22,7 @@ productRouter
 productRouter
   .route("/category/:category")
   .get(
-    validateSchema(productSchema.ReadProductsByCategorySchema),
+    validateSchema(GetProductsByCategorySchema),
     productController.getProductsByCategoryName
   );
 
@@ -28,7 +31,7 @@ productRouter.route("/:id").get(productController.getProductById);
 productRouter
   .route("/slug/:slug")
   .get(
-    validateSchema(productSchema.ReadProductBySlugSchema),
+    validateSchema(GetProductBySlugSchema),
     productController.getProductBySlug
   );
 

@@ -1,7 +1,10 @@
 import { prisma } from "@repo/database";
 import { NextFunction, Request, Response, RequestHandler } from "express";
-import * as commonSchema from "../schemas/common.schema.js";
-import * as userSchema from "../schemas/user.schema.js";
+import {
+  GetByIdParams,
+  UpdateUserDetailsInput,
+  UserPublicInfo,
+} from "@repo/domain";
 import PrismaAPIFeatures from "../utils/apiFeatures.js";
 import catchAsync from "../utils/catchAsync.js";
 
@@ -11,7 +14,7 @@ export const getMe = (req: Request, _res: Response, next: NextFunction) => {
 };
 
 // Get a single user
-export const getUser: RequestHandler<commonSchema.GetByIdParams> = catchAsync(
+export const getUser: RequestHandler<GetByIdParams> = catchAsync(
   async (req, res, _next) => {
     const { id } = req.params;
     const user = await prisma.user.findUniqueOrThrow({
@@ -61,8 +64,8 @@ export const getAllUsers: RequestHandler = catchAsync(
 );
 
 // deleting a user
-export const deleteUser: RequestHandler<commonSchema.GetByIdParams> =
-  catchAsync(async (req, res, next) => {
+export const deleteUser: RequestHandler<GetByIdParams> = catchAsync(
+  async (req, res, next) => {
     const { id } = req.params;
 
     await prisma.user.delete({
@@ -75,11 +78,12 @@ export const deleteUser: RequestHandler<commonSchema.GetByIdParams> =
       status: "success",
       date: null,
     });
-  });
+  }
+);
 
 // updating a single user
-export const updateUser: RequestHandler<commonSchema.GetByIdParams> =
-  catchAsync(async (req, res, next) => {
+export const updateUser: RequestHandler<GetByIdParams> = catchAsync(
+  async (req, res, next) => {
     const { id } = req.params;
 
     const updatedUser = await prisma.user.update({
@@ -93,14 +97,15 @@ export const updateUser: RequestHandler<commonSchema.GetByIdParams> =
       status: "success",
       data: updatedUser,
     });
-  });
+  }
+);
 
 export const updateMe: RequestHandler<
   {},
   any,
-  userSchema.UpdateUserDetailsInput,
+  UpdateUserDetailsInput,
   {},
-  { user: userSchema.UserPublicInfo }
+  { user: UserPublicInfo }
 > = catchAsync(async (req, res, _next) => {
   const { user } = req;
   const updatedUser = await prisma.user.update({

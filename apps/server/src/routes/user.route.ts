@@ -2,8 +2,7 @@ import express from "express";
 import * as authController from "../controllers/auth.controller.js";
 import * as userController from "../controllers/user.controller.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
-import * as userSchema from "../schemas/user.schema.js";
-import * as commonSchema from "../schemas/common.schema.js";
+import { UpdateUserDetailsSchema, GetByIdSchema } from "@repo/domain";
 
 const userRouter: express.Router = express.Router();
 
@@ -15,7 +14,7 @@ userRouter.get("/me", userController.getMe, userController.getUser);
 
 userRouter.patch(
   "/updateMe",
-  validateSchema(userSchema.UpdateUserDetailsSchema),
+  validateSchema(UpdateUserDetailsSchema),
   userController.updateMe
 );
 
@@ -29,7 +28,7 @@ userRouter.route("/").get(userController.getAllUsers);
 
 userRouter
   .route("/:id")
-  .all(validateSchema(commonSchema.GetByIdSchema))
+  .all(validateSchema(GetByIdSchema))
   .get(userController.getUser)
   .patch(userController.updateUser)
   .delete(userController.deleteUser);

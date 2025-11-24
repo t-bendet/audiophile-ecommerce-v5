@@ -2,7 +2,7 @@ import express from "express";
 import * as configController from "../controllers/config.controller.js";
 import * as authController from "../controllers/auth.controller.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
-import * as configSchema from "../schemas/config.schema.js";
+import { CreateConfigSchema } from "@repo/domain";
 
 const configRouter: express.Router = express.Router();
 
@@ -16,7 +16,7 @@ configRouter.use(
 
 configRouter.post(
   "/",
-  validateSchema(configSchema.CreateConfigSchema),
+  validateSchema(CreateConfigSchema),
   configController.createConfig
 );
 
