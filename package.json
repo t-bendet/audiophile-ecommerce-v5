@@ -1,9 +1,5 @@
 {
   "private": true,
-  "prisma": {
-    "schema": "packages/database/prisma/schema.prisma",
-    "seed": "tsx packages/database/src/seed.ts"
-  },
   "scripts": {
     "dev": "turbo run dev --parallel",
     "start": "turbo run start --parallel",
@@ -20,17 +16,11 @@
   },
   "devDependencies": {
     "prettier": "^3.2.5",
-    "prisma": "latest",
-    "tsx": "^4.20.6",
     "turbo": "^2.6.0"
   },
   "engines": {
     "node": ">=18"
   },
   "name": "with-prisma",
-  "dependencies": {
-    "@prisma/client": "latest",
-    "zod": "latest"
-  },
   "packageManager": "pnpm@10.14.0"
 }

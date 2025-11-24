@@ -25,7 +25,7 @@
     "studio": "prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "latest",
+    "@prisma/client": "^6.19.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "slugify": "^1.6.6"
@@ -36,7 +36,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.1.0",
     "eslint": "^8.57.0",
-    "prisma": "latest",
+    "prisma": "^6.19.0",
     "rimraf": "^5.0.5",
     "tsx": "^4.20.6",
     "typescript": "^5.8.3"
