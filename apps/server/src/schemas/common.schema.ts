@@ -1,5 +1,5 @@
 import z from "zod";
-import { IdValidator } from "@repo/types";
+import { IdValidator } from "@repo/schemas";
 
 export const GetByIdSchema = z.object({
   params: z

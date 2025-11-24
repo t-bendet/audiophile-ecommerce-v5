@@ -33,9 +33,9 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@repo/types':
+      '@repo/schemas':
         specifier: workspace:*
-        version: link:../../packages/types
+        version: link:../../packages/schemas
       dotenv:
         specifier: ^17.2.1
         version: 17.2.3
@@ -155,14 +155,14 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
-  packages/types:
+  packages/schemas:
     dependencies:
       '@repo/database':
         specifier: workspace:*
         version: link:../database
       zod:
         specifier: latest
-        version: 4.1.12
+        version: 4.1.13
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -2766,6 +2766,9 @@ packages:
 
   zod@4.1.12:
     resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
+
+  zod@4.1.13:
+    resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
 
 snapshots:
 
@@ -5708,3 +5711,5 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zod@4.1.12: {}
+
+  zod@4.1.13: {}
