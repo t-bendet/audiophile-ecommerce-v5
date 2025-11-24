@@ -12,6 +12,10 @@
     "./validators": {
       "import": "./dist/validators.js",
       "types": "./dist/validators.d.ts"
+    },
+    "./category": {
+      "import": "./dist/category.js",
+      "types": "./dist/category.d.ts"
     }
   },
   "scripts": {
