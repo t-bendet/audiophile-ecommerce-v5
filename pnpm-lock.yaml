@@ -151,7 +151,7 @@ importers:
         specifier: workspace:*
         version: link:../validators
       zod:
-        specifier: latest
+        specifier: ^4.0.13
         version: 4.1.13
     devDependencies:
       '@repo/eslint-config':
@@ -170,7 +170,7 @@ importers:
   packages/validators:
     dependencies:
       zod:
-        specifier: latest
+        specifier: ^4.0.13
         version: 4.1.13
     devDependencies:
       '@repo/eslint-config':
