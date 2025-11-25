@@ -1,11 +1,11 @@
-import { ZodSchema } from "zod";
+import { ZodType, prettifyError } from "zod";
 import { RequestHandler } from "express";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
 
 // * Middleware to validate request body against a Zod schema
 
-export const validateSchema = (schema: ZodSchema): RequestHandler =>
+export const validateSchema = (schema: ZodType): RequestHandler =>
   catchAsync(async (req, _res, next) => {
     const parsedRequest = schema.safeParse({
       params: req.params,
@@ -15,11 +15,8 @@ export const validateSchema = (schema: ZodSchema): RequestHandler =>
 
     if (!parsedRequest.success) {
       const message = `Unprocessable Content.The following variables are missing or invalid:
-    ${Object.entries(parsedRequest.error.flatten().fieldErrors)
-      .map(([k, v]) => `- ${k}: ${v}`)
-      .join("\n")}
-      `;
-      return next(new AppError(message.trim(), 422));
+      ${prettifyError(parsedRequest.error)}`;
+      return next(new AppError(message, 422));
     }
     return next();
   });
