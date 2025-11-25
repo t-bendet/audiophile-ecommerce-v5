@@ -14,7 +14,6 @@
   "dependencies": {
     "@repo/database": "workspace:*",
     "@repo/domain": "workspace:*",
-    "@repo/validators": "workspace:*",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "figlet": "^1.8.2",
