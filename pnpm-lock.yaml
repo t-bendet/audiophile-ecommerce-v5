@@ -23,9 +23,6 @@ importers:
       '@repo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
-      '@repo/validators':
-        specifier: workspace:*
-        version: link:../../packages/validators
       dotenv:
         specifier: ^17.2.1
         version: 17.2.3
