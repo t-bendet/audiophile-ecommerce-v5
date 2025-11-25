@@ -1,14 +1,8 @@
 // ============================================================================
 // WORKSPACE & ARCHITECTURE
 // ============================================================================
-// TODO go over turborepo core-concepts,https://turborepo.com/docs/core-concepts
-// TODO go over monorepo best practices
-// TODO ts wizard ts config part
-// TODO basicly go over the whole project structure and understand each part
 
-// TODO add type folder for shared types, zod schemas, prisma types etc
 // TODO add web folder and react ts config
-// TODO the prisma client extensions and custom methods organization and usage across packages,check what types i am getting
 
 // ============================================================================
 // BUILD & CONFIGURATION
@@ -41,7 +35,6 @@
 //      Reference: https://www.youtube.com/watch?v=T4Q1NvSePxs
 
 // TODO rethink how to handle validateSchema message formatted errors
-// TODO zod deprecation warnings fix
 
 // TODO Template literal types for error codes are awesome
 //      References:
@@ -134,16 +127,6 @@
 //        PublicInfoSchema.parse(value);
 //      }
 
-// TODO add error assertion?
-//      Example:
-//      function isPrismaError(
-//        err: unknown
-//      ): asserts err is PrismaClientKnownRequestError {
-//        if (!(err instanceof PrismaClientKnownRequestError)) {
-//          throw new Error("Wrong error type");
-//        }
-//      }
-
 // ============================================================================
 // LEARNING & DOCUMENTATION
 // ============================================================================
@@ -152,3 +135,7 @@
 // TODO go over prisma relations (one to many, one to one, many to many)
 // TODO go over prisma data types
 // TODO go over express basic principles
+// TODO go over turborepo core-concepts,https://turborepo.com/docs/core-concepts
+// TODO go over monorepo best practices
+// TODO ts wizard ts config part
+// TODO basicly go over the whole project structure and understand each part
