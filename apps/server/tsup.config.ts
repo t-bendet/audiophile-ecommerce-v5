@@ -12,7 +12,7 @@ export default defineConfig({
   treeshake: true,
   skipNodeModulesBundle: true,
   platform: "node",
-  external: ["@repo/database", "@repo/domain", "@repo/validators"],
+  external: ["@repo/database", "@repo/domain"],
   noExternal: [],
   dts: false, // Skip .d.ts generation to save memory
   minify: false,
