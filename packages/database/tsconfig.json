@@ -7,11 +7,12 @@
     "composite": true,
     "outDir": "dist"
   },
-  "include": [
-    "src/**/*.ts",
-    "models/**/*.ts",
-    "prisma.config.ts",
-    "generated/**/*.ts"
-  ],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", ".turbo/**"]
+  "include": ["src/**/*.ts", "models/**/*.ts", "prisma.config.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    ".turbo/**",
+    "generated/**"
+  ]
 }
