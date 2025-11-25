@@ -1,6 +1,10 @@
 // ============================================================================
 // WORKSPACE & ARCHITECTURE
 // ============================================================================
+// TODO go over turborepo core-concepts,https://turborepo.com/docs/core-concepts
+// TODO go over monorepo best practices,https://blog.logrocket.com/monorepo-best-practices-2023/
+// TODO ts wizard ts config part
+// TODO basicly go over the whole project structure and understand each part
 
 // TODO add type folder for shared types, zod schemas, prisma types etc
 // TODO add web folder and react ts config
