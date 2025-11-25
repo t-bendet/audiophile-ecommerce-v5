@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { Request, RequestHandler } from "express";
+import { RequestHandler } from "express";
 import {
   GetByIdParams,
   GetProductBySlugParams,
