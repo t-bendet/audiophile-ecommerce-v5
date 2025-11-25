@@ -1,12 +1,7 @@
 import { prisma } from "@repo/database";
-import { NextFunction, Request, Response, RequestHandler } from "express";
+import { UserPublicInfo } from "@repo/domain";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import jwt from "jsonwebtoken";
-import {
-  CreateUserInput,
-  LoginUserInput,
-  UpdateUserPasswordInput,
-  UserPublicInfo,
-} from "@repo/domain";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
 import { env } from "../utils/env.js";
@@ -51,38 +46,34 @@ export const createAndSendToken = (
   });
 };
 
-export const signup: RequestHandler<{}, any, CreateUserInput> = catchAsync(
-  async (req, res, next) => {
-    const newUser = await prisma.user.create({
-      data: {
-        ...req.body,
-      },
-    });
+export const signup: RequestHandler = catchAsync(async (req, res, next) => {
+  const newUser = await prisma.user.create({
+    data: {
+      ...req.body,
+    },
+  });
 
-    createAndSendToken(newUser, 201, req, res);
+  createAndSendToken(newUser, 201, req, res);
+});
+
+export const login: RequestHandler = catchAsync(async (req, res, next) => {
+  const { email, password } = req.body;
+  // * 2) Check if user exists && password is correct
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { email },
+    omit: {
+      password: false,
+    },
+  });
+
+  if (!(await prisma.user.validatePassword(password, user.password))) {
+    return next(new AppError("Incorrect email or password", 401));
   }
-);
 
-export const login: RequestHandler<{}, any, LoginUserInput> = catchAsync(
-  async (req, res, next) => {
-    const { email, password } = req.body;
-    // * 2) Check if user exists && password is correct
-    const user = await prisma.user.findUniqueOrThrow({
-      where: { email },
-      omit: {
-        password: false,
-      },
-    });
-
-    if (!(await prisma.user.validatePassword(password, user.password))) {
-      return next(new AppError("Incorrect email or password", 401));
-    }
-
-    const { password: _, ...userWithoutPassword } = user;
-    // * 3) Return new token to client
-    createAndSendToken(userWithoutPassword, 200, req, res);
-  }
-);
+  const { password: _, ...userWithoutPassword } = user;
+  // * 3) Return new token to client
+  createAndSendToken(userWithoutPassword, 200, req, res);
+});
 
 export const logout = (_req: Request, res: Response) => {
   res.cookie("jwt", "loggedout", {
@@ -157,8 +148,8 @@ export const checkAuthorization = (...roles: UserPublicInfo["role"][]) => {
   };
 };
 
-export const updatePassword: RequestHandler<{}, any, UpdateUserPasswordInput> =
-  catchAsync(async (req, res, next) => {
+export const updatePassword: RequestHandler = catchAsync(
+  async (req, res, next) => {
     // 1) Get user from collection
     const { currentPassword, password, passwordConfirm } = req.body;
     const user = await prisma.user.findUniqueOrThrow({
@@ -184,4 +175,5 @@ export const updatePassword: RequestHandler<{}, any, UpdateUserPasswordInput> =
     });
     // 4) Log user in, send JWT
     createAndSendToken(updatedUser, 200, req, res);
-  });
+  }
+);
