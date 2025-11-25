@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express";
 import { Prisma } from "@repo/database";
+import { NextFunction, Request, Response } from "express";
 import AppError from "../utils/appError.js";
 import { env } from "../utils/env.js";
 
