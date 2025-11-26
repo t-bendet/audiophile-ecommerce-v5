@@ -306,3 +306,7 @@
 //   };
 //   return ProductPublicSchema.parse(base);
 // };
+
+// export type TProductsByCategory = Awaited<
+//   ReturnType<(typeof prisma.product)["getProductsByCategory"]>
+// >;
