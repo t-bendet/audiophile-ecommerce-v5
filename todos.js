@@ -14,23 +14,23 @@
 
 // TODO prod script for database -  add prisma push, needed if there is no database
 
+// TODO standardize tsconfig files across packages and apps for monorepo
+//     "composite": true,
+// "declarationMap": true'
+
+// TODO getProductsByCategory should be a service method
+
 // ============================================================================
 // SERVER & API
 // ============================================================================
-
+// TODO req.validated
 // TODO handel CORS in server
 // TODO implement forgot password and reset password
 // TODO switch to cloudinary upload images and products from dashboard? url or image upload
 // TODO add update all details for admins (users, products, orders)
 // TODO add errors for update same value
 // TODO checkout prices return from backend
-
-// Prisma Extensions (Not Recommended for this)
-// Use cases:
-
-// Input validation before saving to DB
-// Computed fields that should always exist
-// Data transformations that are DB-layer concerns
+// TODO go over user extensions in database and optimize them
 
 // ============================================================================
 // ERROR HANDLING & VALIDATION
@@ -42,6 +42,12 @@
 //      Reference: https://www.youtube.com/watch?v=T4Q1NvSePxs
 
 // TODO rethink how to handle validateSchema message formatted errors
+
+// TODO update handleZodError to give simpler error messages
+//      Location: apps/server/src/middlewares/error.middleware.ts (line 29-34)
+//      Context: Client doesn't need all validation issues for GET requests, only for CREATE/POST/PUT
+//      Current: Shows full prettifyError() output for all requests
+//      Desired: Simplified message for retrieval operations, detailed for mutations
 
 // TODO Template literal types for error codes are awesome
 //      References:
@@ -63,6 +69,14 @@
 //       featuredProductId: createdProductsMap["xx99 mark two headphones"],
 // TODO soft delete for users needs a lot of work to be complete
 // TODO remove confirm password from user schema, and use it in backend logic
+
+// TODO add parse for returns,maybe add a dev only,only bills or critical output?
+// TODO anyway create function to parse only in development,or something DRY
+
+//      Location: apps/server/src/conrollers
+//      Context: // if (process.env.NODE_ENV === "development") {
+//   ProductsByCategorySchemas.parse(products);
+// }
 
 // ============================================================================
 // DATA & SEEDING
@@ -146,26 +160,6 @@
 // TODO go over monorepo best practices
 // TODO ts wizard ts config part
 // TODO basicly go over the whole project structure and understand each part
-
-// import z from "zod";
-// import { IdValidator, NameValidator } from "./index.js";
-
-// // Params
-// export const ProductIdParamsSchema = z.object({
-//   id: IdValidator("Product"),
-// });
-
-// export const ProductSlugParamsSchema = z.object({
-//   slug: z
-//     .string({ message: "Slug is required" })
-//     .regex(/^[a-z0-9-]+$/i, { message: "Invalid slug format" })
-//     .min(3)
-//     .max(80),
-// });
-
-// export const ProductCategoryParamsSchema = z.object({
-//   category: z.string({ message: "Category is required" }).min(2).max(40),
-// });
 
 // // Query (pagination / sorting / filtering)
 // export const ProductListQuerySchema = z

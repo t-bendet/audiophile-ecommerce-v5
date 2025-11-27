@@ -1,5 +1,6 @@
 import { Prisma } from "@repo/database";
 import { NextFunction, Request, Response } from "express";
+import { prettifyError, ZodError } from "zod";
 import AppError from "../utils/appError.js";
 import { env } from "../utils/env.js";
 
@@ -23,6 +24,12 @@ const handleValidationErrorDB = (err: Error) => {
   // ** should get caught by zod before this point
   const message = `Invalid query data. -  Unprocessable Content`;
   return new AppError(message, 422);
+};
+
+const handleZodError = (err: ZodError) => {
+  const message = `Unprocessable Content.The following variables are missing or invalid:
+      ${prettifyError(err)}`;
+  return new AppError(message, 400);
 };
 
 const handleJWTError = () =>
@@ -79,6 +86,10 @@ const isJwtExpiredError = (err: unknown): boolean => {
     (err as any).name === "TokenExpiredError"
   );
 };
+
+const isZodError = (err: unknown): err is ZodError => {
+  return err instanceof ZodError;
+};
 // -------------------------------------------------
 
 const sendErrorProd = (
@@ -117,6 +128,10 @@ export default (
 
   if (env.NODE_ENV === "production") {
     let error: AppError | null = null;
+
+    if (isZodError(err)) {
+      error = handleZodError(err);
+    }
 
     if (isPrismaKnownRequestError(err)) {
       if (err.code === "P2023") error = handleCastErrorDB(err);

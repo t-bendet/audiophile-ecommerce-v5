@@ -5,7 +5,7 @@ import {
   NameValidator,
   EmailValidator,
   PasswordValidator,
-} from "@repo/validators";
+} from "./shared.js";
 
 // ** Base Types
 

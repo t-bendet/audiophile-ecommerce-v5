@@ -1,5 +1,7 @@
 import { Request } from "express";
 
+// TODO reconsider abstract crud service and api features utils
+
 function hasStringKeys<T extends string>(
   value: unknown,
   ...keys: T[]

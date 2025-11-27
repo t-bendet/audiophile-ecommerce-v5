@@ -1,6 +1,0 @@
-generated
-dist
-.turbo
-*.tsbuildinfo
-.env
-node_modules

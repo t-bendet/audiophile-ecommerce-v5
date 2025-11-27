@@ -1,6 +1,7 @@
-import { Prisma } from "@repo/database";
+import { prisma, Prisma } from "@repo/database";
 import { z } from "zod";
 import { CategoryNameValues } from "./category.js";
+import { IdValidator } from "./shared.js";
 
 export type ProductCreateWithoutCategoryInput =
   Prisma.ProductCreateWithoutCategoryInput;
@@ -36,3 +37,25 @@ export const GetProductBySlugSchema = z.object({
 export type GetProductBySlugParams = z.infer<
   typeof GetProductBySlugSchema.shape.params
 >;
+
+export type TProductsByCategory = Awaited<
+  ReturnType<(typeof prisma.product)["getProductsByCategory"]>
+>;
+
+const ProductByCategorySchema = z.object({
+  slug: z.string(),
+  fullLabel: z.array(z.string()),
+  id: IdValidator("product"),
+  isNewProduct: z.boolean(),
+  images: z.object({
+    introImage: z.object({
+      mobileSrc: z.string(),
+      tabletSrc: z.string(),
+      desktopSrc: z.string(),
+      altText: z.string(),
+      ariaLabel: z.string(),
+    }),
+  }),
+});
+
+export const ProductsByCategorySchemas = z.array(ProductByCategorySchema);
