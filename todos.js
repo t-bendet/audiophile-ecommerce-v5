@@ -23,7 +23,7 @@
 // ============================================================================
 // SERVER & API
 // ============================================================================
-
+// TODO req.validated
 // TODO handel CORS in server
 // TODO implement forgot password and reset password
 // TODO switch to cloudinary upload images and products from dashboard? url or image upload
@@ -160,26 +160,6 @@
 // TODO go over monorepo best practices
 // TODO ts wizard ts config part
 // TODO basicly go over the whole project structure and understand each part
-
-// import z from "zod";
-// import { IdValidator, NameValidator } from "./index.js";
-
-// // Params
-// export const ProductIdParamsSchema = z.object({
-//   id: IdValidator("Product"),
-// });
-
-// export const ProductSlugParamsSchema = z.object({
-//   slug: z
-//     .string({ message: "Slug is required" })
-//     .regex(/^[a-z0-9-]+$/i, { message: "Invalid slug format" })
-//     .min(3)
-//     .max(80),
-// });
-
-// export const ProductCategoryParamsSchema = z.object({
-//   category: z.string({ message: "Category is required" }).min(2).max(40),
-// });
 
 // // Query (pagination / sorting / filtering)
 // export const ProductListQuerySchema = z

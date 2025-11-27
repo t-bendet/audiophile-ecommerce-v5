@@ -150,28 +150,6 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../database
-      '@repo/validators':
-        specifier: workspace:*
-        version: link:../validators
-      zod:
-        specifier: ^4.0.13
-        version: 4.1.13
-    devDependencies:
-      '@repo/eslint-config':
-        specifier: workspace:*
-        version: link:../config-eslint
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../config-typescript
-      eslint:
-        specifier: ^8.57.0
-        version: 8.57.1
-      typescript:
-        specifier: 5.9.3
-        version: 5.9.3
-
-  packages/validators:
-    dependencies:
       zod:
         specifier: ^4.0.13
         version: 4.1.13

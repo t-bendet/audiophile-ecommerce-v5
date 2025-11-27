@@ -1,7 +1,7 @@
 import { prisma, Prisma } from "@repo/database";
 import { z } from "zod";
 import { CategoryNameValues } from "./category.js";
-import { IdValidator } from "@repo/validators";
+import { IdValidator } from "./shared.js";
 
 export type ProductCreateWithoutCategoryInput =
   Prisma.ProductCreateWithoutCategoryInput;
