@@ -65,7 +65,12 @@ export const getProductsByCategoryName: RequestHandler = catchAsync(
     const products = await prisma.product.getProductsByCategory(
       req.params.category
     );
-    // TODO should i  even parse here  ,maybe add a dev only?
+    // TODO should i  even parse here  ,maybe add a dev only,only bills or critical output?
+    // TODO anyway create function to parse only in development,or something DRY
+    // if (process.env.NODE_ENV === "development") {
+    //   ProductsByCategorySchemas.parse(products);
+    // }
+
     const result = ProductsByCategorySchemas.parse(products);
     res.status(200).json({
       status: "success",
