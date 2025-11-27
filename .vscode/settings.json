@@ -9,7 +9,6 @@
   "files.watcherExclude": {
     "**/node_modules/**": true,
     "**/dist/**": true,
-    "**/.turbo/**": true,
-    "**/packages/database/generated/**": true
+    "**/.turbo/**": true
   }
 }
