@@ -14,7 +14,9 @@
 
 // TODO prod script for database -  add prisma push, needed if there is no database
 
-// TODO standardize tsconfig files across packages and apps
+// TODO standardize tsconfig files across packages and apps for monorepo
+//     "composite": true,
+// "declarationMap": true
 
 // ============================================================================
 // SERVER & API
