@@ -3,5 +3,6 @@ export * from "./user.js";
 export * from "./config.js";
 export * from "./product.js";
 export * from "./common.js";
+export * from "./shared.js";
 
 // ** use strict() for input validation schemas
