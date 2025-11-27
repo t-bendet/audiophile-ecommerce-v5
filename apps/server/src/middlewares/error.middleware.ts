@@ -26,8 +26,6 @@ const handleValidationErrorDB = (err: Error) => {
   return new AppError(message, 422);
 };
 
-// TODO update this function give a simpler error message,
-// ** client does not need to know all validation issues in case of retrive ,only cretae or pot
 const handleZodError = (err: ZodError) => {
   const message = `Unprocessable Content.The following variables are missing or invalid:
       ${prettifyError(err)}`;
