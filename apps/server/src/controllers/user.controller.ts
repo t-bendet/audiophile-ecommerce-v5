@@ -1,10 +1,5 @@
 import { prisma } from "@repo/database";
-import { NextFunction, Request, Response, RequestHandler } from "express";
-import {
-  GetByIdParams,
-  UpdateUserDetailsInput,
-  UserPublicInfo,
-} from "@repo/domain";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import PrismaAPIFeatures from "../utils/apiFeatures.js";
 import catchAsync from "../utils/catchAsync.js";
 
@@ -14,21 +9,19 @@ export const getMe = (req: Request, _res: Response, next: NextFunction) => {
 };
 
 // Get a single user
-export const getUser: RequestHandler<GetByIdParams> = catchAsync(
-  async (req, res, _next) => {
-    const { id } = req.params;
-    const user = await prisma.user.findUniqueOrThrow({
-      where: {
-        id,
-      },
-    });
+export const getUser: RequestHandler = catchAsync(async (req, res, _next) => {
+  const { id } = req.params;
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
 
-    res.status(200).json({
-      status: "success",
-      data: user,
-    });
-  }
-);
+  res.status(200).json({
+    status: "success",
+    data: user,
+  });
+});
 
 export const deleteMe: RequestHandler = catchAsync(async (req, res, next) => {
   await prisma.user.update({
@@ -64,49 +57,39 @@ export const getAllUsers: RequestHandler = catchAsync(
 );
 
 // deleting a user
-export const deleteUser: RequestHandler<GetByIdParams> = catchAsync(
-  async (req, res, next) => {
-    const { id } = req.params;
+export const deleteUser: RequestHandler = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
 
-    await prisma.user.delete({
-      where: {
-        id,
-      },
-    });
+  await prisma.user.delete({
+    where: {
+      id,
+    },
+  });
 
-    res.status(204).json({
-      status: "success",
-      date: null,
-    });
-  }
-);
+  res.status(204).json({
+    status: "success",
+    date: null,
+  });
+});
 
 // updating a single user
-export const updateUser: RequestHandler<GetByIdParams> = catchAsync(
-  async (req, res, next) => {
-    const { id } = req.params;
+export const updateUser: RequestHandler = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
 
-    const updatedUser = await prisma.user.update({
-      where: {
-        id,
-      },
-      data: req.body,
-    });
+  const updatedUser = await prisma.user.update({
+    where: {
+      id,
+    },
+    data: req.body,
+  });
 
-    res.status(200).json({
-      status: "success",
-      data: updatedUser,
-    });
-  }
-);
+  res.status(200).json({
+    status: "success",
+    data: updatedUser,
+  });
+});
 
-export const updateMe: RequestHandler<
-  {},
-  any,
-  UpdateUserDetailsInput,
-  {},
-  { user: UserPublicInfo }
-> = catchAsync(async (req, res, _next) => {
+export const updateMe: RequestHandler = catchAsync(async (req, res, _next) => {
   const { user } = req;
   const updatedUser = await prisma.user.update({
     where: { id: user?.id },

@@ -19,6 +19,7 @@ productRouter
   .route("/related-products/:id")
   .get(productController.getRelatedProducts);
 
+//  TODO should be in category route
 productRouter
   .route("/category/:category")
   .get(

@@ -18,7 +18,7 @@
   "dependencies": {
     "@repo/database": "workspace:*",
     "@repo/validators": "workspace:*",
-    "zod": "latest"
+    "zod": "^4.0.13"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

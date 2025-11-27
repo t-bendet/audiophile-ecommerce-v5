@@ -4,7 +4,7 @@
     "rootDir": ".",
     "skipLibCheck": true,
     "types": ["node"],
-    "composite": true,
+    "composite": false,
     "outDir": "dist"
   },
   "include": ["src/**/*.ts", "models/**/*.ts", "prisma.config.ts"],

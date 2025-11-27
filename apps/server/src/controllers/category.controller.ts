@@ -1,7 +1,7 @@
 import { prisma } from "@repo/database";
+import { RequestHandler } from "express";
 import PrismaAPIFeatures from "../utils/apiFeatures.js";
 import catchAsync from "../utils/catchAsync.js";
-import { RequestHandler } from "express";
 
 export const getAllCategories: RequestHandler = catchAsync(
   async (req, res, next) => {
