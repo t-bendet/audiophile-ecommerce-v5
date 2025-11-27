@@ -4,6 +4,7 @@ import { ProductsByCategorySchemas } from "@repo/domain";
 import { RequestHandler } from "express";
 import PrismaAPIFeatures from "../utils/apiFeatures.js";
 import catchAsync from "../utils/catchAsync.js";
+import { productService } from "../services/product.service.js";
 
 export const getAllProducts: RequestHandler = catchAsync(async (req, res) => {
   const query = new PrismaAPIFeatures(req.query)
@@ -52,7 +53,7 @@ export const getRelatedProducts: RequestHandler = catchAsync(
   async (req, res) => {
     const { id } = req.params;
 
-    const relatedProducts = await prisma.product.getRelatedProducts(id);
+    const relatedProducts = await productService.getRelatedProducts(id);
     res.status(200).json({
       status: "success",
       data: relatedProducts,
@@ -81,7 +82,7 @@ export const getProductsByCategoryName: RequestHandler = catchAsync(
 
 export const getShowCaseProducts: RequestHandler = catchAsync(
   async (req, res) => {
-    const showCaseProducts = await prisma.product.getShowCaseProducts();
+    const showCaseProducts = await productService.getShowCaseProducts();
     res.status(200).json({
       status: "success",
       data: showCaseProducts,
@@ -91,7 +92,7 @@ export const getShowCaseProducts: RequestHandler = catchAsync(
 
 export const getFeaturedProduct: RequestHandler = catchAsync(
   async (req, res) => {
-    const featuredProduct = await prisma.product.getFeaturedProduct();
+    const featuredProduct = await productService.getFeaturedProduct();
 
     res.status(200).json({
       status: "success",
