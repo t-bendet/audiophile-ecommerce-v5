@@ -1,5 +1,5 @@
-import { ZodType, prettifyError } from "zod";
 import { RequestHandler } from "express";
+import { ZodType, prettifyError } from "zod";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
 
