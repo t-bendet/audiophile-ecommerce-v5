@@ -6,6 +6,12 @@ const hashPassword = async (password: string) => {
   return await bcrypt.hash(password, 12);
 };
 
+// Prisma Extensions Use cases:
+
+// Input validation before saving to DB
+// Computed fields that should always exist
+// Data transformations that are DB-layer concerns
+
 // Factory function to create extended Prisma client
 function createPrismaClient() {
   const client = new PrismaClient({

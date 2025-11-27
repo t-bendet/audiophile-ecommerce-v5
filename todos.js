@@ -24,13 +24,7 @@
 // TODO add update all details for admins (users, products, orders)
 // TODO add errors for update same value
 // TODO checkout prices return from backend
-
-// Prisma Extensions (Not Recommended for this)
-// Use cases:
-
-// Input validation before saving to DB
-// Computed fields that should always exist
-// Data transformations that are DB-layer concerns
+// TODO go over user extensions in database and optimize them
 
 // ============================================================================
 // ERROR HANDLING & VALIDATION
@@ -42,6 +36,12 @@
 //      Reference: https://www.youtube.com/watch?v=T4Q1NvSePxs
 
 // TODO rethink how to handle validateSchema message formatted errors
+
+// TODO update handleZodError to give simpler error messages
+//      Location: apps/server/src/middlewares/error.middleware.ts (line 29-34)
+//      Context: Client doesn't need all validation issues for GET requests, only for CREATE/POST/PUT
+//      Current: Shows full prettifyError() output for all requests
+//      Desired: Simplified message for retrieval operations, detailed for mutations
 
 // TODO Template literal types for error codes are awesome
 //      References:
