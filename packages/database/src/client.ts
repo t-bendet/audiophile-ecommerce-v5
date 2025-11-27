@@ -20,6 +20,7 @@ function createPrismaClient() {
     },
   })
     .$extends({
+      name: "productExtensions",
       model: {
         product: {
           async getRelatedProducts(id: string) {
@@ -199,6 +200,7 @@ function createPrismaClient() {
       },
     })
     .$extends({
+      name: "userExtensions",
       query: {
         user: {
           $allOperations(params: any) {
