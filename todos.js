@@ -14,6 +14,8 @@
 
 // TODO prod script for database -  add prisma push, needed if there is no database
 
+// TODO standardize tsconfig files across packages and apps
+
 // ============================================================================
 // SERVER & API
 // ============================================================================
