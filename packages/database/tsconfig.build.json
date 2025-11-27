@@ -12,11 +12,6 @@
     "resolveJsonModule": true,
     "rootDir": "."
   },
-  "include": [
-    "src/**/*.ts",
-    "models/**/*.ts",
-    "prisma.config.ts",
-    "generated/**/*.ts"
-  ],
+  "include": ["src/**/*.ts", "prisma.config.ts", "generated/**/*.ts"],
   "exclude": ["node_modules", "**/*.test.ts", "dist/**"]
 }
