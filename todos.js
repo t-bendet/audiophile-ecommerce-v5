@@ -16,7 +16,9 @@
 
 // TODO standardize tsconfig files across packages and apps for monorepo
 //     "composite": true,
-// "declarationMap": true
+// "declarationMap": true'
+
+// TODO getProductsByCategory should be a service method
 
 // ============================================================================
 // SERVER & API
@@ -67,6 +69,14 @@
 //       featuredProductId: createdProductsMap["xx99 mark two headphones"],
 // TODO soft delete for users needs a lot of work to be complete
 // TODO remove confirm password from user schema, and use it in backend logic
+
+// TODO add parse for returns,maybe add a dev only,only bills or critical output?
+// TODO anyway create function to parse only in development,or something DRY
+
+//      Location: apps/server/src/conrollers
+//      Context: // if (process.env.NODE_ENV === "development") {
+//   ProductsByCategorySchemas.parse(products);
+// }
 
 // ============================================================================
 // DATA & SEEDING
