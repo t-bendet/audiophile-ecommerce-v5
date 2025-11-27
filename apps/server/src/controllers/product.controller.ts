@@ -1,4 +1,6 @@
 import { prisma } from "@repo/database";
+import { ProductsByCategorySchemas } from "@repo/domain";
+
 import { RequestHandler } from "express";
 import PrismaAPIFeatures from "../utils/apiFeatures.js";
 import catchAsync from "../utils/catchAsync.js";
@@ -63,7 +65,8 @@ export const getProductsByCategoryName: RequestHandler = catchAsync(
     const products = await prisma.product.getProductsByCategory(
       req.params.category
     );
-
+    // TODO should i  even parse here  ,maybe add a dev only?
+    const result = ProductsByCategorySchemas.parse(products);
     res.status(200).json({
       status: "success",
       data: products,
