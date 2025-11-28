@@ -12,6 +12,7 @@ export class CategoryService extends AbstractCrudService<
   CategoryUpdateInput,
   CategoryDTO,
   Prisma.CategoryWhereInput,
+  Prisma.CategorySelect,
   { name?: string }
 > {
   protected toDTO({ id, name, thumbnail }: Category): CategoryDTO {
@@ -30,7 +31,6 @@ export class CategoryService extends AbstractCrudService<
     // Validate and cast to NAME enum
     const nameValue = filter.name as NAME;
 
-    // TODO AppError
     if (!Object.values(NAME).includes(nameValue)) {
       throw new AppError(`Invalid name value: ${filter.name}`, 400);
     }
@@ -41,6 +41,7 @@ export class CategoryService extends AbstractCrudService<
   }
 
   // Convenience method: derive pagination + filter from raw query without APIFeatures
+  // TODO neccsesary?, mayabe add to abstract class
   async listFromQuery(query: any) {
     const pageRaw = query?.page;
     const limitRaw = query?.limit;
@@ -64,10 +65,11 @@ export class CategoryService extends AbstractCrudService<
   }
 
   protected async persistFindMany(params: {
-    where: any;
+    where: Prisma.CategoryWhereInput;
     skip: number;
     take: number;
     orderBy?: any;
+    select?: Prisma.CategorySelect;
   }): Promise<{ data: Category[]; total: number }> {
     const [data, total] = await prisma.$transaction([
       prisma.category.findMany({
@@ -75,6 +77,7 @@ export class CategoryService extends AbstractCrudService<
         skip: params.skip,
         take: params.take,
         orderBy: params.orderBy,
+        select: params.select,
       }),
       prisma.category.count({ where: params.where }),
     ]);

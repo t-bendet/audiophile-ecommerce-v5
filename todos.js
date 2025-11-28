@@ -89,7 +89,7 @@
 // ============================================================================
 // CODE ORGANIZATION & QUALITY
 // ============================================================================
-
+// TODO jsdoc comments for all service methods
 // TODO Restructure middlewares folder:
 //      Current: error.middleware.ts, error.handlers.ts, validation.middleware.ts
 //      Proposed:
