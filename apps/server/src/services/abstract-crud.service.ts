@@ -5,13 +5,14 @@ export abstract class AbstractCrudService<
   CreateInput,
   UpdateInput,
   DTO,
+  Where = any,
   ListFilter = unknown,
 > {
   protected abstract toDTO(entity: Entity): DTO;
-  protected abstract buildWhere(filter?: ListFilter): any;
+  protected abstract buildWhere(filter?: ListFilter): Where;
 
   protected abstract persistFindMany(params: {
-    where: any;
+    where: Where;
     skip: number;
     take: number;
     orderBy?: any;
@@ -35,6 +36,9 @@ export abstract class AbstractCrudService<
     const limit = params.limit ?? 20;
     const skip = (page - 1) * limit;
     const where = this.buildWhere(params.filter);
+    console.log({
+      where,
+    });
     const { data, total } = await this.persistFindMany({
       where,
       skip,

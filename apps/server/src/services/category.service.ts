@@ -1,7 +1,8 @@
-import type { Category } from "@repo/database";
-import { prisma } from "@repo/database";
+import type { Category, Prisma } from "@repo/database";
+import { NAME, prisma } from "@repo/database";
 import type { CategoryCreateInput, CategoryUpdateInput } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
+import AppError from "../utils/appError.js";
 
 export type CategoryDTO = Pick<Category, "id" | "name" | "thumbnail">;
 
@@ -10,7 +11,8 @@ export class CategoryService extends AbstractCrudService<
   CategoryCreateInput,
   CategoryUpdateInput,
   CategoryDTO,
-  { label?: string; slug?: string }
+  Prisma.CategoryWhereInput,
+  { name?: string }
 > {
   protected toDTO({ id, name, thumbnail }: Category): CategoryDTO {
     return {
@@ -20,14 +22,21 @@ export class CategoryService extends AbstractCrudService<
     } as CategoryDTO;
   }
 
-  protected buildWhere(filter?: { label?: string; slug?: string }) {
+  protected buildWhere(filter?: { name?: string }): Prisma.CategoryWhereInput {
+    if (!filter?.name) {
+      return {};
+    }
+
+    // Validate and cast to NAME enum
+    const nameValue = filter.name as NAME;
+
+    // TODO AppError
+    if (!Object.values(NAME).includes(nameValue)) {
+      throw new AppError(`Invalid name value: ${filter.name}`, 400);
+    }
+
     return {
-      ...(filter?.label
-        ? { label: { contains: filter.label, mode: "insensitive" } }
-        : {}),
-      ...(filter?.slug
-        ? { slug: { contains: filter.slug, mode: "insensitive" } }
-        : {}),
+      name: { equals: nameValue },
     };
   }
 
@@ -49,8 +58,7 @@ export class CategoryService extends AbstractCrudService<
     }
 
     const filter = {
-      label: query?.label as string | undefined,
-      slug: query?.slug as string | undefined,
+      name: query?.name as string | undefined,
     };
     return this.list({ filter, page, limit, orderBy });
   }

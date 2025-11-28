@@ -3,7 +3,6 @@ import { RequestHandler } from "express";
 import { categoryService } from "../services/category.service.js";
 import catchAsync from "../utils/catchAsync.js";
 
-// TODO getting only id is not very useful, expand DTO?
 // TODO test all controllers
 
 export const getAllCategories: RequestHandler = catchAsync(async (req, res) => {
