@@ -1,4 +1,4 @@
-import type { Category, Prisma } from "@repo/database";
+import { Category, Prisma } from "@repo/database";
 import { NAME, prisma } from "@repo/database";
 import type { CategoryCreateInput, CategoryUpdateInput } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
@@ -13,7 +13,7 @@ export class CategoryService extends AbstractCrudService<
   CategoryDTO,
   Prisma.CategoryWhereInput,
   Prisma.CategorySelect,
-  { name?: string }
+  { name?: NAME }
 > {
   protected toDTO({ id, name, thumbnail }: Category): CategoryDTO {
     return {
@@ -23,7 +23,7 @@ export class CategoryService extends AbstractCrudService<
     } as CategoryDTO;
   }
 
-  protected buildWhere(filter?: { name?: string }): Prisma.CategoryWhereInput {
+  protected buildWhere(filter?: { name?: NAME }): Prisma.CategoryWhereInput {
     if (!filter?.name) {
       return {};
     }
@@ -42,15 +42,17 @@ export class CategoryService extends AbstractCrudService<
 
   // Convenience method: derive pagination + filter from raw query without APIFeatures
   // TODO neccsesary?, mayabe add to abstract class
+  // TODO go over select types constraints and inference
   async listFromQuery(query: any) {
-    const pageRaw = query?.page;
-    const limitRaw = query?.limit;
     const sortRaw = query?.sort as string | undefined; // e.g., "label:asc" or "createdAt:desc"
 
-    const page = typeof pageRaw !== "undefined" ? Number(pageRaw) || 1 : 1;
-    const limit = typeof limitRaw !== "undefined" ? Number(limitRaw) || 20 : 20;
+    const page =
+      typeof query?.page !== "undefined" ? Number(query?.page) || 1 : 1;
+    const limit =
+      typeof query?.limit !== "undefined" ? Number(query?.limit) || 20 : 20;
 
     let orderBy: any | undefined = undefined;
+
     if (sortRaw && typeof sortRaw === "string") {
       const [field, dir] = sortRaw.split(":");
       if (field) {
@@ -58,10 +60,29 @@ export class CategoryService extends AbstractCrudService<
       }
     }
 
+    const selectKeys = (query?.select as keyof Prisma.CategorySelect)
+      ? query?.select
+      : undefined;
     const filter = {
-      name: query?.name as string | undefined,
+      name: query?.name as NAME | undefined,
     };
-    return this.list({ filter, page, limit, orderBy });
+
+    const selects = selectKeys?.split(",") as (keyof Prisma.CategorySelect)[];
+    const select =
+      selects && selects.length > 0
+        ? selects.reduce((acc, key) => {
+            if (key in Prisma.CategoryScalarFieldEnum) acc[key] = true;
+            return acc;
+          }, {} as Prisma.CategorySelect)
+        : undefined;
+
+    return this.list({
+      filter,
+      page,
+      limit,
+      orderBy,
+      select,
+    });
   }
 
   protected async persistFindMany(params: {
