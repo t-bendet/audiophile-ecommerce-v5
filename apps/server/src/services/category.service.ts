@@ -3,7 +3,7 @@ import { prisma } from "@repo/database";
 import type { CategoryCreateInput, CategoryUpdateInput } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
-export type CategoryDTO = Pick<Category, "id">;
+export type CategoryDTO = Pick<Category, "id" | "name" | "thumbnail">;
 
 export class CategoryService extends AbstractCrudService<
   Category,
@@ -12,9 +12,11 @@ export class CategoryService extends AbstractCrudService<
   CategoryDTO,
   { label?: string; slug?: string }
 > {
-  protected toDTO(entity: Category): CategoryDTO {
+  protected toDTO({ id, name, thumbnail }: Category): CategoryDTO {
     return {
-      id: entity.id,
+      id,
+      name,
+      thumbnail,
     } as CategoryDTO;
   }
 
