@@ -4,7 +4,8 @@
 
 // TODO add web folder and react ts config
 // TODO sort products and categories relations!!!! schema ,seed and services
-
+// TODO what happens when i delete a category with products? cascade or restrict?
+// TODO add proper readme files to each package and app
 // ============================================================================
 // BUILD & CONFIGURATION
 // ============================================================================
