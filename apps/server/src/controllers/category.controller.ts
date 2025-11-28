@@ -3,8 +3,6 @@ import { RequestHandler } from "express";
 import { categoryService } from "../services/category.service.js";
 import catchAsync from "../utils/catchAsync.js";
 
-// TODO test all controllers
-
 export const getAllCategories: RequestHandler = catchAsync(async (req, res) => {
   const result = await categoryService.listFromQuery(req.query);
   res

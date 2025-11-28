@@ -3,6 +3,7 @@
 // ============================================================================
 
 // TODO add web folder and react ts config
+// TODO sort products and categories relations!!!! schema ,seed and services
 
 // ============================================================================
 // BUILD & CONFIGURATION

@@ -44,8 +44,6 @@ export class CategoryService extends AbstractCrudService<
   // TODO neccsesary?, mayabe add to abstract class
   // TODO go over select types constraints and inference
   async listFromQuery(query: any) {
-    const sortRaw = query?.sort as string | undefined; // e.g., "label:asc" or "createdAt:desc"
-
     const page =
       typeof query?.page !== "undefined" ? Number(query?.page) || 1 : 1;
     const limit =
@@ -53,15 +51,22 @@ export class CategoryService extends AbstractCrudService<
 
     let orderBy: any | undefined = undefined;
 
-    if (sortRaw && typeof sortRaw === "string") {
-      const [field, dir] = sortRaw.split(":");
-      if (field) {
-        orderBy = { [field]: dir === "desc" ? "desc" : "asc" };
-      }
+    if (query.sort !== undefined && typeof query.sort === "string") {
+      const sortBy = query.sort.split(",").map((field: string) => {
+        const isDescending = field.startsWith("-");
+        return {
+          [isDescending ? field.substring(1) : field]: isDescending
+            ? "desc"
+            : "asc",
+        };
+      }) as { [key: string]: "asc" | "desc" }[];
+      orderBy = sortBy;
+    } else {
+      orderBy = [{ id: "desc" as const }];
     }
 
-    const selectKeys = (query?.select as keyof Prisma.CategorySelect)
-      ? query?.select
+    const selectKeys = (query?.fields as keyof Prisma.CategorySelect)
+      ? query?.fields
       : undefined;
     const filter = {
       name: query?.name as NAME | undefined,
