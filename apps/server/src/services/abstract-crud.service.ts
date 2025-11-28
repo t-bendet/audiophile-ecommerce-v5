@@ -48,6 +48,7 @@ export abstract class AbstractCrudService<
   Select = any,
   ListFilter = unknown,
 > {
+  // TODO type constraints on Where, Select to match Entity structure?
   protected abstract toDTO(entity: Entity): DTO;
   protected abstract buildWhere(filter?: ListFilter): Where;
 
