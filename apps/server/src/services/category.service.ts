@@ -40,54 +40,22 @@ export class CategoryService extends AbstractCrudService<
     };
   }
 
-  // Convenience method: derive pagination + filter from raw query without APIFeatures
-  // TODO neccsesary?, mayabe add to abstract class
-  // TODO go over select types constraints and inference
-  async listFromQuery(query: any) {
-    const page =
-      typeof query?.page !== "undefined" ? Number(query?.page) || 1 : 1;
-    const limit =
-      typeof query?.limit !== "undefined" ? Number(query?.limit) || 20 : 20;
+  protected parseFilter(query: any): { name?: NAME } | undefined {
+    return query.name ? { name: query.name as NAME } : undefined;
+  }
 
-    let orderBy: any | undefined = undefined;
-
-    if (query.sort !== undefined && typeof query.sort === "string") {
-      const sortBy = query.sort.split(",").map((field: string) => {
-        const isDescending = field.startsWith("-");
-        return {
-          [isDescending ? field.substring(1) : field]: isDescending
-            ? "desc"
-            : "asc",
-        };
-      }) as { [key: string]: "asc" | "desc" }[];
-      orderBy = sortBy;
-    } else {
-      orderBy = [{ id: "desc" as const }];
+  protected parseSelect(fields?: string): Prisma.CategorySelect | undefined {
+    if (!fields || typeof fields !== "string") {
+      return undefined;
     }
 
-    const selectKeys = (query?.fields as keyof Prisma.CategorySelect)
-      ? query?.fields
-      : undefined;
-    const filter = {
-      name: query?.name as NAME | undefined,
-    };
-
-    const selects = selectKeys?.split(",") as (keyof Prisma.CategorySelect)[];
-    const select =
-      selects && selects.length > 0
-        ? selects.reduce((acc, key) => {
-            if (key in Prisma.CategoryScalarFieldEnum) acc[key] = true;
-            return acc;
-          }, {} as Prisma.CategorySelect)
-        : undefined;
-
-    return this.list({
-      filter,
-      page,
-      limit,
-      orderBy,
-      select,
-    });
+    const selectKeys = fields.split(",") as (keyof Prisma.CategorySelect)[];
+    return selectKeys.reduce((acc, key) => {
+      if (key in Prisma.CategoryScalarFieldEnum) {
+        acc[key] = true;
+      }
+      return acc;
+    }, {} as Prisma.CategorySelect);
   }
 
   protected async persistFindMany(params: {

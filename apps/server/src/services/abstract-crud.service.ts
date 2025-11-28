@@ -51,6 +51,7 @@ export abstract class AbstractCrudService<
   // TODO type constraints on Where, Select to match Entity structure?
   protected abstract toDTO(entity: Entity): DTO;
   protected abstract buildWhere(filter?: ListFilter): Where;
+  protected abstract parseFilter(query: any): ListFilter | undefined;
 
   protected abstract persistFindMany(params: {
     where: Where;
@@ -68,28 +69,44 @@ export abstract class AbstractCrudService<
   ): Promise<Entity | null>;
   protected abstract persistDelete(id: string): Promise<boolean>;
 
-  async list(params: {
-    filter?: ListFilter;
-    page?: number;
-    limit?: number;
-    orderBy?: any;
-    select?: Select;
-  }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 20;
+  protected parseOrderBy(sort?: string): any {
+    if (!sort || typeof sort !== "string") {
+      return [{ id: "desc" as const }];
+    }
+
+    return sort.split(",").map((field: string) => {
+      const isDescending = field.startsWith("-");
+      const fieldName = isDescending ? field.substring(1) : field;
+      return { [fieldName]: isDescending ? "desc" : "asc" };
+    });
+  }
+
+  protected parseSelect(fields?: string): Select | undefined {
+    return undefined; // Override in subclass if select parsing is needed
+  }
+
+  async list(query: any) {
+    const page =
+      typeof query?.page !== "undefined" ? Number(query?.page) || 1 : 1;
+    const limit =
+      typeof query?.limit !== "undefined" ? Number(query?.limit) || 20 : 20;
+    const orderBy = this.parseOrderBy(query.sort);
+    const select = this.parseSelect(query.fields);
+    const filter = this.parseFilter(query);
+
     const skip = (page - 1) * limit;
-    const where = this.buildWhere(params.filter);
+    const where = this.buildWhere(filter);
 
     const { data, total } = await this.persistFindMany({
       where,
       skip,
       take: limit,
-      orderBy: params.orderBy,
-      select: params.select,
+      orderBy,
+      select,
     });
 
     return {
-      data: params.select
+      data: select
         ? data // When select is provided, return raw selected fields
         : data.map((e) => this.toDTO(e)), // Otherwise apply DTO transformation
       meta: { page, limit, total },
