@@ -7,6 +7,7 @@ import { BaseEntity, IdValidator, LabelValidator } from "./shared.js";
 export type Category = PrismaCategory;
 export type CategoryWhereInput = Prisma.CategoryWhereInput;
 export type CategorySelect = Prisma.CategorySelect;
+export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
 export const NAME = $Enums.NAME;
 export type NAME = $Enums.NAME;
 

@@ -6,6 +6,7 @@ import type {
   CategoryUpdateInput,
   CategoryWhereInput,
   NAME,
+  CategoryScalarFieldEnum,
 } from "@repo/domain";
 import { NAME as NAME_ENUM } from "@repo/domain";
 import AppError from "../utils/appError.js";
@@ -66,9 +67,14 @@ export class CategoryService extends AbstractCrudService<
 
     const selectKeys = fields.split(",") as (keyof CategorySelect)[];
     // Basic validation - only allow known scalar fields
-    const validFields = ["id", "name", "thumbnail", "createdAt", "updatedAt"];
+    const validFields = [
+      "id",
+      "name",
+      "createdAt",
+      "v",
+    ] satisfies CategoryScalarFieldEnum[];
     return selectKeys.reduce((acc, key) => {
-      if (validFields.includes(key as string)) {
+      if (validFields.includes(key as CategoryScalarFieldEnum)) {
         acc[key] = true;
       }
       return acc;
