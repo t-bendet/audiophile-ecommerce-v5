@@ -103,8 +103,6 @@
 //          └── types.ts             # Type guards
 //      Benefits: Better organization, easier imports, more scalable
 
-// TODO services, split into different files
-
 // TODO consider if these asserts are useful, or if they are just a way to make typescript happy
 //      Example code:
 //      type User = {
