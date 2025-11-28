@@ -1,8 +1,15 @@
-import { Category, Prisma } from "@repo/database";
-import { NAME, prisma } from "@repo/database";
-import type { CategoryCreateInput, CategoryUpdateInput } from "@repo/domain";
-import { AbstractCrudService } from "./abstract-crud.service.js";
+import { prisma } from "@repo/database";
+import type {
+  Category,
+  CategoryCreateInput,
+  CategorySelect,
+  CategoryUpdateInput,
+  CategoryWhereInput,
+  NAME,
+} from "@repo/domain";
+import { NAME as NAME_ENUM } from "@repo/domain";
 import AppError from "../utils/appError.js";
+import { AbstractCrudService } from "./abstract-crud.service.js";
 
 export type CategoryDTO = Pick<Category, "id" | "name" | "thumbnail">;
 
@@ -11,8 +18,8 @@ export class CategoryService extends AbstractCrudService<
   CategoryCreateInput,
   CategoryUpdateInput,
   CategoryDTO,
-  Prisma.CategoryWhereInput,
-  Prisma.CategorySelect,
+  CategoryWhereInput,
+  CategorySelect,
   { name?: NAME }
 > {
   protected toDTO({ id, name, thumbnail }: Category): CategoryDTO {
@@ -23,7 +30,7 @@ export class CategoryService extends AbstractCrudService<
     } as CategoryDTO;
   }
 
-  protected buildWhere(filter?: { name?: NAME }): Prisma.CategoryWhereInput {
+  protected buildWhere(filter?: { name?: NAME }): CategoryWhereInput {
     if (!filter?.name) {
       return {};
     }
@@ -31,7 +38,7 @@ export class CategoryService extends AbstractCrudService<
     // Validate and cast to NAME enum
     const nameValue = filter.name as NAME;
 
-    if (!Object.values(NAME).includes(nameValue)) {
+    if (!Object.values(NAME_ENUM).includes(nameValue)) {
       throw new AppError(`Invalid name value: ${filter.name}`, 400);
     }
 
@@ -44,26 +51,28 @@ export class CategoryService extends AbstractCrudService<
     return query.name ? { name: query.name as NAME } : undefined;
   }
 
-  protected parseSelect(fields?: string): Prisma.CategorySelect | undefined {
+  protected parseSelect(fields?: string): CategorySelect | undefined {
     if (!fields || typeof fields !== "string") {
       return undefined;
     }
 
-    const selectKeys = fields.split(",") as (keyof Prisma.CategorySelect)[];
+    const selectKeys = fields.split(",") as (keyof CategorySelect)[];
+    // Basic validation - only allow known scalar fields
+    const validFields = ["id", "name", "thumbnail", "createdAt", "updatedAt"];
     return selectKeys.reduce((acc, key) => {
-      if (key in Prisma.CategoryScalarFieldEnum) {
+      if (validFields.includes(key as string)) {
         acc[key] = true;
       }
       return acc;
-    }, {} as Prisma.CategorySelect);
+    }, {} as CategorySelect);
   }
 
   protected async persistFindMany(params: {
-    where: Prisma.CategoryWhereInput;
+    where: CategoryWhereInput;
     skip: number;
     take: number;
     orderBy?: any;
-    select?: Prisma.CategorySelect;
+    select?: CategorySelect;
   }): Promise<{ data: Category[]; total: number }> {
     const [data, total] = await prisma.$transaction([
       prisma.category.findMany({
