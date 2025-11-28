@@ -22,11 +22,19 @@ export class CategoryService extends AbstractCrudService<
   CategorySelect,
   { name?: NAME }
 > {
-  protected toDTO({ id, name, thumbnail }: Category): CategoryDTO {
+  protected toDTO({
+    id,
+    name,
+    thumbnail,
+    createdAt,
+    v,
+  }: Category): CategoryDTO {
     return {
       id,
       name,
       thumbnail,
+      createdAt,
+      v,
     } as CategoryDTO;
   }
 
