@@ -1,6 +1,14 @@
+import type { Category as PrismaCategory, Prisma } from "@repo/database";
 import { $Enums } from "@repo/database";
 import { z } from "zod";
 import { BaseEntity, IdValidator, LabelValidator } from "./shared.js";
+
+// ===== Database Type Re-exports =====
+export type Category = PrismaCategory;
+export type CategoryWhereInput = Prisma.CategoryWhereInput;
+export type CategorySelect = Prisma.CategorySelect;
+export const NAME = $Enums.NAME;
+export type NAME = $Enums.NAME;
 
 // ===== Types =====
 export type TCategoryName = $Enums.NAME;
