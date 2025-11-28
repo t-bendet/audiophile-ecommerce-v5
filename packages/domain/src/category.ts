@@ -19,8 +19,6 @@ export interface CategoryEntity extends BaseEntity {
   };
 }
 
-// ===== Pure Helpers =====
-
 // Query schema (basic pagination + filtering)
 export const categoryQuerySchema = z.object({
   params: z.object({}).optional(),
