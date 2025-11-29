@@ -3,7 +3,9 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "composite": true,
+    "disableSourceOfProjectReferenceRedirect": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": [
@@ -14,5 +16,9 @@
     "../../**/node_modules",
     "../../**/dist",
     "../../packages/database/generated"
+  ],
+  "references": [
+    { "path": "../../packages/database" },
+    { "path": "../../packages/domain" }
   ]
 }

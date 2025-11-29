@@ -1,6 +1,6 @@
+import bcrypt from "bcrypt";
 import { PrismaClient } from "../generated/prisma/client.js";
 import type { NAME } from "../generated/prisma/enums.js";
-import bcrypt from "bcrypt";
 
 const hashPassword = async (password: string) => {
   return await bcrypt.hash(password, 12);
