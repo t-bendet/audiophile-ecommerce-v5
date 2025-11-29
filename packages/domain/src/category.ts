@@ -17,23 +17,16 @@ export type CategoryWhereInput = Prisma.CategoryWhereInput;
 export type CategorySelect = Prisma.CategorySelect;
 export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
 
+// ===== Entity Specific Types =====
+
 export const NAME = $Enums.NAME;
 export type NAME = $Enums.NAME;
 
-// ===== Types =====
-
-// each operation needs to have its own schema
-
 // ===== Schemas =====
 
-export interface CategoryEntity extends BaseEntity {
-  name: $Enums.NAME;
-  thumbnail: {
-    altText: string;
-    ariaLabel: string;
-    src: string;
-  };
-}
+// **
+// Each operation needs to have its own schema
+//**
 
 // Query schema (basic pagination + filtering)
 export const categoryQuerySchema = z.object({
