@@ -13,8 +13,21 @@ import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 // DTO type and filter,declared in service
-export type CategoryDTO = Pick<Category, "id" | "name" | "thumbnail">;
+export type CategoryDTO = Pick<
+  Category,
+  "id" | "name" | "thumbnail" | "createdAt" | "v"
+>;
+// TODO scalar fields and filter should match
+
 export type CategoryFilter = Pick<Category, "name">;
+
+export type CategoryQueryParams = {
+  name?: string;
+  page?: string | number;
+  limit?: string | number;
+  sort?: string;
+  fields?: string;
+};
 export class CategoryService extends AbstractCrudService<
   Category,
   CategoryCreateInput,
@@ -37,7 +50,7 @@ export class CategoryService extends AbstractCrudService<
       thumbnail,
       createdAt,
       v,
-    } as CategoryDTO;
+    };
   }
 
   protected buildWhere(filter?: CategoryFilter): CategoryWhereInput {
@@ -54,8 +67,19 @@ export class CategoryService extends AbstractCrudService<
     };
   }
 
-  protected parseFilter(query: any): CategoryFilter | undefined {
-    return query.name ? { name: query.name as NAME } : undefined;
+  protected parseFilter(
+    query: CategoryQueryParams
+  ): CategoryFilter | undefined {
+    if (!query.name || typeof query.name !== "string") {
+      return undefined;
+    }
+
+    // Type guard: validate the name is a valid NAME enum value
+    if (!Object.values(NAME_ENUM).includes(query.name as NAME)) {
+      return undefined;
+    }
+
+    return { name: query.name as NAME };
   }
 
   protected parseSelect(fields?: string): CategorySelect | undefined {
@@ -63,20 +87,27 @@ export class CategoryService extends AbstractCrudService<
       return undefined;
     }
 
-    const selectKeys = fields.split(",") as (keyof CategorySelect)[];
-    // Basic validation - only allow known scalar fields
+    const selectKeys = fields.split(",");
+    // Use const assertion for better type inference
     const validFields = [
       "id",
       "name",
       "createdAt",
       "v",
-    ] satisfies CategoryScalarFieldEnum[];
-    return selectKeys.reduce((acc, key) => {
-      if (validFields.includes(key as CategoryScalarFieldEnum)) {
-        acc[key] = true;
+    ] as const satisfies readonly CategoryScalarFieldEnum[];
+
+    const select: Partial<CategorySelect> = {};
+
+    for (const key of selectKeys) {
+      // Type-safe check using readonly array
+      if (validFields.includes(key as (typeof validFields)[number])) {
+        select[key as keyof CategorySelect] = true;
       }
-      return acc;
-    }, {} as CategorySelect);
+    }
+
+    return Object.keys(select).length > 0
+      ? (select as CategorySelect)
+      : undefined;
   }
 
   protected async persistFindMany(params: {
