@@ -1,6 +1,6 @@
 import { prisma } from "@repo/database";
 import { UserPublicInfo } from "@repo/domain";
-import { NextFunction, Request, RequestHandler, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import jwt from "jsonwebtoken";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
@@ -81,71 +81,6 @@ export const logout = (_req: Request, res: Response) => {
     httpOnly: true,
   });
   res.status(200).json({ statusText: "success", date: null });
-};
-
-export const authenticate: RequestHandler = catchAsync(
-  async (req, _res, next) => {
-    // * 1) Getting token and check if it's there
-    const { authorization } = req.headers;
-    let token;
-    if (authorization?.startsWith("Bearer")) {
-      token = authorization.replace("Bearer ", "");
-    } else if (req.cookies?.jwt) {
-      token = req.cookies.jwt;
-    }
-    if (!token) {
-      return next(
-        new AppError("You ar not logged in! Please log in to again access", 401)
-      );
-    }
-
-    //* 2) Validate Token
-    const decoded = jwt.verify(token, env.JWT_SECRET);
-    if (!decoded || typeof decoded === "string") {
-      return next(new AppError("Invalid token", 401));
-    }
-    // //* 3) check if user still exists
-    const currentUser = await prisma.user.findUnique({
-      where: { id: decoded.id },
-    });
-    if (!currentUser) {
-      return next(
-        new AppError(
-          "The user belonging to this token does no longer exists",
-          401
-        )
-      );
-    }
-    // //* 4) check if user changed password after the token was issued
-    const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
-      decoded.iat!,
-      currentUser.passwordChangedAt
-    );
-    if (hasPasswordChanged) {
-      return next(
-        new AppError(
-          "User recently changed password! Please log in to again",
-          401
-        )
-      );
-    }
-
-    req.user = currentUser;
-
-    return next();
-  }
-);
-
-export const checkAuthorization = (...roles: UserPublicInfo["role"][]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!roles.includes(req.user!.role)) {
-      return next(
-        new AppError("You do not have permission to perform this action", 403)
-      );
-    }
-
-    next();
-  };
 };
 
 export const updatePassword: RequestHandler = catchAsync(
