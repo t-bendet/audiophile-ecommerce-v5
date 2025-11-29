@@ -1,4 +1,3 @@
-import type { CategoryCreateInput, CategoryUpdateInput } from "@repo/domain";
 import { RequestHandler } from "express";
 import { categoryService } from "../services/category.service.js";
 import catchAsync from "../utils/catchAsync.js";
@@ -16,14 +15,12 @@ export const getCategory: RequestHandler = catchAsync(async (req, res) => {
 });
 
 export const createCategory: RequestHandler = catchAsync(async (req, res) => {
-  const input = req.body as CategoryCreateInput; // assumes validation middleware ran
-  const dto = await categoryService.create(input);
+  const dto = await categoryService.create(req.body);
   res.status(201).json({ status: "success", data: dto });
 });
 
 export const updateCategory: RequestHandler = catchAsync(async (req, res) => {
-  const input = req.body as CategoryUpdateInput; // assumes validation middleware ran
-  const dto = await categoryService.update(req.params.id, input);
+  const dto = await categoryService.update(req.params.id, req.body);
   res.status(200).json({ status: "success", data: dto });
 });
 
