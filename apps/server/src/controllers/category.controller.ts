@@ -1,12 +1,9 @@
-import type { CategoryCreateInput, CategoryUpdateInput } from "@repo/domain";
 import { RequestHandler } from "express";
 import { categoryService } from "../services/category.service.js";
 import catchAsync from "../utils/catchAsync.js";
 
-// TODO getting only id is not very useful, expand DTO?
-
 export const getAllCategories: RequestHandler = catchAsync(async (req, res) => {
-  const result = await categoryService.listFromQuery(req.query);
+  const result = await categoryService.list(req.query);
   res
     .status(200)
     .json({ status: "success", data: result.data, meta: result.meta });
@@ -18,14 +15,12 @@ export const getCategory: RequestHandler = catchAsync(async (req, res) => {
 });
 
 export const createCategory: RequestHandler = catchAsync(async (req, res) => {
-  const input = req.body as CategoryCreateInput; // assumes validation middleware ran
-  const dto = await categoryService.create(input);
+  const dto = await categoryService.create(req.body);
   res.status(201).json({ status: "success", data: dto });
 });
 
 export const updateCategory: RequestHandler = catchAsync(async (req, res) => {
-  const input = req.body as CategoryUpdateInput; // assumes validation middleware ran
-  const dto = await categoryService.update(req.params.id, input);
+  const dto = await categoryService.update(req.params.id, req.body);
   res.status(200).json({ status: "success", data: dto });
 });
 

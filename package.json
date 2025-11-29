@@ -8,6 +8,7 @@
     "prod:client": "pnpm --filter \"client\" run start",
     "prod:server": "pnpm --filter \"server\" run start",
     "build": "turbo run build",
+    "types:watch": "tsc -b -w",
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
     "db:generate": "turbo run db:generate",
