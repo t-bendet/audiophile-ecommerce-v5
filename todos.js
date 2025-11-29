@@ -1,7 +1,7 @@
 // ============================================================================
 // WORKSPACE & ARCHITECTURE
 // ============================================================================
-
+// TODO OpenAPI + zod-to-openapi: Generate OpenAPI from your zod schemas; use a client generator (or orval) to produce typed clients for frontend.
 // TODO add web folder and react ts config
 // TODO sort products and categories relations!!!! schema ,seed and services
 // TODO what happens when i delete a category with products? cascade or restrict?
