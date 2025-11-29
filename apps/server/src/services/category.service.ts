@@ -37,19 +37,13 @@ export class CategoryService extends AbstractCrudService<
   CategorySelect,
   CategoryFilter
 > {
-  protected toDTO({
-    id,
-    name,
-    thumbnail,
-    createdAt,
-    v,
-  }: Category): CategoryDTO {
+  protected toDTO(entity: Category): CategoryDTO {
     return {
-      id,
-      name,
-      thumbnail,
-      createdAt,
-      v,
+      id: entity.id,
+      name: entity.name,
+      thumbnail: entity.thumbnail,
+      createdAt: entity.createdAt,
+      v: entity.v,
     };
   }
 
