@@ -10,7 +10,6 @@ import { BaseEntity, IdValidator, NameValidator } from "./shared.js";
 // ** Each Service that extends AbstractCrudService needs these types defined:
 // ** Entity,CreateInput, UpdateInput, WhereInput, Select, scaler fields
 //**
-
 export type Category = PrismaCategory;
 export type CategoryCreateInput = Prisma.CategoryCreateInput;
 export type CategoryUpdateInput = Prisma.CategoryUpdateInput;
