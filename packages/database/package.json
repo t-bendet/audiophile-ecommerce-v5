@@ -21,6 +21,7 @@
     "prebuild": "npm run db:generate",
     "predev": "npm run db:generate",
     "build": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -p tsconfig.build.json -w",
     "postbuild": "node ./scripts/fix-prisma-imports-robust.cjs",
     "studio": "prisma studio"
   },

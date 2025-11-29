@@ -12,8 +12,11 @@
     "skipLibCheck": true,
     "strict": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "composite": true,
+    "disableSourceOfProjectReferenceRedirect": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["dist", "node_modules"],
+  "references": [{ "path": "../database" }]
 }
