@@ -12,8 +12,9 @@ import { NAME as NAME_ENUM } from "@repo/domain";
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
+// DTO type and filter,declared in service
 export type CategoryDTO = Pick<Category, "id" | "name" | "thumbnail">;
-
+export type CategoryFilter = Pick<Category, "name">;
 export class CategoryService extends AbstractCrudService<
   Category,
   CategoryCreateInput,
@@ -21,7 +22,7 @@ export class CategoryService extends AbstractCrudService<
   CategoryDTO,
   CategoryWhereInput,
   CategorySelect,
-  { name?: NAME }
+  CategoryFilter
 > {
   protected toDTO({
     id,
@@ -39,24 +40,21 @@ export class CategoryService extends AbstractCrudService<
     } as CategoryDTO;
   }
 
-  protected buildWhere(filter?: { name?: NAME }): CategoryWhereInput {
+  protected buildWhere(filter?: CategoryFilter): CategoryWhereInput {
     if (!filter?.name) {
       return {};
     }
 
-    // Validate and cast to NAME enum
-    const nameValue = filter.name as NAME;
-
-    if (!Object.values(NAME_ENUM).includes(nameValue)) {
+    if (!Object.values(NAME_ENUM).includes(filter.name)) {
       throw new AppError(`Invalid name value: ${filter.name}`, 400);
     }
 
     return {
-      name: { equals: nameValue },
+      name: { equals: filter.name },
     };
   }
 
-  protected parseFilter(query: any): { name?: NAME } | undefined {
+  protected parseFilter(query: any): CategoryFilter | undefined {
     return query.name ? { name: query.name as NAME } : undefined;
   }
 
