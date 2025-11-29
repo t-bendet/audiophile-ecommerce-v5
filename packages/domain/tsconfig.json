@@ -13,7 +13,8 @@
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "composite": true
+    "composite": true,
+    "disableSourceOfProjectReferenceRedirect": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"],

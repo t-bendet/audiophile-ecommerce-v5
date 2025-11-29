@@ -12,6 +12,9 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -p tsconfig.build.json -w",
+    "dev": "tsc -p tsconfig.build.json -w",
+    "types:check": "tsc -p tsconfig.json --noEmit",
     "clean": "rimraf dist",
     "lint": "eslint . --max-warnings 0"
   },
