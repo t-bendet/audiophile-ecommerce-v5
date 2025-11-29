@@ -56,7 +56,6 @@
 //      - https://www.youtube.com/shorts/zOseJFD447U
 //      - https://engineering.udacity.com/handling-errors-like-a-pro-in-typescript-d7a314ad4991
 //      - https://kentcdodds.com/blog/get-a-catch-block-error-message-with-typescript
-//      - https://medium.com/@turkishtechnology/error-handling-in-typescript-5b060e52b29b
 
 // ============================================================================
 // DATABASE & MODELS
