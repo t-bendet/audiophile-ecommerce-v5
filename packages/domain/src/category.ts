@@ -3,7 +3,7 @@ import { $Enums } from "@repo/database";
 
 import type { Category as PrismaCategory } from "@repo/database";
 import { z } from "zod";
-import { BaseEntity, IdValidator, NameValidator } from "./shared.js";
+import { IdValidator, NameValidator } from "./shared.js";
 
 // ===== Database Type Re-exports (Service Generics )=====
 // **
