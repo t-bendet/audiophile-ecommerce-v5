@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+//@ts-ignore
 import { PrismaClient } from "../generated/prisma/client.js";
 import type { NAME } from "../generated/prisma/enums.js";
 
