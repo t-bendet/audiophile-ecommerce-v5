@@ -21,6 +21,7 @@ export type CategoryDTO = Pick<
 
 export type CategoryFilter = Pick<Category, "name">;
 
+// TODO define query params type
 export type CategoryQueryParams = {
   name?: string;
   page?: string | number;
