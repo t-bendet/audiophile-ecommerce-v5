@@ -3,25 +3,26 @@ import { $Enums } from "@repo/database";
 import { z } from "zod";
 import { BaseEntity, IdValidator, NameValidator } from "./shared.js";
 
-// ===== Database Type Re-exports =====
+// ===== Database Type Re-exports (Service Generics )=====
+
+// **
+// ** Each Service that extends AbstractCrudService needs these types defined:
+// ** Entity,CreateInput, UpdateInput, WhereInput, Select, scaler fields
+//**
+
 export type Category = PrismaCategory;
-export type CategoryWhereInput = Prisma.CategoryWhereInput;
 export type CategoryCreateInput = Prisma.CategoryCreateInput;
+export type CategoryUpdateInput = Prisma.CategoryUpdateInput;
+export type CategoryWhereInput = Prisma.CategoryWhereInput;
 export type CategorySelect = Prisma.CategorySelect;
 export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
+
 export const NAME = $Enums.NAME;
 export type NAME = $Enums.NAME;
 
 // ===== Types =====
-export type TCategoryName = $Enums.NAME;
-
-export const CategoryNameValues = Object.values($Enums.NAME) as [
-  $Enums.NAME,
-  ...$Enums.NAME[],
-];
 
 // each operation needs to have its own schema
-// each service needs to have types for Entity,CreateInput, UpdateInput, WhereInput, Select, scaler fields
 
 // ===== Schemas =====
 
@@ -81,6 +82,3 @@ export const categoryUpdateSchema = z.object({
   }),
   query: z.object({}).optional(),
 });
-
-// export type CategoryCreateInput = z.infer<typeof categoryCreateSchema>["body"];
-export type CategoryUpdateInput = z.infer<typeof categoryUpdateSchema>["body"];

@@ -1,6 +1,6 @@
 import { prisma, Prisma } from "@repo/database";
 import { z } from "zod";
-import { CategoryNameValues } from "./category.js";
+import { NAME } from "./category.js";
 import { IdValidator } from "./shared.js";
 
 export type ProductCreateWithoutCategoryInput =
@@ -17,7 +17,7 @@ export type ProductCreateResult = Prisma.ProductGetPayload<{
 export const GetProductsByCategorySchema = z.object({
   params: z
     .object({
-      category: z.enum(CategoryNameValues),
+      category: z.enum(NAME),
     })
     .strict(),
 });
