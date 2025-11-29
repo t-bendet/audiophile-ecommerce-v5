@@ -135,3 +135,5 @@ export abstract class AbstractCrudService<
     if (!existed) throw new AppError("No document found with that ID", 404);
   }
 }
+
+// TODO handle // * ADMIN ROUTES (restricted to admin roles) and protected routes
