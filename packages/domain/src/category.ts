@@ -21,7 +21,7 @@ export const CategoryNameValues = Object.values($Enums.NAME) as [
 ];
 
 // each operation needs to have its own schema
-// each service needs to have types for Entity,CreateInput, UpdateInput, WhereInput, Select
+// each service needs to have types for Entity,CreateInput, UpdateInput, WhereInput, Select, scaler fields
 
 // ===== Schemas =====
 
