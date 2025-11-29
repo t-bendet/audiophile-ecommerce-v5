@@ -1,10 +1,9 @@
-import type { Category as PrismaCategory, Prisma } from "@repo/database";
-import { $Enums } from "@repo/database";
+import { Prisma, $Enums } from "@repo/database";
+import type { Category as PrismaCategory } from "@repo/database";
 import { z } from "zod";
 import { BaseEntity, IdValidator, NameValidator } from "./shared.js";
 
 // ===== Database Type Re-exports (Service Generics )=====
-
 // **
 // ** Each Service that extends AbstractCrudService needs these types defined:
 // ** Entity,CreateInput, UpdateInput, WhereInput, Select, scaler fields
