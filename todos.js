@@ -62,6 +62,23 @@
 // DATABASE & MODELS
 // ============================================================================
 
+// TODO Consider removing NAME enum from Category schema
+//      Current: name is NAME enum (Headphones|Earphones|Speakers)
+//      Problem: Can't create new categories at runtime without schema migration + deploy
+//      Recommendation: Change to name: String, slug: String @unique
+//      Impact: More flexible content management, better i18n support, admin can add categories
+//      Trade-off: Lose compile-time type safety for category names
+
+// TODO Handle nested creates when creating Category with related Products
+//      Context: Category can have products relation in Prisma
+//      Consider: Should POST /categories accept nested product creation?
+//      Example: { name: "Monitors", products: { create: [...] } }
+//      Decision needed:
+//        - Option 1: Keep Category create simple (no nested creates), manage products separately
+//        - Option 2: Support nested creates with proper validation and transaction handling
+//        - Option 3: Separate endpoint for bulk category+products creation
+//      Current: CategoryService.create only handles CategoryCreateInput (no nested products)
+
 // TODO Create a one to one relation with config
 //      Location: packages/database/models/product.model.ts
 // ** to product schema

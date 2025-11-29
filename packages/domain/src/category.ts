@@ -1,11 +1,12 @@
 import type { Category as PrismaCategory, Prisma } from "@repo/database";
 import { $Enums } from "@repo/database";
 import { z } from "zod";
-import { BaseEntity, IdValidator, LabelValidator } from "./shared.js";
+import { BaseEntity, IdValidator, NameValidator } from "./shared.js";
 
 // ===== Database Type Re-exports =====
 export type Category = PrismaCategory;
 export type CategoryWhereInput = Prisma.CategoryWhereInput;
+export type CategoryCreateInput = Prisma.CategoryCreateInput;
 export type CategorySelect = Prisma.CategorySelect;
 export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
 export const NAME = $Enums.NAME;
@@ -54,11 +55,17 @@ export const categoryIdParamsSchema = z.object({
 export const categoryCreateSchema = z.object({
   params: z.object({}).optional(),
   body: z.object({
-    label: LabelValidator("Category"),
-    description: z.string().optional(),
+    name: NameValidator("Category"),
+    thumbnail: z.object({
+      altText: z.string().min(1, "Alt text is required"),
+      ariaLabel: z.string().min(1, "Alt text is required"),
+      src: z.string().min(1, "Alt text is required"),
+    }),
   }),
   query: z.object({}).optional(),
-});
+}) satisfies z.Schema<{
+  body: CategoryCreateInput;
+}>;
 
 // Update (partial)
 export const categoryUpdateSchema = z.object({
@@ -70,5 +77,5 @@ export const categoryUpdateSchema = z.object({
   query: z.object({}).optional(),
 });
 
-export type CategoryCreateInput = z.infer<typeof categoryCreateSchema>["body"];
+// export type CategoryCreateInput = z.infer<typeof categoryCreateSchema>["body"];
 export type CategoryUpdateInput = z.infer<typeof categoryUpdateSchema>["body"];
