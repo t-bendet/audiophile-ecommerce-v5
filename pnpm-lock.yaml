@@ -167,6 +167,22 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/domain-tester:
+    dependencies:
+      '@repo/database':
+        specifier: workspace:*
+        version: link:../database
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../config-eslint
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../config-typescript
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
 packages:
 
   '@babel/code-frame@7.27.1':

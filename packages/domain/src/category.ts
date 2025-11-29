@@ -1,8 +1,6 @@
-import type {
-  Prisma,
-  CategoryCreateInput as CategoryCreateInputType,
-} from "@repo/database";
+import type { Prisma } from "@repo/database";
 import { $Enums } from "@repo/database";
+
 import type { Category as PrismaCategory } from "@repo/database";
 import { z } from "zod";
 import { BaseEntity, IdValidator, NameValidator } from "./shared.js";
@@ -14,12 +12,11 @@ import { BaseEntity, IdValidator, NameValidator } from "./shared.js";
 //**
 
 export type Category = PrismaCategory;
-export type CategoryCreateInput = CategoryCreateInputType;
+export type CategoryCreateInput = Prisma.CategoryCreateInput;
 export type CategoryUpdateInput = Prisma.CategoryUpdateInput;
 export type CategoryWhereInput = Prisma.CategoryWhereInput;
 export type CategorySelect = Prisma.CategorySelect;
 export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
-
 // ===== Entity Specific Types =====
 
 export const NAME = $Enums.NAME;
@@ -65,9 +62,7 @@ export const categoryCreateSchema = z.object({
     }),
   }),
   query: z.object({}).optional(),
-}) satisfies z.Schema<{
-  body: CategoryCreateInput;
-}>;
+});
 
 // Update (partial)
 export const categoryUpdateSchema = z.object({
