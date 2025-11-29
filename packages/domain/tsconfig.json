@@ -8,15 +8,12 @@
     "rootDir": "src",
     "outDir": "dist/src",
     "declaration": true,
-    "declarationMap": true,
     "skipLibCheck": true,
     "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
     "composite": true,
     "disableSourceOfProjectReferenceRedirect": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"],
-  "references": [{ "path": "../database/tsconfig.build.json" }]
+  "references": [{ "path": "../database" }]
 }
