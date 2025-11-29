@@ -1,5 +1,6 @@
 import express from "express";
 import * as authController from "../controllers/auth.controller.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
 import {
   CreateUserSchema,
@@ -28,7 +29,7 @@ authRouter.post(
 
 // * USER ROUTES (protected)
 
-authRouter.use(authController.authenticate);
+authRouter.use(authenticate);
 
 authRouter.get("/logout", authController.logout);
 

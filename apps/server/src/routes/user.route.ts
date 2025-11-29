@@ -1,6 +1,6 @@
 import express from "express";
-import * as authController from "../controllers/auth.controller.js";
 import * as userController from "../controllers/user.controller.js";
+import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
 import { UpdateUserDetailsSchema, GetByIdSchema } from "@repo/domain";
 
@@ -8,7 +8,7 @@ const userRouter: express.Router = express.Router();
 
 // * USER ROUTES (protected)
 
-userRouter.use(authController.authenticate);
+userRouter.use(authenticate);
 
 userRouter.get("/me", userController.getMe, userController.getUser);
 
@@ -22,7 +22,7 @@ userRouter.delete("/deleteMe", userController.deleteMe);
 
 // * ADMIN ROUTES (restricted to admin roles)
 
-userRouter.use(authController.checkAuthorization("ADMIN"));
+userRouter.use(authorize("ADMIN"));
 
 userRouter.route("/").get(userController.getAllUsers);
 

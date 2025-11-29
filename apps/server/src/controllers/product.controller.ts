@@ -1,4 +1,4 @@
-import { prisma } from "@repo/database";
+import { NAME, prisma } from "@repo/database";
 import { ProductsByCategorySchemas } from "@repo/domain";
 
 import { RequestHandler } from "express";
@@ -64,7 +64,7 @@ export const getRelatedProducts: RequestHandler = catchAsync(
 export const getProductsByCategoryName: RequestHandler = catchAsync(
   async (req, res) => {
     const products = await prisma.product.getProductsByCategory(
-      req.params.category
+      req.params.category as NAME
     );
 
     const result = ProductsByCategorySchemas.parse(products);

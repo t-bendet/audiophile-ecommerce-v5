@@ -1,63 +1,116 @@
-import type { Category } from "@repo/database";
 import { prisma } from "@repo/database";
-import type { CategoryCreateInput, CategoryUpdateInput } from "@repo/domain";
+import type {
+  Category,
+  CategoryCreateInput,
+  CategorySelect,
+  CategoryUpdateInput,
+  CategoryWhereInput,
+  NAME,
+  CategoryScalarFieldEnum,
+} from "@repo/domain";
+import { NAME as NAME_ENUM } from "@repo/domain";
+import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
-export type CategoryDTO = Pick<Category, "id">;
+// DTO type and filter,declared in service
+export type CategoryDTO = Pick<
+  Category,
+  "id" | "name" | "thumbnail" | "createdAt" | "v"
+>;
+// TODO scalar fields and filter should match
 
+export type CategoryFilter = Pick<Category, "name">;
+
+// TODO define query params type
+export type CategoryQueryParams = {
+  name?: string;
+  page?: string | number;
+  limit?: string | number;
+  sort?: string;
+  fields?: string;
+};
 export class CategoryService extends AbstractCrudService<
   Category,
   CategoryCreateInput,
   CategoryUpdateInput,
   CategoryDTO,
-  { label?: string; slug?: string }
+  CategoryWhereInput,
+  CategorySelect,
+  CategoryFilter
 > {
   protected toDTO(entity: Category): CategoryDTO {
     return {
       id: entity.id,
-    } as CategoryDTO;
-  }
-
-  protected buildWhere(filter?: { label?: string; slug?: string }) {
-    return {
-      ...(filter?.label
-        ? { label: { contains: filter.label, mode: "insensitive" } }
-        : {}),
-      ...(filter?.slug
-        ? { slug: { contains: filter.slug, mode: "insensitive" } }
-        : {}),
+      name: entity.name,
+      thumbnail: entity.thumbnail,
+      createdAt: entity.createdAt,
+      v: entity.v,
     };
   }
 
-  // Convenience method: derive pagination + filter from raw query without APIFeatures
-  async listFromQuery(query: any) {
-    const pageRaw = query?.page;
-    const limitRaw = query?.limit;
-    const sortRaw = query?.sort as string | undefined; // e.g., "label:asc" or "createdAt:desc"
+  protected buildWhere(filter?: CategoryFilter): CategoryWhereInput {
+    if (!filter?.name) {
+      return {};
+    }
 
-    const page = typeof pageRaw !== "undefined" ? Number(pageRaw) || 1 : 1;
-    const limit = typeof limitRaw !== "undefined" ? Number(limitRaw) || 20 : 20;
+    if (!Object.values(NAME_ENUM).includes(filter.name)) {
+      throw new AppError(`Invalid name value: ${filter.name}`, 400);
+    }
 
-    let orderBy: any | undefined = undefined;
-    if (sortRaw && typeof sortRaw === "string") {
-      const [field, dir] = sortRaw.split(":");
-      if (field) {
-        orderBy = { [field]: dir === "desc" ? "desc" : "asc" };
+    return {
+      name: { equals: filter.name },
+    };
+  }
+
+  protected parseFilter(
+    query: CategoryQueryParams
+  ): CategoryFilter | undefined {
+    if (!query.name || typeof query.name !== "string") {
+      return undefined;
+    }
+
+    // Type guard: validate the name is a valid NAME enum value
+    if (!Object.values(NAME_ENUM).includes(query.name as NAME)) {
+      return undefined;
+    }
+
+    return { name: query.name as NAME };
+  }
+
+  protected parseSelect(fields?: string): CategorySelect | undefined {
+    if (!fields || typeof fields !== "string") {
+      return undefined;
+    }
+
+    const selectKeys = fields.split(",");
+    // Use const assertion for better type inference
+    const validFields = [
+      "id",
+      "name",
+      "createdAt",
+      "v",
+    ] as const satisfies readonly CategoryScalarFieldEnum[];
+
+    const select: Partial<CategorySelect> = {};
+
+    for (const key of selectKeys) {
+      // Type-safe check using readonly array
+      if (validFields.includes(key as (typeof validFields)[number])) {
+        select[key as keyof CategorySelect] = true;
       }
     }
 
-    const filter = {
-      label: query?.label as string | undefined,
-      slug: query?.slug as string | undefined,
-    };
-    return this.list({ filter, page, limit, orderBy });
+    return Object.keys(select).length > 0
+      ? (select as CategorySelect)
+      : undefined;
   }
 
   protected async persistFindMany(params: {
-    where: any;
+    where: CategoryWhereInput;
     skip: number;
     take: number;
     orderBy?: any;
+    select?: CategorySelect;
   }): Promise<{ data: Category[]; total: number }> {
     const [data, total] = await prisma.$transaction([
       prisma.category.findMany({
@@ -65,6 +118,7 @@ export class CategoryService extends AbstractCrudService<
         skip: params.skip,
         take: params.take,
         orderBy: params.orderBy,
+        select: params.select,
       }),
       prisma.category.count({ where: params.where }),
     ]);

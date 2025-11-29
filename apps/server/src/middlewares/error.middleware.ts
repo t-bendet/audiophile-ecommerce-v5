@@ -122,6 +122,7 @@ export default (
 ) => {
   if (env.NODE_ENV === "development") {
     // show full error for development
+    console.log(err);
     sendErrorDev(err as any, req, res);
     return;
   }

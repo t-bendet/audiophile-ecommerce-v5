@@ -7,20 +7,34 @@ import {
 import express from "express";
 import * as categoryController from "../controllers/category.controller.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
+import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 
 const categoryRouter: express.Router = express.Router();
 
-categoryRouter
-  .route("/")
-  .get(validateSchema(categoryQuerySchema), categoryController.getAllCategories)
-  .post(
-    validateSchema(categoryCreateSchema),
-    categoryController.createCategory
-  );
+categoryRouter.get(
+  "/",
+  validateSchema(categoryQuerySchema),
+  categoryController.getAllCategories
+);
+
+// * ADMIN ROUTES (restricted to admin roles)
+
+categoryRouter.get(
+  "/:id",
+  validateSchema(categoryIdParamsSchema),
+  categoryController.getCategory
+);
+
+categoryRouter.use(authenticate, authorize("ADMIN"));
+
+categoryRouter.post(
+  "/",
+  validateSchema(categoryCreateSchema),
+  categoryController.createCategory
+);
 
 categoryRouter
   .route("/:id")
-  .get(validateSchema(categoryIdParamsSchema), categoryController.getCategory)
   .patch(
     validateSchema(categoryUpdateSchema),
     categoryController.updateCategory

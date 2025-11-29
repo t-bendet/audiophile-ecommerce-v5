@@ -1,3 +1,5 @@
+// TODO refine this error class further to include error codes, logging levels, etc.
+
 class AppError extends Error {
   statusCode;
   status: "fail" | "error";

@@ -1,7 +1,6 @@
 import { Request } from "express";
 
-// TODO reconsider abstract crud service and api features utils
-
+// TODO delete after product and user controllers refactor --- IGNORE ---
 function hasStringKeys<T extends string>(
   value: unknown,
   ...keys: T[]

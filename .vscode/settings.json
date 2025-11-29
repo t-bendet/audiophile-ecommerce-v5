@@ -6,9 +6,12 @@
   ],
   "typescript.tsserver.maxTsServerMemory": 8192,
   "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
   "files.watcherExclude": {
     "**/node_modules/**": true,
     "**/dist/**": true,
-    "**/.turbo/**": true
+    "**/.turbo/**": true,
+    "**/*.tsbuildinfo": true
   }
 }
