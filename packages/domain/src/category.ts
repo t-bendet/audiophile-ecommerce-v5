@@ -20,6 +20,11 @@ export const CategoryNameValues = Object.values($Enums.NAME) as [
   ...$Enums.NAME[],
 ];
 
+// each operation needs to have its own schema
+// each service needs to have types for Entity,CreateInput, UpdateInput, WhereInput, Select
+
+// ===== Schemas =====
+
 export interface CategoryEntity extends BaseEntity {
   name: $Enums.NAME;
   thumbnail: {
