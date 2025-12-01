@@ -2,7 +2,7 @@ import {
   CategoryCreateRequestSchema,
   CategoryDeleteRequestSchema,
   CategoryGetRequestSchema,
-  CategoryListRequestSchema,
+  CategoryGetAllRequestSchema,
   CategoryUpdateRequestSchema,
 } from "@repo/domain";
 import express from "express";
@@ -14,7 +14,7 @@ const categoryRouter: express.Router = express.Router();
 
 categoryRouter.get(
   "/",
-  validateSchema(CategoryListRequestSchema),
+  validateSchema(CategoryGetAllRequestSchema),
   categoryController.getAllCategories
 );
 

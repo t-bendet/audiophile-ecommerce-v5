@@ -90,7 +90,7 @@ export abstract class AbstractCrudService<
 
   // ***** Public CRUD Methods *****
 
-  async list(query: any) {
+  async getAll(query: any) {
     const page =
       typeof query?.page !== "undefined" ? Number(query?.page) || 1 : 1;
     const limit =

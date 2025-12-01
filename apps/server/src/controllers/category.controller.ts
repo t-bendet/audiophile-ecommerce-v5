@@ -3,7 +3,7 @@ import { categoryService } from "../services/category.service.js";
 import catchAsync from "../utils/catchAsync.js";
 
 export const getAllCategories: RequestHandler = catchAsync(async (req, res) => {
-  const result = await categoryService.list(req.query);
+  const result = await categoryService.getAll(req.query);
   res
     .status(200)
     .json({ status: "success", data: result.data, meta: result.meta });
