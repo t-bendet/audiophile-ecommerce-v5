@@ -48,62 +48,8 @@ export class CategoryService extends AbstractCrudService<
     };
   }
 
-  protected buildWhere(filter?: CategoryFilter): CategoryWhereInput {
-    if (!filter?.name) {
-      return {};
-    }
-
-    if (!Object.values(NAME_ENUM).includes(filter.name)) {
-      throw new AppError(`Invalid name value: ${filter.name}`, 400);
-    }
-
-    return {
-      name: { equals: filter.name },
-    };
-  }
-
-  protected parseFilter(
-    query: CategoryQueryParams
-  ): CategoryFilter | undefined {
-    if (!query.name || typeof query.name !== "string") {
-      return undefined;
-    }
-
-    // Type guard: validate the name is a valid NAME enum value
-    if (!Object.values(NAME_ENUM).includes(query.name as NAME)) {
-      return undefined;
-    }
-
-    return { name: query.name as NAME };
-  }
-
-  protected parseSelect(fields?: string): CategorySelect | undefined {
-    if (!fields || typeof fields !== "string") {
-      return undefined;
-    }
-
-    const selectKeys = fields.split(",");
-    // Use const assertion for better type inference
-    const validFields = [
-      "id",
-      "name",
-      "createdAt",
-      "v",
-    ] as const satisfies readonly CategoryScalarFieldEnum[];
-
-    const select: Partial<CategorySelect> = {};
-
-    for (const key of selectKeys) {
-      // Type-safe check using readonly array
-      if (validFields.includes(key as (typeof validFields)[number])) {
-        select[key as keyof CategorySelect] = true;
-      }
-    }
-
-    return Object.keys(select).length > 0
-      ? (select as CategorySelect)
-      : undefined;
-  }
+  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
+  // *include filtering, pagination, ordering, selection as needed for list operations*
 
   protected async persistFindMany(params: {
     where: CategoryWhereInput;
@@ -155,6 +101,65 @@ export class CategoryService extends AbstractCrudService<
       throw e;
     }
   }
+
+  protected parseSelect(fields?: string): CategorySelect | undefined {
+    if (!fields || typeof fields !== "string") {
+      return undefined;
+    }
+
+    const selectKeys = fields.split(",");
+    // Use const assertion for better type inference
+    const validFields = [
+      "id",
+      "name",
+      "createdAt",
+      "v",
+    ] as const satisfies readonly CategoryScalarFieldEnum[];
+
+    const select: Partial<CategorySelect> = {};
+
+    for (const key of selectKeys) {
+      // Type-safe check using readonly array
+      if (validFields.includes(key as (typeof validFields)[number])) {
+        select[key as keyof CategorySelect] = true;
+      }
+    }
+
+    return Object.keys(select).length > 0
+      ? (select as CategorySelect)
+      : undefined;
+  }
+
+  protected buildWhere(filter?: CategoryFilter): CategoryWhereInput {
+    if (!filter?.name) {
+      return {};
+    }
+
+    if (!Object.values(NAME_ENUM).includes(filter.name)) {
+      throw new AppError(`Invalid name value: ${filter.name}`, 400);
+    }
+
+    return {
+      name: { equals: filter.name },
+    };
+  }
+
+  protected parseFilter(
+    query: CategoryQueryParams
+  ): CategoryFilter | undefined {
+    if (!query.name || typeof query.name !== "string") {
+      return undefined;
+    }
+
+    // Type guard: validate the name is a valid NAME enum value
+    if (!Object.values(NAME_ENUM).includes(query.name as NAME)) {
+      return undefined;
+    }
+
+    return { name: query.name as NAME };
+  }
+
+  // ** Helper Methods (optional overrides) **
 }
 
 export const categoryService = new CategoryService();
