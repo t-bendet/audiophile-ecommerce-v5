@@ -48,7 +48,6 @@ export abstract class AbstractCrudService<
   Select = any,
   ListFilter = unknown,
 > {
-  // TODO type constraints on Where, Select to match Entity structure?
   protected abstract toDTO(entity: Entity): DTO;
 
   // ***** Persistence Layer Methods (to be implemented by subclasses) *****
