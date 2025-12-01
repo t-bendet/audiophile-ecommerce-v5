@@ -109,7 +109,7 @@ export const CategoryUpdateDTOSchema = CategoryDetailDTOSchema;
 export const CategoryListResponseSchema = ListResponseSchema(
   CategoryListDTOSchema
 );
-export type CategoryListResponse = ListResponse<CategoryListDTO>;
+export type CategoryListResponse = ListResponse<typeof CategoryListDTOSchema>;
 
 // Detail response (single DTO)
 export const CategoryDetailResponseSchema = z.object({

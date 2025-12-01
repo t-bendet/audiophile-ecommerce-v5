@@ -21,5 +21,8 @@ export const MetaSchema = z.object({
 export const ListResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
   z.object({ data: z.array(item), meta: MetaSchema });
 
+export type ListResponse<T extends z.ZodTypeAny> = z.infer<
+  ReturnType<typeof ListResponseSchema<T>>
+>;
+
 export type Meta = z.infer<typeof MetaSchema>;
-export type ListResponse<T> = { data: T[]; meta: Meta };
