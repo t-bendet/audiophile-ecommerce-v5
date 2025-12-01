@@ -77,16 +77,13 @@ export const CategoryDeleteSchema = z.object({
   query: z.object({}).optional(),
 });
 
-// ===== DTO Types =====
-export type CategoryListDTO = Pick<Category, "id" | "name" | "thumbnail">;
-export type CategoryDetailDTO = Pick<
-  Category,
-  "id" | "name" | "thumbnail" | "createdAt" | "v"
->;
-export type CategoryCreateDTO = CategoryDetailDTO;
-export type CategoryUpdateDTO = CategoryDetailDTO;
+// * =====  DTO Types (if needed)=====
+export type CategoryListDTO = Category;
+export type CategoryDetailDTO = Category;
+export type CategoryCreateDTO = Category;
+export type CategoryUpdateDTO = Category;
 
-// ===== DTO Schemas =====
+// * =====  DTO Schemas =====
 export const CategoryThumbnailSchema = z.object({
   altText: z.string(),
   ariaLabel: z.string(),
@@ -95,7 +92,7 @@ export const CategoryThumbnailSchema = z.object({
 
 export const CategoryListDTOSchema = z.object({
   id: z.string(),
-  name: z.nativeEnum(NAME),
+  name: z.enum(NAME),
   thumbnail: CategoryThumbnailSchema,
 });
 
@@ -107,7 +104,7 @@ export const CategoryDetailDTOSchema = CategoryListDTOSchema.extend({
 export const CategoryCreateDTOSchema = CategoryDetailDTOSchema;
 export const CategoryUpdateDTOSchema = CategoryDetailDTOSchema;
 
-// ===== Aggregated Response Schemas & Types =====
+// * =====   Response Schemas & Types =====
 
 // List response (array + meta)
 export const CategoryListResponseSchema = ListResponseSchema(
