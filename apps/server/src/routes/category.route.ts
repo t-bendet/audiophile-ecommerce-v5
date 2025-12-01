@@ -1,8 +1,9 @@
 import {
-  categoryCreateSchema,
-  categoryIdParamsSchema,
-  categoryQuerySchema,
-  categoryUpdateSchema,
+  CategoryCreateSchema,
+  CategoryDeleteSchema,
+  CategoryGetSchema,
+  CategoryListSchema,
+  CategoryUpdateSchema,
 } from "@repo/domain";
 import express from "express";
 import * as categoryController from "../controllers/category.controller.js";
@@ -13,7 +14,7 @@ const categoryRouter: express.Router = express.Router();
 
 categoryRouter.get(
   "/",
-  validateSchema(categoryQuerySchema),
+  validateSchema(CategoryListSchema),
   categoryController.getAllCategories
 );
 
@@ -21,7 +22,7 @@ categoryRouter.get(
 
 categoryRouter.get(
   "/:id",
-  validateSchema(categoryIdParamsSchema),
+  validateSchema(CategoryGetSchema),
   categoryController.getCategory
 );
 
@@ -29,18 +30,18 @@ categoryRouter.use(authenticate, authorize("ADMIN"));
 
 categoryRouter.post(
   "/",
-  validateSchema(categoryCreateSchema),
+  validateSchema(CategoryCreateSchema),
   categoryController.createCategory
 );
 
 categoryRouter
   .route("/:id")
   .patch(
-    validateSchema(categoryUpdateSchema),
+    validateSchema(CategoryUpdateSchema),
     categoryController.updateCategory
   )
   .delete(
-    validateSchema(categoryIdParamsSchema),
+    validateSchema(CategoryDeleteSchema),
     categoryController.deleteCategory
   );
 

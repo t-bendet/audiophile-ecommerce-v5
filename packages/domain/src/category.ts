@@ -3,32 +3,26 @@ import { $Enums } from "@repo/database";
 import { z } from "zod";
 import type { ListResponse } from "./common.js";
 import { ListResponseSchema } from "./common.js";
-import { IdValidator, NameValidator } from "./shared.js";
+import { IdValidator } from "./shared.js";
 
-// ===== Database Type Re-exports (Service Generics )=====
-// **
-// ** Each Service that extends AbstractCrudService needs these types defined:
-// ** Entity,CreateInput, UpdateInput, WhereInput, Select, scaler fields
-//**
+// * ===== Database Type Re-exports (Service Generics )=====
+
 export type Category = PrismaCategory;
 export type CategoryCreateInput = Prisma.CategoryCreateInput;
 export type CategoryUpdateInput = Prisma.CategoryUpdateInput;
 export type CategoryWhereInput = Prisma.CategoryWhereInput;
 export type CategorySelect = Prisma.CategorySelect;
 export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
-// ===== Entity Specific Types =====
+
+// *  ===== Entity Specific Types =====
 
 export const NAME = $Enums.NAME;
 export type NAME = $Enums.NAME;
 
-// ===== Schemas =====
+// * ===== RequestSchemas =====
 
-// **
-// Each operation needs to have its own schema
-//**
-
-// Query schema (basic pagination + filtering)
-export const categoryQuerySchema = z.object({
+// LIST - Get all categories (pagination + filtering)
+export const CategoryListSchema = z.object({
   params: z.object({}).optional(),
   body: z.object({}).optional(),
   query: z
@@ -42,34 +36,44 @@ export const categoryQuerySchema = z.object({
     .optional(),
 });
 
-// Params with id
-export const categoryIdParamsSchema = z.object({
+// GET - Get single category by ID
+export const CategoryGetSchema = z.object({
   params: z.object({ id: IdValidator("Category") }),
   body: z.object({}).optional(),
   query: z.object({}).optional(),
 });
 
-// Create
-export const categoryCreateSchema = z.object({
+// CREATE - Create new category
+// TODO can't really create  new category now as NAME is enum
+export const CategoryCreateSchema = z.object({
   params: z.object({}).optional(),
   body: z.object({
-    name: NameValidator("Category"),
+    name: z.enum(NAME),
     thumbnail: z.object({
       altText: z.string().min(1, "Alt text is required"),
       ariaLabel: z.string().min(1, "Alt text is required"),
       src: z.string().min(1, "Alt text is required"),
     }),
-  }),
+  }) satisfies z.Schema<CategoryCreateInput>,
   query: z.object({}).optional(),
 });
 
-// Update (partial)
-export const categoryUpdateSchema = z.object({
+// UPDATE - Update existing category (partial)
+export const CategoryUpdateSchema = z.object({
   params: z.object({ id: IdValidator("Category") }),
-  body: z.object({
-    label: z.string().min(1).optional(),
-    description: z.string().optional(),
-  }),
+  body: z
+    .object({
+      label: z.string().min(1).optional(),
+      description: z.string().optional(),
+    })
+    .strict(),
+  query: z.object({}).optional(),
+});
+
+// DELETE - Delete category by ID
+export const CategoryDeleteSchema = z.object({
+  params: z.object({ id: IdValidator("Category") }),
+  body: z.object({}).optional(),
   query: z.object({}).optional(),
 });
 
