@@ -130,7 +130,12 @@ export abstract class AbstractCrudService<
   }
 
   async update(id: string, input: UpdateInput) {
-    const entity = await this.persistUpdate(id, input);
+    // Optional: Filter input to only allowed fields before update
+    const validatedInput = this.filterUpdateInput
+      ? this.filterUpdateInput(input)
+      : input;
+
+    const entity = await this.persistUpdate(id, validatedInput);
     if (!entity) throw new AppError("No document found with that ID", 404);
     return this.toDTO(entity);
   }
@@ -141,4 +146,36 @@ export abstract class AbstractCrudService<
   }
 
   // ** Helper Methods (optional overrides) **
+
+  /**
+   * Optional hook to filter/validate update input before persistence.
+   * Override in subclass to whitelist specific fields.
+   *
+   * @param input - The raw update input
+   * @returns Filtered update input with only allowed fields
+   *
+   * @example
+   * ```typescript
+   * protected filterUpdateInput(input: CategoryUpdateInput): CategoryUpdateInput {
+   *   const allowedFields: (keyof CategoryUpdateInput)[] = ['label', 'description'];
+   *   return this.pickFields(input, allowedFields);
+   * }
+   * ```
+   */
+  protected filterUpdateInput?(input: UpdateInput): UpdateInput;
+
+  /**
+   * Utility to pick only specified fields from an object
+   */
+  protected pickFields<T extends Record<string, any>>(
+    obj: T,
+    fields: (keyof T)[]
+  ): Partial<T> {
+    return fields.reduce((acc, field) => {
+      if (field in obj) {
+        acc[field] = obj[field];
+      }
+      return acc;
+    }, {} as Partial<T>);
+  }
 }

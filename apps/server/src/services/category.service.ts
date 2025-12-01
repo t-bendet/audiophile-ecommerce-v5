@@ -79,6 +79,22 @@ export class CategoryService extends AbstractCrudService<
     return prisma.category.create({ data: input });
   }
 
+  /**
+   * Whitelist only allowed fields for updates
+   * Prevents clients from updating fields like 'id', 'createdAt', 'v', etc.
+   */
+  protected filterUpdateInput(input: CategoryUpdateInput): CategoryUpdateInput {
+    // Define which fields are allowed to be updated
+    const allowedFields: (keyof CategoryUpdateInput)[] = [
+      "name",
+      "thumbnail",
+      // Add other updateable fields here
+    ];
+    const res = this.pickFields(input, allowedFields);
+    console.log({ res, allowedFields, input });
+    return this.pickFields(input, allowedFields);
+  }
+
   protected async persistUpdate(id: string, input: CategoryUpdateInput) {
     try {
       const entity = await prisma.category.update({
