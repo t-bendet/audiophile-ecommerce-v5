@@ -22,7 +22,7 @@ export type NAME = $Enums.NAME;
 // * ===== RequestSchemas =====
 
 // LIST - Get all categories (pagination + filtering)
-export const CategoryListRequestSchema = z.object({
+export const CategoryGetAllRequestSchema = z.object({
   params: z.object({}).optional(),
   body: z.object({}).optional(),
   query: z
@@ -101,7 +101,7 @@ export const CategoryDTOSchema = z.object({
   v: z.number(),
 });
 
-// * =====   Response Schemas & Types =====
+// * =====   Response Schemas & Types ( For Frontend)=====
 
 // List response (array + meta)
 export const CategoryListResponseSchema = ListResponseSchema(CategoryDTOSchema);
