@@ -22,7 +22,7 @@ export type NAME = $Enums.NAME;
 // * ===== RequestSchemas =====
 
 // LIST - Get all categories (pagination + filtering)
-export const CategoryListSchema = z.object({
+export const CategoryListRequestSchema = z.object({
   params: z.object({}).optional(),
   body: z.object({}).optional(),
   query: z
@@ -37,7 +37,7 @@ export const CategoryListSchema = z.object({
 });
 
 // GET - Get single category by ID
-export const CategoryGetSchema = z.object({
+export const CategoryGetRequestSchema = z.object({
   params: z.object({ id: IdValidator("Category") }),
   body: z.object({}).optional(),
   query: z.object({}).optional(),
@@ -45,7 +45,7 @@ export const CategoryGetSchema = z.object({
 
 // CREATE - Create new category
 // TODO can't really create  new category now as NAME is enum
-export const CategoryCreateSchema = z.object({
+export const CategoryCreateRequestSchema = z.object({
   params: z.object({}).optional(),
   body: z.object({
     name: z.enum(NAME),
@@ -59,7 +59,7 @@ export const CategoryCreateSchema = z.object({
 });
 
 // UPDATE - Update existing category (partial)
-export const CategoryUpdateSchema = z.object({
+export const CategoryUpdateRequestSchema = z.object({
   params: z.object({ id: IdValidator("Category") }),
   body: z
     .object({
@@ -71,7 +71,7 @@ export const CategoryUpdateSchema = z.object({
 });
 
 // DELETE - Delete category by ID
-export const CategoryDeleteSchema = z.object({
+export const CategoryDeleteRequestSchema = z.object({
   params: z.object({ id: IdValidator("Category") }),
   body: z.object({}).optional(),
   query: z.object({}).optional(),
@@ -83,50 +83,45 @@ export type CategoryDetailDTO = Category;
 export type CategoryCreateDTO = Category;
 export type CategoryUpdateDTO = Category;
 
-// * =====  DTO Schemas =====
+// * =====  Common Schemas =====
+
 export const CategoryThumbnailSchema = z.object({
   altText: z.string(),
   ariaLabel: z.string(),
   src: z.string(),
 });
 
-export const CategoryListDTOSchema = z.object({
+// * =====  DTO Schemas ( base and others if needed)=====
+
+export const CategoryDTOSchema = z.object({
   id: z.string(),
   name: z.enum(NAME),
   thumbnail: CategoryThumbnailSchema,
-});
-
-export const CategoryDetailDTOSchema = CategoryListDTOSchema.extend({
   createdAt: z.date(),
   v: z.number(),
 });
 
-export const CategoryCreateDTOSchema = CategoryDetailDTOSchema;
-export const CategoryUpdateDTOSchema = CategoryDetailDTOSchema;
-
 // * =====   Response Schemas & Types =====
 
 // List response (array + meta)
-export const CategoryListResponseSchema = ListResponseSchema(
-  CategoryListDTOSchema
-);
-export type CategoryListResponse = ListResponse<typeof CategoryListDTOSchema>;
+export const CategoryListResponseSchema = ListResponseSchema(CategoryDTOSchema);
+export type CategoryListResponse = ListResponse<typeof CategoryDTOSchema>;
 
 // Detail response (single DTO)
 export const CategoryDetailResponseSchema = z.object({
-  data: CategoryDetailDTOSchema,
+  data: CategoryDTOSchema,
 });
 export type CategoryDetailResponse = { data: CategoryDetailDTO };
 
 // Create response (single DTO)
 export const CategoryCreateResponseSchema = z.object({
-  data: CategoryCreateDTOSchema,
+  data: CategoryDTOSchema,
 });
 export type CategoryCreateResponse = { data: CategoryCreateDTO };
 
 // Update response (single DTO)
 export const CategoryUpdateResponseSchema = z.object({
-  data: CategoryUpdateDTOSchema,
+  data: CategoryDTOSchema,
 });
 export type CategoryUpdateResponse = { data: CategoryUpdateDTO };
 
