@@ -57,6 +57,14 @@
 //      - https://engineering.udacity.com/handling-errors-like-a-pro-in-typescript-d7a314ad4991
 //      - https://kentcdodds.com/blog/get-a-catch-block-error-message-with-typescript
 
+// TODO improve abstract-crud-service typing ,constraints on Where, Select to match Entity structure
+//      Location: apps/server/src/services/abstract-crud.service.ts
+//      Context: Generic types Where, Select are currently unconstrained (any)
+//      Goal: Constrain Where, Select to match Entity structure for better type safety
+//      Considerations:
+//        - Use mapped types or conditional types to derive Where, Select from Entity
+//        - Ensure compatibility with Prisma's filtering and selection capabilities
+//      Benefits: Improved type safety, better developer experience with autocompletion and error checking
 // ============================================================================
 // DATABASE & MODELS
 // ============================================================================
