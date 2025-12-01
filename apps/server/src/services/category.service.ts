@@ -90,8 +90,7 @@ export class CategoryService extends AbstractCrudService<
       "thumbnail",
       // Add other updateable fields here
     ];
-    const res = this.pickFields(input, allowedFields);
-    console.log({ res, allowedFields, input });
+
     return this.pickFields(input, allowedFields);
   }
 
