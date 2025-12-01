@@ -50,8 +50,9 @@ export abstract class AbstractCrudService<
 > {
   // TODO type constraints on Where, Select to match Entity structure?
   protected abstract toDTO(entity: Entity): DTO;
-  protected abstract buildWhere(filter?: ListFilter): Where;
-  protected abstract parseFilter(query: any): ListFilter | undefined;
+
+  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
+  // *include filtering, pagination, ordering, selection as needed for list operations*
 
   protected abstract persistFindMany(params: {
     where: Where;
@@ -69,6 +70,9 @@ export abstract class AbstractCrudService<
   ): Promise<Entity | null>;
   protected abstract persistDelete(id: string): Promise<boolean>;
 
+  protected abstract buildWhere(filter?: ListFilter): Where;
+  protected abstract parseFilter(query: any): ListFilter | undefined;
+
   protected parseOrderBy(sort?: string): any {
     if (!sort || typeof sort !== "string") {
       return [{ id: "desc" as const }];
@@ -84,6 +88,8 @@ export abstract class AbstractCrudService<
   protected parseSelect(fields?: string): Select | undefined {
     return undefined; // Override in subclass if select parsing is needed
   }
+
+  // ***** Public CRUD Methods *****
 
   async list(query: any) {
     const page =
@@ -134,4 +140,6 @@ export abstract class AbstractCrudService<
     const existed = await this.persistDelete(id);
     if (!existed) throw new AppError("No document found with that ID", 404);
   }
+
+  // ** Helper Methods (optional overrides) **
 }
