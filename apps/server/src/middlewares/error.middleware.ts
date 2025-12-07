@@ -5,6 +5,8 @@ import { prettifyError, ZodError } from "zod";
 import AppError from "../utils/appError.js";
 import { env } from "../utils/env.js";
 
+// ------------------ Specific Error Handlers ------------------
+
 const handleCastErrorDB = (err: Prisma.PrismaClientKnownRequestError) => {
   const message = `${err.meta?.message}`;
   return new AppError(message, ErrorCode.INVALID_ID);
