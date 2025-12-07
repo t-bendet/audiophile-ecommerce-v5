@@ -36,7 +36,7 @@ export type ErrorDetail = z.infer<typeof ErrorDetailSchema>;
 export const ResponseEnvelopeSchema = <T extends z.ZodTypeAny>(payload: T) =>
   z.object({
     success: z.boolean(),
-    timestamp: z.string().datetime(),
+    timestamp: z.iso.datetime(),
     data: payload.nullable(),
     pagination: PaginationSchema.optional(),
     error: z
