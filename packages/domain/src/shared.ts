@@ -34,21 +34,3 @@ export const SlugValidator = (identifier: string = "Document") =>
     .regex(/^[a-z0-9-]+$/i, { message: "Invalid slug format" })
     .min(3)
     .max(80);
-
-// ===== Pure Helpers =====
-export type Slug = string & { __brand: "CategorySlug" };
-
-export function generateSlug(label: string): Slug {
-  return label
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]/g, "") as Slug;
-}
-
-// ===== Entity =====
-
-export interface BaseEntity {
-  id: string;
-  createdAt: Date;
-  v: number;
-}
