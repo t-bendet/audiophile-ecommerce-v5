@@ -18,7 +18,7 @@ export class ProductService {
     });
 
     if (!product) {
-      throw new AppError("Product not found", 404);
+      throw new AppError("Product not found", 404, "NOT_FOUND");
     }
 
     // Business logic: Define similarity rules
@@ -90,7 +90,7 @@ export class ProductService {
     const config = await prisma.config.findFirst();
 
     if (!config) {
-      throw new AppError("Site configuration not found", 500);
+      throw new AppError("Site configuration not found", 500, "INTERNAL_ERROR");
     }
 
     // Get the showcase product IDs from config
@@ -142,7 +142,11 @@ export class ProductService {
 
     // Validate all positions are filled
     if (!showcaseMap.cover || !showcaseMap.wide || !showcaseMap.grid) {
-      throw new AppError("Incomplete showcase configuration", 500);
+      throw new AppError(
+        "Incomplete showcase configuration",
+        500,
+        "INTERNAL_ERROR"
+      );
     }
 
     return showcaseMap;
@@ -155,7 +159,7 @@ export class ProductService {
     const config = await prisma.config.findFirst();
 
     if (!config) {
-      throw new AppError("Site configuration not found", 500);
+      throw new AppError("Site configuration not found", 500, "INTERNAL_ERROR");
     }
 
     const product = await prisma.product.findUnique({
@@ -180,12 +184,16 @@ export class ProductService {
     });
 
     if (!product) {
-      throw new AppError("Featured product not found", 404);
+      throw new AppError("Featured product not found", 404, "NOT_FOUND");
     }
 
     // Business validation: Featured product must have required fields
     if (!product.featuredImageText) {
-      throw new AppError("Featured product missing featured text", 500);
+      throw new AppError(
+        "Featured product missing featured text",
+        500,
+        "INTERNAL_ERROR"
+      );
     }
 
     if (!product.images?.featuredImage) {

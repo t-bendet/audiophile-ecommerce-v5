@@ -151,7 +151,11 @@ export class CategoryService extends AbstractCrudService<
     }
 
     if (!Object.values(NAME_ENUM).includes(filter.name)) {
-      throw new AppError(`Invalid name value: ${filter.name}`, 400);
+      throw new AppError(
+        `Invalid name value: ${filter.name}`,
+        400,
+        "VALIDATION_ERROR"
+      );
     }
 
     return {

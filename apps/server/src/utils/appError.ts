@@ -1,14 +1,13 @@
-// TODO refine this error class further to include error codes, logging levels, etc.
-
 class AppError extends Error {
   statusCode;
-  status: "fail" | "error";
+  code?: string;
   isOperational;
-  constructor(message: string, statusCode: number = 500) {
+
+  constructor(message: string, statusCode: number = 500, code?: string) {
     super(message);
 
     this.statusCode = statusCode;
-    this.status = `${statusCode}`.startsWith("4") ? "fail" : "error";
+    this.code = code;
     // isOperational is used to distinguish between operational errors (like validation errors) and programming errors (like syntax errors)don't leak error details
     // Operational errors are expected errors that can be handled gracefully
     this.isOperational = true;
