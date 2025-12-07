@@ -48,18 +48,9 @@ export const ResponseEnvelopeSchema = <T extends z.ZodTypeAny>(payload: T) =>
       .optional(),
   });
 
-export type ResponseEnvelope<T> = {
-  success: boolean;
-  timestamp: string;
-  data: T | null;
-  pagination?: Pagination;
-  error?: {
-    message: string;
-    code?: string;
-    details?: ErrorDetail[];
-    stack?: string;
-  };
-};
+export type ResponseEnvelope<T extends z.ZodTypeAny> = z.infer<
+  ReturnType<typeof ResponseEnvelopeSchema<T>>
+>;
 
 // ===== Specific Response Types =====
 
