@@ -1,4 +1,4 @@
-import { ErrorCode } from "@repo/domain";
+import { ErrorCode, Meta } from "@repo/domain";
 import AppError from "../utils/appError.js";
 
 /**
@@ -117,7 +117,7 @@ export abstract class AbstractCrudService<
       data: select
         ? data // When select is provided, return raw selected fields
         : data.map((e) => this.toDTO(e)), // Otherwise apply DTO transformation
-      meta: { page, limit, total, totalPages, hasNext, hasPrev },
+      meta: { page, limit, total, totalPages, hasNext, hasPrev } satisfies Meta,
     };
   }
 
