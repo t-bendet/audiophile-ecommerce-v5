@@ -1,7 +1,7 @@
 import express, { Express } from "express";
 import globalErrorHandler from "./middlewares/error.middleware.js";
 import indexRoute from "./routes/index.js";
-import { UserPublicInfo } from "@repo/domain";
+import { UserPublicInfo, ErrorCode } from "@repo/domain";
 import AppError from "./utils/appError.js";
 
 declare global {
@@ -20,7 +20,12 @@ app.use(express.json());
 app.use("/api/v1", indexRoute);
 
 app.all(/.*/, (req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  next(
+    new AppError(
+      `Can't find ${req.originalUrl} on this server!`,
+      ErrorCode.NOT_FOUND
+    )
+  );
 });
 
 app.use(globalErrorHandler);

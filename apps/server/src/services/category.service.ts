@@ -1,4 +1,5 @@
 import { prisma } from "@repo/database";
+import { ErrorCode } from "@repo/domain";
 import type {
   Category,
   CategoryCreateInput,
@@ -153,8 +154,7 @@ export class CategoryService extends AbstractCrudService<
     if (!Object.values(NAME_ENUM).includes(filter.name)) {
       throw new AppError(
         `Invalid name value: ${filter.name}`,
-        400,
-        "VALIDATION_ERROR"
+        ErrorCode.VALIDATION_ERROR
       );
     }
 

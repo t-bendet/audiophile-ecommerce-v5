@@ -1,3 +1,4 @@
+import { ErrorCode } from "@repo/domain";
 import AppError from "../utils/appError.js";
 
 /**
@@ -121,7 +122,7 @@ export abstract class AbstractCrudService<
   async get(id: string) {
     const entity = await this.persistFindById(id);
     if (!entity)
-      throw new AppError("No document found with that ID", 404, "NOT_FOUND");
+      throw new AppError("No document found with that ID", ErrorCode.NOT_FOUND);
     return this.toDTO(entity);
   }
 
@@ -138,14 +139,14 @@ export abstract class AbstractCrudService<
 
     const entity = await this.persistUpdate(id, validatedInput);
     if (!entity)
-      throw new AppError("No document found with that ID", 404, "NOT_FOUND");
+      throw new AppError("No document found with that ID", ErrorCode.NOT_FOUND);
     return this.toDTO(entity);
   }
 
   async delete(id: string) {
     const existed = await this.persistDelete(id);
     if (!existed)
-      throw new AppError("No document found with that ID", 404, "NOT_FOUND");
+      throw new AppError("No document found with that ID", ErrorCode.NOT_FOUND);
   }
 
   // ** Helper Methods (optional overrides) **
