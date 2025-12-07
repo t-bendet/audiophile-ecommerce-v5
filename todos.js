@@ -103,18 +103,6 @@
 // CODE ORGANIZATION & QUALITY
 // ============================================================================
 // TODO jsdoc comments for all service methods
-// TODO Restructure middlewares folder:
-//      Current: error.middleware.ts, error.handlers.ts, validation.middleware.ts
-//      Proposed:
-//      middlewares/
-//      ├── index.ts                 # Export all
-//      ├── validation.ts            # Remove .middleware suffix
-//      └── error/
-//          ├── index.ts             # Export errorHandler
-//          ├── handler.ts           # Main error handler (current error.middleware.ts)
-//          ├── handlers.ts          # Specific error handlers
-//          └── types.ts             # Type guards
-//      Benefits: Better organization, easier imports, more scalable
 
 // TODO consider if these asserts are useful, or if they are just a way to make typescript happy
 //      Example code:
