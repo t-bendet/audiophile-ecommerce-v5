@@ -44,7 +44,6 @@ const handleJWTExpiredError = () =>
 
 const sendErrorDev = (err: any, _req: Request, res: Response) => {
   err.statusCode = err.statusCode || 500;
-  // TODO remove createErrorResponse ? include other errorhandkers in dev also? !!!!!
   return res.status(err.statusCode).json(
     createErrorResponse(err.message, {
       code: err.code || err.statusCode?.toString(),
