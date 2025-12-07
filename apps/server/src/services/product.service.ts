@@ -1,4 +1,5 @@
 import { prisma } from "@repo/database";
+import { ErrorCode } from "@repo/domain";
 import type { NAME } from "@repo/database";
 import AppError from "../utils/appError.js";
 
@@ -18,7 +19,7 @@ export class ProductService {
     });
 
     if (!product) {
-      throw new AppError("Product not found", 404, "NOT_FOUND");
+      throw new AppError("Product not found", ErrorCode.NOT_FOUND);
     }
 
     // Business logic: Define similarity rules
@@ -90,7 +91,11 @@ export class ProductService {
     const config = await prisma.config.findFirst();
 
     if (!config) {
-      throw new AppError("Site configuration not found", 500, "INTERNAL_ERROR");
+      throw new AppError(
+        "Site configuration not found",
+        500,
+        ErrorCode.INTERNAL_ERROR
+      );
     }
 
     // Get the showcase product IDs from config
@@ -144,8 +149,7 @@ export class ProductService {
     if (!showcaseMap.cover || !showcaseMap.wide || !showcaseMap.grid) {
       throw new AppError(
         "Incomplete showcase configuration",
-        500,
-        "INTERNAL_ERROR"
+        ErrorCode.INTERNAL_ERROR
       );
     }
 
@@ -159,7 +163,10 @@ export class ProductService {
     const config = await prisma.config.findFirst();
 
     if (!config) {
-      throw new AppError("Site configuration not found", 500, "INTERNAL_ERROR");
+      throw new AppError(
+        "Site configuration not found",
+        ErrorCode.INTERNAL_ERROR
+      );
     }
 
     const product = await prisma.product.findUnique({
@@ -184,20 +191,22 @@ export class ProductService {
     });
 
     if (!product) {
-      throw new AppError("Featured product not found", 404, "NOT_FOUND");
+      throw new AppError("Featured product not found", ErrorCode.NOT_FOUND);
     }
 
     // Business validation: Featured product must have required fields
     if (!product.featuredImageText) {
       throw new AppError(
         "Featured product missing featured text",
-        500,
-        "INTERNAL_ERROR"
+        ErrorCode.INTERNAL_ERROR
       );
     }
 
     if (!product.images?.featuredImage) {
-      throw new AppError("Featured product missing featured image", 500);
+      throw new AppError(
+        "Featured product missing featured image",
+        ErrorCode.INTERNAL_ERROR
+      );
     }
 
     return product;

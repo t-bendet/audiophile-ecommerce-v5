@@ -1,5 +1,5 @@
 import { Prisma } from "@repo/database";
-import { createErrorResponse } from "@repo/domain";
+import { createErrorResponse, ErrorCode } from "@repo/domain";
 import { NextFunction, Request, Response } from "express";
 import { prettifyError, ZodError } from "zod";
 import AppError from "../utils/appError.js";
@@ -7,40 +7,39 @@ import { env } from "../utils/env.js";
 
 const handleCastErrorDB = (err: Prisma.PrismaClientKnownRequestError) => {
   const message = `${err.meta?.message}`;
-  return new AppError(message, 400, "INVALID_ID");
+  return new AppError(message, ErrorCode.INVALID_ID);
 };
 
 const handleDuplicateFieldsDB = (err: Prisma.PrismaClientKnownRequestError) => {
   const message = `Duplicate field value: ${err.meta?.target}. Please use another value!`;
-  return new AppError(message, 400, "DUPLICATE_ENTRY");
+  return new AppError(message, ErrorCode.DUPLICATE_ENTRY);
 };
 
 const handleMissingDocumentDB = (err: Prisma.PrismaClientKnownRequestError) => {
   // for unhandled non-existing document
   const message = `No matching ${err.meta?.modelName ?? "document"} was found`;
-  return new AppError(message, 404, "NOT_FOUND");
+  return new AppError(message, ErrorCode.NOT_FOUND);
 };
 
 const handleValidationErrorDB = (err: Error) => {
   // ** should get caught by zod before this point
   const message = `Invalid query data. -  Unprocessable Content`;
-  return new AppError(message, 422, "VALIDATION_ERROR");
+  return new AppError(message, ErrorCode.VALIDATION_ERROR);
 };
 
 const handleZodError = (err: ZodError) => {
   const message = `Unprocessable Content.The following variables are missing or invalid:
       ${prettifyError(err)}`;
-  return new AppError(message, 400, "VALIDATION_ERROR");
+  return new AppError(message, ErrorCode.VALIDATION_ERROR);
 };
 
 const handleJWTError = () =>
-  new AppError("Invalid token. Please log in again!", 401, "INVALID_TOKEN");
+  new AppError("Invalid token. Please log in again!", ErrorCode.INVALID_TOKEN);
 
 const handleJWTExpiredError = () =>
   new AppError(
     "Your token has expired! Please log in again.",
-    401,
-    "TOKEN_EXPIRED"
+    ErrorCode.TOKEN_EXPIRED
   );
 
 const sendErrorDev = (err: any, _req: Request, res: Response) => {
@@ -98,7 +97,6 @@ const isZodError = (err: unknown): err is ZodError => {
 // -------------------------------------------------
 
 const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
-  console.log({ err });
   // A) Operational, trusted error: send message to client
   if (err instanceof AppError && err.isOperational) {
     return res.status(err.statusCode).json(
@@ -113,7 +111,7 @@ const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
   // 2) Send generic message
   return res.status(500).json(
     createErrorResponse("Something went very wrong!", {
-      code: "INTERNAL_SERVER_ERROR",
+      code: ErrorCode.INTERNAL_ERROR,
     })
   );
 };
