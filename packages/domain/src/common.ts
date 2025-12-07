@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { ErrorCode } from "./error-codes.js";
-import { meta } from "zod/v4/core";
 
 // ===== Envelope Pattern - Response Wrapper =====
 

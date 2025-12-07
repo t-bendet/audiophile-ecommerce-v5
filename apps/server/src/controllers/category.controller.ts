@@ -1,9 +1,9 @@
-import { RequestHandler } from "express";
 import {
   createEmptyResponse,
   createListResponse,
   createSuccessResponse,
 } from "@repo/domain";
+import { RequestHandler } from "express";
 import { categoryService } from "../services/category.service.js";
 import catchAsync from "../utils/catchAsync.js";
 
