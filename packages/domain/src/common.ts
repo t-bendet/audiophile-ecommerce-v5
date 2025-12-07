@@ -175,8 +175,8 @@ export function createEmptyResponse(): EmptyResponse {
  */
 export function createErrorResponse(
   message: string,
-  options?: {
-    code?: ErrorCode | string;
+  options: {
+    code: ErrorCode;
     details?: ErrorDetail[];
     stack?: string;
   }

@@ -124,7 +124,7 @@ const normalizeError = (err: unknown): AppError | unknown => {
 
 const sendErrorDev = (err: unknown, _req: Request, res: Response) => {
   const statusCode = err instanceof AppError ? err.statusCode : 500;
-  const code = err instanceof AppError ? err.code : "INTERNAL_ERROR";
+  const code = err instanceof AppError ? err.code : ErrorCode.INTERNAL_ERROR;
   const message = err instanceof Error ? err.message : "Unknown error";
   const stack = err instanceof Error ? err.stack : undefined;
 
