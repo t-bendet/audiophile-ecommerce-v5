@@ -1,14 +1,16 @@
-// TODO refine this error class further to include error codes, logging levels, etc.
+import { ErrorCode, getStatusCode } from "@repo/domain";
 
 class AppError extends Error {
   statusCode;
-  status: "fail" | "error";
+  code: string;
   isOperational;
-  constructor(message: string, statusCode: number = 500) {
+
+  constructor(message: string, code: ErrorCode, statusCode?: number) {
     super(message);
 
-    this.statusCode = statusCode;
-    this.status = `${statusCode}`.startsWith("4") ? "fail" : "error";
+    this.code = code;
+    // Auto-derive status code from error code if not provided
+    this.statusCode = statusCode ?? getStatusCode(code);
     // isOperational is used to distinguish between operational errors (like validation errors) and programming errors (like syntax errors)don't leak error details
     // Operational errors are expected errors that can be handled gracefully
     this.isOperational = true;

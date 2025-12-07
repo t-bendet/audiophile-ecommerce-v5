@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { UserPublicInfo } from "@repo/domain";
+import { UserPublicInfo, ErrorCode } from "@repo/domain";
 import { Request, RequestHandler, Response } from "express";
 import jwt from "jsonwebtoken";
 import AppError from "../utils/appError.js";
@@ -67,7 +67,9 @@ export const login: RequestHandler = catchAsync(async (req, res, next) => {
   });
 
   if (!(await prisma.user.validatePassword(password, user.password))) {
-    return next(new AppError("Incorrect email or password", 401));
+    return next(
+      new AppError("Incorrect email or password", ErrorCode.INVALID_CREDENTIALS)
+    );
   }
 
   const { password: _, ...userWithoutPassword } = user;
@@ -96,7 +98,12 @@ export const updatePassword: RequestHandler = catchAsync(
 
     // 2) Check if POSTed current password is correct
     if (!(await prisma.user.validatePassword(currentPassword, user.password))) {
-      return next(new AppError("Your current password is wrong.", 401));
+      return next(
+        new AppError(
+          "Your current password is wrong.",
+          ErrorCode.INVALID_CREDENTIALS
+        )
+      );
     }
 
     // 3) If so, update password
