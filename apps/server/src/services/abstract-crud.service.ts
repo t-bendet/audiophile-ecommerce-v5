@@ -110,12 +110,14 @@ export abstract class AbstractCrudService<
       orderBy,
       select,
     });
-
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
     return {
       data: select
         ? data // When select is provided, return raw selected fields
         : data.map((e) => this.toDTO(e)), // Otherwise apply DTO transformation
-      meta: { page, limit, total },
+      meta: { page, limit, total, totalPages, hasNext, hasPrev },
     };
   }
 

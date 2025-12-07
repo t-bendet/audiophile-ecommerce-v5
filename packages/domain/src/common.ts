@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { ErrorCode } from "./error-codes.js";
+import { meta } from "zod/v4/core";
 
 // ===== Envelope Pattern - Response Wrapper =====
 
 /**
  * Pagination metadata for list responses
  */
-export const PaginationSchema = z.object({
+export const MetaSchema = z.object({
   page: z.number().int().nonnegative(),
   limit: z.number().int().positive(),
   total: z.number().int().nonnegative(),
@@ -15,7 +16,7 @@ export const PaginationSchema = z.object({
   hasPrev: z.boolean(),
 });
 
-export type Pagination = z.infer<typeof PaginationSchema>;
+export type Meta = z.infer<typeof MetaSchema>;
 
 /**
  * Error details for structured error responses
@@ -37,7 +38,7 @@ export const ResponseEnvelopeSchema = <T extends z.ZodTypeAny>(payload: T) =>
     success: z.boolean(),
     timestamp: z.iso.datetime(),
     data: payload.nullable(),
-    pagination: PaginationSchema.optional(),
+    meta: MetaSchema.optional(),
     error: z
       .object({
         message: z.string(),
@@ -61,18 +62,18 @@ export type SuccessResponse<T> = {
   success: true;
   timestamp: string;
   data: T;
-  pagination?: never;
+  meta?: never;
   error?: never;
 };
 
 /**
- * Success response for list of items with pagination
+ * Success response for list of items with metadata
  */
 export type ListResponse<T> = {
   success: true;
   timestamp: string;
   data: T[];
-  pagination: Pagination;
+  meta: Meta;
   error?: never;
 };
 
@@ -83,7 +84,7 @@ export type EmptyResponse = {
   success: true;
   timestamp: string;
   data: null;
-  pagination?: never;
+  meta?: never;
   error?: never;
 };
 
@@ -94,7 +95,7 @@ export type ErrorResponse = {
   success: false;
   timestamp: string;
   data: null;
-  pagination?: never;
+  meta?: never;
   error: {
     message: string;
     code?: string;
@@ -128,24 +129,12 @@ export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
 /**
  * Create a successful list response with pagination
  */
-export function createListResponse<T>(
-  data: T[],
-  pagination: Omit<Pagination, "totalPages" | "hasNext" | "hasPrev">
-): ListResponse<T> {
-  const totalPages = Math.ceil(pagination.total / pagination.limit);
-  const hasNext = pagination.page < totalPages;
-  const hasPrev = pagination.page > 1;
-
+export function createListResponse<T>(data: T[], meta: Meta): ListResponse<T> {
   return {
     success: true,
     timestamp: new Date().toISOString(),
     data,
-    pagination: {
-      ...pagination,
-      totalPages,
-      hasNext,
-      hasPrev,
-    },
+    meta,
   };
 }
 
@@ -208,7 +197,7 @@ export function isErrorResponse<T>(
 export function isListResponse<T>(
   response: ApiResponse<T>
 ): response is ListResponse<T> {
-  return response.success === true && "pagination" in response;
+  return response.success === true && "meta" in response;
 }
 
 /**
@@ -218,9 +207,7 @@ export function isSingleItemResponse<T>(
   response: ApiResponse<T>
 ): response is SuccessResponse<T> {
   return (
-    response.success === true &&
-    response.data !== null &&
-    !("pagination" in response)
+    response.success === true && response.data !== null && !("meta" in response)
   );
 }
 
@@ -247,7 +234,7 @@ export const ListResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
     success: z.literal(true),
     timestamp: z.iso.datetime(),
     data: z.array(item),
-    pagination: PaginationSchema,
+    meta: MetaSchema,
   });
 
 export const EmptyResponseSchema = z.object({
