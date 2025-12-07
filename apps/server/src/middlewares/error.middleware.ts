@@ -1,4 +1,5 @@
 import { Prisma } from "@repo/database";
+import { createErrorResponse } from "@repo/domain";
 import { NextFunction, Request, Response } from "express";
 import { prettifyError, ZodError } from "zod";
 import AppError from "../utils/appError.js";
@@ -6,47 +7,51 @@ import { env } from "../utils/env.js";
 
 const handleCastErrorDB = (err: Prisma.PrismaClientKnownRequestError) => {
   const message = `${err.meta?.message}`;
-  return new AppError(message, 400);
+  return new AppError(message, 400, "INVALID_ID");
 };
 
 const handleDuplicateFieldsDB = (err: Prisma.PrismaClientKnownRequestError) => {
   const message = `Duplicate field value: ${err.meta?.target}. Please use another value!`;
-  return new AppError(message, 400);
+  return new AppError(message, 400, "DUPLICATE_ENTRY");
 };
 
 const handleMissingDocumentDB = (err: Prisma.PrismaClientKnownRequestError) => {
   // for unhandled non-existing document
   const message = `No matching ${err.meta?.modelName ?? "document"} was found`;
-  return new AppError(message, 404);
+  return new AppError(message, 404, "NOT_FOUND");
 };
 
 const handleValidationErrorDB = (err: Error) => {
   // ** should get caught by zod before this point
   const message = `Invalid query data. -  Unprocessable Content`;
-  return new AppError(message, 422);
+  return new AppError(message, 422, "VALIDATION_ERROR");
 };
 
 const handleZodError = (err: ZodError) => {
   const message = `Unprocessable Content.The following variables are missing or invalid:
       ${prettifyError(err)}`;
-  return new AppError(message, 400);
+  return new AppError(message, 400, "VALIDATION_ERROR");
 };
 
 const handleJWTError = () =>
-  new AppError("Invalid token. Please log in again!", 401);
+  new AppError("Invalid token. Please log in again!", 401, "INVALID_TOKEN");
 
 const handleJWTExpiredError = () =>
-  new AppError("Your token has expired! Please log in again.", 401);
+  new AppError(
+    "Your token has expired! Please log in again.",
+    401,
+    "TOKEN_EXPIRED"
+  );
 
 const sendErrorDev = (err: any, _req: Request, res: Response) => {
   err.statusCode = err.statusCode || 500;
-  err.status = err.status || "error";
-  return res.status(err.statusCode).json({
-    status: err.status,
-    error: err,
-    message: err.message,
-    stack: err.stack,
-  });
+  // TODO remove createErrorResponse ? include other errorhandkers in dev also? !!!!!
+  return res.status(err.statusCode).json(
+    createErrorResponse(err.message, {
+      code: err.code || err.statusCode?.toString(),
+      stack: err.stack,
+    })
+  );
 };
 
 // ------------------ Type guards ------------------
@@ -92,26 +97,25 @@ const isZodError = (err: unknown): err is ZodError => {
 };
 // -------------------------------------------------
 
-const sendErrorProd = (
-  err: AppError | unknown,
-  _req: Request,
-  res: Response
-) => {
+const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
+  console.log({ err });
   // A) Operational, trusted error: send message to client
   if (err instanceof AppError && err.isOperational) {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-    });
+    return res.status(err.statusCode).json(
+      createErrorResponse(err.message, {
+        code: err.code,
+      })
+    );
   }
   // B) Programming or other unknown error: don't leak error details
   // 1) Log error
   console.error("ERROR 💥", err);
   // 2) Send generic message
-  return res.status(500).json({
-    status: "error",
-    message: "Something went very wrong!",
-  });
+  return res.status(500).json(
+    createErrorResponse("Something went very wrong!", {
+      code: "INTERNAL_SERVER_ERROR",
+    })
+  );
 };
 
 export default (
@@ -122,7 +126,6 @@ export default (
 ) => {
   if (env.NODE_ENV === "development") {
     // show full error for development
-    console.log(err);
     sendErrorDev(err as any, req, res);
     return;
   }

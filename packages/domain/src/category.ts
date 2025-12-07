@@ -2,16 +2,12 @@ import type { Prisma, Category as PrismaCategory } from "@repo/database";
 import { $Enums } from "@repo/database";
 import { z } from "zod";
 import {
-  DeleteResponseSchema,
+  EmptyResponseSchema,
   ListResponseSchema,
   SuccessResponseSchema,
 } from "./common.js";
-import type {
-  ListResponse,
-  SuccessResponse,
-  DeleteResponse,
-} from "./common.js";
-import { IdValidator, NameValidator } from "./shared.js";
+import type { ListResponse, SuccessResponse, EmptyResponse } from "./common.js";
+import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics )=====
 
@@ -75,8 +71,8 @@ export const CategoryUpdateRequestSchema = z.object({
   params: z.object({ id: IdValidator("Category") }),
   body: z
     .object({
-      name: z.enum(NAME),
-      thumbnail: CategoryThumbnailSchema,
+      name: z.enum(NAME).optional(),
+      thumbnail: CategoryThumbnailSchema.optional(),
     })
     .strict() satisfies z.Schema<CategoryUpdateInput>,
   query: z.object({}).optional(),
@@ -108,25 +104,25 @@ export const CategoryDTOSchema = z.object({
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
-// List response (array + meta)
+// List response (array + pagination)
 export const CategoryListResponseSchema = ListResponseSchema(CategoryDTOSchema);
-export type CategoryListResponse = ListResponse<typeof CategoryDTOSchema>;
+export type CategoryListResponse = ListResponse<Category>;
 
 // Detail/Get response (single DTO)
 export const CategoryGetResponseSchema =
   SuccessResponseSchema(CategoryDTOSchema);
-export type CategoryGetResponse = SuccessResponse<typeof CategoryDTOSchema>;
+export type CategoryGetResponse = SuccessResponse<Category>;
 
 // Create response (single DTO)
 export const CategoryCreateResponseSchema =
   SuccessResponseSchema(CategoryDTOSchema);
-export type CategoryCreateResponse = SuccessResponse<typeof CategoryDTOSchema>;
+export type CategoryCreateResponse = SuccessResponse<Category>;
 
 // Update response (single DTO)
 export const CategoryUpdateResponseSchema =
   SuccessResponseSchema(CategoryDTOSchema);
-export type CategoryUpdateResponse = SuccessResponse<typeof CategoryDTOSchema>;
+export type CategoryUpdateResponse = SuccessResponse<Category>;
 
 // Delete response (no content)
-export const CategoryDeleteResponseSchema = DeleteResponseSchema;
-export type CategoryDeleteResponse = DeleteResponse;
+export const CategoryDeleteResponseSchema = EmptyResponseSchema;
+export type CategoryDeleteResponse = EmptyResponse;
