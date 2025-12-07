@@ -138,7 +138,7 @@ const sendErrorDev = (err: unknown, _req: Request, res: Response) => {
 
 const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
   // Operational, trusted error: send message to client
-  if (err instanceof AppError && err.isOperational) {
+  if (err instanceof AppError) {
     return res.status(err.statusCode).json(
       createErrorResponse(err.message, {
         code: err.code,
