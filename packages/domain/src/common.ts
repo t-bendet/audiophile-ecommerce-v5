@@ -266,20 +266,20 @@ export const SuccessResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
 export const ListResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
   z.object({
     success: z.literal(true),
-    timestamp: z.string().datetime(),
+    timestamp: z.iso.datetime(),
     data: z.array(item),
     pagination: PaginationSchema,
   });
 
 export const EmptyResponseSchema = z.object({
   success: z.literal(true),
-  timestamp: z.string().datetime(),
+  timestamp: z.iso.datetime(),
   data: z.null(),
 });
 
 export const ErrorResponseSchema = z.object({
   success: z.literal(false),
-  timestamp: z.string().datetime(),
+  timestamp: z.iso.datetime(),
   data: z.null(),
   error: z.object({
     message: z.string(),
