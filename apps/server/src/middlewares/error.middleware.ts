@@ -1,7 +1,7 @@
 import { Prisma } from "@repo/database";
 import { createErrorResponse, ErrorCode } from "@repo/domain";
 import { NextFunction, Request, Response } from "express";
-import { prettifyError, ZodError } from "zod";
+import { ZodError } from "zod";
 import AppError from "../utils/appError.js";
 import { env } from "../utils/env.js";
 
@@ -30,9 +30,16 @@ const handleValidationErrorDB = (err: Error) => {
 };
 
 const handleZodError = (err: ZodError) => {
-  const message = `Unprocessable Content.The following variables are missing or invalid:
-      ${prettifyError(err)}`;
-  return new AppError(message, ErrorCode.VALIDATION_ERROR);
+  const message = `Validation failed: ${err.issues.length} error(s)`;
+
+  // Parse Zod issues into structured details
+  const details = err.issues.map((issue) => ({
+    code: issue.code,
+    message: issue.message,
+    path: issue.path.length > 0 ? issue.path.map(String) : undefined,
+  }));
+
+  return new AppError(message, ErrorCode.VALIDATION_ERROR, undefined, details);
 };
 
 const handleJWTError = () =>
@@ -124,14 +131,18 @@ const normalizeError = (err: unknown): AppError | unknown => {
 
 const sendErrorDev = (err: unknown, _req: Request, res: Response) => {
   const statusCode = err instanceof AppError ? err.statusCode : 500;
-  const code = err instanceof AppError ? err.code : ErrorCode.INTERNAL_ERROR;
+  const code = (
+    err instanceof AppError ? err.code : ErrorCode.INTERNAL_ERROR
+  ) as ErrorCode;
   const message = err instanceof Error ? err.message : "Unknown error";
   const stack = err instanceof Error ? err.stack : undefined;
+  const details = err instanceof AppError ? err.details : undefined;
 
   return res.status(statusCode).json(
     createErrorResponse(message, {
       code,
       stack,
+      details,
     })
   );
 };
@@ -142,6 +153,7 @@ const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
     return res.status(err.statusCode).json(
       createErrorResponse(err.message, {
         code: err.code,
+        details: err.details,
       })
     );
   }

@@ -23,8 +23,7 @@ export type Pagination = z.infer<typeof PaginationSchema>;
 export const ErrorDetailSchema = z.object({
   code: z.string(),
   message: z.string(),
-  field: z.string().optional(),
-  path: z.string().optional(),
+  path: z.array(z.string()).optional(),
 });
 
 export type ErrorDetail = z.infer<typeof ErrorDetailSchema>;
