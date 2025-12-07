@@ -29,6 +29,7 @@ const handleValidationErrorDB = (err: Error) => {
   return new AppError(message, ErrorCode.VALIDATION_ERROR);
 };
 
+// safety net for unexpected zod errors
 const handleZodError = (err: ZodError) => {
   const message = `Validation failed: ${err.issues.length} error(s)`;
 
