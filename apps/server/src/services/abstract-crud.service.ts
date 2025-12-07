@@ -155,13 +155,25 @@ export abstract class AbstractCrudService<
    * Optional hook to filter/validate update input before persistence.
    * Override in subclass to whitelist specific fields.
    *
-   * @param input - The raw update input
+   * **Implement this when:**
+   * - User-facing updates with sensitive fields (e.g., role, password, permissions)
+   * - Role-based field restrictions (admins can update X, users can only update Y)
+   * - Preventing mass-assignment vulnerabilities
+   * - Fine-grained control over which fields can be modified
+   *
+   * **Skip this when:**
+   * - Admin-only/internal APIs where all fields are safe to update
+   * - Input schema already restricts fields adequately
+   * - All entity fields are safe for users to modify
+   *
+   * @param input - The raw update input from the request
    * @returns Filtered update input with only allowed fields
    *
    * @example
    * ```typescript
-   * protected filterUpdateInput(input: CategoryUpdateInput): CategoryUpdateInput {
-   *   const allowedFields: (keyof CategoryUpdateInput)[] = ['label', 'description'];
+   * // User-facing endpoint - only allow safe fields
+   * protected filterUpdateInput(input: UserUpdateInput): UserUpdateInput {
+   *   const allowedFields: (keyof UserUpdateInput)[] = ['name', 'email', 'avatar'];
    *   return this.pickFields(input, allowedFields);
    * }
    * ```
