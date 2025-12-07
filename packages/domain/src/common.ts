@@ -1,16 +1,5 @@
 import { z } from "zod";
 import { ErrorCode } from "./error-codes.js";
-import { IdValidator } from "./shared.js";
-
-export const GetByIdSchema = z.object({
-  params: z
-    .object({
-      id: IdValidator(),
-    })
-    .strict(),
-});
-
-export type GetByIdParams = z.infer<typeof GetByIdSchema>["params"];
 
 // ===== Envelope Pattern - Response Wrapper =====
 
