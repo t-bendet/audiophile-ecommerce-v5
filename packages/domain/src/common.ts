@@ -224,7 +224,7 @@ export function isEmptyResponse<T>(
 export const SuccessResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
   z.object({
     success: z.literal(true),
-    timestamp: z.string().datetime(),
+    timestamp: z.iso.datetime(),
     data: item,
   });
 
