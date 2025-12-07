@@ -2,7 +2,7 @@ import { ErrorCode, getStatusCode } from "@repo/domain";
 
 class AppError extends Error {
   statusCode;
-  code: string;
+  code;
   isOperational;
 
   constructor(message: string, code: ErrorCode, statusCode?: number) {
