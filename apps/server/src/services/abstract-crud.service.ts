@@ -1,3 +1,4 @@
+import { ErrorCode } from "@repo/domain";
 import AppError from "../utils/appError.js";
 
 /**
@@ -48,10 +49,10 @@ export abstract class AbstractCrudService<
   Select = any,
   ListFilter = unknown,
 > {
-  // TODO type constraints on Where, Select to match Entity structure?
   protected abstract toDTO(entity: Entity): DTO;
-  protected abstract buildWhere(filter?: ListFilter): Where;
-  protected abstract parseFilter(query: any): ListFilter | undefined;
+
+  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
+  // *include filtering, pagination, ordering, selection as needed for list operations*
 
   protected abstract persistFindMany(params: {
     where: Where;
@@ -69,6 +70,9 @@ export abstract class AbstractCrudService<
   ): Promise<Entity | null>;
   protected abstract persistDelete(id: string): Promise<boolean>;
 
+  protected abstract buildWhere(filter?: ListFilter): Where;
+  protected abstract parseFilter(query: any): ListFilter | undefined;
+
   protected parseOrderBy(sort?: string): any {
     if (!sort || typeof sort !== "string") {
       return [{ id: "desc" as const }];
@@ -85,7 +89,9 @@ export abstract class AbstractCrudService<
     return undefined; // Override in subclass if select parsing is needed
   }
 
-  async list(query: any) {
+  // ***** Public CRUD Methods *****
+
+  async getAll(query: any) {
     const page =
       typeof query?.page !== "undefined" ? Number(query?.page) || 1 : 1;
     const limit =
@@ -115,7 +121,8 @@ export abstract class AbstractCrudService<
 
   async get(id: string) {
     const entity = await this.persistFindById(id);
-    if (!entity) throw new AppError("No document found with that ID", 404);
+    if (!entity)
+      throw new AppError("No document found with that ID", ErrorCode.NOT_FOUND);
     return this.toDTO(entity);
   }
 
@@ -125,13 +132,54 @@ export abstract class AbstractCrudService<
   }
 
   async update(id: string, input: UpdateInput) {
-    const entity = await this.persistUpdate(id, input);
-    if (!entity) throw new AppError("No document found with that ID", 404);
+    // Optional: Filter input to only allowed fields before update
+    const validatedInput = this.filterUpdateInput
+      ? this.filterUpdateInput(input)
+      : input;
+
+    const entity = await this.persistUpdate(id, validatedInput);
+    if (!entity)
+      throw new AppError("No document found with that ID", ErrorCode.NOT_FOUND);
     return this.toDTO(entity);
   }
 
   async delete(id: string) {
     const existed = await this.persistDelete(id);
-    if (!existed) throw new AppError("No document found with that ID", 404);
+    if (!existed)
+      throw new AppError("No document found with that ID", ErrorCode.NOT_FOUND);
+  }
+
+  // ** Helper Methods (optional overrides) **
+
+  /**
+   * Optional hook to filter/validate update input before persistence.
+   * Override in subclass to whitelist specific fields.
+   *
+   * @param input - The raw update input
+   * @returns Filtered update input with only allowed fields
+   *
+   * @example
+   * ```typescript
+   * protected filterUpdateInput(input: CategoryUpdateInput): CategoryUpdateInput {
+   *   const allowedFields: (keyof CategoryUpdateInput)[] = ['label', 'description'];
+   *   return this.pickFields(input, allowedFields);
+   * }
+   * ```
+   */
+  protected filterUpdateInput?(input: UpdateInput): UpdateInput;
+
+  /**
+   * Utility to pick only specified fields from an object
+   */
+  protected pickFields<T extends Record<string, any>>(
+    obj: T,
+    fields: (keyof T)[]
+  ): Partial<T> {
+    return fields.reduce((acc, field) => {
+      if (field in obj) {
+        acc[field] = obj[field];
+      }
+      return acc;
+    }, {} as Partial<T>);
   }
 }

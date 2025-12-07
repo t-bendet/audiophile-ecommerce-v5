@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { UserPublicInfo } from "@repo/domain";
+import { UserPublicInfo, ErrorCode } from "@repo/domain";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import jwt from "jsonwebtoken";
 import AppError from "../utils/appError.js";
@@ -24,14 +24,17 @@ export const authenticate: RequestHandler = catchAsync(
     }
     if (!token) {
       return next(
-        new AppError("You ar not logged in! Please log in to again access", 401)
+        new AppError(
+          "You ar not logged in! Please log in to again access",
+          ErrorCode.UNAUTHORIZED
+        )
       );
     }
 
     //* 2) Validate Token
     const decoded = jwt.verify(token, env.JWT_SECRET);
     if (!decoded || typeof decoded === "string") {
-      return next(new AppError("Invalid token", 401));
+      return next(new AppError("Invalid token", ErrorCode.INVALID_TOKEN));
     }
     // //* 3) check if user still exists
     const currentUser = await prisma.user.findUnique({
@@ -41,7 +44,7 @@ export const authenticate: RequestHandler = catchAsync(
       return next(
         new AppError(
           "The user belonging to this token does no longer exists",
-          401
+          ErrorCode.UNAUTHORIZED
         )
       );
     }
@@ -54,7 +57,7 @@ export const authenticate: RequestHandler = catchAsync(
       return next(
         new AppError(
           "User recently changed password! Please log in to again",
-          401
+          ErrorCode.UNAUTHORIZED
         )
       );
     }
@@ -79,13 +82,19 @@ export const authorize = (...roles: UserPublicInfo["role"][]) => {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(
-        new AppError("Authentication required before authorization", 401)
+        new AppError(
+          "Authentication required before authorization",
+          ErrorCode.UNAUTHORIZED
+        )
       );
     }
 
     if (!roles.includes(req.user.role)) {
       return next(
-        new AppError("You do not have permission to perform this action", 403)
+        new AppError(
+          "You do not have permission to perform this action",
+          ErrorCode.FORBIDDEN
+        )
       );
     }
 
