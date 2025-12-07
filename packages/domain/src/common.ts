@@ -41,7 +41,7 @@ export const ResponseEnvelopeSchema = <T extends z.ZodTypeAny>(payload: T) =>
     error: z
       .object({
         message: z.string(),
-        code: z.string().optional(),
+        code: z.enum(ErrorCode),
         details: z.array(ErrorDetailSchema).optional(),
         stack: z.string().optional(),
       })
