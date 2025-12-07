@@ -21,12 +21,24 @@ export type Meta = z.infer<typeof MetaSchema>;
  * Error details for structured error responses
  */
 export const ErrorDetailSchema = z.object({
-  code: z.enum(ErrorCode),
+  code: z.string(),
   message: z.string(),
   path: z.array(z.string()).optional(),
 });
 
 export type ErrorDetail = z.infer<typeof ErrorDetailSchema>;
+
+/**
+ * Error Object Schema
+ */
+export const ErrorObjectSchema = z.object({
+  code: z.enum(ErrorCode),
+  message: z.string(),
+  details: z.array(ErrorDetailSchema).optional(),
+  stack: z.string().optional(),
+});
+
+export type ErrorObject = z.infer<typeof ErrorObjectSchema>;
 
 /**
  * Envelope wrapper for all API responses
@@ -38,14 +50,7 @@ export const ResponseEnvelopeSchema = <T extends z.ZodTypeAny>(payload: T) =>
     timestamp: z.iso.datetime(),
     data: payload.nullable(),
     meta: MetaSchema.optional(),
-    error: z
-      .object({
-        message: z.string(),
-        code: z.enum(ErrorCode),
-        details: z.array(ErrorDetailSchema).optional(),
-        stack: z.string().optional(),
-      })
-      .optional(),
+    error: ErrorObjectSchema.optional(),
   });
 
 export type ResponseEnvelope<T extends z.ZodTypeAny> = z.infer<
@@ -95,12 +100,7 @@ export type ErrorResponse = {
   timestamp: string;
   data: null;
   meta?: never;
-  error: {
-    message: string;
-    code: ErrorCode;
-    details?: ErrorDetail[];
-    stack?: string;
-  };
+  error: ErrorObject;
 };
 
 /**
@@ -153,11 +153,7 @@ export function createEmptyResponse(): EmptyResponse {
  */
 export function createErrorResponse(
   message: string,
-  options: {
-    code: ErrorCode;
-    details?: ErrorDetail[];
-    stack?: string;
-  }
+  options: Omit<ErrorObject, "message">
 ): ErrorResponse {
   return {
     success: false,
@@ -246,12 +242,7 @@ export const ErrorResponseSchema = z.object({
   success: z.literal(false),
   timestamp: z.iso.datetime(),
   data: z.null(),
-  error: z.object({
-    message: z.string(),
-    code: z.string().optional(),
-    details: z.array(ErrorDetailSchema).optional(),
-    stack: z.string().optional(),
-  }),
+  error: ErrorObjectSchema,
 });
 
 export const ApiResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
