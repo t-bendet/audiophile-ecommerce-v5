@@ -1,8 +1,8 @@
+import { UpdateUserDetailsSchema } from "@repo/domain";
 import express from "express";
 import * as userController from "../controllers/user.controller.js";
 import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
-import { UpdateUserDetailsSchema, GetByIdSchema } from "@repo/domain";
 
 const userRouter: express.Router = express.Router();
 
@@ -28,7 +28,6 @@ userRouter.route("/").get(userController.getAllUsers);
 
 userRouter
   .route("/:id")
-  .all(validateSchema(GetByIdSchema))
   .get(userController.getUser)
   .patch(userController.updateUser)
   .delete(userController.deleteUser);

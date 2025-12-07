@@ -1,15 +1,12 @@
+import {
+  GetProductBySlugSchema,
+  GetProductsByCategorySchema,
+} from "@repo/domain";
 import express from "express";
 import * as productController from "../controllers/product.controller.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
-import {
-  GetByIdSchema,
-  GetProductsByCategorySchema,
-  GetProductBySlugSchema,
-} from "@repo/domain";
 
 const productRouter: express.Router = express.Router();
-
-productRouter.param("id", validateSchema(GetByIdSchema));
 
 productRouter.route("/").get(productController.getAllProducts);
 productRouter.route("/featured").get(productController.getFeaturedProduct);
