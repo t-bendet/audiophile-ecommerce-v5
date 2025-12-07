@@ -117,7 +117,7 @@ export type ApiResponse<T = unknown> =
 /**
  * Create a successful response for a single item
  */
-export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
+export function createSingleItemResponse<T>(data: T): SuccessResponse<T> {
   return {
     success: true,
     timestamp: new Date().toISOString(),
