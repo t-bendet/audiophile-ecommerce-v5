@@ -275,7 +275,3 @@ export const ApiResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
     EmptyResponseSchema,
     ErrorResponseSchema,
   ]);
-
-// Legacy aliases for backward compatibility
-export type Meta = Pagination;
-export const MetaSchema = PaginationSchema;
