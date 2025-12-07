@@ -21,7 +21,7 @@ export type Meta = z.infer<typeof MetaSchema>;
  * Error details for structured error responses
  */
 export const ErrorDetailSchema = z.object({
-  code: z.string(),
+  code: z.enum(ErrorCode),
   message: z.string(),
   path: z.array(z.string()).optional(),
 });
@@ -97,7 +97,7 @@ export type ErrorResponse = {
   meta?: never;
   error: {
     message: string;
-    code?: string;
+    code: ErrorCode;
     details?: ErrorDetail[];
     stack?: string;
   };
