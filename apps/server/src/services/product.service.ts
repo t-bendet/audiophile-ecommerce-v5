@@ -93,7 +93,6 @@ export class ProductService {
     if (!config) {
       throw new AppError(
         "Site configuration not found",
-        500,
         ErrorCode.INTERNAL_ERROR
       );
     }
