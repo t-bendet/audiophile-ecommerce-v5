@@ -57,7 +57,7 @@ export type ResponseEnvelope<T extends z.ZodTypeAny> = z.infer<
 /**
  * Success response for single item
  */
-export type SuccessResponse<T> = {
+export type SingleItemResponse<T> = {
   success: true;
   timestamp: string;
   data: T;
@@ -107,7 +107,7 @@ export type ErrorResponse = {
  * Union of all possible response types
  */
 export type ApiResponse<T = unknown> =
-  | SuccessResponse<T>
+  | SingleItemResponse<T>
   | ListResponse<T>
   | EmptyResponse
   | ErrorResponse;
@@ -117,7 +117,7 @@ export type ApiResponse<T = unknown> =
 /**
  * Create a successful response for a single item
  */
-export function createSingleItemResponse<T>(data: T): SuccessResponse<T> {
+export function createSingleItemResponse<T>(data: T): SingleItemResponse<T> {
   return {
     success: true,
     timestamp: new Date().toISOString(),
@@ -177,7 +177,7 @@ export function createErrorResponse(
  */
 export function isSuccessResponse<T>(
   response: ApiResponse<T>
-): response is SuccessResponse<T> | ListResponse<T> | EmptyResponse {
+): response is SingleItemResponse<T> | ListResponse<T> | EmptyResponse {
   return response.success === true;
 }
 
@@ -204,7 +204,7 @@ export function isListResponse<T>(
  */
 export function isSingleItemResponse<T>(
   response: ApiResponse<T>
-): response is SuccessResponse<T> {
+): response is SingleItemResponse<T> {
   return (
     response.success === true && response.data !== null && !("meta" in response)
   );
@@ -221,7 +221,7 @@ export function isEmptyResponse<T>(
 
 // ===== Zod Schemas for Validation =====
 
-export const SuccessResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
+export const SingleItemResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
   z.object({
     success: z.literal(true),
     timestamp: z.iso.datetime(),
@@ -256,7 +256,7 @@ export const ErrorResponseSchema = z.object({
 
 export const ApiResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
   z.discriminatedUnion("success", [
-    SuccessResponseSchema(item),
+    SingleItemResponseSchema(item),
     ListResponseSchema(item),
     EmptyResponseSchema,
     ErrorResponseSchema,

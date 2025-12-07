@@ -1,11 +1,15 @@
 import type { Prisma, Category as PrismaCategory } from "@repo/database";
 import { $Enums } from "@repo/database";
 import { z } from "zod";
-import type { EmptyResponse, ListResponse, SuccessResponse } from "./common.js";
+import type {
+  EmptyResponse,
+  ListResponse,
+  SingleItemResponse,
+} from "./common.js";
 import {
   EmptyResponseSchema,
   ListResponseSchema,
-  SuccessResponseSchema,
+  SingleItemResponseSchema,
 } from "./common.js";
 import { IdValidator } from "./shared.js";
 
@@ -110,18 +114,18 @@ export type CategoryListResponse = ListResponse<Category>;
 
 // Detail/Get response (single DTO)
 export const CategoryGetResponseSchema =
-  SuccessResponseSchema(CategoryDTOSchema);
-export type CategoryGetResponse = SuccessResponse<Category>;
+  SingleItemResponseSchema(CategoryDTOSchema);
+export type CategoryGetResponse = SingleItemResponse<Category>;
 
 // Create response (single DTO)
 export const CategoryCreateResponseSchema =
-  SuccessResponseSchema(CategoryDTOSchema);
-export type CategoryCreateResponse = SuccessResponse<Category>;
+  SingleItemResponseSchema(CategoryDTOSchema);
+export type CategoryCreateResponse = SingleItemResponse<Category>;
 
 // Update response (single DTO)
 export const CategoryUpdateResponseSchema =
-  SuccessResponseSchema(CategoryDTOSchema);
-export type CategoryUpdateResponse = SuccessResponse<Category>;
+  SingleItemResponseSchema(CategoryDTOSchema);
+export type CategoryUpdateResponse = SingleItemResponse<Category>;
 
 // Delete response (no content)
 export const CategoryDeleteResponseSchema = EmptyResponseSchema;
