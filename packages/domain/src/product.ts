@@ -150,6 +150,11 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 // * =====  DTO Schemas ( base and others if needed)=====
 
 export const ProductDTOSchema = ProductPropertiesSchema;
+// relatedproductschema
+// byCategoryschema
+// showcaseschema
+// featuredproductschema
+// byslugschema
 
 // * =====  DTO Types (if needed)=====
 
