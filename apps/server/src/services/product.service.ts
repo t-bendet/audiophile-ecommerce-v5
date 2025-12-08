@@ -79,7 +79,7 @@ export class ProductService extends AbstractCrudService<
       // Add other updateable fields here
     ];
 
-    return this.pickFieldsNotAllowedToUpdate(input, disallowedFields);
+    return this.pickFieldsByNotAllowed(input, disallowedFields);
   }
 
   protected async persistUpdate(id: string, input: ProductUpdateInput) {

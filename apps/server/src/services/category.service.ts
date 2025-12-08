@@ -81,7 +81,7 @@ export class CategoryService extends AbstractCrudService<
       // Add other updateable fields here
     ];
 
-    return this.pickFieldsAllowedToUpdate(input, allowedFields);
+    return this.pickFieldsByAllowed(input, allowedFields);
   }
 
   protected async persistUpdate(id: string, input: CategoryUpdateInput) {
