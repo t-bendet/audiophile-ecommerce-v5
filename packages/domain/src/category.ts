@@ -7,6 +7,7 @@ import type {
   SingleItemResponse,
 } from "./common.js";
 import {
+  createRequestSchema,
   EmptyResponseSchema,
   ListResponseSchema,
   SingleItemResponseSchema,
@@ -38,9 +39,7 @@ export const CategoryThumbnailSchema = z.object({
 // * ===== RequestSchemas =====
 
 // LIST - Get all categories (pagination + filtering)
-export const CategoryGetAllRequestSchema = z.object({
-  params: z.object({}).optional(),
-  body: z.object({}).optional(),
+export const CategoryGetAllRequestSchema = createRequestSchema({
   query: z
     .object({
       page: z.coerce.number().int().positive().optional(),
@@ -48,30 +47,28 @@ export const CategoryGetAllRequestSchema = z.object({
       orderBy: z.string().optional(),
       label: z.string().optional(),
       slug: z.string().optional(),
+      fields: z.string().optional(),
+      name: z.enum(NAME).optional(),
     })
     .optional(),
 });
 
 // GET - Get single category by ID
-export const CategoryGetRequestSchema = z.object({
-  params: z.object({ id: IdValidator("Category") }),
-  body: z.object({}).optional(),
-  query: z.object({}).optional(),
+export const CategoryGetRequestSchema = createRequestSchema({
+  params: z.object({ id: IdValidator("Category") }).strict(),
 });
 
 // CREATE - Create new category
 // TODO can't really create  new category now as NAME is enum
-export const CategoryCreateRequestSchema = z.object({
-  params: z.object({}).optional(),
+export const CategoryCreateRequestSchema = createRequestSchema({
   body: z.object({
     name: z.enum(NAME),
     thumbnail: CategoryThumbnailSchema,
   }) satisfies z.Schema<CategoryCreateInput>,
-  query: z.object({}).optional(),
 });
 
 // UPDATE - Update existing category (partial)
-export const CategoryUpdateRequestSchema = z.object({
+export const CategoryUpdateRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("Category") }),
   body: z
     .object({
@@ -79,14 +76,11 @@ export const CategoryUpdateRequestSchema = z.object({
       thumbnail: CategoryThumbnailSchema.optional(),
     })
     .strict() satisfies z.Schema<CategoryUpdateInput>,
-  query: z.object({}).optional(),
 });
 
 // DELETE - Delete category by ID
-export const CategoryDeleteRequestSchema = z.object({
+export const CategoryDeleteRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("Category") }),
-  body: z.object({}).optional(),
-  query: z.object({}).optional(),
 });
 
 // * =====  DTO Types (if needed)=====

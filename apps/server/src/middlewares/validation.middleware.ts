@@ -4,9 +4,9 @@ import { ErrorCode } from "@repo/domain";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
 
-// * Middleware to validate request body against a Zod schema
+// * Middleware to validate request (params, body, query) against a Zod schema
 
-export const validateSchema = (schema: ZodType): RequestHandler =>
+export const validateSchema = (schema: ZodType<any>): RequestHandler =>
   catchAsync(async (req, _res, next) => {
     const parsedRequest = schema.safeParse({
       params: req.params,
@@ -14,6 +14,7 @@ export const validateSchema = (schema: ZodType): RequestHandler =>
       query: req.query,
     });
 
+    console.log(parsedRequest);
     if (!parsedRequest.success) {
       const message = `Validation failed: ${parsedRequest.error.issues.length} error(s)`;
 
@@ -28,5 +29,16 @@ export const validateSchema = (schema: ZodType): RequestHandler =>
         new AppError(message, ErrorCode.VALIDATION_ERROR, undefined, details)
       );
     }
+
+    // TypeScript now knows these are always defined
+    req.verified = {
+      params: parsedRequest.data.params,
+      body: parsedRequest.data.body,
+      query: parsedRequest.data.query,
+    };
+    // req.params = parsedRequest.data.params;
+    // req.body = parsedRequest.data.body;
+    // req.query = parsedRequest.data.query;
+
     return next();
   });
