@@ -1,6 +1,5 @@
 import { prisma } from "@repo/database";
 import { ErrorCode } from "@repo/domain";
-import type { NAME } from "@repo/database";
 import AppError from "../utils/appError.js";
 
 export class ProductService {
