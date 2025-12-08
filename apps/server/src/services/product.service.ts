@@ -1,19 +1,28 @@
-import { prisma, Prisma, Product } from "@repo/database";
-import { ErrorCode } from "@repo/domain";
+import { prisma } from "@repo/database";
+import {
+  ErrorCode,
+  Product,
+  ProductCreateInput,
+  ProductDTO,
+  ProductSelect,
+  ProductUpdateInput,
+  ProductWhereInput,
+} from "@repo/domain";
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 // TODO: tune DTO and filter types as needed
-type ProductDTO = Product;
-type ProductFilter = Prisma.ProductWhereInput;
+// TODO scalar fields and filter should match
+
+type ProductFilter = Pick<Product, "name" | "categoryId">;
 
 export class ProductService extends AbstractCrudService<
   Product,
-  Prisma.ProductCreateInput,
-  Prisma.ProductUpdateInput,
+  ProductCreateInput,
+  ProductUpdateInput,
   ProductDTO,
-  Prisma.ProductWhereInput,
-  Prisma.ProductSelect,
+  ProductWhereInput,
+  ProductSelect,
   ProductFilter
 > {
   protected toDTO(entity: Product): ProductDTO {
@@ -21,11 +30,11 @@ export class ProductService extends AbstractCrudService<
   }
 
   protected async persistFindMany(params: {
-    where: Prisma.ProductWhereInput;
+    where: ProductWhereInput;
     skip: number;
     take: number;
     orderBy?: any;
-    select?: Prisma.ProductSelect;
+    select?: ProductSelect;
   }): Promise<{ data: Product[]; total: number }> {
     const [data, total] = await prisma.$transaction([
       prisma.product.findMany({
@@ -44,11 +53,11 @@ export class ProductService extends AbstractCrudService<
     return prisma.product.findUnique({ where: { id } });
   }
 
-  protected async persistCreate(input: Prisma.ProductCreateInput) {
+  protected async persistCreate(input: ProductCreateInput) {
     return prisma.product.create({ data: input });
   }
 
-  protected async persistUpdate(id: string, input: Prisma.ProductUpdateInput) {
+  protected async persistUpdate(id: string, input: ProductUpdateInput) {
     try {
       return await prisma.product.update({ where: { id }, data: input });
     } catch (e: any) {
@@ -67,7 +76,7 @@ export class ProductService extends AbstractCrudService<
     }
   }
 
-  protected buildWhere(filter?: ProductFilter): Prisma.ProductWhereInput {
+  protected buildWhere(filter?: ProductFilter): ProductWhereInput {
     return filter ?? {};
   }
 
@@ -75,7 +84,7 @@ export class ProductService extends AbstractCrudService<
     return undefined; // Customize when filters are added
   }
 
-  protected parseSelect(fields?: string): Prisma.ProductSelect | undefined {
+  protected parseSelect(fields?: string): ProductSelect | undefined {
     if (!fields || typeof fields !== "string") return undefined;
     const validFields = [
       "id",
@@ -88,15 +97,13 @@ export class ProductService extends AbstractCrudService<
       "v",
     ] as const;
 
-    const select: Partial<Prisma.ProductSelect> = {};
+    const select: Partial<ProductSelect> = {};
     for (const field of fields.split(",")) {
       if (validFields.includes(field as (typeof validFields)[number])) {
-        select[field as keyof Prisma.ProductSelect] = true;
+        select[field as keyof ProductSelect] = true;
       }
     }
-    return Object.keys(select).length
-      ? (select as Prisma.ProductSelect)
-      : undefined;
+    return Object.keys(select).length ? (select as ProductSelect) : undefined;
   }
 
   /**

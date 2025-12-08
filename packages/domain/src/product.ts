@@ -149,12 +149,11 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 
 // * =====  DTO Schemas ( base and others if needed)=====
 
-// export const ProductDTOSchema =
-//   ProductPropertiesSchema satisfies z.ZodType<ProductCreateInput>;
+export const ProductDTOSchema = ProductPropertiesSchema;
+
 // * =====  DTO Types (if needed)=====
 
-// export type CategoryListDTO = Category;
-// export type CategoryDetailDTO = Category;
+export type ProductDTO = z.infer<typeof ProductDTOSchema>;
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
