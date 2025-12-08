@@ -1,4 +1,8 @@
-import type { Prisma, Category as PrismaCategory } from "@repo/database";
+import type {
+  Prisma,
+  Category as PrismaCategory,
+  CategoriesThumbnail,
+} from "@repo/database";
 import { $Enums } from "@repo/database";
 import { z } from "zod";
 import type {
@@ -22,6 +26,7 @@ export type CategoryUpdateInput = Prisma.CategoryUpdateInput;
 export type CategoryWhereInput = Prisma.CategoryWhereInput;
 export type CategorySelect = Prisma.CategorySelect;
 export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
+
 // *  ===== Entity Specific Types =====
 
 export const NAME = $Enums.NAME;
@@ -35,7 +40,7 @@ export const CategoryThumbnailSchema = z.object({
   altText: z.string().min(1, "Alt text is required"),
   ariaLabel: z.string().min(1, "Aria label is required"),
   src: z.string().min(1, "Src is required"),
-});
+}) satisfies z.Schema<CategoriesThumbnail>;
 
 // * ===== RequestSchemas =====
 

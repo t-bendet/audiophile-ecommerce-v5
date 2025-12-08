@@ -1,8 +1,104 @@
-import { prisma } from "@repo/database";
+import { prisma, Prisma, Product } from "@repo/database";
 import { ErrorCode } from "@repo/domain";
 import AppError from "../utils/appError.js";
+import { AbstractCrudService } from "./abstract-crud.service.js";
 
-export class ProductService {
+// TODO: tune DTO and filter types as needed
+type ProductDTO = Product;
+type ProductFilter = Prisma.ProductWhereInput;
+
+export class ProductService extends AbstractCrudService<
+  Product,
+  Prisma.ProductCreateInput,
+  Prisma.ProductUpdateInput,
+  ProductDTO,
+  Prisma.ProductWhereInput,
+  Prisma.ProductSelect,
+  ProductFilter
+> {
+  protected toDTO(entity: Product): ProductDTO {
+    return entity;
+  }
+
+  protected async persistFindMany(params: {
+    where: Prisma.ProductWhereInput;
+    skip: number;
+    take: number;
+    orderBy?: any;
+    select?: Prisma.ProductSelect;
+  }): Promise<{ data: Product[]; total: number }> {
+    const [data, total] = await prisma.$transaction([
+      prisma.product.findMany({
+        where: params.where,
+        skip: params.skip,
+        take: params.take,
+        orderBy: params.orderBy,
+        select: params.select,
+      }),
+      prisma.product.count({ where: params.where }),
+    ]);
+    return { data, total };
+  }
+
+  protected async persistFindById(id: string) {
+    return prisma.product.findUnique({ where: { id } });
+  }
+
+  protected async persistCreate(input: Prisma.ProductCreateInput) {
+    return prisma.product.create({ data: input });
+  }
+
+  protected async persistUpdate(id: string, input: Prisma.ProductUpdateInput) {
+    try {
+      return await prisma.product.update({ where: { id }, data: input });
+    } catch (e: any) {
+      if (e?.code === "P2025") return null;
+      throw e;
+    }
+  }
+
+  protected async persistDelete(id: string) {
+    try {
+      await prisma.product.delete({ where: { id } });
+      return true;
+    } catch (e: any) {
+      if (e?.code === "P2025") return false;
+      throw e;
+    }
+  }
+
+  protected buildWhere(filter?: ProductFilter): Prisma.ProductWhereInput {
+    return filter ?? {};
+  }
+
+  protected parseFilter(_query: any): ProductFilter | undefined {
+    return undefined; // Customize when filters are added
+  }
+
+  protected parseSelect(fields?: string): Prisma.ProductSelect | undefined {
+    if (!fields || typeof fields !== "string") return undefined;
+    const validFields = [
+      "id",
+      "cartLabel",
+      "name",
+      "slug",
+      "price",
+      "categoryId",
+      "createdAt",
+      "v",
+    ] as const;
+
+    const select: Partial<Prisma.ProductSelect> = {};
+    for (const field of fields.split(",")) {
+      if (validFields.includes(field as (typeof validFields)[number])) {
+        select[field as keyof Prisma.ProductSelect] = true;
+      }
+    }
+    return Object.keys(select).length
+      ? (select as Prisma.ProductSelect)
+      : undefined;
+  }
+
   /**
    * Get related products based on category similarity and price range
    * Algorithm:
