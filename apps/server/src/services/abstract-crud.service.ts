@@ -85,6 +85,7 @@ export abstract class AbstractCrudService<
     });
   }
 
+  // TODO test if no parse select is provided
   protected parseSelect(fields?: string): Select | undefined {
     return undefined; // Override in subclass if select parsing is needed
   }

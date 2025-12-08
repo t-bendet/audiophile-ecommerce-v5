@@ -124,7 +124,14 @@ export class ProductService extends AbstractCrudService<
       "categoryId",
       "createdAt",
       "v",
-    ] as const;
+      "shortLabel",
+      "fullLabel",
+      "description",
+      "isNewProduct",
+      "featuredImageText",
+      "showCaseImageText",
+      "featuresText",
+    ] satisfies readonly (keyof Product)[];
 
     const select: Partial<ProductSelect> = {};
     for (const field of fields.split(",")) {
