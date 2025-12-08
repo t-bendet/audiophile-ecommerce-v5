@@ -84,7 +84,11 @@ export class ProductService extends AbstractCrudService<
 
   protected async persistUpdate(id: string, input: ProductUpdateInput) {
     try {
-      return await prisma.product.update({ where: { id }, data: input });
+      const entity = await prisma.category.update({
+        where: { id },
+        data: input,
+      });
+      return entity;
     } catch (e: any) {
       if (e?.code === "P2025") return null;
       throw e;
