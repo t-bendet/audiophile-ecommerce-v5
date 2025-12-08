@@ -54,7 +54,7 @@ export const CategoryGetAllRequestSchema = createRequestSchema({
 });
 
 // GET - Get single category by ID
-export const CategoryGetRequestSchema = createRequestSchema({
+export const CategoryGetByIdRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("Category") }).strict(),
 });
 
@@ -68,7 +68,7 @@ export const CategoryCreateRequestSchema = createRequestSchema({
 });
 
 // UPDATE - Update existing category (partial)
-export const CategoryUpdateRequestSchema = createRequestSchema({
+export const CategoryUpdateByIdRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("Category") }),
   body: z
     .object({
@@ -79,7 +79,7 @@ export const CategoryUpdateRequestSchema = createRequestSchema({
 });
 
 // DELETE - Delete category by ID
-export const CategoryDeleteRequestSchema = createRequestSchema({
+export const CategoryDeleteByIdRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("Category") }),
 });
 
