@@ -22,11 +22,12 @@ export type CategoryUpdateInput = Prisma.CategoryUpdateInput;
 export type CategoryWhereInput = Prisma.CategoryWhereInput;
 export type CategorySelect = Prisma.CategorySelect;
 export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
-
 // *  ===== Entity Specific Types =====
 
 export const NAME = $Enums.NAME;
 export type NAME = $Enums.NAME;
+export type CategoryProductsCreateManyInput =
+  Prisma.ProductCreateManyCategoryInputEnvelope["data"];
 
 // * =====  Common Schemas =====
 
@@ -42,13 +43,11 @@ export const CategoryThumbnailSchema = z.object({
 export const CategoryGetAllRequestSchema = createRequestSchema({
   query: z
     .object({
+      sort: z.string().optional(),
+      name: z.enum(NAME).optional(),
+      fields: z.string().optional(),
       page: z.coerce.number().int().positive().optional(),
       limit: z.coerce.number().int().positive().optional(),
-      orderBy: z.string().optional(),
-      label: z.string().optional(),
-      slug: z.string().optional(),
-      fields: z.string().optional(),
-      name: z.enum(NAME).optional(),
     })
     .optional(),
 });
@@ -60,6 +59,7 @@ export const CategoryGetByIdRequestSchema = createRequestSchema({
 
 // CREATE - Create new category
 // TODO can't really create  new category now as NAME is enum
+// TODO add CategoryProductsCreateManyInput if needed
 export const CategoryCreateRequestSchema = createRequestSchema({
   body: z.object({
     name: z.enum(NAME),
@@ -69,7 +69,7 @@ export const CategoryCreateRequestSchema = createRequestSchema({
 
 // UPDATE - Update existing category (partial)
 export const CategoryUpdateByIdRequestSchema = createRequestSchema({
-  params: z.object({ id: IdValidator("Category") }),
+  params: z.object({ id: IdValidator("Category") }).strict(),
   body: z
     .object({
       name: z.enum(NAME).optional(),
@@ -80,36 +80,35 @@ export const CategoryUpdateByIdRequestSchema = createRequestSchema({
 
 // DELETE - Delete category by ID
 export const CategoryDeleteByIdRequestSchema = createRequestSchema({
-  params: z.object({ id: IdValidator("Category") }),
+  params: z.object({ id: IdValidator("Category") }).strict(),
 });
 
 // * =====  DTO Types (if needed)=====
 
-export type CategoryListDTO = Category;
-export type CategoryDetailDTO = Category;
-export type CategoryCreateDTO = Category;
-export type CategoryUpdateDTO = Category;
+// export type CategoryListDTO = Category;
+// export type CategoryDetailDTO = Category;
 
 // * =====  DTO Schemas ( base and others if needed)=====
 
 export const CategoryDTOSchema = z.object({
-  id: z.string(),
   name: z.enum(NAME),
-  thumbnail: CategoryThumbnailSchema,
+  id: z.string(),
   createdAt: z.date(),
   v: z.number(),
-});
+  thumbnail: CategoryThumbnailSchema,
+}) satisfies z.Schema<Category>;
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
 // List response (array + pagination)
-export const CategoryListResponseSchema = ListResponseSchema(CategoryDTOSchema);
-export type CategoryListResponse = ListResponse<Category>;
+export const CategoryGetAllResponseSchema =
+  ListResponseSchema(CategoryDTOSchema);
+export type CategoryGetAllResponse = ListResponse<Category>;
 
 // Detail/Get response (single DTO)
-export const CategoryGetResponseSchema =
+export const CategoryGetByIdResponseSchema =
   SingleItemResponseSchema(CategoryDTOSchema);
-export type CategoryGetResponse = SingleItemResponse<Category>;
+export type CategoryGetByIdResponse = SingleItemResponse<Category>;
 
 // Create response (single DTO)
 export const CategoryCreateResponseSchema =
@@ -117,10 +116,10 @@ export const CategoryCreateResponseSchema =
 export type CategoryCreateResponse = SingleItemResponse<Category>;
 
 // Update response (single DTO)
-export const CategoryUpdateResponseSchema =
+export const CategoryUpdateByIdResponseSchema =
   SingleItemResponseSchema(CategoryDTOSchema);
-export type CategoryUpdateResponse = SingleItemResponse<Category>;
+export type CategoryUpdateByIdResponse = SingleItemResponse<Category>;
 
 // Delete response (no content)
-export const CategoryDeleteResponseSchema = EmptyResponseSchema;
-export type CategoryDeleteResponse = EmptyResponse;
+export const CategoryDeleteByIdResponseSchema = EmptyResponseSchema;
+export type CategoryDeleteByIdResponse = EmptyResponse;
