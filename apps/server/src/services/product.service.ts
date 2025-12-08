@@ -11,13 +11,15 @@ import {
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
+// TODO !importent after this file is done, go back and fix all mismatched types in abstract-crud.service.ts
+
 // TODO: tune DTO and filter types as needed
 // TODO scalar fields and filter should match
 
-type ProductFilter = Pick<Product, "name" | "categoryId">;
+type ProductFilter = Pick<Product, "name">;
 
 // TODO define query params type
-export type CategoryQueryParams = {
+export type ProductQueryParams = {
   name?: string;
   page?: string | number;
   limit?: string | number;
@@ -138,15 +140,30 @@ export class ProductService extends AbstractCrudService<
     return Object.keys(select).length ? (select as ProductSelect) : undefined;
   }
 
+  // TODO refine filter parsing as needed
   protected buildWhere(filter?: ProductFilter): ProductWhereInput {
-    return filter ?? {};
+    if (!filter?.name) {
+      return {};
+    }
+    return {
+      name: {
+        equals: filter.name,
+        mode: "insensitive",
+      },
+    };
   }
 
-  protected parseFilter(_query: any): ProductFilter | undefined {
-    return undefined; // Customize when filters are added
+  protected parseFilter(query: ProductQueryParams): ProductFilter | undefined {
+    if (!query.name || typeof query.name !== "string") {
+      return undefined;
+    }
+    return { name: query.name };
   }
 
   // ** Helper Methods (optional overrides) **
+
+  // TODO add byCategoryName (consider using getall with a filter)
+  // TODO add by slug
 
   /**
    * Get related products based on category similarity and price range
@@ -155,6 +172,7 @@ export class ProductService extends AbstractCrudService<
    * 2. If less than 3 found, backfill with any other products
    * 3. Return max 3 products
    */
+
   async getRelatedProducts(productId: string) {
     // Get base product info
     const product = await prisma.product.findUnique({

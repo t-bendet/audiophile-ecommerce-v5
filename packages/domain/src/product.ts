@@ -157,6 +157,8 @@ export type ProductDTO = z.infer<typeof ProductDTOSchema>;
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
+// TODO define other response schemas as needed
+
 const ProductByCategorySchema = z.object({
   slug: z.string(),
   fullLabel: z.array(z.string()),
@@ -172,5 +174,3 @@ const ProductByCategorySchema = z.object({
     }),
   }),
 });
-
-export const ProductsByCategorySchemas = z.array(ProductByCategorySchema);
