@@ -40,23 +40,6 @@ export const ErrorObjectSchema = z.object({
 
 export type ErrorObject = z.infer<typeof ErrorObjectSchema>;
 
-/**
- * Envelope wrapper for all API responses
- * Separates metadata (success, timestamp, etc.) from payload (data)
- */
-export const ResponseEnvelopeSchema = <T extends z.ZodTypeAny>(payload: T) =>
-  z.object({
-    success: z.boolean(),
-    timestamp: z.iso.datetime(),
-    data: payload.nullable(),
-    meta: MetaSchema.optional(),
-    error: ErrorObjectSchema.optional(),
-  });
-
-export type ResponseEnvelope<T extends z.ZodTypeAny> = z.infer<
-  ReturnType<typeof ResponseEnvelopeSchema<T>>
->;
-
 // ===== Specific Response Types =====
 
 /**
@@ -66,8 +49,6 @@ export type SingleItemResponse<T> = {
   success: true;
   timestamp: string;
   data: T;
-  meta?: never;
-  error?: never;
 };
 
 /**
@@ -78,7 +59,6 @@ export type ListResponse<T> = {
   timestamp: string;
   data: T[];
   meta: Meta;
-  error?: never;
 };
 
 /**
@@ -88,8 +68,6 @@ export type EmptyResponse = {
   success: true;
   timestamp: string;
   data: null;
-  meta?: never;
-  error?: never;
 };
 
 /**
@@ -99,7 +77,6 @@ export type ErrorResponse = {
   success: false;
   timestamp: string;
   data: null;
-  meta?: never;
   error: ErrorObject;
 };
 
