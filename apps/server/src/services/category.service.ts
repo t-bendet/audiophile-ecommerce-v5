@@ -1,16 +1,15 @@
 import { prisma } from "@repo/database";
-import { ErrorCode } from "@repo/domain";
 import type {
   Category,
   CategoryCreateInput,
+  CategoryDTO,
+  CategoryScalarFieldEnum,
   CategorySelect,
   CategoryUpdateInput,
   CategoryWhereInput,
   NAME,
-  CategoryScalarFieldEnum,
-  CategoryDTO,
 } from "@repo/domain";
-import { NAME as NAME_ENUM } from "@repo/domain";
+import { ErrorCode, NAME as NAME_ENUM } from "@repo/domain";
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
