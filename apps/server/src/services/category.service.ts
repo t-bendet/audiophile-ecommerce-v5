@@ -114,12 +114,7 @@ export class CategoryService extends AbstractCrudService<
 
     const selectKeys = fields.split(",");
     // Use const assertion for better type inference
-    const validFields = [
-      "id",
-      "name",
-      "createdAt",
-      "v",
-    ] as const satisfies readonly CategoryScalarFieldEnum[];
+    const validFields = ["id", "name", "createdAt", "v", "thumbnail"] as const;
 
     const select: Partial<CategorySelect> = {};
 
@@ -129,6 +124,11 @@ export class CategoryService extends AbstractCrudService<
         select[key as keyof CategorySelect] = true;
       }
     }
+
+    console.log({
+      selectKeys,
+      select,
+    });
 
     return Object.keys(select).length > 0
       ? (select as CategorySelect)
