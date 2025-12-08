@@ -14,7 +14,6 @@ export const validateSchema = (schema: ZodType<any>): RequestHandler =>
       query: req.query,
     });
 
-    console.log(parsedRequest);
     if (!parsedRequest.success) {
       const message = `Validation failed: ${parsedRequest.error.issues.length} error(s)`;
 
