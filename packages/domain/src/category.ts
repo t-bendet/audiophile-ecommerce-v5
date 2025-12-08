@@ -88,11 +88,6 @@ export const CategoryDeleteByIdRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("Category") }).strict(),
 });
 
-// * =====  DTO Types (if needed)=====
-
-// export type CategoryListDTO = Category;
-// export type CategoryDetailDTO = Category;
-
 // * =====  DTO Schemas ( base and others if needed)=====
 
 export const CategoryDTOSchema = z.object({
@@ -102,6 +97,8 @@ export const CategoryDTOSchema = z.object({
   v: z.number(),
   thumbnail: CategoryThumbnailSchema,
 }) satisfies z.Schema<Category>;
+
+// * =====  DTO Types (if needed)=====
 
 export type CategoryDTO = z.infer<typeof CategoryDTOSchema>;
 
