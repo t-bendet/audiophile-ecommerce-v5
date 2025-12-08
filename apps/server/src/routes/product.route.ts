@@ -1,5 +1,5 @@
 import {
-  GetProductBySlugSchema,
+  ProductGetBySlugSchema,
   ProductGetByCategorySchema,
 } from "@repo/domain";
 import express from "express";
@@ -29,7 +29,7 @@ productRouter.route("/:id").get(productController.getProductById);
 productRouter
   .route("/slug/:slug")
   .get(
-    validateSchema(GetProductBySlugSchema),
+    validateSchema(ProductGetBySlugSchema),
     productController.getProductBySlug
   );
 

@@ -103,6 +103,8 @@ export const CategoryDTOSchema = z.object({
   thumbnail: CategoryThumbnailSchema,
 }) satisfies z.Schema<Category>;
 
+export type CategoryDTO = z.infer<typeof CategoryDTOSchema>;
+
 // * =====   Response Schemas & Types ( For Frontend)=====
 
 // List response (array + pagination)

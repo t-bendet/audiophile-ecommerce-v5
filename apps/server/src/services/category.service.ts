@@ -8,16 +8,12 @@ import type {
   CategoryWhereInput,
   NAME,
   CategoryScalarFieldEnum,
+  CategoryDTO,
 } from "@repo/domain";
 import { NAME as NAME_ENUM } from "@repo/domain";
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
-// DTO type and filter,declared in service
-export type CategoryDTO = Pick<
-  Category,
-  "id" | "name" | "thumbnail" | "createdAt" | "v"
->;
 // TODO scalar fields and filter should match
 
 export type CategoryFilter = Pick<Category, "name">;
