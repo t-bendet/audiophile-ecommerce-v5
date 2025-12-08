@@ -29,15 +29,11 @@ export const validateSchema = (schema: ZodType<any>): RequestHandler =>
       );
     }
 
-    // TypeScript now knows these are always defined
     req.verified = {
       params: parsedRequest.data.params,
       body: parsedRequest.data.body,
       query: parsedRequest.data.query,
     };
-    // req.params = parsedRequest.data.params;
-    // req.body = parsedRequest.data.body;
-    // req.query = parsedRequest.data.query;
 
     return next();
   });
