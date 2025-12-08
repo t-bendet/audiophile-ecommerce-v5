@@ -1,6 +1,6 @@
 import {
   GetProductBySlugSchema,
-  GetProductsByCategorySchema,
+  ProductGetByCategorySchema,
 } from "@repo/domain";
 import express from "express";
 import * as productController from "../controllers/product.controller.js";
@@ -20,7 +20,7 @@ productRouter
 productRouter
   .route("/category/:category")
   .get(
-    validateSchema(GetProductsByCategorySchema),
+    validateSchema(ProductGetByCategorySchema),
     productController.getProductsByCategoryName
   );
 
