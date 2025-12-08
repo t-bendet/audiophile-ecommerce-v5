@@ -179,13 +179,22 @@ export abstract class AbstractCrudService<
    *   return this.pickFields(input, allowedFields);
    * }
    * ```
+   * @example
+   * ```typescript
+   * // User-facing endpoint - disallow unsafe fields
+   * protected filterUpdateInput(input: UserUpdateInput): UserUpdateInput {
+   *   const disallowedFields: (keyof UserUpdateInput)[] = ['name', 'email', 'avatar'];
+   *   return this.pickFieldsNotAllowedToUpdate(input, disallowedFields);
+   * }
+   * ```
    */
+
   protected filterUpdateInput?(input: UpdateInput): UpdateInput;
 
   /**
    * Utility to pick only specified fields from an object
    */
-  protected pickFields<T extends Record<string, any>>(
+  protected pickFieldsAllowedToUpdate<T extends Record<string, any>>(
     obj: T,
     fields: (keyof T)[]
   ): Partial<T> {
@@ -195,5 +204,21 @@ export abstract class AbstractCrudService<
       }
       return acc;
     }, {} as Partial<T>);
+  }
+
+  /**
+   * Utility to filter out specified fields from an object
+   */
+  protected pickFieldsNotAllowedToUpdate<T extends Record<string, any>>(
+    obj: T,
+    fields: (keyof T)[]
+  ): Partial<T> {
+    const result: Partial<T> = {};
+    for (const key in obj) {
+      if (!fields.includes(key as keyof T)) {
+        result[key] = obj[key];
+      }
+    }
+    return result;
   }
 }
