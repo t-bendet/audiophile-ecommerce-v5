@@ -194,7 +194,7 @@ export abstract class AbstractCrudService<
   /**
    * Utility to pick only specified fields from an object
    */
-  protected pickFieldsAllowedToUpdate<T extends Record<string, any>>(
+  protected pickFieldsByAllowed<T extends Record<string, any>>(
     obj: T,
     fields: (keyof T)[]
   ): Partial<T> {
@@ -209,7 +209,7 @@ export abstract class AbstractCrudService<
   /**
    * Utility to filter out specified fields from an object
    */
-  protected pickFieldsNotAllowedToUpdate<T extends Record<string, any>>(
+  protected pickFieldsByNotAllowed<T extends Record<string, any>>(
     obj: T,
     fields: (keyof T)[]
   ): Partial<T> {
