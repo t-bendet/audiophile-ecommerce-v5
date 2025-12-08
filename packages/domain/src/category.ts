@@ -69,7 +69,7 @@ export const CategoryCreateRequestSchema = createRequestSchema({
   body: z.object({
     name: z.enum(NAME),
     thumbnail: CategoryThumbnailSchema,
-  }) satisfies z.Schema<CategoryCreateInput>,
+  }) satisfies z.ZodType<CategoryCreateInput>,
 });
 
 // UPDATE - Update existing category (partial)
@@ -80,7 +80,7 @@ export const CategoryUpdateByIdRequestSchema = createRequestSchema({
       name: z.enum(NAME).optional(),
       thumbnail: CategoryThumbnailSchema.optional(),
     })
-    .strict() satisfies z.Schema<CategoryUpdateInput>,
+    .strict() satisfies z.ZodType<CategoryUpdateInput>,
 });
 
 // DELETE - Delete category by ID
@@ -96,7 +96,7 @@ export const CategoryDTOSchema = z.object({
   createdAt: z.date(),
   v: z.number(),
   thumbnail: CategoryThumbnailSchema,
-}) satisfies z.Schema<Category>;
+}) satisfies z.ZodType<Category>;
 
 // * =====  DTO Types (if needed)=====
 

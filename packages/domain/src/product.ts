@@ -19,14 +19,7 @@ export type ProductScalarFieldEnum = Prisma.ProductScalarFieldEnum;
 
 // *  ===== Entity Specific Types =====
 
-// TODO needed?
-export type ProductCreateResult = Prisma.ProductGetPayload<{
-  include: {
-    category: true;
-    images: true;
-    includedItems: true;
-  };
-}>;
+//
 
 // * =====  Common Schemas =====
 
@@ -129,13 +122,13 @@ export const ProductGetBySlugSchema = createRequestSchema({
 
 // CREATE - Create new product
 export const ProductCreateRequestSchema = createRequestSchema({
-  body: ProductPropertiesSchema satisfies z.Schema<ProductCreateInput>,
+  body: ProductPropertiesSchema satisfies z.ZodType<ProductCreateInput>,
 });
 
 // UPDATE - Update existing Product (partial)
 export const ProductUpdateByIdRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("Product ") }).strict(),
-  body: ProductPropertiesSchema.partial() satisfies z.Schema<ProductUpdateInput>,
+  body: ProductPropertiesSchema.partial() satisfies z.ZodType<ProductUpdateInput>,
 });
 
 // DELETE - Delete product by ID
@@ -143,14 +136,14 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("Product") }).strict(),
 });
 
+// * =====  DTO Schemas ( base and others if needed)=====
+
+export const ProductDTOSchema =
+  ProductPropertiesSchema satisfies z.ZodType<ProductCreateInput>;
 // * =====  DTO Types (if needed)=====
 
 // export type CategoryListDTO = Category;
 // export type CategoryDetailDTO = Category;
-
-// * =====  DTO Schemas ( base and others if needed)=====
-
-// export const CategoryDTOSchema = ProductPropertiesSchema.partial() satisfies z.Schema<Product>;
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
