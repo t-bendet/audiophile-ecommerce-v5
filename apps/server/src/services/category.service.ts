@@ -35,13 +35,7 @@ export class CategoryService extends AbstractCrudService<
   CategoryFilter
 > {
   protected toDTO(entity: Category): CategoryDTO {
-    return {
-      id: entity.id,
-      name: entity.name,
-      thumbnail: entity.thumbnail,
-      createdAt: entity.createdAt,
-      v: entity.v,
-    };
+    return entity;
   }
 
   // ***** Persistence Layer Methods (to be implemented by subclasses) *****
@@ -87,7 +81,7 @@ export class CategoryService extends AbstractCrudService<
       // Add other updateable fields here
     ];
 
-    return this.pickFields(input, allowedFields);
+    return this.pickFieldsAllowedToUpdate(input, allowedFields);
   }
 
   protected async persistUpdate(id: string, input: CategoryUpdateInput) {

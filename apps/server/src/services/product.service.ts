@@ -16,6 +16,15 @@ import { AbstractCrudService } from "./abstract-crud.service.js";
 
 type ProductFilter = Pick<Product, "name" | "categoryId">;
 
+// TODO define query params type
+export type CategoryQueryParams = {
+  name?: string;
+  page?: string | number;
+  limit?: string | number;
+  sort?: string;
+  fields?: string;
+};
+
 export class ProductService extends AbstractCrudService<
   Product,
   ProductCreateInput,
@@ -55,6 +64,22 @@ export class ProductService extends AbstractCrudService<
 
   protected async persistCreate(input: ProductCreateInput) {
     return prisma.product.create({ data: input });
+  }
+
+  /**
+   * Whitelist only allowed fields for updates
+   * Prevents clients from updating fields like 'id', 'createdAt', 'v', etc.
+   */
+  protected filterUpdateInput(input: ProductUpdateInput): ProductUpdateInput {
+    // Define which fields are allowed to be updated
+    const disallowedFields: (keyof typeof input)[] = [
+      "createdAt",
+      "v",
+
+      // Add other updateable fields here
+    ];
+
+    return this.pickFieldsNotAllowedToUpdate(input, disallowedFields);
   }
 
   protected async persistUpdate(id: string, input: ProductUpdateInput) {
