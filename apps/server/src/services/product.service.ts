@@ -38,6 +38,9 @@ export class ProductService extends AbstractCrudService<
     return entity;
   }
 
+  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
+  // *include filtering, pagination, ordering, selection as needed for list operations*
+
   protected async persistFindMany(params: {
     where: ProductWhereInput;
     skip: number;
@@ -105,16 +108,9 @@ export class ProductService extends AbstractCrudService<
     }
   }
 
-  protected buildWhere(filter?: ProductFilter): ProductWhereInput {
-    return filter ?? {};
-  }
-
-  protected parseFilter(_query: any): ProductFilter | undefined {
-    return undefined; // Customize when filters are added
-  }
-
   protected parseSelect(fields?: string): ProductSelect | undefined {
     if (!fields || typeof fields !== "string") return undefined;
+    // TODO refine valid fields
     const validFields = [
       "id",
       "cartLabel",
@@ -141,6 +137,16 @@ export class ProductService extends AbstractCrudService<
     }
     return Object.keys(select).length ? (select as ProductSelect) : undefined;
   }
+
+  protected buildWhere(filter?: ProductFilter): ProductWhereInput {
+    return filter ?? {};
+  }
+
+  protected parseFilter(_query: any): ProductFilter | undefined {
+    return undefined; // Customize when filters are added
+  }
+
+  // ** Helper Methods (optional overrides) **
 
   /**
    * Get related products based on category similarity and price range

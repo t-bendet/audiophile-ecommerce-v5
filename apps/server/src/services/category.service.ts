@@ -125,11 +125,6 @@ export class CategoryService extends AbstractCrudService<
       }
     }
 
-    console.log({
-      selectKeys,
-      select,
-    });
-
     return Object.keys(select).length > 0
       ? (select as CategorySelect)
       : undefined;
