@@ -92,7 +92,7 @@ export const CategoryDeleteByIdRequestSchema = createRequestSchema({
 
 export const CategoryDTOSchema = z.object({
   name: z.enum(NAME),
-  id: z.string(),
+  id: IdValidator("Category"),
   createdAt: z.date(),
   v: z.number(),
   thumbnail: CategoryThumbnailSchema,

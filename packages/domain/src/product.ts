@@ -23,61 +23,66 @@ export type ProductScalarFieldEnum = Prisma.ProductScalarFieldEnum;
 
 // * =====  Common Schemas =====
 
-export const ProductsImagesThumbnailSchema = z.object({
-  altText: z.string().min(1, "Alt text is required"),
-  ariaLabel: z.string().min(1, "Aria label is required"),
-  src: z.string().min(1, "Src is required"),
-}) satisfies z.Schema<ProductsImagesThumbnail>;
+export const ProductsImagesThumbnailSchema = z
+  .object({
+    altText: z.string().min(1, "Alt text is required"),
+    ariaLabel: z.string().min(1, "Aria label is required"),
+    src: z.string().min(1, "Src is required"),
+  })
+  .strict() satisfies z.Schema<ProductsImagesThumbnail>;
 
-export const ProductImagesPropertiesSchema = z.object({
-  altText: z.string().min(1, "Alt text is required"),
-  ariaLabel: z.string().min(1, "Aria label is required"),
-  desktopSrc: z.string().min(1, "Desktop src is required"),
-  mobileSrc: z.string().min(1, "Mobile src is required"),
-  tabletSrc: z.string().min(1, "Tablet src is required"),
-});
+export const ProductImagesPropertiesSchema = z
+  .object({
+    altText: z.string().min(1, "Alt text is required"),
+    ariaLabel: z.string().min(1, "Aria label is required"),
+    desktopSrc: z.string().min(1, "Desktop src is required"),
+    mobileSrc: z.string().min(1, "Mobile src is required"),
+    tabletSrc: z.string().min(1, "Tablet src is required"),
+  })
+  .strict();
 
-const ProductPropertiesSchema = z.object({
-  cartLabel: z.string().min(1, "Cart label is required"),
-  description: z.string().min(1, "Description is required"),
-  featuredImageText: z
-    .string()
-    .min(1, "Featured image text is required")
-    .nullable()
-    .optional(),
-  featuresText: z.array(z.string().min(1)).optional(),
-  fullLabel: z.array(z.string().min(1)).optional(),
-  isNewProduct: z.boolean().optional(),
-  name: z.string().min(1, "Name is required"),
-  price: z.number().int().nonnegative(),
-  shortLabel: z.string().min(1, "Short label is required"),
-  showCaseImageText: z
-    .string()
-    .min(1, "Showcase image text is required")
-    .nullable()
-    .optional(),
-  slug: z.string().min(1, "Slug is required"),
-  includedItems: z
-    .array(
-      z.object({
-        item: z.string().min(1, "Item name is required"),
-        quantity: z.number().int().positive("Quantity must be positive"),
-      })
-    )
-    .optional(),
-  images: z.object({
-    featuredImage: ProductImagesPropertiesSchema.nullish(),
-    galleryImages: z.array(ProductImagesPropertiesSchema),
-    introImage: ProductImagesPropertiesSchema,
-    primaryImage: ProductImagesPropertiesSchema,
-    showCaseImage: ProductImagesPropertiesSchema.nullish(),
-    thumbnail: ProductsImagesThumbnailSchema,
-    relatedProductImage: ProductImagesPropertiesSchema,
-  }),
-  category: z.object({
-    connect: z.object({ id: IdValidator("Category") }).strict(),
-  }),
-});
+const ProductPropertiesSchema = z
+  .object({
+    cartLabel: z.string().min(1, "Cart label is required"),
+    description: z.string().min(1, "Description is required"),
+    featuredImageText: z
+      .string()
+      .min(1, "Featured image text is required")
+      .nullable(),
+    featuresText: z.array(z.string().min(1)),
+    fullLabel: z.array(z.string().min(1)),
+    isNewProduct: z.boolean(),
+    name: z.string().min(1, "Name is required"),
+    price: z.number().int().nonnegative(),
+    shortLabel: z.string().min(1, "Short label is required"),
+    showCaseImageText: z
+      .string()
+      .min(1, "Showcase image text is required")
+      .nullable(),
+    slug: z.string().min(1, "Slug is required"),
+    includedItems: z.array(
+      z
+        .object({
+          item: z.string().min(1, "Item name is required"),
+          quantity: z.number().int().positive("Quantity must be positive"),
+        })
+        .strict()
+    ),
+    images: z.object({
+      featuredImage: ProductImagesPropertiesSchema.nullable(),
+      galleryImages: z.array(ProductImagesPropertiesSchema),
+      introImage: ProductImagesPropertiesSchema,
+      primaryImage: ProductImagesPropertiesSchema,
+      showCaseImage: ProductImagesPropertiesSchema.nullable(),
+      thumbnail: ProductsImagesThumbnailSchema,
+      relatedProductImage: ProductImagesPropertiesSchema,
+    }),
+    v: z.number().int().nonnegative(),
+    createdAt: z.date(),
+    categoryId: IdValidator("Category"),
+    id: IdValidator("Product"),
+  })
+  .strict() satisfies z.ZodType<Product>;
 
 // * ===== RequestSchemas =====
 
@@ -118,11 +123,17 @@ export const ProductGetBySlugSchema = createRequestSchema({
   params: z.object({ slug: z.string().min(1, "Slug is required") }).strict(),
 });
 
-// get product by slug - slug param
-
 // CREATE - Create new product
 export const ProductCreateRequestSchema = createRequestSchema({
-  body: ProductPropertiesSchema satisfies z.ZodType<ProductCreateInput>,
+  body: ProductPropertiesSchema.extend({
+    category: z.object({
+      connect: z.object({ id: IdValidator("Category") }).strict(),
+    }),
+  }).omit({
+    createdAt: true,
+    categoryId: true,
+    v: true,
+  }) satisfies z.ZodType<ProductCreateInput>,
 });
 
 // UPDATE - Update existing Product (partial)
@@ -138,8 +149,8 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 
 // * =====  DTO Schemas ( base and others if needed)=====
 
-export const ProductDTOSchema =
-  ProductPropertiesSchema satisfies z.ZodType<ProductCreateInput>;
+// export const ProductDTOSchema =
+//   ProductPropertiesSchema satisfies z.ZodType<ProductCreateInput>;
 // * =====  DTO Types (if needed)=====
 
 // export type CategoryListDTO = Category;
