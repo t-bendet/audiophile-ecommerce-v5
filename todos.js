@@ -33,29 +33,19 @@
 // TODO add errors for update same value
 // TODO checkout prices return from backend
 // TODO go over user extensions in database and optimize them
+// TODO handle slugs ,where is generated create update, user provide??
+// TODO add rate limiting middleware to server
+// TODO add helmet middleware to server
 
 // ============================================================================
 // ERROR HANDLING & VALIDATION
 // ============================================================================
-
-// TODO add proper error handling middleware, remove my fixes and use zod flatteners
-//      Location: apps/server/src/middlewares/error.middleware.ts
-//      Note: refactor response structure, do we need status? reshape the error object for a normal error response
-//      Reference: https://www.youtube.com/watch?v=T4Q1NvSePxs
-
-// TODO rethink how to handle validateSchema message formatted errors
 
 // TODO update handleZodError to give simpler error messages
 //      Location: apps/server/src/middlewares/error.middleware.ts (line 29-34)
 //      Context: Client doesn't need all validation issues for GET requests, only for CREATE/POST/PUT
 //      Current: Shows full prettifyError() output for all requests
 //      Desired: Simplified message for retrieval operations, detailed for mutations
-
-// TODO Template literal types for error codes are awesome
-//      References:
-//      - https://www.youtube.com/shorts/zOseJFD447U
-//      - https://engineering.udacity.com/handling-errors-like-a-pro-in-typescript-d7a314ad4991
-//      - https://kentcdodds.com/blog/get-a-catch-block-error-message-with-typescript
 
 // TODO improve abstract-crud-service typing ,constraints on Where, Select to match Entity structure
 //      Location: apps/server/src/services/abstract-crud.service.ts
@@ -116,18 +106,6 @@
 // CODE ORGANIZATION & QUALITY
 // ============================================================================
 // TODO jsdoc comments for all service methods
-// TODO Restructure middlewares folder:
-//      Current: error.middleware.ts, error.handlers.ts, validation.middleware.ts
-//      Proposed:
-//      middlewares/
-//      ├── index.ts                 # Export all
-//      ├── validation.ts            # Remove .middleware suffix
-//      └── error/
-//          ├── index.ts             # Export errorHandler
-//          ├── handler.ts           # Main error handler (current error.middleware.ts)
-//          ├── handlers.ts          # Specific error handlers
-//          └── types.ts             # Type guards
-//      Benefits: Better organization, easier imports, more scalable
 
 // TODO consider if these asserts are useful, or if they are just a way to make typescript happy
 //      Example code:
@@ -245,86 +223,3 @@
 //     message: "minPrice cannot exceed maxPrice",
 //     path: ["minPrice"],
 //   });
-
-// // Common sub-schemas
-// const ImageSchema = z.object({
-//   url: z.string().url(),
-//   alt: z.string().min(1).max(120),
-// });
-
-// const IncludedItemSchema = z.object({
-//   name: z.string().min(1).max(60),
-//   quantity: z.number().int().positive(),
-// });
-
-// // Create
-// export const ProductCreateSchema = z.object({
-//   name: NameValidator("Product"),
-//   slug: z
-//     .string({ message: "Slug is required" })
-//     .regex(/^[a-z0-9-]+$/i, { message: "Invalid slug format" })
-//     .min(3)
-//     .max(80),
-//   description: z.string().min(10).max(5000),
-//   price: z.number().positive().max(100000),
-//   inventory: z.number().int().nonnegative().default(0),
-//   categoryId: IdValidator("Category"),
-//   featured: z.boolean().optional(),
-//   showInShowcase: z.boolean().optional(),
-//   images: z.array(ImageSchema).max(10).optional().default([]),
-//   includedItems: z.array(IncludedItemSchema).max(20).optional().default([]),
-// });
-
-// // Update (partial; disallow changing slug if desired)
-// export const ProductUpdateSchema = ProductCreateSchema.partial().extend({
-//   slug: z
-//     .string()
-//     .regex(/^[a-z0-9-]+$/i)
-//     .min(3)
-//     .max(80)
-//     .optional(),
-// });
-
-// // Public DTO output schema (shape sent to clients)
-// export const ProductPublicSchema = z.object({
-//   id: z.string(),
-//   name: z.string(),
-//   slug: z.string(),
-//   price: z.number(),
-//   description: z.string(),
-//   categoryId: z.string(),
-//   featured: z.boolean().optional(),
-//   showInShowcase: z.boolean().optional(),
-//   images: z.array(ImageSchema).optional(),
-//   includedItems: z.array(IncludedItemSchema).optional(),
-// });
-
-// export type ProductCreateInput = z.infer<typeof ProductCreateSchema>;
-// export type ProductUpdateInput = z.infer<typeof ProductUpdateSchema>;
-// export type ProductListQuery = z.infer<typeof ProductListQuerySchema>;
-// export type ProductPublic = z.infer<typeof ProductPublicSchema>;
-// export type ProductIdParams = z.infer<typeof ProductIdParamsSchema>;
-// export type ProductSlugParams = z.infer<typeof ProductSlugParamsSchema>;
-// export type ProductCategoryParams = z.infer<typeof ProductCategoryParamsSchema>;
-
-// // Mapper helper (domain object -> public DTO)
-// export const toProductPublic = (product: any): ProductPublic => {
-//   // Defensive picking
-//   const base = {
-//     id: product.id,
-//     name: product.name,
-//     slug: product.slug,
-//     price: product.price,
-//     description: product.description,
-//     categoryId: product.categoryId,
-//     featured: product.featured,
-//     showInShowcase: product.showInShowcase,
-//     images: product.images || [],
-//     includedItems: product.includedItems || [],
-//   };
-//   return ProductPublicSchema.parse(base);
-// };
-
-// export type TProductsByCategory = Awaited<
-//   ReturnType<(typeof prisma.product)["getProductsByCategory"]>
-// >;
