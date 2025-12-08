@@ -1,19 +1,23 @@
-import { ErrorCode, getStatusCode } from "@repo/domain";
+import { ErrorCode, ErrorDetail, getStatusCode } from "@repo/domain";
 
 class AppError extends Error {
   statusCode;
-  code: string;
-  isOperational;
+  code;
+  details?: ErrorDetail[];
 
-  constructor(message: string, code: ErrorCode, statusCode?: number) {
+  constructor(
+    message: string,
+    code: ErrorCode,
+    statusCode?: number,
+    details?: ErrorDetail[]
+  ) {
     super(message);
 
     this.code = code;
+    this.details = details;
     // Auto-derive status code from error code if not provided
     this.statusCode = statusCode ?? getStatusCode(code);
-    // isOperational is used to distinguish between operational errors (like validation errors) and programming errors (like syntax errors)don't leak error details
-    // Operational errors are expected errors that can be handled gracefully
-    this.isOperational = true;
+
     // uncomment this line to get the name of the error class in the stack trace
     // This line is commented out because it can cause issues with stack traces in some environments
     // this.name = this.constructor.name;
