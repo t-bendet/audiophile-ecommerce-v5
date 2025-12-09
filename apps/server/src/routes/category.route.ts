@@ -1,14 +1,14 @@
 import {
   CategoryCreateRequestSchema,
   CategoryDeleteByIdRequestSchema,
-  CategoryGetByIdRequestSchema,
   CategoryGetAllRequestSchema,
+  CategoryGetByIdRequestSchema,
   CategoryUpdateByIdRequestSchema,
 } from "@repo/domain";
 import express from "express";
 import * as categoryController from "../controllers/category.controller.js";
-import { validateSchema } from "../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../middlewares/auth.middleware.js";
+import { validateSchema } from "../middlewares/validation.middleware.js";
 
 const categoryRouter: express.Router = express.Router();
 
