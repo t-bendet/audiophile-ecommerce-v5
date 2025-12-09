@@ -2,6 +2,8 @@ import { NAME, prisma } from "@repo/database";
 import {
   baseQueryParams,
   ErrorCode,
+  ListResponse,
+  Meta,
   Product,
   ProductCreateInput,
   ProductDTO,
@@ -168,7 +170,7 @@ export class ProductService extends AbstractCrudService<
 
   async getProductsByCategoryName(
     categoryName: NAME
-  ): Promise<ProductsByCategoryNameDTO> {
+  ): Promise<{ data: ProductsByCategoryNameDTO; meta: Meta }> {
     // Find category by name
     const products = await prisma.product.getProductsByCategory(categoryName);
 
@@ -176,7 +178,17 @@ export class ProductService extends AbstractCrudService<
       throw new AppError("Products not found", ErrorCode.NOT_FOUND);
     }
 
-    return products;
+    return {
+      data: products,
+      meta: {
+        page: 1,
+        limit: products.length,
+        total: products.length,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      } satisfies Meta,
+    };
   }
 
   /**
@@ -189,7 +201,7 @@ export class ProductService extends AbstractCrudService<
 
   async getRelatedProducts(
     productId: string
-  ): Promise<ProductRelatedProductsDTO> {
+  ): Promise<{ data: ProductRelatedProductsDTO; meta: Meta }> {
     // Get base product info
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -255,8 +267,17 @@ export class ProductService extends AbstractCrudService<
 
       relatedProducts.push(...additionalProducts);
     }
-
-    return relatedProducts;
+    return {
+      data: relatedProducts,
+      meta: {
+        page: 1,
+        limit: relatedProducts.length,
+        total: relatedProducts.length,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      } satisfies Meta,
+    };
   }
 
   /**
