@@ -1,10 +1,13 @@
 import {
+  ProductCreateRequestSchema,
+  ProductDeleteByIdRequestSchema,
   ProductGetAllRequestSchema,
   ProductGetByCategorySchema,
   ProductGetByIdRequestSchema,
   ProductGetByPathSchema,
   ProductGetBySlugSchema,
   ProductGetRelatedByIdRequestSchema,
+  ProductUpdateByIdRequestSchema,
 } from "@repo/domain";
 import express from "express";
 import * as productController from "../controllers/product.controller.js";
@@ -59,5 +62,22 @@ productRouter.get(
 productRouter.use(authenticate, authorize("ADMIN"));
 
 // TODO add routes for creating, updating, deleting products (admin only)
+
+productRouter.post(
+  "/",
+  validateSchema(ProductCreateRequestSchema),
+  productController.createProduct
+);
+
+productRouter
+  .route("/:id")
+  .patch(
+    validateSchema(ProductUpdateByIdRequestSchema),
+    productController.updateProduct
+  )
+  .delete(
+    validateSchema(ProductDeleteByIdRequestSchema),
+    productController.deleteProduct
+  );
 
 export default productRouter;
