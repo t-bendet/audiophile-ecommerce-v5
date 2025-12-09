@@ -1,4 +1,4 @@
-import { prisma } from "@repo/database";
+import { NAME, prisma } from "@repo/database";
 import {
   ErrorCode,
   Product,
@@ -89,7 +89,7 @@ export class ProductService extends AbstractCrudService<
 
   protected async persistUpdate(id: string, input: ProductUpdateInput) {
     try {
-      const entity = await prisma.category.update({
+      const entity = await prisma.product.update({
         where: { id },
         data: input,
       });
@@ -162,8 +162,22 @@ export class ProductService extends AbstractCrudService<
 
   // ** Helper Methods (optional overrides) **
 
-  // TODO add byCategoryName (consider using getall with a filter)
   // TODO add by slug
+
+  async getProductBySlug(slug: string) {
+    return prisma.product.findUnique({ where: { slug } });
+  }
+
+  async getProductsByCategoryName(categoryName: NAME) {
+    // Find category by name
+    const products = await prisma.product.getProductsByCategory(categoryName);
+
+    if (!products) {
+      throw new AppError("Products not found", ErrorCode.NOT_FOUND);
+    }
+
+    return products;
+  }
 
   /**
    * Get related products based on category similarity and price range
@@ -217,7 +231,6 @@ export class ProductService extends AbstractCrudService<
 
     // Backfill if we don't have enough related products
     if (relatedProducts.length < minRelatedProducts) {
-      // @ts-ignore
       const excludedIds = [productId, ...relatedProducts.map((p) => p.id)];
       const remainingCount = minRelatedProducts - relatedProducts.length;
 

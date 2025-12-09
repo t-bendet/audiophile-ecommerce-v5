@@ -4,8 +4,7 @@
     "rootDir": "src",
     "outDir": "dist",
     "skipLibCheck": true,
-    "composite": true,
-    "disableSourceOfProjectReferenceRedirect": true
+    "composite": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": [
