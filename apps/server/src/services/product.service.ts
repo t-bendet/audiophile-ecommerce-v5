@@ -4,7 +4,11 @@ import {
   Product,
   ProductCreateInput,
   ProductDTO,
+  ProductFeaturedProductsDTO,
+  ProductRelatedProductsDTO,
+  ProductsByCategoryNameDTO,
   ProductSelect,
+  ProductShowCaseProductsDTO,
   ProductUpdateInput,
   ProductWhereInput,
 } from "@repo/domain";
@@ -162,13 +166,16 @@ export class ProductService extends AbstractCrudService<
 
   // ** Helper Methods (optional overrides) **
 
-  // TODO add by slug
-
-  async getProductBySlug(slug: string) {
-    return prisma.product.findUnique({ where: { slug } });
+  async getProductBySlug(slug: string): Promise<ProductDTO> {
+    const product = await prisma.product.findUnique({ where: { slug } });
+    if (!product)
+      throw new AppError("No document found with that ID", ErrorCode.NOT_FOUND);
+    return this.toDTO(product);
   }
 
-  async getProductsByCategoryName(categoryName: NAME) {
+  async getProductsByCategoryName(
+    categoryName: NAME
+  ): Promise<ProductsByCategoryNameDTO> {
     // Find category by name
     const products = await prisma.product.getProductsByCategory(categoryName);
 
@@ -187,7 +194,9 @@ export class ProductService extends AbstractCrudService<
    * 3. Return max 3 products
    */
 
-  async getRelatedProducts(productId: string) {
+  async getRelatedProducts(
+    productId: string
+  ): Promise<ProductRelatedProductsDTO> {
     // Get base product info
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -261,7 +270,7 @@ export class ProductService extends AbstractCrudService<
    * Get showcase products from config
    * Returns products mapped to their showcase positions (cover, wide, grid)
    */
-  async getShowCaseProducts() {
+  async getShowCaseProducts(): Promise<ProductShowCaseProductsDTO> {
     // Fetch config to know which products to showcase
     const config = await prisma.config.findFirst();
 
@@ -308,7 +317,6 @@ export class ProductService extends AbstractCrudService<
       grid: null,
     };
 
-    // @ts-ignore
     products.forEach((product) => {
       if (product.id === config.showCaseProducts.cover) {
         showcaseMap.cover = product;
@@ -333,7 +341,7 @@ export class ProductService extends AbstractCrudService<
   /**
    * Get the featured product from config
    */
-  async getFeaturedProduct() {
+  async getFeaturedProduct(): Promise<ProductFeaturedProductsDTO> {
     const config = await prisma.config.findFirst();
 
     if (!config) {
@@ -389,3 +397,8 @@ export class ProductService extends AbstractCrudService<
 
 // Export singleton instance
 export const productService = new ProductService();
+
+// Type '{ id: string; shortLabel: string; showCaseImageText: string | null; categoryId: string; slug: string; images: { showCaseImage: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; } | null; }; } | null' is not assignable to type '{ id: string; shortLabel: string; showCaseImageText: string | null; categoryId: string; slug: string; images: { showCaseImages: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; }; } | null; } | null'.
+// Type '{ id: string; shortLabel: string; showCaseImageText: string | null; categoryId: string; slug: string; images: { showCaseImage: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; } | null; }; }' is not assignable to type '{ id: string; shortLabel: string; showCaseImageText: string | null; categoryId: string; slug: string; images: { showCaseImages: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; }; } | null; }'.
+// Types of property 'images' are incompatible.
+// Property 'showCaseImages' is missing in type '{ showCaseImage: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; } | null; }' but required in type '{ showCaseImages: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; }; }'.

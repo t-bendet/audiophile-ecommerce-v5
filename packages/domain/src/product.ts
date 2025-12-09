@@ -41,6 +41,16 @@ export const ProductImagesPropertiesSchema = z
   })
   .strict();
 
+export const ProductImagesObjectSchema = z.object({
+  featuredImage: ProductImagesPropertiesSchema.nullable(),
+  galleryImages: z.array(ProductImagesPropertiesSchema),
+  introImage: ProductImagesPropertiesSchema,
+  primaryImage: ProductImagesPropertiesSchema,
+  showCaseImage: ProductImagesPropertiesSchema.nullable(),
+  thumbnail: ProductsImagesThumbnailSchema,
+  relatedProductImage: ProductImagesPropertiesSchema,
+});
+
 const ProductPropertiesSchema = z
   .object({
     cartLabel: z.string().min(1, "Cart label is required"),
@@ -68,15 +78,7 @@ const ProductPropertiesSchema = z
         })
         .strict()
     ),
-    images: z.object({
-      featuredImage: ProductImagesPropertiesSchema.nullable(),
-      galleryImages: z.array(ProductImagesPropertiesSchema),
-      introImage: ProductImagesPropertiesSchema,
-      primaryImage: ProductImagesPropertiesSchema,
-      showCaseImage: ProductImagesPropertiesSchema.nullable(),
-      thumbnail: ProductsImagesThumbnailSchema,
-      relatedProductImage: ProductImagesPropertiesSchema,
-    }),
+    images: ProductImagesObjectSchema,
     v: z.number().int().nonnegative(),
     createdAt: z.date(),
     categoryId: IdValidator("Category"),
@@ -151,24 +153,51 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 
 export const ProductDTOSchema = ProductPropertiesSchema;
 
+// export const ProductsByCategoryNameSchema = z.array(
+//   ProductPropertiesSchema.pick({
+//     id: true,
+//     description: true,
+//     isNewProduct: true,
+//     fullLabel: true,
+//     slug: true,
+//   })
+//     .extend({
+//       images: z.object({
+//         introImage: ProductImagesPropertiesSchema,
+//       }),
+//     })
+//     .strict()
+// );
+
+export const ProductsByCategoryNameSchema = z.array(
+  ProductPropertiesSchema.pick({
+    id: true,
+    description: true,
+    isNewProduct: true,
+    fullLabel: true,
+    slug: true,
+  })
+    .extend({
+      images: z.object({
+        introImage: ProductImagesPropertiesSchema,
+      }),
+    })
+    .strict()
+);
+
 export const ProductRelatedProductsDTOSchema = z.array(
   ProductPropertiesSchema.pick({
     id: true,
     shortLabel: true,
     images: true,
     slug: true,
-  }).strict()
-);
-
-export const ProductsByCategoryNameSchema = z.array(
-  ProductPropertiesSchema.pick({
-    id: true,
-    description: true,
-    fullLabel: true,
-    isNewProduct: true,
-    images: true,
-    slug: true,
-  }).strict()
+  })
+    .extend({
+      images: z.object({
+        relatedProductImage: ProductImagesPropertiesSchema,
+      }),
+    })
+    .strict()
 );
 
 export const ProductShowCaseProductsSchema = z.record(
@@ -178,9 +207,13 @@ export const ProductShowCaseProductsSchema = z.record(
     shortLabel: true,
     showCaseImageText: true,
     categoryId: true,
-    images: true,
     slug: true,
   })
+    .extend({
+      images: z.object({
+        showCaseImage: ProductImagesPropertiesSchema.nullable(),
+      }),
+    })
     .strict()
     .nullable()
 );
@@ -194,18 +227,24 @@ export const ProductFeaturedProductsSchema = ProductPropertiesSchema.pick({
   shortLabel: true,
   categoryId: true,
   slug: true,
-  images: true,
-}).strict();
+})
+  .extend({
+    images: z.object({
+      featuredImage: ProductImagesPropertiesSchema.nullable(),
+    }),
+  })
+  .strict();
 
 // * =====  DTO Types (if needed)=====
 
 export type ProductDTO = z.infer<typeof ProductDTOSchema>;
 
-export type ProductRelatedProductsDTO = z.infer<
-  typeof ProductRelatedProductsDTOSchema
->;
 export type ProductsByCategoryNameDTO = z.infer<
   typeof ProductsByCategoryNameSchema
+>;
+
+export type ProductRelatedProductsDTO = z.infer<
+  typeof ProductRelatedProductsDTOSchema
 >;
 
 export type ProductShowCaseProductsDTO = z.infer<
