@@ -151,19 +151,70 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 
 export const ProductDTOSchema = ProductPropertiesSchema;
 
-export const ProductRelatedProductsSchema = 1;
+export const ProductRelatedProductsDTOSchema = z.array(
+  ProductPropertiesSchema.pick({
+    id: true,
+    shortLabel: true,
+    images: true,
+    slug: true,
+  }).strict()
+);
 
-export const ProductsByCategorySchema = 1;
+export const ProductsByCategoryNameSchema = z.array(
+  ProductPropertiesSchema.pick({
+    id: true,
+    description: true,
+    fullLabel: true,
+    isNewProduct: true,
+    images: true,
+    slug: true,
+  }).strict()
+);
 
-export const ProductShowCaseProductsSchema = 1;
+export const ProductShowCaseProductsSchema = z.record(
+  z.enum(["cover", "wide", "grid"]),
+  ProductPropertiesSchema.pick({
+    id: true,
+    shortLabel: true,
+    showCaseImageText: true,
+    categoryId: true,
+    images: true,
+    slug: true,
+  })
+    .strict()
+    .nullable()
+);
 
-export const ProductFeaturedProductsSchema = 1;
-
-export const ProductBySlugSchema = 1;
+export const ProductFeaturedProductsSchema = ProductPropertiesSchema.pick({
+  id: true,
+  featuredImageText: true,
+  description: true,
+  fullLabel: true,
+  isNewProduct: true,
+  shortLabel: true,
+  categoryId: true,
+  slug: true,
+  images: true,
+}).strict();
 
 // * =====  DTO Types (if needed)=====
 
 export type ProductDTO = z.infer<typeof ProductDTOSchema>;
+
+export type ProductRelatedProductsDTO = z.infer<
+  typeof ProductRelatedProductsDTOSchema
+>;
+export type ProductsByCategoryNameDTO = z.infer<
+  typeof ProductsByCategoryNameSchema
+>;
+
+export type ProductShowCaseProductsDTO = z.infer<
+  typeof ProductShowCaseProductsSchema
+>;
+
+export type ProductFeaturedProductsDTO = z.infer<
+  typeof ProductFeaturedProductsSchema
+>;
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
