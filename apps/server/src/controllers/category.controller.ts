@@ -12,10 +12,12 @@ export const getAllCategories: RequestHandler = catchAsync(async (req, res) => {
   res.status(200).json(createListResponse(result.data, result.meta));
 });
 
-export const getCategory: RequestHandler = catchAsync(async (req, res) => {
+export const getCategoryById: RequestHandler = catchAsync(async (req, res) => {
   const dto = await categoryService.get(req.verified?.params.id);
   res.status(200).json(createSingleItemResponse(dto));
 });
+
+// * ADMIN CONTROLLERS
 
 export const createCategory: RequestHandler = catchAsync(async (req, res) => {
   const dto = await categoryService.create(req.verified?.body);

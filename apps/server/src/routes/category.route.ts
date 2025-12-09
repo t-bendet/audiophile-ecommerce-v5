@@ -21,7 +21,7 @@ categoryRouter.get(
 categoryRouter.get(
   "/:id",
   validateSchema(CategoryGetByIdRequestSchema),
-  categoryController.getCategory
+  categoryController.getCategoryById
 );
 
 // * ADMIN ROUTES (restricted to admin roles)
