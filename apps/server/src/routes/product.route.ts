@@ -8,13 +8,14 @@ import { validateSchema } from "../middlewares/validation.middleware.js";
 
 const productRouter: express.Router = express.Router();
 
-productRouter.route("/").get(productController.getAllProducts);
-productRouter.route("/featured").get(productController.getFeaturedProduct);
-productRouter.route("/show-case").get(productController.getShowCaseProducts);
+productRouter.get("/", productController.getAllProducts);
+productRouter.get("/featured", productController.getFeaturedProduct);
+productRouter.get("/show-case", productController.getShowCaseProducts);
 
-productRouter
-  .route("/related-products/:id")
-  .get(productController.getRelatedProducts);
+productRouter.get(
+  "/related-products/:id",
+  productController.getRelatedProducts
+);
 
 //  TODO should be in category route
 productRouter
@@ -24,13 +25,12 @@ productRouter
     productController.getProductsByCategoryName
   );
 
-productRouter.route("/:id").get(productController.getProductById);
+productRouter.get("/:id", productController.getProductById);
 
-productRouter
-  .route("/slug/:slug")
-  .get(
-    validateSchema(ProductGetBySlugSchema),
-    productController.getProductBySlug
-  );
+productRouter.get(
+  "/slug/:slug",
+  validateSchema(ProductGetBySlugSchema),
+  productController.getProductBySlug
+);
 
 export default productRouter;
