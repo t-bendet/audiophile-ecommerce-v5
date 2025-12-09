@@ -122,7 +122,7 @@ export const ProductGetByPathSchema = createRequestSchema({});
 // GET - Get Product by Slug
 
 export const ProductGetBySlugSchema = createRequestSchema({
-  params: z.object({ slug: z.string().min(1, "Slug is required") }).strict(),
+  params: z.object({ slug: z.string().min(2, "Slug is required") }).strict(),
 });
 
 // CREATE - Create new product
