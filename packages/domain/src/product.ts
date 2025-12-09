@@ -114,7 +114,7 @@ export const ProductGetByCategorySchema = createRequestSchema({
   params: z.object({ category: z.enum(NAME) }).strict(),
 });
 
-// GET - Get Product by path
+// GET - Get Product by path(showcase, featured, etc.)
 export const ProductGetByPathSchema = createRequestSchema({});
 
 // GET - Get Product by Slug
@@ -150,11 +150,16 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 // * =====  DTO Schemas ( base and others if needed)=====
 
 export const ProductDTOSchema = ProductPropertiesSchema;
-// relatedproductschema
-// byCategoryschema
-// showcaseschema
-// featuredproductschema
-// byslugschema
+
+export const ProductRelatedProductsSchema = 1;
+
+export const ProductsByCategorySchema = 1;
+
+export const ProductShowCaseProductsSchema = 1;
+
+export const ProductFeaturedProductsSchema = 1;
+
+export const ProductBySlugSchema = 1;
 
 // * =====  DTO Types (if needed)=====
 
