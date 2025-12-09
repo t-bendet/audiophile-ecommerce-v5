@@ -61,8 +61,6 @@ productRouter.get(
 
 productRouter.use(authenticate, authorize("ADMIN"));
 
-// TODO add routes for creating, updating, deleting products (admin only)
-
 productRouter.post(
   "/",
   validateSchema(ProductCreateRequestSchema),
