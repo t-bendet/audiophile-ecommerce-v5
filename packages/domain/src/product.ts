@@ -135,6 +135,7 @@ export const ProductCreateRequestSchema = createRequestSchema({
     createdAt: true,
     categoryId: true,
     v: true,
+    id: true,
   }) satisfies z.ZodType<ProductCreateInput>,
 });
 

@@ -1,9 +1,9 @@
-import { NAME, prisma } from "@repo/database";
-import { RequestHandler } from "express";
 import {
+  createEmptyResponse,
   createListResponse,
   createSingleItemResponse,
-} from "../../../../packages/domain/src/common.js";
+} from "@repo/domain";
+import { RequestHandler } from "express";
 import { productService } from "../services/product.service.js";
 import catchAsync from "../utils/catchAsync.js";
 
@@ -57,22 +57,20 @@ export const getFeaturedProduct: RequestHandler = catchAsync(
 
 // * ADMIN CONTROLLERS
 
-// TODO admin controllers
+export const createProduct: RequestHandler = catchAsync(async (req, res) => {
+  const dto = await productService.create(req.verified?.body);
+  res.status(201).json(createSingleItemResponse(dto));
+});
 
-// export const createCategory: RequestHandler = catchAsync(async (req, res) => {
-//   const dto = await categoryService.create(req.verified?.body);
-//   res.status(201).json(createSingleItemResponse(dto));
-// });
+export const updateProduct: RequestHandler = catchAsync(async (req, res) => {
+  const dto = await productService.update(
+    req.verified?.params.id,
+    req.verified?.body
+  );
+  res.status(200).json(createSingleItemResponse(dto));
+});
 
-// export const updateCategory: RequestHandler = catchAsync(async (req, res) => {
-//   const dto = await categoryService.update(
-//     req.verified?.params.id,
-//     req.verified?.body
-//   );
-//   res.status(200).json(createSingleItemResponse(dto));
-// });
-
-// export const deleteCategory: RequestHandler = catchAsync(async (req, res) => {
-//   await categoryService.delete(req.verified?.params.id);
-//   res.status(204).json(createEmptyResponse());
-// });
+export const deleteProduct: RequestHandler = catchAsync(async (req, res) => {
+  await productService.delete(req.verified?.params.id);
+  res.status(200).json(createEmptyResponse());
+});

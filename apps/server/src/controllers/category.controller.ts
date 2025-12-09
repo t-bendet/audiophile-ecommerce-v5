@@ -34,5 +34,5 @@ export const updateCategory: RequestHandler = catchAsync(async (req, res) => {
 
 export const deleteCategory: RequestHandler = catchAsync(async (req, res) => {
   await categoryService.delete(req.verified?.params.id);
-  res.status(204).json(createEmptyResponse());
+  res.status(200).json(createEmptyResponse());
 });
