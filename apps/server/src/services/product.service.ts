@@ -1,5 +1,6 @@
 import { NAME, prisma } from "@repo/database";
 import {
+  baseQueryParams,
   ErrorCode,
   Product,
   ProductCreateInput,
@@ -19,17 +20,9 @@ import { AbstractCrudService } from "./abstract-crud.service.js";
 
 // TODO: tune DTO and filter types as needed
 // TODO scalar fields and filter should match
+export interface ProductFilter extends Pick<Product, "name"> {}
 
-type ProductFilter = Pick<Product, "name">;
-
-// TODO define query params type
-export type ProductQueryParams = {
-  name?: string;
-  page?: string | number;
-  limit?: string | number;
-  sort?: string;
-  fields?: string;
-};
+export interface ProductQueryParams extends baseQueryParams, ProductFilter {}
 
 export class ProductService extends AbstractCrudService<
   Product,
