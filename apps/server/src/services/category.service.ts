@@ -1,13 +1,12 @@
 import { prisma } from "@repo/database";
 import type {
+  baseQueryParams,
   Category,
   CategoryCreateInput,
   CategoryDTO,
-  CategoryScalarFieldEnum,
   CategorySelect,
   CategoryUpdateInput,
   CategoryWhereInput,
-  NAME,
 } from "@repo/domain";
 import { ErrorCode, NAME as NAME_ENUM } from "@repo/domain";
 import AppError from "../utils/appError.js";
@@ -15,16 +14,10 @@ import { AbstractCrudService } from "./abstract-crud.service.js";
 
 // TODO scalar fields and filter should match
 
-export type CategoryFilter = Pick<Category, "name">;
+export interface CategoryFilter extends Pick<Category, "name"> {}
 
-// TODO define query params type
-export type CategoryQueryParams = {
-  name?: string;
-  page?: string | number;
-  limit?: string | number;
-  sort?: string;
-  fields?: string;
-};
+export interface CategoryQueryParams extends baseQueryParams, CategoryFilter {}
+
 export class CategoryService extends AbstractCrudService<
   Category,
   CategoryCreateInput,
@@ -155,11 +148,11 @@ export class CategoryService extends AbstractCrudService<
     }
 
     // Type guard: validate the name is a valid NAME enum value
-    if (!Object.values(NAME_ENUM).includes(query.name as NAME)) {
+    if (!Object.values(NAME_ENUM).includes(query.name)) {
       return undefined;
     }
 
-    return { name: query.name as NAME };
+    return { name: query.name };
   }
 
   // ** Helper Methods (optional overrides) **

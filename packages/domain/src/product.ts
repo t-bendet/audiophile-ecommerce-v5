@@ -153,22 +153,6 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 
 export const ProductDTOSchema = ProductPropertiesSchema;
 
-// export const ProductsByCategoryNameSchema = z.array(
-//   ProductPropertiesSchema.pick({
-//     id: true,
-//     description: true,
-//     isNewProduct: true,
-//     fullLabel: true,
-//     slug: true,
-//   })
-//     .extend({
-//       images: z.object({
-//         introImage: ProductImagesPropertiesSchema,
-//       }),
-//     })
-//     .strict()
-// );
-
 export const ProductsByCategoryNameSchema = z.array(
   ProductPropertiesSchema.pick({
     id: true,

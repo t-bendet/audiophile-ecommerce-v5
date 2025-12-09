@@ -232,8 +232,6 @@ export const ApiResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
 
 // ===== Request Schema Helper =====
 
-// ===== Request Schema Helper =====
-
 /**
  * Create a typed request schema that validates params, body, and query
  * All fields are required to be present but may have empty/default objects
@@ -263,3 +261,10 @@ export type RequestSchema<
   body: B;
   query: Q;
 };
+
+export interface baseQueryParams {
+  page?: string | number;
+  limit?: string | number;
+  sort?: string;
+  fields?: string;
+}
