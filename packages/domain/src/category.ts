@@ -1,4 +1,8 @@
-import type { Prisma, Category as PrismaCategory } from "@repo/database";
+import type {
+  Prisma,
+  Category as PrismaCategory,
+  CategoriesThumbnail,
+} from "@repo/database";
 import { $Enums } from "@repo/database";
 import { z } from "zod";
 import type {
@@ -7,6 +11,7 @@ import type {
   SingleItemResponse,
 } from "./common.js";
 import {
+  createRequestSchema,
   EmptyResponseSchema,
   ListResponseSchema,
   SingleItemResponseSchema,
@@ -26,6 +31,8 @@ export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
 
 export const NAME = $Enums.NAME;
 export type NAME = $Enums.NAME;
+export type CategoryProductsCreateManyInput =
+  Prisma.ProductCreateManyCategoryInputEnvelope["data"];
 
 // * =====  Common Schemas =====
 
@@ -33,89 +40,79 @@ export const CategoryThumbnailSchema = z.object({
   altText: z.string().min(1, "Alt text is required"),
   ariaLabel: z.string().min(1, "Aria label is required"),
   src: z.string().min(1, "Src is required"),
-});
+}) satisfies z.Schema<CategoriesThumbnail>;
 
 // * ===== RequestSchemas =====
 
 // LIST - Get all categories (pagination + filtering)
-export const CategoryGetAllRequestSchema = z.object({
-  params: z.object({}).optional(),
-  body: z.object({}).optional(),
+export const CategoryGetAllRequestSchema = createRequestSchema({
   query: z
     .object({
+      sort: z.string().optional(),
+      name: z.enum(NAME).optional(),
+      fields: z.string().optional(),
       page: z.coerce.number().int().positive().optional(),
       limit: z.coerce.number().int().positive().optional(),
-      orderBy: z.string().optional(),
-      label: z.string().optional(),
-      slug: z.string().optional(),
     })
     .optional(),
 });
 
 // GET - Get single category by ID
-export const CategoryGetRequestSchema = z.object({
-  params: z.object({ id: IdValidator("Category") }),
-  body: z.object({}).optional(),
-  query: z.object({}).optional(),
+export const CategoryGetByIdRequestSchema = createRequestSchema({
+  params: z.object({ id: IdValidator("Category") }).strict(),
 });
 
 // CREATE - Create new category
 // TODO can't really create  new category now as NAME is enum
-export const CategoryCreateRequestSchema = z.object({
-  params: z.object({}).optional(),
+// TODO add CategoryProductsCreateManyInput if needed
+export const CategoryCreateRequestSchema = createRequestSchema({
   body: z.object({
     name: z.enum(NAME),
     thumbnail: CategoryThumbnailSchema,
-  }) satisfies z.Schema<CategoryCreateInput>,
-  query: z.object({}).optional(),
+  }) satisfies z.ZodType<CategoryCreateInput>,
 });
 
 // UPDATE - Update existing category (partial)
-export const CategoryUpdateRequestSchema = z.object({
-  params: z.object({ id: IdValidator("Category") }),
+export const CategoryUpdateByIdRequestSchema = createRequestSchema({
+  params: z.object({ id: IdValidator("Category") }).strict(),
   body: z
     .object({
       name: z.enum(NAME).optional(),
       thumbnail: CategoryThumbnailSchema.optional(),
     })
-    .strict() satisfies z.Schema<CategoryUpdateInput>,
-  query: z.object({}).optional(),
+    .strict() satisfies z.ZodType<CategoryUpdateInput>,
 });
 
 // DELETE - Delete category by ID
-export const CategoryDeleteRequestSchema = z.object({
-  params: z.object({ id: IdValidator("Category") }),
-  body: z.object({}).optional(),
-  query: z.object({}).optional(),
+export const CategoryDeleteByIdRequestSchema = createRequestSchema({
+  params: z.object({ id: IdValidator("Category") }).strict(),
 });
-
-// * =====  DTO Types (if needed)=====
-
-export type CategoryListDTO = Category;
-export type CategoryDetailDTO = Category;
-export type CategoryCreateDTO = Category;
-export type CategoryUpdateDTO = Category;
 
 // * =====  DTO Schemas ( base and others if needed)=====
 
 export const CategoryDTOSchema = z.object({
-  id: z.string(),
   name: z.enum(NAME),
-  thumbnail: CategoryThumbnailSchema,
+  id: IdValidator("Category"),
   createdAt: z.date(),
   v: z.number(),
-});
+  thumbnail: CategoryThumbnailSchema,
+}) satisfies z.ZodType<Category>;
+
+// * =====  DTO Types (if needed)=====
+
+export type CategoryDTO = z.infer<typeof CategoryDTOSchema>;
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
 // List response (array + pagination)
-export const CategoryListResponseSchema = ListResponseSchema(CategoryDTOSchema);
-export type CategoryListResponse = ListResponse<Category>;
+export const CategoryGetAllResponseSchema =
+  ListResponseSchema(CategoryDTOSchema);
+export type CategoryGetAllResponse = ListResponse<Category>;
 
 // Detail/Get response (single DTO)
-export const CategoryGetResponseSchema =
+export const CategoryGetByIdResponseSchema =
   SingleItemResponseSchema(CategoryDTOSchema);
-export type CategoryGetResponse = SingleItemResponse<Category>;
+export type CategoryGetByIdResponse = SingleItemResponse<Category>;
 
 // Create response (single DTO)
 export const CategoryCreateResponseSchema =
@@ -123,10 +120,10 @@ export const CategoryCreateResponseSchema =
 export type CategoryCreateResponse = SingleItemResponse<Category>;
 
 // Update response (single DTO)
-export const CategoryUpdateResponseSchema =
+export const CategoryUpdateByIdResponseSchema =
   SingleItemResponseSchema(CategoryDTOSchema);
-export type CategoryUpdateResponse = SingleItemResponse<Category>;
+export type CategoryUpdateByIdResponse = SingleItemResponse<Category>;
 
 // Delete response (no content)
-export const CategoryDeleteResponseSchema = EmptyResponseSchema;
-export type CategoryDeleteResponse = EmptyResponse;
+export const CategoryDeleteByIdResponseSchema = EmptyResponseSchema;
+export type CategoryDeleteByIdResponse = EmptyResponse;

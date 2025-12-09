@@ -8,6 +8,7 @@ declare global {
   namespace Express {
     export interface Request {
       user?: UserPublicInfo;
+      verified?: Record<string, any>;
     }
   }
 }

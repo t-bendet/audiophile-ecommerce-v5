@@ -1,9 +1,170 @@
 import { prisma } from "@repo/database";
-import { ErrorCode } from "@repo/domain";
-import type { NAME } from "@repo/database";
+import {
+  ErrorCode,
+  Product,
+  ProductCreateInput,
+  ProductDTO,
+  ProductSelect,
+  ProductUpdateInput,
+  ProductWhereInput,
+} from "@repo/domain";
 import AppError from "../utils/appError.js";
+import { AbstractCrudService } from "./abstract-crud.service.js";
 
-export class ProductService {
+// TODO !importent after this file is done, go back and fix all mismatched types in abstract-crud.service.ts
+
+// TODO: tune DTO and filter types as needed
+// TODO scalar fields and filter should match
+
+type ProductFilter = Pick<Product, "name">;
+
+// TODO define query params type
+export type ProductQueryParams = {
+  name?: string;
+  page?: string | number;
+  limit?: string | number;
+  sort?: string;
+  fields?: string;
+};
+
+export class ProductService extends AbstractCrudService<
+  Product,
+  ProductCreateInput,
+  ProductUpdateInput,
+  ProductDTO,
+  ProductWhereInput,
+  ProductSelect,
+  ProductFilter
+> {
+  protected toDTO(entity: Product): ProductDTO {
+    return entity;
+  }
+
+  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
+  // *include filtering, pagination, ordering, selection as needed for list operations*
+
+  protected async persistFindMany(params: {
+    where: ProductWhereInput;
+    skip: number;
+    take: number;
+    orderBy?: any;
+    select?: ProductSelect;
+  }): Promise<{ data: Product[]; total: number }> {
+    const [data, total] = await prisma.$transaction([
+      prisma.product.findMany({
+        where: params.where,
+        skip: params.skip,
+        take: params.take,
+        orderBy: params.orderBy,
+        select: params.select,
+      }),
+      prisma.product.count({ where: params.where }),
+    ]);
+    return { data, total };
+  }
+
+  protected async persistFindById(id: string) {
+    return prisma.product.findUnique({ where: { id } });
+  }
+
+  protected async persistCreate(input: ProductCreateInput) {
+    return prisma.product.create({ data: input });
+  }
+
+  /**
+   * Whitelist only allowed fields for updates
+   * Prevents clients from updating fields like 'id', 'createdAt', 'v', etc.
+   */
+  protected filterUpdateInput(input: ProductUpdateInput): ProductUpdateInput {
+    // Define which fields are allowed to be updated
+    const disallowedFields: (keyof typeof input)[] = [
+      "createdAt",
+      "v",
+
+      // Add other updateable fields here
+    ];
+
+    return this.pickFieldsByNotAllowed(input, disallowedFields);
+  }
+
+  protected async persistUpdate(id: string, input: ProductUpdateInput) {
+    try {
+      const entity = await prisma.category.update({
+        where: { id },
+        data: input,
+      });
+      return entity;
+    } catch (e: any) {
+      if (e?.code === "P2025") return null;
+      throw e;
+    }
+  }
+
+  protected async persistDelete(id: string) {
+    try {
+      await prisma.product.delete({ where: { id } });
+      return true;
+    } catch (e: any) {
+      if (e?.code === "P2025") return false;
+      throw e;
+    }
+  }
+
+  protected parseSelect(fields?: string): ProductSelect | undefined {
+    if (!fields || typeof fields !== "string") return undefined;
+    // TODO refine valid fields
+    const validFields = [
+      "id",
+      "cartLabel",
+      "name",
+      "slug",
+      "price",
+      "categoryId",
+      "createdAt",
+      "v",
+      "shortLabel",
+      "fullLabel",
+      "description",
+      "isNewProduct",
+      "featuredImageText",
+      "showCaseImageText",
+      "featuresText",
+    ] satisfies readonly (keyof Product)[];
+
+    const select: Partial<ProductSelect> = {};
+    for (const field of fields.split(",")) {
+      if (validFields.includes(field as (typeof validFields)[number])) {
+        select[field as keyof ProductSelect] = true;
+      }
+    }
+    return Object.keys(select).length ? (select as ProductSelect) : undefined;
+  }
+
+  // TODO refine filter parsing as needed
+  protected buildWhere(filter?: ProductFilter): ProductWhereInput {
+    if (!filter?.name) {
+      return {};
+    }
+    return {
+      name: {
+        equals: filter.name,
+        mode: "insensitive",
+      },
+    };
+  }
+
+  protected parseFilter(query: ProductQueryParams): ProductFilter | undefined {
+    if (!query.name || typeof query.name !== "string") {
+      return undefined;
+    }
+    return { name: query.name };
+  }
+
+  // ** Helper Methods (optional overrides) **
+
+  // TODO add byCategoryName (consider using getall with a filter)
+  // TODO add by slug
+
   /**
    * Get related products based on category similarity and price range
    * Algorithm:
@@ -11,6 +172,7 @@ export class ProductService {
    * 2. If less than 3 found, backfill with any other products
    * 3. Return max 3 products
    */
+
   async getRelatedProducts(productId: string) {
     // Get base product info
     const product = await prisma.product.findUnique({
