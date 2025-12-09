@@ -1,13 +1,14 @@
 import {
-  ProductGetBySlugSchema,
-  ProductGetByCategorySchema,
   ProductGetAllRequestSchema,
-  ProductGetByPathSchema,
-  ProductGetRelatedByIdRequestSchema,
+  ProductGetByCategorySchema,
   ProductGetByIdRequestSchema,
+  ProductGetByPathSchema,
+  ProductGetBySlugSchema,
+  ProductGetRelatedByIdRequestSchema,
 } from "@repo/domain";
 import express from "express";
 import * as productController from "../controllers/product.controller.js";
+import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
 
 const productRouter: express.Router = express.Router();
@@ -52,5 +53,11 @@ productRouter.get(
   validateSchema(ProductGetBySlugSchema),
   productController.getProductBySlug
 );
+
+// * ADMIN ROUTES (restricted to admin roles)
+
+productRouter.use(authenticate, authorize("ADMIN"));
+
+// TODO add routes for creating, updating, deleting products (admin only)
 
 export default productRouter;
