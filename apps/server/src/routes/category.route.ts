@@ -1,9 +1,9 @@
 import {
   CategoryCreateRequestSchema,
-  CategoryDeleteRequestSchema,
-  CategoryGetRequestSchema,
+  CategoryDeleteByIdRequestSchema,
+  CategoryGetByIdRequestSchema,
   CategoryGetAllRequestSchema,
-  CategoryUpdateRequestSchema,
+  CategoryUpdateByIdRequestSchema,
 } from "@repo/domain";
 import express from "express";
 import * as categoryController from "../controllers/category.controller.js";
@@ -22,7 +22,7 @@ categoryRouter.get(
 
 categoryRouter.get(
   "/:id",
-  validateSchema(CategoryGetRequestSchema),
+  validateSchema(CategoryGetByIdRequestSchema),
   categoryController.getCategory
 );
 
@@ -37,11 +37,11 @@ categoryRouter.post(
 categoryRouter
   .route("/:id")
   .patch(
-    validateSchema(CategoryUpdateRequestSchema),
+    validateSchema(CategoryUpdateByIdRequestSchema),
     categoryController.updateCategory
   )
   .delete(
-    validateSchema(CategoryDeleteRequestSchema),
+    validateSchema(CategoryDeleteByIdRequestSchema),
     categoryController.deleteCategory
   );
 

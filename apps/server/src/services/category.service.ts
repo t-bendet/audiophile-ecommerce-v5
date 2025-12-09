@@ -1,23 +1,18 @@
 import { prisma } from "@repo/database";
-import { ErrorCode } from "@repo/domain";
 import type {
   Category,
   CategoryCreateInput,
+  CategoryDTO,
+  CategoryScalarFieldEnum,
   CategorySelect,
   CategoryUpdateInput,
   CategoryWhereInput,
   NAME,
-  CategoryScalarFieldEnum,
 } from "@repo/domain";
-import { NAME as NAME_ENUM } from "@repo/domain";
+import { ErrorCode, NAME as NAME_ENUM } from "@repo/domain";
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
-// DTO type and filter,declared in service
-export type CategoryDTO = Pick<
-  Category,
-  "id" | "name" | "thumbnail" | "createdAt" | "v"
->;
 // TODO scalar fields and filter should match
 
 export type CategoryFilter = Pick<Category, "name">;
@@ -40,13 +35,7 @@ export class CategoryService extends AbstractCrudService<
   CategoryFilter
 > {
   protected toDTO(entity: Category): CategoryDTO {
-    return {
-      id: entity.id,
-      name: entity.name,
-      thumbnail: entity.thumbnail,
-      createdAt: entity.createdAt,
-      v: entity.v,
-    };
+    return entity;
   }
 
   // ***** Persistence Layer Methods (to be implemented by subclasses) *****
@@ -92,7 +81,7 @@ export class CategoryService extends AbstractCrudService<
       // Add other updateable fields here
     ];
 
-    return this.pickFields(input, allowedFields);
+    return this.pickFieldsByAllowed(input, allowedFields);
   }
 
   protected async persistUpdate(id: string, input: CategoryUpdateInput) {
@@ -125,12 +114,7 @@ export class CategoryService extends AbstractCrudService<
 
     const selectKeys = fields.split(",");
     // Use const assertion for better type inference
-    const validFields = [
-      "id",
-      "name",
-      "createdAt",
-      "v",
-    ] as const satisfies readonly CategoryScalarFieldEnum[];
+    const validFields = ["id", "name", "createdAt", "v", "thumbnail"] as const;
 
     const select: Partial<CategorySelect> = {};
 

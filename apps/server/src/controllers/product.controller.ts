@@ -1,10 +1,8 @@
 import { NAME, prisma } from "@repo/database";
-import { ProductsByCategorySchemas } from "@repo/domain";
-
 import { RequestHandler } from "express";
+import { productService } from "../services/product.service.js";
 import PrismaAPIFeatures from "../utils/apiFeatures.js";
 import catchAsync from "../utils/catchAsync.js";
-import { productService } from "../services/product.service.js";
 
 export const getAllProducts: RequestHandler = catchAsync(async (req, res) => {
   const query = new PrismaAPIFeatures(req.query)
@@ -67,7 +65,6 @@ export const getProductsByCategoryName: RequestHandler = catchAsync(
       req.params.category as NAME
     );
 
-    const result = ProductsByCategorySchemas.parse(products);
     res.status(200).json({
       status: "success",
       data: products,
