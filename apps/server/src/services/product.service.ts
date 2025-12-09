@@ -390,8 +390,3 @@ export class ProductService extends AbstractCrudService<
 
 // Export singleton instance
 export const productService = new ProductService();
-
-// Type '{ id: string; shortLabel: string; showCaseImageText: string | null; categoryId: string; slug: string; images: { showCaseImage: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; } | null; }; } | null' is not assignable to type '{ id: string; shortLabel: string; showCaseImageText: string | null; categoryId: string; slug: string; images: { showCaseImages: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; }; } | null; } | null'.
-// Type '{ id: string; shortLabel: string; showCaseImageText: string | null; categoryId: string; slug: string; images: { showCaseImage: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; } | null; }; }' is not assignable to type '{ id: string; shortLabel: string; showCaseImageText: string | null; categoryId: string; slug: string; images: { showCaseImages: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; }; } | null; }'.
-// Types of property 'images' are incompatible.
-// Property 'showCaseImages' is missing in type '{ showCaseImage: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; } | null; }' but required in type '{ showCaseImages: { altText: string; ariaLabel: string; desktopSrc: string; mobileSrc: string; tabletSrc: string; }; }'.
