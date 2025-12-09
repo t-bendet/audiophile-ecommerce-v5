@@ -218,20 +218,4 @@ export type ProductFeaturedProductsDTO = z.infer<
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
-// TODO define other response schemas as needed
-
-const ProductByCategorySchema = z.object({
-  slug: z.string(),
-  fullLabel: z.array(z.string()),
-  id: IdValidator("product"),
-  isNewProduct: z.boolean(),
-  images: z.object({
-    introImage: z.object({
-      mobileSrc: z.string(),
-      tabletSrc: z.string(),
-      desktopSrc: z.string(),
-      altText: z.string(),
-      ariaLabel: z.string(),
-    }),
-  }),
-});
+// TODO dfine response schemas and types if they differ from DTOs
