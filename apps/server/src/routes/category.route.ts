@@ -18,13 +18,13 @@ categoryRouter.get(
   categoryController.getAllCategories
 );
 
-// * ADMIN ROUTES (restricted to admin roles)
-
 categoryRouter.get(
   "/:id",
   validateSchema(CategoryGetByIdRequestSchema),
   categoryController.getCategory
 );
+
+// * ADMIN ROUTES (restricted to admin roles)
 
 categoryRouter.use(authenticate, authorize("ADMIN"));
 
