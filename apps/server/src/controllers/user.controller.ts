@@ -1,105 +1,71 @@
-import { prisma } from "@repo/database";
+import {
+  createEmptyResponse,
+  createListResponse,
+  createSingleItemResponse,
+  ErrorCode,
+} from "@repo/domain";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import PrismaAPIFeatures from "../utils/apiFeatures.js";
+import { userService } from "../services/user.service.js";
 import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/appError.js";
 
 export const getMe = (req: Request, _res: Response, next: NextFunction) => {
-  req.params.id = req.user?.id!;
-  next();
+  if (!req.verified || !req.verified.params.id) {
+    throw new AppError("User ID not found in request", ErrorCode.UNAUTHORIZED);
+  } else {
+    req.verified.params.id = req.user?.id!;
+  }
 };
 
 // Get a single user
 export const getUser: RequestHandler = catchAsync(async (req, res, _next) => {
-  const { id } = req.params;
-  const user = await prisma.user.findUniqueOrThrow({
-    where: {
-      id,
-    },
-  });
-
-  res.status(200).json({
-    status: "success",
-    data: user,
-  });
+  const dto = await userService.get(req.verified?.params.id);
+  res.status(200).json(createSingleItemResponse(dto));
 });
 
-export const deleteMe: RequestHandler = catchAsync(async (req, res, next) => {
-  await prisma.user.update({
-    where: {
-      id: req.user?.id,
-    },
-    data: {
-      active: false,
-    },
-  });
-  res.status(204).json({
-    status: "success",
-    data: null,
-  });
+export const deleteMe: RequestHandler = catchAsync(async (req, res, _next) => {
+  await userService.update(req.verified?.params.id, { active: false });
+  res.status(200).json(createEmptyResponse());
 });
 
 // Get all Users
 export const getAllUsers: RequestHandler = catchAsync(
-  async (req, res, next) => {
-    const query = new PrismaAPIFeatures(req.query)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate()
-      .getQuery();
-    const users = await prisma.user.findMany(query);
-
-    res.status(200).json({
-      status: "success",
-      data: users,
-    });
+  async (req, res, _next) => {
+    const result = await userService.getAll(req.verified?.query);
+    res.status(200).json(createListResponse(result.data, result.meta));
   }
 );
 
 // deleting a user
-export const deleteUser: RequestHandler = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  await prisma.user.delete({
-    where: {
-      id,
-    },
-  });
-
-  res.status(204).json({
-    status: "success",
-    date: null,
-  });
-});
+export const deleteUser: RequestHandler = catchAsync(
+  async (req, res, _next) => {
+    await userService.delete(req.verified?.params.id);
+    res.status(200).json(createEmptyResponse());
+  }
+);
 
 // updating a single user
-export const updateUser: RequestHandler = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const updatedUser = await prisma.user.update({
-    where: {
-      id,
-    },
-    data: req.body,
-  });
-
-  res.status(200).json({
-    status: "success",
-    data: updatedUser,
-  });
-});
+export const updateUser: RequestHandler = catchAsync(
+  async (req, res, _next) => {
+    const dto = await userService.update(
+      req.verified?.params.id,
+      req.verified?.body
+    );
+    res.status(200).json(createSingleItemResponse(dto));
+  }
+);
 
 export const updateMe: RequestHandler = catchAsync(async (req, res, _next) => {
-  const { user } = req;
-  const updatedUser = await prisma.user.update({
-    where: { id: user?.id },
-    data: {
-      ...req.body,
-    },
-  });
-
-  res.status(200).json({
-    status: "success",
-    data: updatedUser,
-  });
+  const dto = await userService.update(
+    req.verified?.params.id,
+    req.verified?.body
+  );
+  res.status(200).json(createSingleItemResponse(dto));
 });
+
+export const createUser: RequestHandler = catchAsync(
+  async (req, res, _next) => {
+    const dto = await userService.create(req.verified?.body);
+    res.status(201).json(createSingleItemResponse(dto));
+  }
+);
