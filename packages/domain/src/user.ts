@@ -48,8 +48,10 @@ export const UserGetMeRequestSchema = createRequestSchema({
   params: z.object({}).strict(),
 });
 
+// PATCH - Update Me
+
 export const UserUpdateMeRequestSchema = createRequestSchema({
-  params: z.object({ id: IdValidator("User") }).strict(),
+  params: z.object({}).strict(),
   body: z
     .object({
       name: NameValidator("User").optional(),
@@ -110,9 +112,7 @@ export const UserUpdateByIdRequestSchema = createRequestSchema({
   body: z
     .object({
       name: NameValidator("User"),
-      email: EmailValidator,
-      password: PasswordValidator(),
-      passwordConfirm: PasswordValidator("Password confirm"),
+      email: EmailValidator.optional(),
       role: z.enum(ROLE).optional(),
       active: z.boolean().optional(),
       emailVerified: z.boolean().optional(),
