@@ -105,6 +105,7 @@ export const ProductGetAllRequestSchema = createRequestSchema({
       fields: z.string().optional(),
       page: z.coerce.number().int().positive().optional(),
       limit: z.coerce.number().int().positive().optional(),
+      name: z.string().optional(),
     })
     .optional(),
 });
