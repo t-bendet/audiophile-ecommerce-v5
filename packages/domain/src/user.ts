@@ -34,13 +34,10 @@ export type ROLE = $Enums.ROLE;
 
 // TODO TO be moved to auth module later
 
-export type UserPublicInfo = Prisma.UserGetPayload<{
-  omit: {
-    password: true;
-    passwordConfirm: true;
-    active: true;
-  };
-}>;
+export type UserPublicInfo = Omit<
+  User,
+  "password" | "passwordConfirm" | "active"
+>;
 
 // * ===== RequestSchemas =====
 
