@@ -5,7 +5,15 @@ import {
 } from "@repo/database";
 import { z } from "zod";
 import { NAME } from "./category.js";
-import { createRequestSchema } from "./index.js";
+import {
+  createRequestSchema,
+  EmptyResponse,
+  EmptyResponseSchema,
+  ListResponse,
+  ListResponseSchema,
+  SingleItemResponse,
+  SingleItemResponseSchema,
+} from "./index.js";
 import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics )=====
@@ -41,6 +49,16 @@ export const ProductImagesPropertiesSchema = z
   })
   .strict();
 
+export const ProductImagesObjectSchema = z.object({
+  featuredImage: ProductImagesPropertiesSchema.nullable(),
+  galleryImages: z.array(ProductImagesPropertiesSchema),
+  introImage: ProductImagesPropertiesSchema,
+  primaryImage: ProductImagesPropertiesSchema,
+  showCaseImage: ProductImagesPropertiesSchema.nullable(),
+  thumbnail: ProductsImagesThumbnailSchema,
+  relatedProductImage: ProductImagesPropertiesSchema,
+});
+
 const ProductPropertiesSchema = z
   .object({
     cartLabel: z.string().min(1, "Cart label is required"),
@@ -68,15 +86,7 @@ const ProductPropertiesSchema = z
         })
         .strict()
     ),
-    images: z.object({
-      featuredImage: ProductImagesPropertiesSchema.nullable(),
-      galleryImages: z.array(ProductImagesPropertiesSchema),
-      introImage: ProductImagesPropertiesSchema,
-      primaryImage: ProductImagesPropertiesSchema,
-      showCaseImage: ProductImagesPropertiesSchema.nullable(),
-      thumbnail: ProductsImagesThumbnailSchema,
-      relatedProductImage: ProductImagesPropertiesSchema,
-    }),
+    images: ProductImagesObjectSchema,
     v: z.number().int().nonnegative(),
     createdAt: z.date(),
     categoryId: IdValidator("Category"),
@@ -114,13 +124,13 @@ export const ProductGetByCategorySchema = createRequestSchema({
   params: z.object({ category: z.enum(NAME) }).strict(),
 });
 
-// GET - Get Product by path
+// GET - Get Product by path(showcase, featured, etc.)
 export const ProductGetByPathSchema = createRequestSchema({});
 
 // GET - Get Product by Slug
 
 export const ProductGetBySlugSchema = createRequestSchema({
-  params: z.object({ slug: z.string().min(1, "Slug is required") }).strict(),
+  params: z.object({ slug: z.string().min(2, "Slug is required") }).strict(),
 });
 
 // CREATE - Create new product
@@ -133,6 +143,7 @@ export const ProductCreateRequestSchema = createRequestSchema({
     createdAt: true,
     categoryId: true,
     v: true,
+    id: true,
   }) satisfies z.ZodType<ProductCreateInput>,
 });
 
@@ -150,32 +161,146 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 // * =====  DTO Schemas ( base and others if needed)=====
 
 export const ProductDTOSchema = ProductPropertiesSchema;
-// relatedproductschema
-// byCategoryschema
-// showcaseschema
-// featuredproductschema
-// byslugschema
+
+export const ProductsByCategoryNameSchema = z.array(
+  ProductPropertiesSchema.pick({
+    id: true,
+    description: true,
+    isNewProduct: true,
+    fullLabel: true,
+    slug: true,
+  })
+    .extend({
+      images: z.object({
+        introImage: ProductImagesPropertiesSchema,
+      }),
+    })
+    .strict()
+);
+
+export const ProductRelatedProductsDTOSchema = z.array(
+  ProductPropertiesSchema.pick({
+    id: true,
+    shortLabel: true,
+    images: true,
+    slug: true,
+  })
+    .extend({
+      images: z.object({
+        relatedProductImage: ProductImagesPropertiesSchema,
+      }),
+    })
+    .strict()
+);
+
+export const ProductShowCaseProductsSchema = z.record(
+  z.enum(["cover", "wide", "grid"]),
+  ProductPropertiesSchema.pick({
+    id: true,
+    shortLabel: true,
+    showCaseImageText: true,
+    categoryId: true,
+    slug: true,
+  })
+    .extend({
+      images: z.object({
+        showCaseImage: ProductImagesPropertiesSchema.nullable(),
+      }),
+    })
+    .strict()
+    .nullable()
+);
+
+export const ProductFeaturedProductsSchema = ProductPropertiesSchema.pick({
+  id: true,
+  featuredImageText: true,
+  description: true,
+  fullLabel: true,
+  isNewProduct: true,
+  shortLabel: true,
+  categoryId: true,
+  slug: true,
+})
+  .extend({
+    images: z.object({
+      featuredImage: ProductImagesPropertiesSchema.nullable(),
+    }),
+  })
+  .strict();
 
 // * =====  DTO Types (if needed)=====
 
 export type ProductDTO = z.infer<typeof ProductDTOSchema>;
 
+export type ProductsByCategoryNameDTO = z.infer<
+  typeof ProductsByCategoryNameSchema
+>;
+
+export type ProductRelatedProductsDTO = z.infer<
+  typeof ProductRelatedProductsDTOSchema
+>;
+
+export type ProductShowCaseProductsDTO = z.infer<
+  typeof ProductShowCaseProductsSchema
+>;
+
+export type ProductFeaturedProductsDTO = z.infer<
+  typeof ProductFeaturedProductsSchema
+>;
+
 // * =====   Response Schemas & Types ( For Frontend)=====
 
-// TODO define other response schemas as needed
+// GetAll - List all products
+export const ProductGetAllResponseSchema = ListResponseSchema(ProductDTOSchema);
+export type ProductGetAllResponse = ListResponse<ProductDTO>;
 
-const ProductByCategorySchema = z.object({
-  slug: z.string(),
-  fullLabel: z.array(z.string()),
-  id: IdValidator("product"),
-  isNewProduct: z.boolean(),
-  images: z.object({
-    introImage: z.object({
-      mobileSrc: z.string(),
-      tabletSrc: z.string(),
-      desktopSrc: z.string(),
-      altText: z.string(),
-      ariaLabel: z.string(),
-    }),
-  }),
-});
+// GetById - Get single product by ID
+export const ProductGetByIdResponseSchema =
+  SingleItemResponseSchema(ProductDTOSchema);
+export type ProductGetByIdResponse = SingleItemResponse<ProductDTO>;
+
+// GetBySlug - Get product by slug
+export const ProductGetBySlugResponseSchema =
+  SingleItemResponseSchema(ProductDTOSchema);
+export type ProductGetBySlugResponse = SingleItemResponse<ProductDTO>;
+
+// GetRelatedProducts - Get related products (list)
+export const ProductGetRelatedResponseSchema = ListResponseSchema(
+  ProductRelatedProductsDTOSchema
+);
+export type ProductGetRelatedResponse = ListResponse<ProductRelatedProductsDTO>;
+
+// GetProductsByCategoryName - Get products by category (list)
+export const ProductGetByCategoryResponseSchema = ListResponseSchema(
+  ProductsByCategoryNameSchema
+);
+export type ProductGetByCategoryResponse =
+  ListResponse<ProductsByCategoryNameDTO>;
+
+// GetShowCaseProducts - Get showcase products (single object with cover/wide/grid)
+export const ProductGetShowCaseResponseSchema = SingleItemResponseSchema(
+  ProductShowCaseProductsSchema
+);
+export type ProductGetShowCaseResponse =
+  SingleItemResponse<ProductShowCaseProductsDTO>;
+
+// GetFeaturedProduct - Get featured product
+export const ProductGetFeaturedResponseSchema = SingleItemResponseSchema(
+  ProductFeaturedProductsSchema
+);
+export type ProductGetFeaturedResponse =
+  SingleItemResponse<ProductFeaturedProductsDTO>;
+
+// Create - Create new product
+export const ProductCreateResponseSchema =
+  SingleItemResponseSchema(ProductDTOSchema);
+export type ProductCreateResponse = SingleItemResponse<ProductDTO>;
+
+// Update - Update existing product
+export const ProductUpdateResponseSchema =
+  SingleItemResponseSchema(ProductDTOSchema);
+export type ProductUpdateResponse = SingleItemResponse<ProductDTO>;
+
+// Delete - Delete product (no content)
+export const ProductDeleteResponseSchema = EmptyResponseSchema;
+export type ProductDeleteResponse = EmptyResponse;

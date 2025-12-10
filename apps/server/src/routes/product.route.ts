@@ -1,36 +1,81 @@
 import {
-  ProductGetBySlugSchema,
+  ProductCreateRequestSchema,
+  ProductDeleteByIdRequestSchema,
+  ProductGetAllRequestSchema,
   ProductGetByCategorySchema,
+  ProductGetByIdRequestSchema,
+  ProductGetByPathSchema,
+  ProductGetBySlugSchema,
+  ProductGetRelatedByIdRequestSchema,
+  ProductUpdateByIdRequestSchema,
 } from "@repo/domain";
 import express from "express";
 import * as productController from "../controllers/product.controller.js";
+import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
 
 const productRouter: express.Router = express.Router();
 
-productRouter.route("/").get(productController.getAllProducts);
-productRouter.route("/featured").get(productController.getFeaturedProduct);
-productRouter.route("/show-case").get(productController.getShowCaseProducts);
+productRouter.get(
+  "/",
+  validateSchema(ProductGetAllRequestSchema),
+  productController.getAllProducts
+);
+productRouter.get(
+  "/featured",
+  validateSchema(ProductGetByPathSchema),
+  productController.getFeaturedProduct
+);
+productRouter.get(
+  "/show-case",
+  validateSchema(ProductGetByPathSchema),
+  productController.getShowCaseProducts
+);
 
-productRouter
-  .route("/related-products/:id")
-  .get(productController.getRelatedProducts);
+productRouter.get(
+  "/related-products/:id",
+  validateSchema(ProductGetRelatedByIdRequestSchema),
+  productController.getRelatedProducts
+);
 
 //  TODO should be in category route
-productRouter
-  .route("/category/:category")
-  .get(
-    validateSchema(ProductGetByCategorySchema),
-    productController.getProductsByCategoryName
-  );
+productRouter.get(
+  "/category/:category",
+  validateSchema(ProductGetByCategorySchema),
+  productController.getProductsByCategoryName
+);
 
-productRouter.route("/:id").get(productController.getProductById);
+productRouter.get(
+  "/:id",
+  validateSchema(ProductGetByIdRequestSchema),
+  productController.getProductById
+);
+
+productRouter.get(
+  "/slug/:slug",
+  validateSchema(ProductGetBySlugSchema),
+  productController.getProductBySlug
+);
+
+// * ADMIN ROUTES (restricted to admin roles)
+
+productRouter.use(authenticate, authorize("ADMIN"));
+
+productRouter.post(
+  "/",
+  validateSchema(ProductCreateRequestSchema),
+  productController.createProduct
+);
 
 productRouter
-  .route("/slug/:slug")
-  .get(
-    validateSchema(ProductGetBySlugSchema),
-    productController.getProductBySlug
+  .route("/:id")
+  .patch(
+    validateSchema(ProductUpdateByIdRequestSchema),
+    productController.updateProduct
+  )
+  .delete(
+    validateSchema(ProductDeleteByIdRequestSchema),
+    productController.deleteProduct
   );
 
 export default productRouter;
