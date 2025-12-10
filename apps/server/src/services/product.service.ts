@@ -1,10 +1,17 @@
-import { prisma } from "@repo/database";
+import { NAME, prisma } from "@repo/database";
 import {
+  baseQueryParams,
   ErrorCode,
+  ListResponse,
+  Meta,
   Product,
   ProductCreateInput,
   ProductDTO,
+  ProductFeaturedProductsDTO,
+  ProductRelatedProductsDTO,
+  ProductsByCategoryNameDTO,
   ProductSelect,
+  ProductShowCaseProductsDTO,
   ProductUpdateInput,
   ProductWhereInput,
 } from "@repo/domain";
@@ -15,17 +22,9 @@ import { AbstractCrudService } from "./abstract-crud.service.js";
 
 // TODO: tune DTO and filter types as needed
 // TODO scalar fields and filter should match
+export interface ProductFilter extends Pick<Product, "name"> {}
 
-type ProductFilter = Pick<Product, "name">;
-
-// TODO define query params type
-export type ProductQueryParams = {
-  name?: string;
-  page?: string | number;
-  limit?: string | number;
-  sort?: string;
-  fields?: string;
-};
+export interface ProductQueryParams extends baseQueryParams, ProductFilter {}
 
 export class ProductService extends AbstractCrudService<
   Product,
@@ -89,7 +88,7 @@ export class ProductService extends AbstractCrudService<
 
   protected async persistUpdate(id: string, input: ProductUpdateInput) {
     try {
-      const entity = await prisma.category.update({
+      const entity = await prisma.product.update({
         where: { id },
         data: input,
       });
@@ -162,8 +161,35 @@ export class ProductService extends AbstractCrudService<
 
   // ** Helper Methods (optional overrides) **
 
-  // TODO add byCategoryName (consider using getall with a filter)
-  // TODO add by slug
+  async getProductBySlug(slug: string): Promise<ProductDTO> {
+    const product = await prisma.product.findUnique({ where: { slug } });
+    if (!product)
+      throw new AppError("No document found with that ID", ErrorCode.NOT_FOUND);
+    return this.toDTO(product);
+  }
+
+  async getProductsByCategoryName(
+    categoryName: NAME
+  ): Promise<{ data: ProductsByCategoryNameDTO; meta: Meta }> {
+    // Find category by name
+    const products = await prisma.product.getProductsByCategory(categoryName);
+
+    if (!products) {
+      throw new AppError("Products not found", ErrorCode.NOT_FOUND);
+    }
+
+    return {
+      data: products,
+      meta: {
+        page: 1,
+        limit: products.length,
+        total: products.length,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      } satisfies Meta,
+    };
+  }
 
   /**
    * Get related products based on category similarity and price range
@@ -173,7 +199,9 @@ export class ProductService extends AbstractCrudService<
    * 3. Return max 3 products
    */
 
-  async getRelatedProducts(productId: string) {
+  async getRelatedProducts(
+    productId: string
+  ): Promise<{ data: ProductRelatedProductsDTO; meta: Meta }> {
     // Get base product info
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -217,7 +245,6 @@ export class ProductService extends AbstractCrudService<
 
     // Backfill if we don't have enough related products
     if (relatedProducts.length < minRelatedProducts) {
-      // @ts-ignore
       const excludedIds = [productId, ...relatedProducts.map((p) => p.id)];
       const remainingCount = minRelatedProducts - relatedProducts.length;
 
@@ -240,15 +267,24 @@ export class ProductService extends AbstractCrudService<
 
       relatedProducts.push(...additionalProducts);
     }
-
-    return relatedProducts;
+    return {
+      data: relatedProducts,
+      meta: {
+        page: 1,
+        limit: relatedProducts.length,
+        total: relatedProducts.length,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      } satisfies Meta,
+    };
   }
 
   /**
    * Get showcase products from config
    * Returns products mapped to their showcase positions (cover, wide, grid)
    */
-  async getShowCaseProducts() {
+  async getShowCaseProducts(): Promise<ProductShowCaseProductsDTO> {
     // Fetch config to know which products to showcase
     const config = await prisma.config.findFirst();
 
@@ -295,7 +331,6 @@ export class ProductService extends AbstractCrudService<
       grid: null,
     };
 
-    // @ts-ignore
     products.forEach((product) => {
       if (product.id === config.showCaseProducts.cover) {
         showcaseMap.cover = product;
@@ -320,7 +355,7 @@ export class ProductService extends AbstractCrudService<
   /**
    * Get the featured product from config
    */
-  async getFeaturedProduct() {
+  async getFeaturedProduct(): Promise<ProductFeaturedProductsDTO> {
     const config = await prisma.config.findFirst();
 
     if (!config) {
