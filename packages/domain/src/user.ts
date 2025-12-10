@@ -1,19 +1,38 @@
-import { $Enums, Prisma } from "@repo/database";
+import { $Enums, Prisma, User as PrismaUser } from "@repo/database";
 import { z } from "zod";
 import {
+  createRequestSchema,
+  EmptyResponse,
+  EmptyResponseSchema,
+  ListResponse,
+  ListResponseSchema,
+  SingleItemResponse,
+  SingleItemResponseSchema,
+} from "./common.js";
+import {
+  EmailValidator,
   IdValidator,
   NameValidator,
-  EmailValidator,
   PasswordValidator,
 } from "./shared.js";
 
-// ** Base Types
+// * ===== Database Type Re-exports (Service Generics )=====
 
-export type TUserRole = $Enums.ROLE;
+export type User = PrismaUser;
+export type UserCreateInput = Prisma.UserCreateInput;
+export type UserUpdateInput = Prisma.UserUpdateInput;
+export type UserWhereInput = Prisma.UserWhereInput;
+export type UserSelect = Prisma.UserSelect;
+export type UserScalarFieldEnum = Prisma.UserScalarFieldEnum;
 
-type UserUpdateInput = Prisma.UserUpdateInput;
+// *  ===== Entity Specific Types =====
 
-type UserCreateInput = Prisma.UserCreateInput;
+export const ROLE = $Enums.ROLE;
+export type ROLE = $Enums.ROLE;
+
+// * =====  Common Schemas =====
+
+// TODO TO be moved to auth module later
 
 export type UserPublicInfo = Prisma.UserGetPayload<{
   omit: {
@@ -23,15 +42,57 @@ export type UserPublicInfo = Prisma.UserGetPayload<{
   };
 }>;
 
-// ** Schemas
+// * ===== RequestSchemas =====
 
-export const CreateUserSchema = z.object({
+// User Schemas
+
+// GET - Get single user by ID
+export const UserGetMeRequestSchema = createRequestSchema({
+  params: z.object({}).strict(),
+});
+
+export const UserUpdateMeRequestSchema = createRequestSchema({
+  params: z.object({ id: IdValidator("User") }).strict(),
+  body: z
+    .object({
+      name: NameValidator("User").optional(),
+      email: EmailValidator.optional(),
+    })
+    .strict() satisfies z.ZodType<UserUpdateInput>,
+});
+
+// DELETE - Delete Me
+export const UserDeleteMeRequestSchema = createRequestSchema({
+  params: z.object({}).strict(),
+});
+
+// Admin Schemas
+
+// LIST - Get all Users (pagination + filtering) - admin only
+
+export const UserGetAllRequestSchema = createRequestSchema({
+  query: z
+    .object({
+      sort: z.string().optional(),
+      fields: z.string().optional(),
+      page: z.coerce.number().int().positive().optional(),
+      limit: z.coerce.number().int().positive().optional(),
+      role: z.enum(ROLE).optional(),
+    })
+    .optional(),
+});
+
+// CREATE - Create new user - admin only
+export const UserCreateRequestSchema = createRequestSchema({
   body: z
     .object({
       name: NameValidator("User"),
       email: EmailValidator,
       password: PasswordValidator(),
       passwordConfirm: PasswordValidator("Password confirm"),
+      role: z.enum(ROLE).optional(),
+      active: z.boolean().optional(),
+      emailVerified: z.boolean().optional(),
     })
     .strict()
     .refine((data) => data.password === data.passwordConfirm, {
@@ -41,62 +102,70 @@ export const CreateUserSchema = z.object({
     }) satisfies z.Schema<UserCreateInput>,
 });
 
-export type CreateUserInput = z.infer<typeof CreateUserSchema.shape.body>;
-
-export const LoginUserSchema = z.object({
-  body: z
-    .object({
-      email: EmailValidator,
-      password: PasswordValidator(),
-    })
-    .strict() satisfies z.Schema<UserUpdateInput>,
+// GET - Get single user by ID - admin only
+export const UserGetByIdRequestSchema = createRequestSchema({
+  params: z.object({ id: IdValidator("User") }).strict(),
 });
 
-export type LoginUserInput = z.infer<typeof LoginUserSchema.shape.body>;
+// UPDATE - Update existing user  admin only
+export const UserUpdateByIdRequestSchema = createRequestSchema({
+  params: z.object({ id: IdValidator("User") }).strict(),
+  body: z
+    .object({
+      name: NameValidator("User"),
+      email: EmailValidator,
+      password: PasswordValidator(),
+      passwordConfirm: PasswordValidator("Password confirm"),
+      role: z.enum(ROLE).optional(),
+      active: z.boolean().optional(),
+      emailVerified: z.boolean().optional(),
+    })
+    .strict() satisfies z.ZodType<UserUpdateInput>,
+});
 
-export const UserPublicOutput = z
+// DELETE - Delete user by ID
+export const UserDeleteByIdRequestSchema = createRequestSchema({
+  params: z.object({ id: IdValidator("User") }).strict(),
+});
+
+// * =====  DTO Schemas ( base and others if needed)=====
+
+export const UserDTOSchema = z
   .object({
     id: IdValidator("User"),
     name: NameValidator("User"),
-    role: z.custom<TUserRole>(),
     email: EmailValidator,
-    passwordChangedAt: z.date(),
-    passwordResetToken: z.string().nullable(),
-    passwordResetExpires: z.date().nullable(),
+    role: z.enum(ROLE),
     emailVerified: z.boolean(),
     createdAt: z.date(),
     v: z.number(),
   })
-  .strict() satisfies z.Schema<UserPublicInfo>;
+  .strict();
 
-export const UpdateUserDetailsSchema = z.object({
-  body: z
-    .object({
-      name: NameValidator("User").optional(),
-      email: EmailValidator.optional(),
-    })
-    .strict() satisfies z.Schema<UserUpdateInput>,
-});
+// * =====  DTO Types (if needed)=====
 
-export type UpdateUserDetailsInput = z.infer<
-  typeof UpdateUserDetailsSchema.shape.body
->;
+export type UserDTO = z.infer<typeof UserDTOSchema>;
 
-export const UpdateUserPasswordSchema = z.object({
-  body: z
-    .object({
-      currentPassword: PasswordValidator("Current Password"),
-      password: PasswordValidator("New Password"),
-      passwordConfirm: PasswordValidator("New Password Confirm"),
-    })
-    .strict()
-    .refine((data) => data.password === data.passwordConfirm, {
-      message: "Password and PasswordConfirm must match!",
-      params: { passwordConfirm: "passwordConfirm" },
-      path: ["password match"],
-    }) satisfies z.Schema<UserUpdateInput>,
-});
+// * =====   Response Schemas & Types ( For Frontend)=====
 
-export type UpdateUserPasswordInput = z.infer<
-  typeof UpdateUserPasswordSchema.shape.body
->;
+// List response (array + pagination)
+export const UserGetAllResponseSchema = ListResponseSchema(UserDTOSchema);
+export type UserGetAllResponse = ListResponse<UserDTO>;
+
+// Detail/Get response (single DTO)
+export const UserGetByIdResponseSchema =
+  SingleItemResponseSchema(UserDTOSchema);
+export type UserGetByIdResponse = SingleItemResponse<UserDTO>;
+
+// Create response (single DTO)
+export const UserCreateResponseSchema = SingleItemResponseSchema(UserDTOSchema);
+export type UserCreateResponse = SingleItemResponse<UserDTO>;
+
+// Update response (single DTO)
+export const UserUpdateByIdResponseSchema =
+  SingleItemResponseSchema(UserDTOSchema);
+export type UserUpdateByIdResponse = SingleItemResponse<UserDTO>;
+
+// Delete response (no content)
+export const UserDeleteByIdResponseSchema = EmptyResponseSchema;
+export type UserDeleteByIdResponse = EmptyResponse;
