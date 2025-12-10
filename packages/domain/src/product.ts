@@ -5,7 +5,15 @@ import {
 } from "@repo/database";
 import { z } from "zod";
 import { NAME } from "./category.js";
-import { createRequestSchema } from "./index.js";
+import {
+  createRequestSchema,
+  EmptyResponse,
+  EmptyResponseSchema,
+  ListResponse,
+  ListResponseSchema,
+  SingleItemResponse,
+  SingleItemResponseSchema,
+} from "./index.js";
 import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics )=====
@@ -242,4 +250,57 @@ export type ProductFeaturedProductsDTO = z.infer<
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
-// TODO dfine response schemas and types if they differ from DTOs
+// GetAll - List all products
+export const ProductGetAllResponseSchema = ListResponseSchema(ProductDTOSchema);
+export type ProductGetAllResponse = ListResponse<ProductDTO>;
+
+// GetById - Get single product by ID
+export const ProductGetByIdResponseSchema =
+  SingleItemResponseSchema(ProductDTOSchema);
+export type ProductGetByIdResponse = SingleItemResponse<ProductDTO>;
+
+// GetBySlug - Get product by slug
+export const ProductGetBySlugResponseSchema =
+  SingleItemResponseSchema(ProductDTOSchema);
+export type ProductGetBySlugResponse = SingleItemResponse<ProductDTO>;
+
+// GetRelatedProducts - Get related products (list)
+export const ProductGetRelatedResponseSchema = ListResponseSchema(
+  ProductRelatedProductsDTOSchema
+);
+export type ProductGetRelatedResponse = ListResponse<ProductRelatedProductsDTO>;
+
+// GetProductsByCategoryName - Get products by category (list)
+export const ProductGetByCategoryResponseSchema = ListResponseSchema(
+  ProductsByCategoryNameSchema
+);
+export type ProductGetByCategoryResponse =
+  ListResponse<ProductsByCategoryNameDTO>;
+
+// GetShowCaseProducts - Get showcase products (single object with cover/wide/grid)
+export const ProductGetShowCaseResponseSchema = SingleItemResponseSchema(
+  ProductShowCaseProductsSchema
+);
+export type ProductGetShowCaseResponse =
+  SingleItemResponse<ProductShowCaseProductsDTO>;
+
+// GetFeaturedProduct - Get featured product
+export const ProductGetFeaturedResponseSchema = SingleItemResponseSchema(
+  ProductFeaturedProductsSchema
+);
+export type ProductGetFeaturedResponse =
+  SingleItemResponse<ProductFeaturedProductsDTO>;
+
+// Create - Create new product
+export const ProductCreateResponseSchema =
+  SingleItemResponseSchema(ProductDTOSchema);
+export type ProductCreateResponse = SingleItemResponse<ProductDTO>;
+
+// Update - Update existing product
+export const ProductUpdateResponseSchema =
+  SingleItemResponseSchema(ProductDTOSchema);
+export type ProductUpdateResponse = SingleItemResponse<ProductDTO>;
+
+// Delete - Delete product (no content)
+export const ProductDeleteResponseSchema = EmptyResponseSchema;
+export type ProductDeleteResponse = EmptyResponse;
