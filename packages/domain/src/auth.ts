@@ -1,10 +1,10 @@
 import z from "zod";
-import { EmailValidator, PasswordValidator } from "./shared.js";
-import { UserUpdateInput } from "./user.js";
+import { EmailValidator, NameValidator, PasswordValidator } from "./shared.js";
 
-export const AuthSignInUserSchema = z.object({
+export const AuthSignUpUserSchema = z.object({
   body: z
     .object({
+      name: NameValidator("User"),
       email: EmailValidator,
       password: PasswordValidator(),
       passwordConfirm: PasswordValidator("Password confirm"),
@@ -17,14 +17,18 @@ export const AuthSignInUserSchema = z.object({
     }),
 });
 
+export type AuthSignUpUser = z.infer<typeof AuthSignUpUserSchema.shape.body>;
+
 export const AuthLoginUserSchema = z.object({
   body: z
     .object({
       email: EmailValidator,
       password: PasswordValidator(),
     })
-    .strict() satisfies z.Schema<UserUpdateInput>,
+    .strict(),
 });
+
+export type AuthLoginUser = z.infer<typeof AuthLoginUserSchema.shape.body>;
 
 export const AuthUpdateUserPasswordSchema = z.object({
   body: z
@@ -38,5 +42,9 @@ export const AuthUpdateUserPasswordSchema = z.object({
       message: "Password and PasswordConfirm must match!",
       params: { passwordConfirm: "passwordConfirm" },
       path: ["password match"],
-    }) satisfies z.Schema<UserUpdateInput>,
+    }),
 });
+
+export type AuthUpdateUserPassword = z.infer<
+  typeof AuthUpdateUserPasswordSchema.shape.body
+>;

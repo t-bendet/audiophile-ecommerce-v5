@@ -1,5 +1,10 @@
 import { prisma } from "@repo/database";
-import { ErrorCode, UserPublicInfo } from "@repo/domain";
+import {
+  AuthLoginUser,
+  AuthSignUpUser,
+  ErrorCode,
+  UserPublicInfo,
+} from "@repo/domain";
 import jwt from "jsonwebtoken";
 import AppError from "../utils/appError.js";
 import { env } from "../utils/env.js";
@@ -23,8 +28,8 @@ export class AuthService {
   /**
    * Sign a JWT token for a user
    */
-  private signToken(userId: string): string {
-    return jwt.sign({ id: userId }, env.JWT_SECRET, {
+  private signToken(id: string): string {
+    return jwt.sign({ id }, env.JWT_SECRET, {
       expiresIn: env.JWT_EXPIRES_IN,
     });
   }
@@ -34,12 +39,7 @@ export class AuthService {
    * @param data - User registration data
    * @returns The created user
    */
-  async signup(data: {
-    email: string;
-    password: string;
-    passwordConfirm: string;
-    name: string;
-  }): Promise<UserPublicInfo> {
+  async signup(data: AuthSignUpUser): Promise<UserPublicInfo> {
     // Create user with Prisma (password hashing happens via schema defaults)
     const newUser = await prisma.user.create({
       data: {
@@ -59,10 +59,10 @@ export class AuthService {
    * @param password - User password (plain text)
    * @returns User data without password
    */
-  async login(
-    email: string,
-    password: string
-  ): Promise<UserPublicInfo & { token: string }> {
+  async login({
+    email,
+    password,
+  }: AuthLoginUser): Promise<UserPublicInfo & { token: string }> {
     // Find user with password field
     const user = await prisma.user.findUniqueOrThrow({
       where: { email },
