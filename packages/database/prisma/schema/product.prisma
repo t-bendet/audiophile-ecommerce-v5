@@ -17,7 +17,10 @@ model Product {
   includedItems     ProductIncludedItems[]
   images            ProductImages
   slug              String                 @unique(map: "slug_1")
-  configs           Config?
+  configFeatured    Config?                @relation("featuredProduct")
+  configShowCaseCover Config?              @relation("showCaseCover")
+  configShowCaseGrid Config?               @relation("showCaseGrid")
+  configShowCaseWide Config?               @relation("showCaseWide")
 }
 
 type ProductIncludedItems {

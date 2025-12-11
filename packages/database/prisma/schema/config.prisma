@@ -4,12 +4,12 @@ model Config {
   createdAt         DateTime                @default(now()) @db.Date
   name              String                  @unique(map: "name_1") @default("default")
   featuredProductId String                   @unique @db.ObjectId
-  featuredProduct   Product                 @relation(fields: [featuredProductId], references: [id])
-  showCaseProducts  ConfigsShowCaseProducts
+  featuredProduct   Product                 @relation("featuredProduct", fields: [featuredProductId], references: [id])
+  showCaseCoverId String                   @unique @db.ObjectId
+  showCaseCover   Product                 @relation("showCaseCover", fields: [showCaseCoverId], references: [id])
+  showCaseGridId String                   @unique @db.ObjectId
+  showCaseGrid   Product                 @relation("showCaseGrid", fields: [showCaseGridId], references: [id])
+  showCaseWideId String                   @unique @db.ObjectId
+  showCaseWide   Product                 @relation("showCaseWide", fields: [showCaseWideId], references: [id])
 }
 
-type ConfigsShowCaseProducts {
-  cover String @db.ObjectId
-  grid  String @db.ObjectId
-  wide  String @db.ObjectId
-}
