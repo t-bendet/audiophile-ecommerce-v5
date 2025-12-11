@@ -5,7 +5,7 @@ model User {
   role                 ROLE      @default(USER)
   password             String
   passwordConfirm      String
-  passwordChangedAt    DateTime  @default(now())
+  passwordChangedAt    DateTime?  
   passwordResetToken   String?
   passwordResetExpires DateTime?
   emailVerified        Boolean   @default(false)
