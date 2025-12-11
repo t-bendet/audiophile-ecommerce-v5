@@ -1,121 +1,104 @@
-import { prisma } from "@repo/database";
-import { UserPublicInfo, ErrorCode } from "@repo/domain";
+import {
+  createEmptyResponse,
+  createSingleItemResponse,
+  UserPublicInfo,
+} from "@repo/domain";
 import { Request, RequestHandler, Response } from "express";
-import jwt from "jsonwebtoken";
-import AppError from "../utils/appError.js";
+import { authService } from "../services/auth.service.js";
 import catchAsync from "../utils/catchAsync.js";
 import { env } from "../utils/env.js";
 
-const signToken = (id: string) => {
-  return jwt.sign({ id }, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN,
-  });
-};
+/**
+ * Auth Controller handles HTTP layer only
+ * Responsibilities:
+ * - Request parsing and validation
+ * - Response formatting
+ * - Cookie and header management
+ * - HTTP status codes
+ *
+ * Business logic is delegated to authService
+ */
 
-export const createAndSendToken = (
+/**
+ * Helper function to create token and send response
+ * Handles cookie setting and response formatting
+ */
+const createAndSendToken = (
   user: UserPublicInfo,
+  token: string,
   statusCode: number,
   req: Request,
   res: Response
 ) => {
-  const token = signToken(user.id);
   const cookieOptions = {
+    //* milliseconds (*1000)=> seconds (*60)=>
+    //* minuets (*60)=> hours (*24)=> days
+    //* JWT_COOKIE_EXPIRES_IN: days
     expires: new Date(
-      //* milliseconds (*1000)=> seconds (*60)=>
-      //* minuets (*60)=> hours (*24)=> days
-      //* JWT_COOKIE_EXPIRES_IN: days
       Date.now() + Number(env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000
-      // Date.now() + ms(val) can also work
     ),
-    //* cookie will only be sent on encrypted connection(https)
-    //* true only if we are on production mode
-    // secure: env.NODE_ENV === "production",
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-    //* cookie can not be accessed or modified by the browser
     httpOnly: true,
   };
 
   res.cookie("jwt", token, cookieOptions);
 
-  res.status(statusCode).json({
-    statusText: "success",
-    data: {
-      user,
-      token,
-    },
-  });
+  res.status(statusCode).json(createSingleItemResponse({ user, token }));
 };
 
+/**
+ * Sign up a new user
+ * Parses request, delegates to service, sends response
+ */
 export const signup: RequestHandler = catchAsync(async (req, res, next) => {
-  const newUser = await prisma.user.create({
-    data: {
-      ...req.body,
-    },
-  });
-
-  createAndSendToken(newUser, 201, req, res);
+  const user = await authService.signup(req.body);
+  // Generate token after user creation
+  const { token } = await authService.login(user.email, req.body.password);
+  createAndSendToken(user, token, 201, req, res);
 });
 
+/**
+ * Log in a user
+ * Validates credentials via service, sends response with token
+ */
 export const login: RequestHandler = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  // * 2) Check if user exists && password is correct
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { email },
-    omit: {
-      password: false,
-    },
-  });
-
-  if (!(await prisma.user.validatePassword(password, user.password))) {
-    return next(
-      new AppError("Incorrect email or password", ErrorCode.INVALID_CREDENTIALS)
-    );
-  }
-
-  const { password: _, ...userWithoutPassword } = user;
-  // * 3) Return new token to client
-  createAndSendToken(userWithoutPassword, 200, req, res);
+  const userData = await authService.login(email, password);
+  const { token, ...userWithoutToken } = userData;
+  createAndSendToken(userWithoutToken, token, 200, req, res);
 });
 
+/**
+ * Log out a user
+ * Clears JWT cookie
+ */
 export const logout = (_req: Request, res: Response) => {
   res.cookie("jwt", "loggedout", {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
   });
-  res.status(200).json({ statusText: "success", date: null });
+  res.status(200).json(createEmptyResponse());
 };
 
+/**
+ * Update user password
+ * Gets user ID from request, delegates to service, sends response with new token
+ */
 export const updatePassword: RequestHandler = catchAsync(
   async (req, res, next) => {
-    // 1) Get user from collection
-    const { currentPassword, password, passwordConfirm } = req.body;
-    const user = await prisma.user.findUniqueOrThrow({
-      where: { id: req.user?.id },
-      omit: {
-        password: false,
-      },
-    });
+    const { currentPassword, password } = req.body;
+    const userId = req.user?.id;
 
-    // 2) Check if POSTed current password is correct
-    if (!(await prisma.user.validatePassword(currentPassword, user.password))) {
-      return next(
-        new AppError(
-          "Your current password is wrong.",
-          ErrorCode.INVALID_CREDENTIALS
-        )
-      );
+    if (!userId) {
+      return next(new Error("User ID not found in request"));
     }
 
-    // 3) If so, update password
-
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        password: password,
-        passwordConfirm: passwordConfirm,
-      },
-    });
-    // 4) Log user in, send JWT
-    createAndSendToken(updatedUser, 200, req, res);
+    const userData = await authService.updatePassword(
+      userId,
+      currentPassword,
+      password
+    );
+    const { token, ...userWithoutToken } = userData;
+    createAndSendToken(userWithoutToken, token, 200, req, res);
   }
 );
