@@ -4,9 +4,11 @@ import {
   CategoryGetAllRequestSchema,
   CategoryGetByIdRequestSchema,
   CategoryUpdateByIdRequestSchema,
+  ProductGetByCategorySchema,
 } from "@repo/domain";
 import express from "express";
 import * as categoryController from "../controllers/category.controller.js";
+import * as productController from "../controllers/product.controller.js";
 import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
 
@@ -16,6 +18,12 @@ categoryRouter.get(
   "/",
   validateSchema(CategoryGetAllRequestSchema),
   categoryController.getAllCategories
+);
+
+categoryRouter.get(
+  "/:category/products",
+  validateSchema(ProductGetByCategorySchema),
+  productController.getProductsByCategoryName
 );
 
 categoryRouter.get(
