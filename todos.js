@@ -74,6 +74,19 @@
 //      Impact: More flexible content management, better i18n support, admin can add categories
 //      Trade-off: Lose compile-time type safety for category names
 
+// TODO Prisma optional field syntax: field? Type vs field Type?
+//      Location: packages/database/prisma/schema/
+//      Context: Optional fields in Prisma nested types can be declared two ways
+//      Option 1: showCaseImage? ProductImagesProperties
+//        - Field is optional (can be omitted entirely)
+//        - Cleaner JSON, no null values in payload
+//        - Better for optional images (featured, showcase, etc.)
+//      Option 2: showCaseImage ProductImagesProperties?
+//        - Field is required but can have null value
+//        - Always include key, even if null
+//      Recommendation: Use Option 1 (field?) for image types since not all products have all images
+//      Current: Mix of both approaches in ProductImages type (should standardize)
+
 // TODO Handle nested creates when creating Category with related Products
 //      Context: Category can have products relation in Prisma
 //      Consider: Should POST /categories accept nested product creation?
