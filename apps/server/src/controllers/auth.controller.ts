@@ -53,7 +53,10 @@ const createAndSendToken = (
 export const signup: RequestHandler = catchAsync(async (req, res, next) => {
   const user = await authService.signup(req.body);
   // Generate token after user creation
-  const { token } = await authService.login(user.email, req.body.password);
+  const { token } = await authService.login({
+    email: user.email,
+    password: req.body.password,
+  });
   createAndSendToken(user, token, 201, req, res);
 });
 
@@ -63,7 +66,7 @@ export const signup: RequestHandler = catchAsync(async (req, res, next) => {
  */
 export const login: RequestHandler = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  const userData = await authService.login(email, password);
+  const userData = await authService.login({ email, password });
   const { token, ...userWithoutToken } = userData;
   createAndSendToken(userWithoutToken, token, 200, req, res);
 });
