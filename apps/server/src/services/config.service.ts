@@ -1,6 +1,5 @@
 import { prisma } from "@repo/database";
 import type {
-  baseQueryParams,
   Config,
   ConfigCreateInput,
   ConfigDTO,
@@ -10,44 +9,39 @@ import type {
 } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
-// TODO scalar fields and filter should match
-
-export interface ConfigFilter {}
-
-export interface ConfigQueryParams extends baseQueryParams, ConfigFilter {}
-
 export class ConfigService extends AbstractCrudService<
   Config,
   ConfigCreateInput,
   ConfigUpdateInput,
-  ConfigDTO,
-  ConfigWhereInput,
-  ConfigSelect,
-  ConfigFilter
+  ConfigDTO
 > {
   protected toDTO(entity: Config): ConfigDTO {
     return entity;
   }
 
-  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
-  // *include filtering, pagination, ordering, selection as needed for list operations*
+  // ***** Persistence Layer Methods *****
 
   protected async persistFindMany(params: {
-    where: ConfigWhereInput;
-    skip: number;
-    take: number;
-    orderBy?: any;
-    select?: ConfigSelect;
+    page?: number;
+    limit?: number;
+    [key: string]: any;
   }): Promise<{ data: Config[]; total: number }> {
+    const { page = 1, limit = 20, sort, fields } = params;
+    const skip = (page - 1) * limit;
+
+    const where = this.buildConfigWhere();
+    const select = this.parseConfigSelect(fields);
+    const orderBy = this.parseConfigOrderBy(sort);
+
     const [data, total] = await prisma.$transaction([
       prisma.config.findMany({
-        where: params.where,
-        skip: params.skip,
-        take: params.take,
-        orderBy: params.orderBy,
-        select: params.select,
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        select,
       }),
-      prisma.config.count({ where: params.where }),
+      prisma.config.count({ where }),
     ]);
     return { data, total };
   }
@@ -104,7 +98,6 @@ export class ConfigService extends AbstractCrudService<
     }
 
     const selectKeys = fields.split(",");
-    // Use const assertion for better type inference
     const validFields = [
       "id",
       "name",
@@ -117,7 +110,6 @@ export class ConfigService extends AbstractCrudService<
     const select: Partial<ConfigSelect> = {};
 
     for (const key of selectKeys) {
-      // Type-safe check using readonly array
       if (validFields.includes(key as (typeof validFields)[number])) {
         select[key as keyof ConfigSelect] = true;
       }
@@ -128,17 +120,52 @@ export class ConfigService extends AbstractCrudService<
       : undefined;
   }
 
-  protected buildWhere(filter?: ConfigFilter): ConfigWhereInput {
+  // ===== Private Query Builders =====
+
+  private buildConfigWhere() {
     // Config typically has no filters (singleton pattern)
     return {};
   }
 
-  protected parseFilter(query: ConfigQueryParams): ConfigFilter | undefined {
-    // Config typically has no filters (singleton pattern)
-    return undefined;
+  private parseConfigSelect(fields?: string): ConfigSelect | undefined {
+    if (!fields || typeof fields !== "string") {
+      return undefined;
+    }
+
+    const selectKeys = fields.split(",");
+    const validFields = [
+      "id",
+      "name",
+      "createdAt",
+      "v",
+      "featuredProduct",
+      "showCaseProducts",
+    ] as const;
+
+    const select: Partial<ConfigSelect> = {};
+
+    for (const key of selectKeys) {
+      if (validFields.includes(key as (typeof validFields)[number])) {
+        select[key as keyof ConfigSelect] = true;
+      }
+    }
+
+    return Object.keys(select).length > 0
+      ? (select as ConfigSelect)
+      : undefined;
   }
 
-  // ** Helper Methods (optional overrides) **
+  private parseConfigOrderBy(sort?: string) {
+    if (!sort || typeof sort !== "string") {
+      return [{ id: "desc" as const }];
+    }
+
+    return sort.split(",").map((field: string) => {
+      const isDescending = field.startsWith("-");
+      const fieldName = isDescending ? field.substring(1) : field;
+      return { [fieldName]: isDescending ? "desc" : "asc" };
+    });
+  }
   async getUniqueConfig(): Promise<ConfigDTO | null> {
     const entity = await prisma.config.findFirst();
     return entity ? this.toDTO(entity) : null;

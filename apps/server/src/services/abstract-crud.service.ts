@@ -2,64 +2,91 @@ import { ErrorCode, Meta } from "@repo/domain";
 import AppError from "../utils/appError.js";
 
 /**
- * Abstract base class for implementing CRUD (Create, Read, Update, Delete) operations.
+ * Simplified abstract base class for CRUD operations.
  *
  * @template Entity - The database entity type
  * @template CreateInput - The input type for creating new entities
  * @template UpdateInput - The input type for updating existing entities
  * @template DTO - The Data Transfer Object type returned to clients
- * @template Where - The type for database where clauses (default: any)
- * @template Select - The type for database select/projection clauses (default: any)
- * @template ListFilter - The type for filtering list queries (default: unknown)
  *
  * @abstract
  *
  * @description
- * This abstract class provides a standardized interface for CRUD operations across different entities.
- * Subclasses must implement persistence methods and transformation logic.
+ * This class provides a standardized interface for CRUD operations.
+ * Subclasses implement 6 core persistence methods only - all query building
+ * (where, select, orderBy) happens inside persistFindMany.
+ *
+ * Benefits:
+ * - Clear data flow: getAll() -> persistFindMany() -> toDTO()
+ * - All query logic in one place (easier to trace and debug)
+ * - Flexible: each service implements queries however it needs
+ * - Less ceremony: no abstract buildWhere(), parseFilter(), etc.
  *
  * @example
  * ```typescript
- * class UserService extends AbstractCrudService<User, CreateUserInput, UpdateUserInput, UserDTO> {
- *   protected toDTO(entity: User): UserDTO {
+ * class ProductService extends AbstractCrudService<
+ *   Product,
+ *   ProductCreateInput,
+ *   ProductUpdateInput,
+ *   ProductDTO
+ * > {
+ *   protected toDTO(entity: Product): ProductDTO {
  *     return { id: entity.id, name: entity.name };
  *   }
  *
- *   protected buildWhere(filter?: UserFilter) {
- *     return { ...filter };
+ *   // All query logic lives here
+ *   protected async persistFindMany(params) {
+ *     const { page = 1, limit = 20, filters, sort, fields } = params;
+ *
+ *     // Build where, select, orderBy locally
+ *     const where = this.buildProductWhere(filters);
+ *     const select = this.parseProductSelect(fields);
+ *     const orderBy = this.parseProductOrderBy(sort);
+ *
+ *     const skip = (page - 1) * limit;
+ *     const [data, total] = await prisma.$transaction([
+ *       prisma.product.findMany({ where, select, orderBy, skip, take: limit }),
+ *       prisma.product.count({ where }),
+ *     ]);
+ *
+ *     return { data, total };
  *   }
  *
- *   // ... implement other abstract methods
+ *   // Private helpers
+ *   private buildProductWhere(filters?: any) { ... }
+ *   private parseProductSelect(fields?: string) { ... }
+ *   private parseProductOrderBy(sort?: string) { ... }
  * }
  * ```
  *
  * @remarks
- * - All persistence methods (persistFindMany, persistFindById, etc.) must be implemented by subclasses
- * - The toDTO method transforms entities to DTOs for client consumption
- * - The buildWhere method constructs database-specific where clauses from filters
- * - List operations support pagination, filtering, ordering, and field selection
- * - All methods throw AppError with appropriate status codes when entities are not found
+ * - Services implement only what they need
+ * - Minimal type complexity: 4 generic params instead of 7
+ * - All error handling and pagination handled by base class
+ * - Optional filterUpdateInput hook for input validation
  */
 export abstract class AbstractCrudService<
   Entity,
   CreateInput,
   UpdateInput,
   DTO,
-  Where = any,
-  Select = any,
-  ListFilter = unknown,
 > {
+  /**
+   * Transform entity to DTO for client response
+   */
   protected abstract toDTO(entity: Entity): DTO;
 
-  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
-  // *include filtering, pagination, ordering, selection as needed for list operations*
-
+  /**
+   * Query entities with pagination, filtering, ordering, and field selection.
+   * Implement all query building logic here.
+   *
+   * @param params - Query parameters including page, limit, filters, sort, fields
+   * @returns Array of entities and total count
+   */
   protected abstract persistFindMany(params: {
-    where: Where;
-    skip: number;
-    take: number;
-    orderBy?: any;
-    select?: Select;
+    page?: number;
+    limit?: number;
+    [key: string]: any; // Allow services to pass any custom query params
   }): Promise<{ data: Entity[]; total: number }>;
 
   protected abstract persistFindById(id: string): Promise<Entity | null>;
@@ -70,26 +97,6 @@ export abstract class AbstractCrudService<
   ): Promise<Entity | null>;
   protected abstract persistDelete(id: string): Promise<boolean>;
 
-  protected abstract buildWhere(filter?: ListFilter): Where;
-  protected abstract parseFilter(query: any): ListFilter | undefined;
-
-  protected parseOrderBy(sort?: string): any {
-    if (!sort || typeof sort !== "string") {
-      return [{ id: "desc" as const }];
-    }
-
-    return sort.split(",").map((field: string) => {
-      const isDescending = field.startsWith("-");
-      const fieldName = isDescending ? field.substring(1) : field;
-      return { [fieldName]: isDescending ? "desc" : "asc" };
-    });
-  }
-
-  // TODO test if no parse select is provided
-  protected parseSelect(fields?: string): Select | undefined {
-    return undefined; // Override in subclass if select parsing is needed
-  }
-
   // ***** Public CRUD Methods *****
 
   async getAll(query: any) {
@@ -97,27 +104,20 @@ export abstract class AbstractCrudService<
       typeof query?.page !== "undefined" ? Number(query?.page) || 1 : 1;
     const limit =
       typeof query?.limit !== "undefined" ? Number(query?.limit) || 20 : 20;
-    const orderBy = this.parseOrderBy(query.sort);
-    const select = this.parseSelect(query.fields);
-    const filter = this.parseFilter(query);
 
-    const skip = (page - 1) * limit;
-    const where = this.buildWhere(filter);
-
+    // Pass all query params to persistFindMany - service decides what to do with them
     const { data, total } = await this.persistFindMany({
-      where,
-      skip,
-      take: limit,
-      orderBy,
-      select,
+      page,
+      limit,
+      ...query, // filters, sort, fields, etc.
     });
+
     const totalPages = Math.ceil(total / limit);
     const hasNext = page < totalPages;
     const hasPrev = page > 1;
+
     return {
-      data: select
-        ? data // When select is provided, return raw selected fields
-        : data.map((e) => this.toDTO(e)), // Otherwise apply DTO transformation
+      data: data.map((e) => this.toDTO(e)),
       meta: { page, limit, total, totalPages, hasNext, hasPrev } satisfies Meta,
     };
   }
@@ -135,7 +135,6 @@ export abstract class AbstractCrudService<
   }
 
   async update(id: string, input: UpdateInput) {
-    // Optional: Filter input to only allowed fields before update
     const validatedInput = this.filterUpdateInput
       ? this.filterUpdateInput(input)
       : input;
@@ -152,49 +151,16 @@ export abstract class AbstractCrudService<
       throw new AppError("No document found with that ID", ErrorCode.NOT_FOUND);
   }
 
-  // ** Helper Methods (optional overrides) **
+  // ** Optional Hooks **
 
   /**
-   * Optional hook to filter/validate update input before persistence.
-   * Override in subclass to whitelist specific fields.
-   *
-   * **Implement this when:**
-   * - User-facing updates with sensitive fields (e.g., role, password, permissions)
-   * - Role-based field restrictions (admins can update X, users can only update Y)
-   * - Preventing mass-assignment vulnerabilities
-   * - Fine-grained control over which fields can be modified
-   *
-   * **Skip this when:**
-   * - Admin-only/internal APIs where all fields are safe to update
-   * - Input schema already restricts fields adequately
-   * - All entity fields are safe for users to modify
-   *
-   * @param input - The raw update input from the request
-   * @returns Filtered update input with only allowed fields
-   *
-   * @example
-   * ```typescript
-   * // User-facing endpoint - only allow safe fields
-   * protected filterUpdateInput(input: UserUpdateInput): UserUpdateInput {
-   *   const allowedFields: (keyof UserUpdateInput)[] = ['name', 'email', 'avatar'];
-   *   return this.pickFields(input, allowedFields);
-   * }
-   * ```
-   * @example
-   * ```typescript
-   * // User-facing endpoint - disallow unsafe fields
-   * protected filterUpdateInput(input: UserUpdateInput): UserUpdateInput {
-   *   const disallowedFields: (keyof UserUpdateInput)[] = ['name', 'email', 'avatar'];
-   *   return this.pickFieldsNotAllowedToUpdate(input, disallowedFields);
-   * }
-   * ```
+   * Optional: Filter/validate update input before persistence.
+   * Override to whitelist or blacklist fields.
    */
-
   protected filterUpdateInput?(input: UpdateInput): UpdateInput;
 
-  /**
-   * Utility to pick only specified fields from an object
-   */
+  // ** Helper Methods **
+
   protected pickFieldsByAllowed<T extends Record<string, any>>(
     obj: T,
     fields: (keyof T)[]
@@ -207,9 +173,6 @@ export abstract class AbstractCrudService<
     }, {} as Partial<T>);
   }
 
-  /**
-   * Utility to filter out specified fields from an object
-   */
   protected pickFieldsByNotAllowed<T extends Record<string, any>>(
     obj: T,
     fields: (keyof T)[]
