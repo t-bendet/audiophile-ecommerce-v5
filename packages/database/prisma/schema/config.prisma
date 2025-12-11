@@ -1,10 +1,11 @@
 model Config {
-  id               String                  @id @default(auto()) @map("_id") @db.ObjectId
-  v                Int                     @default(0) @map("__v")
-  createdAt        DateTime                @default(now()) @db.Date
-  name             String                  @unique(map: "name_1") @default("default")
-  featuredProduct  String                  @db.ObjectId
-  showCaseProducts ConfigsShowCaseProducts
+  id                String                  @id @default(auto()) @map("_id") @db.ObjectId
+  v                 Int                     @default(0) @map("__v")
+  createdAt         DateTime                @default(now()) @db.Date
+  name              String                  @unique(map: "name_1") @default("default")
+  featuredProductId String                   @unique @db.ObjectId
+  featuredProduct   Product                 @relation(fields: [featuredProductId], references: [id])
+  showCaseProducts  ConfigsShowCaseProducts
 }
 
 type ConfigsShowCaseProducts {

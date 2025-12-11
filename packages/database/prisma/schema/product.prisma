@@ -17,6 +17,7 @@ model Product {
   includedItems     ProductIncludedItems[]
   images            ProductImages
   slug              String                 @unique(map: "slug_1")
+  configs           Config?
 }
 
 type ProductIncludedItems {

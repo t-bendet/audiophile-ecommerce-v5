@@ -2,7 +2,6 @@ import { NAME, prisma } from "@repo/database";
 import {
   baseQueryParams,
   ErrorCode,
-  ListResponse,
   Meta,
   Product,
   ProductCreateInput,
@@ -17,6 +16,7 @@ import {
 } from "@repo/domain";
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
+import { tr } from "zod/locales";
 
 // TODO !importent after this file is done, go back and fix all mismatched types in abstract-crud.service.ts
 
@@ -356,7 +356,27 @@ export class ProductService extends AbstractCrudService<
    * Get the featured product from config
    */
   async getFeaturedProduct(): Promise<ProductFeaturedProductsDTO> {
-    const config = await prisma.config.findFirst();
+    const config = await prisma.config.findFirst({
+      include: {
+        featuredProduct: {
+          select: {
+            fullLabel: true,
+            id: true,
+            description: true,
+            shortLabel: true,
+            categoryId: true,
+            featuredImageText: true,
+            images: {
+              select: {
+                featuredImage: true,
+              },
+            },
+            isNewProduct: true,
+            slug: true,
+          },
+        },
+      },
+    });
 
     if (!config) {
       throw new AppError(
@@ -365,47 +385,26 @@ export class ProductService extends AbstractCrudService<
       );
     }
 
-    const product = await prisma.product.findUnique({
-      where: {
-        id: config.featuredProduct,
-      },
-      select: {
-        fullLabel: true,
-        id: true,
-        description: true,
-        shortLabel: true,
-        categoryId: true,
-        featuredImageText: true,
-        images: {
-          select: {
-            featuredImage: true,
-          },
-        },
-        isNewProduct: true,
-        slug: true,
-      },
-    });
-
-    if (!product) {
+    if (!config.featuredProduct) {
       throw new AppError("Featured product not found", ErrorCode.NOT_FOUND);
     }
 
     // Business validation: Featured product must have required fields
-    if (!product.featuredImageText) {
+    if (!config.featuredProduct.featuredImageText) {
       throw new AppError(
         "Featured product missing featured text",
         ErrorCode.INTERNAL_ERROR
       );
     }
 
-    if (!product.images?.featuredImage) {
+    if (!config.featuredProduct.images?.featuredImage) {
       throw new AppError(
         "Featured product missing featured image",
         ErrorCode.INTERNAL_ERROR
       );
     }
 
-    return product;
+    return config.featuredProduct;
   }
 }
 
