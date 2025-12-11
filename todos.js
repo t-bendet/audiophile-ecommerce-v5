@@ -28,8 +28,6 @@
 //     "composite": true,
 // "declarationMap": true'
 
-// TODO getProductsByCategory should be a service method
-
 // ============================================================================
 // SERVER & API
 // ============================================================================

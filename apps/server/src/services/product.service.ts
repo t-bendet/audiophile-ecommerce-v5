@@ -172,7 +172,27 @@ export class ProductService extends AbstractCrudService<
     categoryName: NAME
   ): Promise<{ data: ProductsByCategoryNameDTO; meta: Meta }> {
     // Find category by name
-    const products = await prisma.product.getProductsByCategory(categoryName);
+    const products = await prisma.product.findMany({
+      where: {
+        category: {
+          is: {
+            name: categoryName,
+          },
+        },
+      },
+      select: {
+        id: true,
+        fullLabel: true,
+        slug: true,
+        images: {
+          select: {
+            introImage: true,
+          },
+        },
+        isNewProduct: true,
+        description: true,
+      },
+    });
 
     if (!products) {
       throw new AppError("Products not found", ErrorCode.NOT_FOUND);
