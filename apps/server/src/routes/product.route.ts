@@ -40,12 +40,6 @@ productRouter.get(
 
 //  TODO should be in category route
 productRouter.get(
-  "/category/:category",
-  validateSchema(ProductGetByCategorySchema),
-  productController.getProductsByCategoryName
-);
-
-productRouter.get(
   "/:id",
   validateSchema(ProductGetByIdRequestSchema),
   productController.getProductById

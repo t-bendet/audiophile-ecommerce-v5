@@ -34,7 +34,7 @@ export const getRelatedProducts: RequestHandler = catchAsync(
 export const getProductsByCategoryName: RequestHandler = catchAsync(
   async (req, res) => {
     const result = await productService.getProductsByCategoryName(
-      req.verified?.params.categoryName
+      req.verified?.params.category
     );
     res.status(200).json(createListResponse(result.data, result.meta));
   }
