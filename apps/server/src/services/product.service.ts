@@ -16,7 +16,6 @@ import {
 } from "@repo/domain";
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
-import { tr } from "zod/locales";
 
 // TODO !importent after this file is done, go back and fix all mismatched types in abstract-crud.service.ts
 
