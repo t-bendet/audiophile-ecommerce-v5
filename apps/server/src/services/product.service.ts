@@ -1,7 +1,7 @@
 import { NAME, prisma } from "@repo/database";
 import {
-  baseQueryParams,
   ErrorCode,
+  ExtendedQueryParams,
   Meta,
   Product,
   ProductCreateInput,
@@ -17,100 +17,45 @@ import {
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
-// TODO !importent after this file is done, go back and fix all mismatched types in abstract-crud.service.ts
-
 // TODO: tune DTO and filter types as needed
-// TODO scalar fields and filter should match
-export interface ProductFilter extends Pick<Product, "name"> {}
-
-export interface ProductQueryParams extends baseQueryParams, ProductFilter {}
 
 export class ProductService extends AbstractCrudService<
   Product,
   ProductCreateInput,
   ProductUpdateInput,
-  ProductDTO,
-  ProductWhereInput,
-  ProductSelect,
-  ProductFilter
+  ProductDTO
 > {
   protected toDTO(entity: Product): ProductDTO {
     return entity;
   }
 
-  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
-  // *include filtering, pagination, ordering, selection as needed for list operations*
+  // ===== Private Query Builders =====
 
-  protected async persistFindMany(params: {
-    where: ProductWhereInput;
-    skip: number;
-    take: number;
-    orderBy?: any;
-    select?: ProductSelect;
-  }): Promise<{ data: Product[]; total: number }> {
-    const [data, total] = await prisma.$transaction([
-      prisma.product.findMany({
-        where: params.where,
-        skip: params.skip,
-        take: params.take,
-        orderBy: params.orderBy,
-        select: params.select,
-      }),
-      prisma.product.count({ where: params.where }),
-    ]);
-    return { data, total };
-  }
-
-  protected async persistFindById(id: string) {
-    return prisma.product.findUnique({ where: { id } });
-  }
-
-  protected async persistCreate(input: ProductCreateInput) {
-    return prisma.product.create({ data: input });
-  }
-
-  /**
-   * Whitelist only allowed fields for updates
-   * Prevents clients from updating fields like 'id', 'createdAt', 'v', etc.
-   */
-  protected filterUpdateInput(input: ProductUpdateInput): ProductUpdateInput {
-    // Define which fields are allowed to be updated
-    const disallowedFields: (keyof typeof input)[] = [
-      "createdAt",
-      "v",
-
-      // Add other updateable fields here
-    ];
-
-    return this.pickFieldsByNotAllowed(input, disallowedFields);
-  }
-
-  protected async persistUpdate(id: string, input: ProductUpdateInput) {
-    try {
-      const entity = await prisma.product.update({
-        where: { id },
-        data: input,
-      });
-      return entity;
-    } catch (e: any) {
-      if (e?.code === "P2025") return null;
-      throw e;
+  private buildProductWhere(name?: string, price?: number): ProductWhereInput {
+    if (!name || typeof name !== "string") {
+      return {};
     }
-  }
-
-  protected async persistDelete(id: string) {
-    try {
-      await prisma.product.delete({ where: { id } });
-      return true;
-    } catch (e: any) {
-      if (e?.code === "P2025") return false;
-      throw e;
+    if (price === undefined || typeof price !== "number") {
+      return {
+        name: {
+          equals: name,
+          mode: "insensitive" as const,
+        },
+      };
     }
+    return {
+      name: {
+        equals: name,
+        mode: "insensitive" as const,
+      },
+      price: {
+        equals: price,
+      },
+    };
   }
 
-  protected parseSelect(fields?: string): ProductSelect | undefined {
+  private parseProductSelect(fields?: string): ProductSelect | undefined {
     if (!fields || typeof fields !== "string") return undefined;
-    // TODO refine valid fields
     const validFields = [
       "id",
       "cartLabel",
@@ -135,27 +80,81 @@ export class ProductService extends AbstractCrudService<
         select[field as keyof ProductSelect] = true;
       }
     }
-    return Object.keys(select).length ? (select as ProductSelect) : undefined;
+    return Object.keys(select).length ? select : undefined;
   }
 
-  // TODO refine filter parsing as needed
-  protected buildWhere(filter?: ProductFilter): ProductWhereInput {
-    if (!filter?.name) {
-      return {};
+  private parseProductOrderBy(sort?: string) {
+    if (!sort || typeof sort !== "string") {
+      return [{ id: "desc" as const }];
     }
-    return {
-      name: {
-        equals: filter.name,
-        mode: "insensitive",
-      },
-    };
+
+    return sort.split(",").map((field: string) => {
+      const isDescending = field.startsWith("-");
+      const fieldName = isDescending ? field.substring(1) : field;
+      return { [fieldName]: isDescending ? "desc" : "asc" };
+    });
   }
 
-  protected parseFilter(query: ProductQueryParams): ProductFilter | undefined {
-    if (!query.name || typeof query.name !== "string") {
-      return undefined;
+  protected async persistFindMany(
+    params: ExtendedQueryParams<{ name: string; price: number }>
+  ): Promise<{ data: Product[]; total: number }> {
+    const { page = 1, limit = 20, sort, fields, name, price } = params;
+
+    const skip = (page - 1) * limit;
+
+    // Build query components locally
+    const where = this.buildProductWhere(name, price);
+    console.log({ where });
+    const select = this.parseProductSelect(fields);
+    const orderBy = this.parseProductOrderBy(sort);
+
+    const [data, total] = await prisma.$transaction([
+      prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        select,
+      }),
+      prisma.product.count({ where }),
+    ]);
+    return { data, total };
+  }
+
+  protected async persistFindById(id: string) {
+    return prisma.product.findUnique({ where: { id } });
+  }
+
+  protected async persistCreate(input: ProductCreateInput) {
+    return prisma.product.create({ data: input });
+  }
+
+  protected filterUpdateInput(input: ProductUpdateInput): ProductUpdateInput {
+    const disallowedFields: (keyof typeof input)[] = ["createdAt", "v"];
+    return this.pickFieldsByNotAllowed(input, disallowedFields);
+  }
+
+  protected async persistUpdate(id: string, input: ProductUpdateInput) {
+    try {
+      const entity = await prisma.product.update({
+        where: { id },
+        data: input,
+      });
+      return entity;
+    } catch (e: any) {
+      if (e?.code === "P2025") return null;
+      throw e;
     }
-    return { name: query.name };
+  }
+
+  protected async persistDelete(id: string) {
+    try {
+      await prisma.product.delete({ where: { id } });
+      return true;
+    } catch (e: any) {
+      if (e?.code === "P2025") return false;
+      throw e;
+    }
   }
 
   // ** Helper Methods (optional overrides) **

@@ -1,6 +1,5 @@
 import { prisma } from "@repo/database";
 import type {
-  baseQueryParams,
   ROLE,
   UserPublicInfo,
   UserCreateInput,
@@ -11,21 +10,11 @@ import type {
 } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
-// TODO scalar fields and filter should match
-// TODO add update for admin to change user roles, active status, etc.
-
-export interface UserFilter extends Partial<Pick<UserPublicInfo, "role">> {}
-
-export interface UserQueryParams extends baseQueryParams, UserFilter {}
-
 export class UserService extends AbstractCrudService<
   UserPublicInfo,
   UserCreateInput,
   UserUpdateInput,
-  UserDTO,
-  UserWhereInput,
-  UserSelect,
-  UserFilter
+  UserDTO
 > {
   protected toDTO(entity: UserPublicInfo): UserDTO {
     const dto = {
@@ -41,25 +30,29 @@ export class UserService extends AbstractCrudService<
     return dto satisfies UserDTO;
   }
 
-  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
-  // *include filtering, pagination, ordering, selection as needed for list operations*
+  // ***** Persistence Layer Methods *****
 
   protected async persistFindMany(params: {
-    where: UserWhereInput;
-    skip: number;
-    take: number;
-    orderBy?: any;
-    select?: UserSelect;
+    page?: number;
+    limit?: number;
+    [key: string]: any;
   }): Promise<{ data: UserPublicInfo[]; total: number }> {
+    const { page = 1, limit = 20, role, sort, fields } = params;
+    const skip = (page - 1) * limit;
+
+    const where = this.buildUserWhere(role);
+    const select = this.parseUserSelect(fields);
+    const orderBy = this.parseUserOrderBy(sort);
+
     const [data, total] = await prisma.$transaction([
       prisma.user.findMany({
-        where: params.where,
-        skip: params.skip,
-        take: params.take,
-        orderBy: params.orderBy,
-        select: params.select,
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        select,
       }),
-      prisma.user.count({ where: params.where }),
+      prisma.user.count({ where }),
     ]);
     return { data, total };
   }
@@ -124,11 +117,6 @@ export class UserService extends AbstractCrudService<
       "name",
       "email",
       "role",
-      "password",
-      "passwordConfirm",
-      "passwordChangedAt",
-      "passwordResetToken",
-      "passwordResetExpires",
       "emailVerified",
       "createdAt",
       "active",
@@ -146,21 +134,56 @@ export class UserService extends AbstractCrudService<
     return Object.keys(select).length > 0 ? (select as UserSelect) : undefined;
   }
 
-  protected buildWhere(filter?: UserFilter): UserWhereInput {
-    if (!filter) return {};
-    const where: UserWhereInput = {};
-    if (filter.role) {
-      where.role = { equals: filter.role as ROLE };
+  // ===== Private Query Builders =====
+
+  private buildUserWhere(role?: string) {
+    if (!role || typeof role !== "string") {
+      return {};
     }
-    return where;
+    return {
+      role: { equals: role as ROLE },
+    };
   }
 
-  protected parseFilter(query: UserQueryParams): UserFilter | undefined {
-    if (!query?.role) return {};
-    return { role: query.role };
+  private parseUserSelect(fields?: string): UserSelect | undefined {
+    if (!fields || typeof fields !== "string") {
+      return undefined;
+    }
+
+    const selectKeys = fields.split(",");
+    const validFields = [
+      "id",
+      "name",
+      "email",
+      "role",
+      "emailVerified",
+      "createdAt",
+      "active",
+      "v",
+    ] as const;
+
+    const select: Partial<UserSelect> = {};
+
+    for (const key of selectKeys) {
+      if (validFields.includes(key as (typeof validFields)[number])) {
+        select[key as keyof UserSelect] = true;
+      }
+    }
+
+    return Object.keys(select).length > 0 ? (select as UserSelect) : undefined;
   }
 
-  // ** Helper Methods (optional overrides) **
+  private parseUserOrderBy(sort?: string) {
+    if (!sort || typeof sort !== "string") {
+      return [{ id: "desc" as const }];
+    }
+
+    return sort.split(",").map((field: string) => {
+      const isDescending = field.startsWith("-");
+      const fieldName = isDescending ? field.substring(1) : field;
+      return { [fieldName]: isDescending ? "desc" : "asc" };
+    });
+  }
 }
 
 export const userService = new UserService();
