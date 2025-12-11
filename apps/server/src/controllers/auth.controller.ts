@@ -48,14 +48,12 @@ const createAndSendToken = (
   res.status(statusCode).json(createSingleItemResponse({ user, token }));
 };
 
-// TODO change req.to verify user id existence
-
 /**
  * Sign up a new user
  * Parses request, delegates to service, sends response
  */
 export const signup: RequestHandler = catchAsync(async (req, res, next) => {
-  const { token, user } = await authService.signup(req.body);
+  const { token, user } = await authService.signup(req.verified?.body);
   createAndSendToken(user, token, 201, req, res);
 });
 
@@ -64,7 +62,7 @@ export const signup: RequestHandler = catchAsync(async (req, res, next) => {
  * Validates credentials via service, sends response with token
  */
 export const login: RequestHandler = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, password } = req.verified?.body;
   const { user, token } = await authService.login({ email, password });
   createAndSendToken(user, token, 200, req, res);
 });
@@ -88,7 +86,7 @@ export const logout = (_req: Request, res: Response) => {
 export const updatePassword: RequestHandler = catchAsync(
   async (req, res, next) => {
     // passwordConfirm and currentPassword validation handled in zod schema
-    const { currentPassword, password } = req.body;
+    const { currentPassword, password } = req.verified?.body;
     const userId = req.user?.id;
 
     if (!userId) {
