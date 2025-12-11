@@ -46,17 +46,14 @@ const createAndSendToken = (
   res.status(statusCode).json(createSingleItemResponse({ user, token }));
 };
 
+// TODO change req.to verify user id existence
+
 /**
  * Sign up a new user
  * Parses request, delegates to service, sends response
  */
 export const signup: RequestHandler = catchAsync(async (req, res, next) => {
-  const user = await authService.signup(req.body);
-  // Generate token after user creation
-  const { token } = await authService.login({
-    email: user.email,
-    password: req.body.password,
-  });
+  const { token, user } = await authService.signup(req.body);
   createAndSendToken(user, token, 201, req, res);
 });
 
@@ -66,9 +63,8 @@ export const signup: RequestHandler = catchAsync(async (req, res, next) => {
  */
 export const login: RequestHandler = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  const userData = await authService.login({ email, password });
-  const { token, ...userWithoutToken } = userData;
-  createAndSendToken(userWithoutToken, token, 200, req, res);
+  const { user, token } = await authService.login({ email, password });
+  createAndSendToken(user, token, 200, req, res);
 });
 
 /**
@@ -101,7 +97,7 @@ export const updatePassword: RequestHandler = catchAsync(
       currentPassword,
       password
     );
-    const { token, ...userWithoutToken } = userData;
-    createAndSendToken(userWithoutToken, token, 200, req, res);
+    const { token, user } = userData;
+    createAndSendToken(user, token, 200, req, res);
   }
 );
