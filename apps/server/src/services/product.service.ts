@@ -286,7 +286,52 @@ export class ProductService extends AbstractCrudService<
    */
   async getShowCaseProducts(): Promise<ProductShowCaseProductsDTO> {
     // Fetch config to know which products to showcase
-    const config = await prisma.config.findFirst();
+    const config = await prisma.config.findFirst({
+      include: {
+        showCaseCover: {
+          select: {
+            shortLabel: true,
+            id: true,
+            categoryId: true,
+            images: {
+              select: {
+                showCaseImage: true,
+              },
+            },
+            showCaseImageText: true,
+            slug: true,
+          },
+        },
+        showCaseWide: {
+          select: {
+            shortLabel: true,
+            id: true,
+            categoryId: true,
+            images: {
+              select: {
+                showCaseImage: true,
+              },
+            },
+            showCaseImageText: true,
+            slug: true,
+          },
+        },
+        showCaseGrid: {
+          select: {
+            shortLabel: true,
+            id: true,
+            categoryId: true,
+            images: {
+              select: {
+                showCaseImage: true,
+              },
+            },
+            showCaseImageText: true,
+            slug: true,
+          },
+        },
+      },
+    });
 
     if (!config) {
       throw new AppError(
@@ -296,60 +341,22 @@ export class ProductService extends AbstractCrudService<
     }
 
     // Get the showcase product IDs from config
-    const showcaseIds = [
-      config.showCaseProducts.cover,
-      config.showCaseProducts.wide,
-      config.showCaseProducts.grid,
-    ];
-
-    // Fetch the actual products
-    const products = await prisma.product.findMany({
-      where: {
-        id: { in: showcaseIds },
-      },
-      select: {
-        shortLabel: true,
-        id: true,
-        categoryId: true,
-        images: {
-          select: {
-            showCaseImage: true,
-          },
-        },
-        showCaseImageText: true,
-        slug: true,
-      },
-    });
 
     // Business logic: Map products to their positions
-    const showcaseMap: Record<
-      "cover" | "wide" | "grid",
-      (typeof products)[number] | null
-    > = {
-      cover: null,
-      wide: null,
-      grid: null,
-    };
-
-    products.forEach((product) => {
-      if (product.id === config.showCaseProducts.cover) {
-        showcaseMap.cover = product;
-      } else if (product.id === config.showCaseProducts.wide) {
-        showcaseMap.wide = product;
-      } else if (product.id === config.showCaseProducts.grid) {
-        showcaseMap.grid = product;
-      }
-    });
 
     // Validate all positions are filled
-    if (!showcaseMap.cover || !showcaseMap.wide || !showcaseMap.grid) {
+    if (!config.showCaseCover || !config.showCaseWide || !config.showCaseGrid) {
       throw new AppError(
         "Incomplete showcase configuration",
         ErrorCode.INTERNAL_ERROR
       );
     }
 
-    return showcaseMap;
+    return {
+      showCaseCover: config.showCaseCover,
+      showCaseWide: config.showCaseWide,
+      showCaseGrid: config.showCaseGrid,
+    };
   }
 
   /**
