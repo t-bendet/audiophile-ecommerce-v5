@@ -107,7 +107,7 @@
 // ============================================================================
 
 // TODO yx1 wireless earphones does not have related product image
-// TODO add null values to product seed/?
+// TODO add null values to product seed/? check which values are null by default
 // TODO isNew as a virtual property - less than a year since arrival
 
 // ============================================================================
