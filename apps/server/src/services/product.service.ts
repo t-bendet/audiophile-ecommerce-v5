@@ -222,6 +222,7 @@ export class ProductService extends AbstractCrudService<
     productId: string
   ): Promise<{ data: ProductRelatedProductsDTO; meta: Meta }> {
     // Get base product info
+    // TODO aggregate to reduce queries
     const product = await prisma.product.findUnique({
       where: { id: productId },
       select: { categoryId: true, price: true },
@@ -305,49 +306,29 @@ export class ProductService extends AbstractCrudService<
    */
   async getShowCaseProducts(): Promise<ProductShowCaseProductsDTO> {
     // Fetch config to know which products to showcase
+    const select = {
+      shortLabel: true,
+      id: true,
+      categoryId: true,
+      images: {
+        select: {
+          showCaseImage: true,
+        },
+      },
+      showCaseImageText: true,
+      slug: true,
+    } satisfies ProductSelect;
+
     const config = await prisma.config.findFirst({
       include: {
         showCaseCover: {
-          select: {
-            shortLabel: true,
-            id: true,
-            categoryId: true,
-            images: {
-              select: {
-                showCaseImage: true,
-              },
-            },
-            showCaseImageText: true,
-            slug: true,
-          },
+          select,
         },
         showCaseWide: {
-          select: {
-            shortLabel: true,
-            id: true,
-            categoryId: true,
-            images: {
-              select: {
-                showCaseImage: true,
-              },
-            },
-            showCaseImageText: true,
-            slug: true,
-          },
+          select,
         },
         showCaseGrid: {
-          select: {
-            shortLabel: true,
-            id: true,
-            categoryId: true,
-            images: {
-              select: {
-                showCaseImage: true,
-              },
-            },
-            showCaseImageText: true,
-            slug: true,
-          },
+          select,
         },
       },
     });
