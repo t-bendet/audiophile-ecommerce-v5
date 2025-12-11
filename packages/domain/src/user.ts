@@ -32,8 +32,6 @@ export type ROLE = $Enums.ROLE;
 
 // * =====  Common Schemas =====
 
-// TODO TO be moved to auth module later
-
 export type UserPublicInfo = Omit<
   User,
   "password" | "passwordConfirm" | "active"
