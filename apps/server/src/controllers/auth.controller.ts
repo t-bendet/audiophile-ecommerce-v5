@@ -1,12 +1,14 @@
 import {
   createEmptyResponse,
   createSingleItemResponse,
+  ErrorCode,
   UserPublicInfo,
 } from "@repo/domain";
 import { Request, RequestHandler, Response } from "express";
 import { authService } from "../services/auth.service.js";
 import catchAsync from "../utils/catchAsync.js";
 import { env } from "../utils/env.js";
+import AppError from "../utils/appError.js";
 
 /**
  * Auth Controller handles HTTP layer only
@@ -85,11 +87,14 @@ export const logout = (_req: Request, res: Response) => {
  */
 export const updatePassword: RequestHandler = catchAsync(
   async (req, res, next) => {
+    // passwordConfirm and currentPassword validation handled in zod schema
     const { currentPassword, password } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
-      return next(new Error("User ID not found in request"));
+      return next(
+        new AppError("User ID not found in request", ErrorCode.UNAUTHORIZED)
+      );
     }
 
     const userData = await authService.updatePassword(
