@@ -3,9 +3,16 @@
 // ============================================================================
 // TODO OpenAPI + zod-to-openapi: Generate OpenAPI from your zod schemas; use a client generator (or orval) to produce typed clients for frontend.
 // TODO add web folder and react ts config
-// TODO sort products and categories relations!!!! schema ,seed and services
 // TODO what happens when i delete a category with products? cascade or restrict?
-// TODO add proper readme files to each package and app
+
+// TODO LIST - Get all Users (pagination + filtering) extended keys should satisfy UserFilter
+//      Location: packages/domain/src/user.ts
+//      Context: UserGetAllRequestSchema currently allows only pagination/filtering on basic fields
+//      Goal: Extend filtering capabilities to include all fields defined in UserFilter interface
+//      Considerations:
+//        - Update UserGetAllRequestSchema to dynamically generate filters based on UserFilter keys
+//        - Ensure type safety and validation for new filter fields
+//      Benefits: More flexible user retrieval, better admin capabilities for user management
 // ============================================================================
 // BUILD & CONFIGURATION
 // ============================================================================
@@ -20,19 +27,14 @@
 //     "composite": true,
 // "declarationMap": true'
 
-// TODO getProductsByCategory should be a service method
-
 // ============================================================================
 // SERVER & API
 // ============================================================================
-// TODO req.validated
 // TODO handel CORS in server
 // TODO implement forgot password and reset password
 // TODO switch to cloudinary upload images and products from dashboard? url or image upload
-// TODO add update all details for admins (users, products, orders)
 // TODO add errors for update same value
 // TODO checkout prices return from backend
-// TODO go over user extensions in database and optimize them
 // TODO handle slugs ,where is generated create update, user provide??
 // TODO add rate limiting middleware to server
 // TODO add helmet middleware to server
@@ -40,12 +42,6 @@
 // ============================================================================
 // ERROR HANDLING & VALIDATION
 // ============================================================================
-
-// TODO update handleZodError to give simpler error messages
-//      Location: apps/server/src/middlewares/error.middleware.ts (line 29-34)
-//      Context: Client doesn't need all validation issues for GET requests, only for CREATE/POST/PUT
-//      Current: Shows full prettifyError() output for all requests
-//      Desired: Simplified message for retrieval operations, detailed for mutations
 
 // TODO improve abstract-crud-service typing ,constraints on Where, Select to match Entity structure
 //      Location: apps/server/src/services/abstract-crud.service.ts
@@ -66,6 +62,19 @@
 //      Impact: More flexible content management, better i18n support, admin can add categories
 //      Trade-off: Lose compile-time type safety for category names
 
+// TODO Prisma optional field syntax: field? Type vs field Type?
+//      Location: packages/database/prisma/schema/
+//      Context: Optional fields in Prisma nested types can be declared two ways
+//      Option 1: showCaseImage? ProductImagesProperties
+//        - Field is optional (can be omitted entirely)
+//        - Cleaner JSON, no null values in payload
+//        - Better for optional images (featured, showcase, etc.)
+//      Option 2: showCaseImage ProductImagesProperties?
+//        - Field is required but can have null value
+//        - Always include key, even if null
+//      Recommendation: Use Option 1 (field?) for image types since not all products have all images
+//      Current: Mix of both approaches in ProductImages type (should standardize)
+
 // TODO Handle nested creates when creating Category with related Products
 //      Context: Category can have products relation in Prisma
 //      Consider: Should POST /categories accept nested product creation?
@@ -76,30 +85,14 @@
 //        - Option 3: Separate endpoint for bulk category+products creation
 //      Current: CategoryService.create only handles CategoryCreateInput (no nested products)
 
-// TODO Create a one to one relation with config
-//      Location: packages/database/models/product.model.ts
-// ** to product schema
-//           featuredProductId  String                  @db.ObjectId
-// featuredProduct  Product                 @relation(fields: [featuredProductId], references: [id])
-// ** to config seed
-//       featuredProductId: createdProductsMap["xx99 mark two headphones"],
 // TODO soft delete for users needs a lot of work to be complete
-// TODO remove confirm password from user schema, and use it in backend logic
-
-// TODO add parse for returns,maybe add a dev only,only bills or critical output?
-// TODO anyway create function to parse only in development,or something DRY
-
-//      Location: apps/server/src/conrollers
-//      Context: // if (process.env.NODE_ENV === "development") {
-//   ProductsByCategorySchemas.parse(products);
-// }
 
 // ============================================================================
 // DATA & SEEDING
 // ============================================================================
 
 // TODO yx1 wireless earphones does not have related product image
-// TODO add null values to product seed/?
+// TODO add null values to product seed/? check which values are null by default
 // TODO isNew as a virtual property - less than a year since arrival
 
 // ============================================================================
@@ -160,7 +153,6 @@
 // TODO go over express basic principles
 // TODO go over turborepo core-concepts,https://turborepo.com/docs/core-concepts
 // TODO go over monorepo best practices
-// TODO ts wizard ts config part
 // TODO basicly go over the whole project structure and understand each part
 
 // // Query (pagination / sorting / filtering)
