@@ -1,5 +1,6 @@
 import z from "zod";
 import { EmailValidator, NameValidator, PasswordValidator } from "./shared.js";
+import { UserPublicInfo } from "./user.js";
 
 export const AuthSignUpUserSchema = z.object({
   body: z
@@ -48,3 +49,8 @@ export const AuthUpdateUserPasswordSchema = z.object({
 export type AuthUpdateUserPassword = z.infer<
   typeof AuthUpdateUserPasswordSchema.shape.body
 >;
+
+export type AuthResponse = {
+  user: UserPublicInfo;
+  token: string;
+};

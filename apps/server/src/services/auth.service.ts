@@ -1,9 +1,9 @@
 import { prisma } from "@repo/database";
 import {
   AuthLoginUser,
+  AuthResponse,
   AuthSignUpUser,
   ErrorCode,
-  UserPublicInfo,
 } from "@repo/domain";
 import jwt from "jsonwebtoken";
 import AppError from "../utils/appError.js";
@@ -37,11 +37,11 @@ export class AuthService {
   /**
    * Register a new user
    * @param data - User registration data
-   * @returns The created user
+   * @returns The created user with token
    */
-  async signup(data: AuthSignUpUser): Promise<UserPublicInfo> {
+  async signup(data: AuthSignUpUser): Promise<AuthResponse> {
     // Create user with Prisma (password hashing happens via schema defaults)
-    const newUser = await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         email: data.email,
         password: data.password,
@@ -50,7 +50,13 @@ export class AuthService {
       },
     });
 
-    return newUser as UserPublicInfo;
+    // Generate token
+    const token = this.signToken(user.id);
+
+    return {
+      user,
+      token,
+    };
   }
 
   /**
@@ -59,10 +65,7 @@ export class AuthService {
    * @param password - User password (plain text)
    * @returns User data without password
    */
-  async login({
-    email,
-    password,
-  }: AuthLoginUser): Promise<UserPublicInfo & { token: string }> {
+  async login({ email, password }: AuthLoginUser): Promise<AuthResponse> {
     // Find user with password field
     const user = await prisma.user.findUniqueOrThrow({
       where: { email },
@@ -91,9 +94,9 @@ export class AuthService {
     const { password: _, ...userWithoutPassword } = user;
 
     return {
-      ...userWithoutPassword,
+      user: userWithoutPassword,
       token,
-    } as UserPublicInfo & { token: string };
+    };
   }
 
   /**
@@ -107,7 +110,7 @@ export class AuthService {
     userId: string,
     currentPassword: string,
     newPassword: string
-  ): Promise<UserPublicInfo & { token: string }> {
+  ): Promise<AuthResponse> {
     // Get user with password field
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: userId },
@@ -142,9 +145,9 @@ export class AuthService {
     const token = this.signToken(updatedUser.id);
 
     return {
-      ...updatedUser,
+      user: updatedUser,
       token,
-    } as UserPublicInfo & { token: string };
+    };
   }
 
   /**
