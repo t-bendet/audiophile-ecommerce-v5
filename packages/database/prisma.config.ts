@@ -4,9 +4,16 @@
  * Keep schema path relative to this package root.
  */
 
-const config = {
-  // Path to your Prisma schema directory or file
-  schema: "./prisma/schema",
-};
+import "dotenv/config";
+import { defineConfig, env } from "prisma/config";
 
-export default config;
+export default defineConfig({
+  schema: "prisma/schema",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  engine: "classic",
+  datasource: {
+    url: env("DATABASE_URL"),
+  },
+});
