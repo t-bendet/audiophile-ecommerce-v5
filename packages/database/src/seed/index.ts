@@ -1,8 +1,11 @@
+import dotenv from "dotenv";
 import { prisma } from "../client.js";
 import seedCategories from "./categories.seed.js";
 import seedConfigs from "./config.seed.js";
 import seedProducts from "./products.seed.js";
 import seedUsers from "./users.seed.js";
+
+dotenv.config();
 
 async function main() {
   console.log(`Start dropping old DB ...`);

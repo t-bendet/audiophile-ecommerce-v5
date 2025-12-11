@@ -21,12 +21,10 @@ const seedConfigs = async (createdProducts: ProductCreateResult[]) => {
 
   const config = await prisma.config.create({
     data: {
-      featuredProduct: createdProductsMap["xx99 mark two headphones"],
-      showCaseProducts: {
-        cover: createdProductsMap["zx9 speaker"],
-        wide: createdProductsMap["zx7 speaker"],
-        grid: createdProductsMap["yx1 wireless earphones"],
-      },
+      featuredProductId: createdProductsMap["xx99 mark two headphones"],
+      showCaseCoverId: createdProductsMap["zx9 speaker"],
+      showCaseWideId: createdProductsMap["zx7 speaker"],
+      showCaseGridId: createdProductsMap["yx1 wireless earphones"],
       name: "productsConfig",
     },
   });

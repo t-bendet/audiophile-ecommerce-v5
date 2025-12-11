@@ -105,6 +105,7 @@ export const ProductGetAllRequestSchema = createRequestSchema({
       fields: z.string().optional(),
       page: z.coerce.number().int().positive().optional(),
       limit: z.coerce.number().int().positive().optional(),
+      name: z.string().optional(),
     })
     .optional(),
 });
@@ -194,7 +195,7 @@ export const ProductRelatedProductsDTOSchema = z.array(
 );
 
 export const ProductShowCaseProductsSchema = z.record(
-  z.enum(["cover", "wide", "grid"]),
+  z.enum(["showCaseCover", "showCaseWide", "showCaseGrid"]),
   ProductPropertiesSchema.pick({
     id: true,
     shortLabel: true,

@@ -49,17 +49,19 @@ export const authenticate: RequestHandler = catchAsync(
       );
     }
     // //* 4) check if user changed password after the token was issued
-    const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
-      decoded.iat!,
-      currentUser.passwordChangedAt
-    );
-    if (hasPasswordChanged) {
-      return next(
-        new AppError(
-          "User recently changed password! Please log in to again",
-          ErrorCode.UNAUTHORIZED
-        )
+    if (currentUser.passwordChangedAt) {
+      const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
+        decoded.iat!,
+        currentUser.passwordChangedAt
       );
+      if (hasPasswordChanged) {
+        return next(
+          new AppError(
+            "User recently changed password! Please log in to again",
+            ErrorCode.UNAUTHORIZED
+          )
+        );
+      }
     }
 
     req.user = currentUser;

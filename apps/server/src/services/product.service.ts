@@ -2,7 +2,6 @@ import { NAME, prisma } from "@repo/database";
 import {
   baseQueryParams,
   ErrorCode,
-  ListResponse,
   Meta,
   Product,
   ProductCreateInput,
@@ -172,7 +171,27 @@ export class ProductService extends AbstractCrudService<
     categoryName: NAME
   ): Promise<{ data: ProductsByCategoryNameDTO; meta: Meta }> {
     // Find category by name
-    const products = await prisma.product.getProductsByCategory(categoryName);
+    const products = await prisma.product.findMany({
+      where: {
+        category: {
+          is: {
+            name: categoryName,
+          },
+        },
+      },
+      select: {
+        id: true,
+        fullLabel: true,
+        slug: true,
+        images: {
+          select: {
+            introImage: true,
+          },
+        },
+        isNewProduct: true,
+        description: true,
+      },
+    });
 
     if (!products) {
       throw new AppError("Products not found", ErrorCode.NOT_FOUND);
@@ -286,7 +305,52 @@ export class ProductService extends AbstractCrudService<
    */
   async getShowCaseProducts(): Promise<ProductShowCaseProductsDTO> {
     // Fetch config to know which products to showcase
-    const config = await prisma.config.findFirst();
+    const config = await prisma.config.findFirst({
+      include: {
+        showCaseCover: {
+          select: {
+            shortLabel: true,
+            id: true,
+            categoryId: true,
+            images: {
+              select: {
+                showCaseImage: true,
+              },
+            },
+            showCaseImageText: true,
+            slug: true,
+          },
+        },
+        showCaseWide: {
+          select: {
+            shortLabel: true,
+            id: true,
+            categoryId: true,
+            images: {
+              select: {
+                showCaseImage: true,
+              },
+            },
+            showCaseImageText: true,
+            slug: true,
+          },
+        },
+        showCaseGrid: {
+          select: {
+            shortLabel: true,
+            id: true,
+            categoryId: true,
+            images: {
+              select: {
+                showCaseImage: true,
+              },
+            },
+            showCaseImageText: true,
+            slug: true,
+          },
+        },
+      },
+    });
 
     if (!config) {
       throw new AppError(
@@ -296,67 +360,49 @@ export class ProductService extends AbstractCrudService<
     }
 
     // Get the showcase product IDs from config
-    const showcaseIds = [
-      config.showCaseProducts.cover,
-      config.showCaseProducts.wide,
-      config.showCaseProducts.grid,
-    ];
-
-    // Fetch the actual products
-    const products = await prisma.product.findMany({
-      where: {
-        id: { in: showcaseIds },
-      },
-      select: {
-        shortLabel: true,
-        id: true,
-        categoryId: true,
-        images: {
-          select: {
-            showCaseImage: true,
-          },
-        },
-        showCaseImageText: true,
-        slug: true,
-      },
-    });
 
     // Business logic: Map products to their positions
-    const showcaseMap: Record<
-      "cover" | "wide" | "grid",
-      (typeof products)[number] | null
-    > = {
-      cover: null,
-      wide: null,
-      grid: null,
-    };
-
-    products.forEach((product) => {
-      if (product.id === config.showCaseProducts.cover) {
-        showcaseMap.cover = product;
-      } else if (product.id === config.showCaseProducts.wide) {
-        showcaseMap.wide = product;
-      } else if (product.id === config.showCaseProducts.grid) {
-        showcaseMap.grid = product;
-      }
-    });
 
     // Validate all positions are filled
-    if (!showcaseMap.cover || !showcaseMap.wide || !showcaseMap.grid) {
+    if (!config.showCaseCover || !config.showCaseWide || !config.showCaseGrid) {
       throw new AppError(
         "Incomplete showcase configuration",
         ErrorCode.INTERNAL_ERROR
       );
     }
 
-    return showcaseMap;
+    return {
+      showCaseCover: config.showCaseCover,
+      showCaseWide: config.showCaseWide,
+      showCaseGrid: config.showCaseGrid,
+    };
   }
 
   /**
    * Get the featured product from config
    */
   async getFeaturedProduct(): Promise<ProductFeaturedProductsDTO> {
-    const config = await prisma.config.findFirst();
+    const config = await prisma.config.findFirst({
+      include: {
+        featuredProduct: {
+          select: {
+            fullLabel: true,
+            id: true,
+            description: true,
+            shortLabel: true,
+            categoryId: true,
+            featuredImageText: true,
+            images: {
+              select: {
+                featuredImage: true,
+              },
+            },
+            isNewProduct: true,
+            slug: true,
+          },
+        },
+      },
+    });
 
     if (!config) {
       throw new AppError(
@@ -365,47 +411,26 @@ export class ProductService extends AbstractCrudService<
       );
     }
 
-    const product = await prisma.product.findUnique({
-      where: {
-        id: config.featuredProduct,
-      },
-      select: {
-        fullLabel: true,
-        id: true,
-        description: true,
-        shortLabel: true,
-        categoryId: true,
-        featuredImageText: true,
-        images: {
-          select: {
-            featuredImage: true,
-          },
-        },
-        isNewProduct: true,
-        slug: true,
-      },
-    });
-
-    if (!product) {
+    if (!config.featuredProduct) {
       throw new AppError("Featured product not found", ErrorCode.NOT_FOUND);
     }
 
     // Business validation: Featured product must have required fields
-    if (!product.featuredImageText) {
+    if (!config.featuredProduct.featuredImageText) {
       throw new AppError(
         "Featured product missing featured text",
         ErrorCode.INTERNAL_ERROR
       );
     }
 
-    if (!product.images?.featuredImage) {
+    if (!config.featuredProduct.images?.featuredImage) {
       throw new AppError(
         "Featured product missing featured image",
         ErrorCode.INTERNAL_ERROR
       );
     }
 
-    return product;
+    return config.featuredProduct;
   }
 }
 
