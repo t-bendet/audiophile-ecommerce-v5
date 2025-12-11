@@ -70,25 +70,13 @@
 //        - Always include key, even if null
 //      Recommendation: Use Option 1 (field?) for image types since not all products have all images
 //      Current: Mix of both approaches in ProductImages type (should standardize)
-
-// TODO Handle nested creates when creating Category with related Products
-//      Context: Category can have products relation in Prisma
-//      Consider: Should POST /categories accept nested product creation?
-//      Example: { name: "Monitors", products: { create: [...] } }
-//      Decision needed:
-//        - Option 1: Keep Category create simple (no nested creates), manage products separately
-//        - Option 2: Support nested creates with proper validation and transaction handling
-//        - Option 3: Separate endpoint for bulk category+products creation
-//      Current: CategoryService.create only handles CategoryCreateInput (no nested products)
-
-// TODO soft delete for users needs a lot of work to be complete
+// TODO add null values to product seed/? check which values are null by default
 
 // ============================================================================
 // DATA & SEEDING
 // ============================================================================
 
 // TODO yx1 wireless earphones does not have related product image
-// TODO add null values to product seed/? check which values are null by default
 // TODO isNew as a virtual property - less than a year since arrival
 
 // ============================================================================
