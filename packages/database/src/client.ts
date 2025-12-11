@@ -22,34 +22,7 @@ const baseClient = new PrismaClient({
 
 const clientWithProductExtensions = baseClient.$extends({
   name: "productExtensions",
-  model: {
-    product: {
-      async getProductsByCategory(categoryName: NAME) {
-        const products = await baseClient.product.findMany({
-          where: {
-            category: {
-              is: {
-                name: categoryName,
-              },
-            },
-          },
-          select: {
-            id: true,
-            fullLabel: true,
-            slug: true,
-            images: {
-              select: {
-                introImage: true,
-              },
-            },
-            isNewProduct: true,
-            description: true,
-          },
-        });
-        return products;
-      },
-    },
-  },
+  model: {},
 });
 
 const fullyExtendedClient = clientWithProductExtensions.$extends({
