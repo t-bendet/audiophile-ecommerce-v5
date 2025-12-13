@@ -7,8 +7,6 @@ import { RequestHandler } from "express";
 import { configService } from "../services/config.service.js";
 import catchAsync from "../utils/catchAsync.js";
 
-// TODO consider adding config id to env variables for easy access
-
 export const getConfig: RequestHandler = catchAsync(async (req, res) => {
   const result = await configService.getUniqueConfig();
   res.status(200).json(createSingleItemResponse(result));
