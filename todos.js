@@ -82,7 +82,9 @@
 // ============================================================================
 // CODE ORGANIZATION & QUALITY
 // ============================================================================
-
+// TODO refactor abstract-crud-service to use ExtendedQueryParams from common.ts
+// TODO improve typing in abstract-crud-service methods (Where, Select, etc.)
+// TODO create querybuilder utility to handle filtering, sorting, pagination, field selection
 // ============================================================================
 // LEARNING & DOCUMENTATION
 // ============================================================================
