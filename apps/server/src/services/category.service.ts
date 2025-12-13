@@ -1,55 +1,48 @@
 import { prisma } from "@repo/database";
 import type {
-  baseQueryParams,
   Category,
   CategoryCreateInput,
   CategoryDTO,
   CategorySelect,
   CategoryUpdateInput,
   CategoryWhereInput,
+  NAME,
 } from "@repo/domain";
 import { ErrorCode, NAME as NAME_ENUM } from "@repo/domain";
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
-// TODO scalar fields and filter should match
-
-export interface CategoryFilter extends Pick<Category, "name"> {}
-
-export interface CategoryQueryParams extends baseQueryParams, CategoryFilter {}
-
 export class CategoryService extends AbstractCrudService<
   Category,
   CategoryCreateInput,
   CategoryUpdateInput,
-  CategoryDTO,
-  CategoryWhereInput,
-  CategorySelect,
-  CategoryFilter
+  CategoryDTO
 > {
   protected toDTO(entity: Category): CategoryDTO {
     return entity;
   }
 
-  // ***** Persistence Layer Methods (to be implemented by subclasses) *****
-  // *include filtering, pagination, ordering, selection as needed for list operations*
-
   protected async persistFindMany(params: {
-    where: CategoryWhereInput;
-    skip: number;
-    take: number;
-    orderBy?: any;
-    select?: CategorySelect;
+    page?: number;
+    limit?: number;
+    [key: string]: any;
   }): Promise<{ data: Category[]; total: number }> {
+    const { page = 1, limit = 20, name, sort, fields } = params;
+    const skip = (page - 1) * limit;
+
+    const where = this.buildCategoryWhere(name);
+    const select = this.parseCategorySelect(fields);
+    const orderBy = this.parseCategoryOrderBy(sort);
+
     const [data, total] = await prisma.$transaction([
       prisma.category.findMany({
-        where: params.where,
-        skip: params.skip,
-        take: params.take,
-        orderBy: params.orderBy,
-        select: params.select,
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        select,
       }),
-      prisma.category.count({ where: params.where }),
+      prisma.category.count({ where }),
     ]);
     return { data, total };
   }
@@ -62,18 +55,8 @@ export class CategoryService extends AbstractCrudService<
     return prisma.category.create({ data: input });
   }
 
-  /**
-   * Whitelist only allowed fields for updates
-   * Prevents clients from updating fields like 'id', 'createdAt', 'v', etc.
-   */
   protected filterUpdateInput(input: CategoryUpdateInput): CategoryUpdateInput {
-    // Define which fields are allowed to be updated
-    const allowedFields: (keyof CategoryUpdateInput)[] = [
-      "name",
-      "thumbnail",
-      // Add other updateable fields here
-    ];
-
+    const allowedFields: (keyof CategoryUpdateInput)[] = ["name", "thumbnail"];
     return this.pickFieldsByAllowed(input, allowedFields);
   }
 
@@ -100,19 +83,33 @@ export class CategoryService extends AbstractCrudService<
     }
   }
 
-  protected parseSelect(fields?: string): CategorySelect | undefined {
+  // ===== Private Query Builders =====
+
+  private buildCategoryWhere(name?: string) {
+    if (!name || typeof name !== "string") {
+      return {};
+    }
+
+    // Validate that the name is a valid NAME enum value
+    if (!Object.values(NAME_ENUM).includes(name as NAME)) {
+      return {};
+    }
+
+    return {
+      name: name as NAME,
+    };
+  }
+
+  private parseCategorySelect(fields?: string) {
     if (!fields || typeof fields !== "string") {
       return undefined;
     }
 
     const selectKeys = fields.split(",");
-    // Use const assertion for better type inference
     const validFields = ["id", "name", "createdAt", "v", "thumbnail"] as const;
 
     const select: Partial<CategorySelect> = {};
-
     for (const key of selectKeys) {
-      // Type-safe check using readonly array
       if (validFields.includes(key as (typeof validFields)[number])) {
         select[key as keyof CategorySelect] = true;
       }
@@ -123,39 +120,17 @@ export class CategoryService extends AbstractCrudService<
       : undefined;
   }
 
-  protected buildWhere(filter?: CategoryFilter): CategoryWhereInput {
-    if (!filter?.name) {
-      return {};
+  private parseCategoryOrderBy(sort?: string) {
+    if (!sort || typeof sort !== "string") {
+      return [{ id: "desc" as const }];
     }
 
-    if (!Object.values(NAME_ENUM).includes(filter.name)) {
-      throw new AppError(
-        `Invalid name value: ${filter.name}`,
-        ErrorCode.VALIDATION_ERROR
-      );
-    }
-
-    return {
-      name: { equals: filter.name },
-    };
+    return sort.split(",").map((field: string) => {
+      const isDescending = field.startsWith("-");
+      const fieldName = isDescending ? field.substring(1) : field;
+      return { [fieldName]: isDescending ? "desc" : "asc" };
+    });
   }
-
-  protected parseFilter(
-    query: CategoryQueryParams
-  ): CategoryFilter | undefined {
-    if (!query.name || typeof query.name !== "string") {
-      return undefined;
-    }
-
-    // Type guard: validate the name is a valid NAME enum value
-    if (!Object.values(NAME_ENUM).includes(query.name)) {
-      return undefined;
-    }
-
-    return { name: query.name };
-  }
-
-  // ** Helper Methods (optional overrides) **
 }
 
 export const categoryService = new CategoryService();

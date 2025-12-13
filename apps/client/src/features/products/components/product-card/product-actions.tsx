@@ -1,0 +1,58 @@
+import { Link } from "react-router-dom";
+import { UseProductCardContext } from "./index";
+import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/button";
+import { paths } from "@/config/paths";
+import { getProductBySlugQueryOptions } from "../../api/get-product";
+import { useQueryClient } from "@tanstack/react-query";
+
+// TODO decide on strategy for add and remove from cart actions,design wrapper and + - small button
+
+export default function ProductActions(props: {
+  classes?: string;
+  children?: React.ReactNode;
+  cartActions?: {
+    increaseCartItemQuantity: () => void;
+    decreaseCartItemQuantity: () => void;
+  };
+  hasNavigateAction?: boolean;
+}) {
+  const { slug } = UseProductCardContext();
+  if (!props.children && !props.hasNavigateAction && !props.cartActions) {
+    throw new Error(
+      "ProductActions components must have at least one action in context , or a child component.",
+    );
+  }
+  const queryClient = useQueryClient();
+  return (
+    <div className={cn("flex gap-4", props.classes)}>
+      {props.hasNavigateAction ? (
+        <Link
+          to={paths.product.getHref(slug)}
+          onMouseEnter={() =>
+            queryClient.ensureQueryData(getProductBySlugQueryOptions(slug))
+          }
+        >
+          <Button variant="accent">see product</Button>
+        </Link>
+      ) : null}
+      {props.cartActions ? (
+        <>
+          <div className="flex h-12 w-30 items-center justify-around bg-neutral-200 text-xs font-bold">
+            <button className="cursor-pointer opacity-25">-</button>
+            <p>1</p>
+            <button className="cursor-pointer opacity-25">+</button>
+          </div>
+          <Button
+            variant="accent"
+            onClick={props.cartActions.increaseCartItemQuantity}
+          >
+            add to cart
+          </Button>
+        </>
+      ) : null}
+      {props.children}
+      {/* Additional actions can be added here */}
+    </div>
+  );
+}

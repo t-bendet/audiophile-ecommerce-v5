@@ -5,21 +5,9 @@
 // TODO add web folder and react ts config
 // TODO what happens when i delete a category with products? cascade or restrict?
 
-// TODO LIST - Get all Users (pagination + filtering) extended keys should satisfy UserFilter
-//      Location: packages/domain/src/user.ts
-//      Context: UserGetAllRequestSchema currently allows only pagination/filtering on basic fields
-//      Goal: Extend filtering capabilities to include all fields defined in UserFilter interface
-//      Considerations:
-//        - Update UserGetAllRequestSchema to dynamically generate filters based on UserFilter keys
-//        - Ensure type safety and validation for new filter fields
-//      Benefits: More flexible user retrieval, better admin capabilities for user management
 // ============================================================================
 // BUILD & CONFIGURATION
 // ============================================================================
-
-// TODO fix env configs and make sure they are optimal
-//      Location: apps/server/src/utils/env.ts
-//      Note: The error is thrown inside the createEnv function
 
 // TODO prod script for database -  add prisma push, needed if there is no database
 
@@ -30,6 +18,48 @@
 // ============================================================================
 // SERVER & API
 // ============================================================================
+
+// TODOs collected from server app
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
+// Line: 20
+// Context: tune DTO and filter types as needed
+// TODO: tune DTO and filter types as needed
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
+// Line: 224
+// Context: aggregate to reduce queries
+// TODO: aggregate to reduce queries
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/routes/product.route.ts
+// Line: 41
+// Context: should be in category route
+// TODO: should be in category route
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/controllers/config.controller.ts
+// Line: 10
+// Context: consider adding config id to env variables for easy access
+// TODO: consider adding config id to env variables for easy access
+
+// TODOs collected from server app
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
+// Line: 20
+// Context: tune DTO and filter types as needed
+// TODO: tune DTO and filter types as needed
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
+// Line: 224
+// Context: aggregate to reduce queries
+// TODO: aggregate to reduce queries
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/routes/product.route.ts
+// Line: 41
+// Context: should be in category route
+// TODO: should be in category route
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/controllers/config.controller.ts
+// Line: 10
+// Context: consider adding config id to env variables for easy access
+// TODO: consider adding config id to env variables for easy access
 // TODO handel CORS in server
 // TODO implement forgot password and reset password
 // TODO switch to cloudinary upload images and products from dashboard? url or image upload
@@ -74,75 +104,21 @@
 //        - Always include key, even if null
 //      Recommendation: Use Option 1 (field?) for image types since not all products have all images
 //      Current: Mix of both approaches in ProductImages type (should standardize)
-
-// TODO Handle nested creates when creating Category with related Products
-//      Context: Category can have products relation in Prisma
-//      Consider: Should POST /categories accept nested product creation?
-//      Example: { name: "Monitors", products: { create: [...] } }
-//      Decision needed:
-//        - Option 1: Keep Category create simple (no nested creates), manage products separately
-//        - Option 2: Support nested creates with proper validation and transaction handling
-//        - Option 3: Separate endpoint for bulk category+products creation
-//      Current: CategoryService.create only handles CategoryCreateInput (no nested products)
-
-// TODO soft delete for users needs a lot of work to be complete
+// TODO add null values to product seed/? check which values are null by default
 
 // ============================================================================
 // DATA & SEEDING
 // ============================================================================
 
 // TODO yx1 wireless earphones does not have related product image
-// TODO add null values to product seed/? check which values are null by default
 // TODO isNew as a virtual property - less than a year since arrival
 
 // ============================================================================
 // CODE ORGANIZATION & QUALITY
 // ============================================================================
-// TODO jsdoc comments for all service methods
-
-// TODO consider if these asserts are useful, or if they are just a way to make typescript happy
-//      Example code:
-//      type User = {
-//        id: number;
-//        name: string;
-//      };
-//
-//      function isUser(value: unknown): value is User {
-//        return (
-//          typeof value === "object" &&
-//          value !== null &&
-//          "id" in value &&
-//          typeof value.id === "number" &&
-//          "name" in value &&
-//          typeof value.name === "string"
-//        );
-//      }
-//
-//      function saveToDatabase(user: User) {
-//        console.log("Saving user:", user.name);
-//      }
-//
-//      function assert(condition: unknown, msg?: string): asserts condition {
-//        if (condition === false) throw new Error(msg);
-//      }
-//
-//      function updateUser(userData: unknown) {
-//        assert(isUser(userData), "Not a valid user");
-//        saveToDatabase(userData); // ✅ Type-safe now!
-//      }
-//
-//      updateUser({ id: 1, name: "John Doe" }); // ✅ Works
-//
-//      function assertIsUser(value: unknown): asserts value is User {
-//        if (!isUser(value)) {
-//          throw new Error("Not a valid user");
-//        }
-//      }
-//
-//      function assertUser(value: unknown): asserts value is UserPublicInfo {
-//        PublicInfoSchema.parse(value);
-//      }
-
+// TODO refactor abstract-crud-service to use ExtendedQueryParams from common.ts
+// TODO improve typing in abstract-crud-service methods (Where, Select, etc.)
+// TODO create querybuilder utility to handle filtering, sorting, pagination, field selection
 // ============================================================================
 // LEARNING & DOCUMENTATION
 // ============================================================================
@@ -153,65 +129,4 @@
 // TODO go over express basic principles
 // TODO go over turborepo core-concepts,https://turborepo.com/docs/core-concepts
 // TODO go over monorepo best practices
-// TODO basicly go over the whole project structure and understand each part
-
-// // Query (pagination / sorting / filtering)
-// export const ProductListQuerySchema = z
-//   .object({
-//     page: z
-//       .string()
-//       .regex(/^[0-9]+$/)
-//       .transform(Number)
-//       .optional()
-//       .default(1),
-//     limit: z
-//       .string()
-//       .regex(/^[0-9]+$/)
-//       .transform(Number)
-//       .optional()
-//       .default(20),
-//     sort: z
-//       .string()
-//       .optional()
-//       .refine(
-//         (val) =>
-//           !val ||
-//           [
-//             "price",
-//             "-price",
-//             "name",
-//             "-name",
-//             "createdAt",
-//             "-createdAt",
-//           ].includes(val),
-//         { message: "Invalid sort field" }
-//       ),
-//     minPrice: z
-//       .string()
-//       .regex(/^[0-9]+$/)
-//       .transform(Number)
-//       .optional(),
-//     maxPrice: z
-//       .string()
-//       .regex(/^[0-9]+$/)
-//       .transform(Number)
-//       .optional(),
-//     category: z.string().optional(),
-//     fields: z
-//       .string()
-//       .optional()
-//       .refine(
-//         (val) =>
-//           !val ||
-//           val
-//             .split(",")
-//             .every((f) =>
-//               ["id", "name", "slug", "price", "categoryId"].includes(f.trim())
-//             ),
-//         { message: "Invalid fields projection" }
-//       ),
-//   })
-//   .refine((q) => !(q.minPrice && q.maxPrice && q.minPrice > q.maxPrice), {
-//     message: "minPrice cannot exceed maxPrice",
-//     path: ["minPrice"],
-//   });
+// TODO jsdoc comments for all service methods
