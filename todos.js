@@ -5,14 +5,6 @@
 // TODO add web folder and react ts config
 // TODO what happens when i delete a category with products? cascade or restrict?
 
-// TODO LIST - Get all Users (pagination + filtering) extended keys should satisfy UserFilter
-//      Location: packages/domain/src/user.ts
-//      Context: UserGetAllRequestSchema currently allows only pagination/filtering on basic fields
-//      Goal: Extend filtering capabilities to include all fields defined in UserFilter interface
-//      Considerations:
-//        - Update UserGetAllRequestSchema to dynamically generate filters based on UserFilter keys
-//        - Ensure type safety and validation for new filter fields
-//      Benefits: More flexible user retrieval, better admin capabilities for user management
 // ============================================================================
 // BUILD & CONFIGURATION
 // ============================================================================
