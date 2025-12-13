@@ -9,7 +9,7 @@ import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-p
 import ProductsList from "@/features/products/components/products-list";
 import ProductsListSkeleton from "@/features/products/components/products-list-skeleton";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
-import { $Enums } from "database";
+import { $Enums } from "@repo/database";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { LoaderFunctionArgs, useParams } from "react-router-dom";

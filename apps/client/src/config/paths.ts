@@ -1,4 +1,4 @@
-import { $Enums } from "database";
+import { $Enums } from "@repo/database";
 
 export const paths = {
   home: {
