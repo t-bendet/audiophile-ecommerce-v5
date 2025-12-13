@@ -1,6 +1,6 @@
-import { prisma } from "database";
+import { prisma } from "@repo/database";
 
-export { $Enums } from "database";
+export { $Enums } from "@repo/database";
 export interface SuccessResponse<T> {
   status: "success";
   data: T;
