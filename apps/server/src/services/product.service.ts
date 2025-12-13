@@ -17,8 +17,6 @@ import {
 import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
-// TODO: tune DTO and filter types as needed
-
 export class ProductService extends AbstractCrudService<
   Product,
   ProductCreateInput,
@@ -221,7 +219,6 @@ export class ProductService extends AbstractCrudService<
     productId: string
   ): Promise<{ data: ProductRelatedProductsDTO; meta: Meta }> {
     // Get base product info
-    // TODO aggregate to reduce queries
     const product = await prisma.product.findUnique({
       where: { id: productId },
       select: { categoryId: true, price: true },

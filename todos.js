@@ -18,6 +18,48 @@
 // ============================================================================
 // SERVER & API
 // ============================================================================
+
+// TODOs collected from server app
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
+// Line: 20
+// Context: tune DTO and filter types as needed
+// TODO: tune DTO and filter types as needed
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
+// Line: 224
+// Context: aggregate to reduce queries
+// TODO: aggregate to reduce queries
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/routes/product.route.ts
+// Line: 41
+// Context: should be in category route
+// TODO: should be in category route
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/controllers/config.controller.ts
+// Line: 10
+// Context: consider adding config id to env variables for easy access
+// TODO: consider adding config id to env variables for easy access
+
+// TODOs collected from server app
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
+// Line: 20
+// Context: tune DTO and filter types as needed
+// TODO: tune DTO and filter types as needed
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
+// Line: 224
+// Context: aggregate to reduce queries
+// TODO: aggregate to reduce queries
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/routes/product.route.ts
+// Line: 41
+// Context: should be in category route
+// TODO: should be in category route
+
+// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/controllers/config.controller.ts
+// Line: 10
+// Context: consider adding config id to env variables for easy access
+// TODO: consider adding config id to env variables for easy access
 // TODO handel CORS in server
 // TODO implement forgot password and reset password
 // TODO switch to cloudinary upload images and products from dashboard? url or image upload
