@@ -38,7 +38,6 @@ productRouter.get(
   productController.getRelatedProducts
 );
 
-//  TODO should be in category route
 productRouter.get(
   "/:id",
   validateSchema(ProductGetByIdRequestSchema),

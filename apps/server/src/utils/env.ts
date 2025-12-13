@@ -4,14 +4,6 @@ import * as z from "zod";
 
 dotenv.config({ override: true });
 
-// TODO the error is thrown inside the createEnv function
-// and it is not caught in the index.ts file, so the server will crash
-// we should handle this error properly
-// and provide a meaningful message to the user
-// or use a default value for the environment variables
-// or use a different approach to load the environment variables
-// like using a config file or a library like dotenv-safe
-
 const msDurationStringCheck = z.custom<ms.StringValue>((val) => {
   return ms(val as ms.StringValue) && typeof val === "string";
 }, "Invalid ms duration format");

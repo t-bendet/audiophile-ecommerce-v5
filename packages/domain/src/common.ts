@@ -263,8 +263,10 @@ export type RequestSchema<
 };
 
 export interface baseQueryParams {
-  page?: string | number;
-  limit?: string | number;
+  page?: number;
+  limit?: number;
   sort?: string;
   fields?: string;
 }
+
+export type ExtendedQueryParams<T> = baseQueryParams & T;
