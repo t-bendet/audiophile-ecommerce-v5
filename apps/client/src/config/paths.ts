@@ -1,4 +1,4 @@
-import { $Enums } from "@repo/database";
+import { NAME } from "@repo/domain";
 
 export const paths = {
   home: {
@@ -7,7 +7,7 @@ export const paths = {
   },
   category: {
     path: "category/:categoryName",
-    getHref: (categoryName: $Enums.NAME) => `/category/${categoryName}`,
+    getHref: (categoryName: NAME) => `/category/${categoryName}`,
   },
   product: {
     path: "product/:productSlug",

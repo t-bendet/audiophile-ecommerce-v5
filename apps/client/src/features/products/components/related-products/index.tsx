@@ -6,14 +6,14 @@ import { getProductBySlugQueryOptions } from "../../api/get-product";
 import { getRelatedProductsQueryOptions } from "../../api/get-products";
 
 const RelatedProducts = ({ id }: { id: string }) => {
-  const { data: relatedProducts } = useSuspenseQuery(
+  const { data: productsResponse } = useSuspenseQuery(
     getRelatedProductsQueryOptions(id),
   );
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   return (
     <div className="flex flex-col gap-14 md:flex-row md:gap-3 lg:gap-8">
-      {relatedProducts.map((product) => (
+      {productsResponse.data.map((product) => (
         <article key={product.id} className="space-y-8">
           <ResponsivePicture
             mobileSrc={product.images.relatedProductImage.mobileSrc}

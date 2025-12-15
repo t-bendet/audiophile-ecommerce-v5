@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev:start": "vite",
+    "dev": "vite",
     "build": "tsc -b && vite build",
-    "prod:start": "vite preview",
+    "prod": "vite preview",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -18,7 +18,6 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-query": "^5.83.0",
-    "@repo/database": "workspace:*",
     "@repo/domain": "workspace:*",
     "axios": "^1.11.0",
     "class-variance-authority": "^0.7.1",

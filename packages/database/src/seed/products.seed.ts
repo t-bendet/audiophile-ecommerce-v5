@@ -411,9 +411,9 @@ const earphonesProductData: ProductCreateWithoutCategoryInput[] = [
           "YX1 Wireless Earphones displayed prominently on a clean surface, highlighting their sleek and modern design.",
       },
       relatedProductImage: {
-        mobileSrc: "",
-        tabletSrc: "",
-        desktopSrc: "",
+        mobileSrc: "update this",
+        tabletSrc: "update this",
+        desktopSrc: "update this",
         ariaLabel: "YX1 Earphones related product image",
         altText: "test",
       },

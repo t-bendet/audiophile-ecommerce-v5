@@ -20,20 +20,39 @@ import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { LoaderFunctionArgs, useNavigate, useParams } from "react-router-dom";
 
-// TODO -actions - add to cart, increase, decrease
-
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    const slug = params.productSlug as string;
-    const query = getProductBySlugQueryOptions(slug);
-    queryClient.ensureQueryData(query);
-    return null; // Ensure the loader returns null if no data is available
+    try {
+      const slug = params.productSlug as string;
+
+      const query = getProductBySlugQueryOptions(slug);
+      await queryClient.ensureQueryData(query);
+
+      return null;
+    } catch (error) {
+      // If it's already a Response (from our validation), re-throw it
+      if (error instanceof Response) {
+        throw error;
+      }
+
+      // Handle 404 from API
+      const axiosError = error as { response?: { status: number } };
+      if (axiosError?.response?.status === 404) {
+        throw new Response("Product not found", {
+          status: 404,
+          statusText: "Not Found",
+        });
+      }
+
+      // Re-throw other errors
+      throw error;
+    }
   };
 
 const Product = () => {
   const { productSlug } = useParams();
-  const { data: product } = useSuspenseQuery(
+  const { data: productResponse } = useSuspenseQuery(
     getProductBySlugQueryOptions(productSlug!),
   );
   const navigate = useNavigate();
@@ -57,21 +76,21 @@ const Product = () => {
         <Section classes="max-sm:mb-22">
           <Container classes="flex flex-col gap-y-8 md:flex-row md:gap-x-17 lg:gap-x-31">
             <ResponsivePicture
-              mobileSrc={product.images.primaryImage.mobileSrc}
-              tabletSrc={product.images.primaryImage.tabletSrc}
-              desktopSrc={product.images.primaryImage.desktopSrc}
-              altText={product.images.primaryImage.altText}
-              ariaLabel={product.images.primaryImage.ariaLabel}
+              mobileSrc={productResponse.data.images.primaryImage.mobileSrc}
+              tabletSrc={productResponse.data.images.primaryImage.tabletSrc}
+              desktopSrc={productResponse.data.images.primaryImage.desktopSrc}
+              altText={productResponse.data.images.primaryImage.altText}
+              ariaLabel={productResponse.data.images.primaryImage.ariaLabel}
               pictureClasses="rounded-sm"
             />
             <ProductCard
               product={{
-                id: product.id,
-                title: product.fullLabel,
-                isNewProduct: product.isNewProduct,
-                slug: product.slug,
-                description: product.description,
-                price: product.price,
+                id: productResponse.data.id,
+                title: productResponse.data.fullLabel,
+                isNewProduct: productResponse.data.isNewProduct,
+                slug: productResponse.data.slug,
+                description: productResponse.data.description,
+                price: productResponse.data.price,
               }}
               classes="items-start text-left"
             >
@@ -96,7 +115,7 @@ const Product = () => {
                 features
               </h2>
               <div className="space-y-6 opacity-50 md:space-y-10">
-                {product.featuresText.map((line, index) => (
+                {productResponse.data.featuresText.map((line, index) => (
                   <p key={index}>{line}</p>
                 ))}
               </div>
@@ -107,7 +126,7 @@ const Product = () => {
                 in the box
               </h2>
               <ul className="w-full min-w-max">
-                {product.includedItems.map((inc, index) => (
+                {productResponse.data.includedItems.map((inc, index) => (
                   <li key={index}>
                     <span className="text-primary-500 mr-5 font-bold md:mr-6">
                       {inc.quantity}x
@@ -123,29 +142,35 @@ const Product = () => {
         <Section>
           <Container classes="grid grid-cols-1 grid-rows-2 gap-5 md:grid-cols-[40%__60%] lg:gap-8">
             <ResponsivePicture
-              mobileSrc={product.images.galleryImages[0].mobileSrc}
-              tabletSrc={product.images.galleryImages[0].tabletSrc}
-              desktopSrc={product.images.galleryImages[0].desktopSrc}
-              altText={product.images.galleryImages[0].altText}
-              ariaLabel={product.images.galleryImages[0].ariaLabel}
+              mobileSrc={productResponse.data.images.galleryImages[0].mobileSrc}
+              tabletSrc={productResponse.data.images.galleryImages[0].tabletSrc}
+              desktopSrc={
+                productResponse.data.images.galleryImages[0].desktopSrc
+              }
+              altText={productResponse.data.images.galleryImages[0].altText}
+              ariaLabel={productResponse.data.images.galleryImages[0].ariaLabel}
               pictureClasses="rounded-sm md:col-span-1 md:row-span-1"
               classes="h-full rounded-sm"
             />
             <ResponsivePicture
-              mobileSrc={product.images.galleryImages[1].mobileSrc}
-              tabletSrc={product.images.galleryImages[1].tabletSrc}
-              desktopSrc={product.images.galleryImages[1].desktopSrc}
-              altText={product.images.galleryImages[1].altText}
-              ariaLabel={product.images.galleryImages[1].ariaLabel}
+              mobileSrc={productResponse.data.images.galleryImages[1].mobileSrc}
+              tabletSrc={productResponse.data.images.galleryImages[1].tabletSrc}
+              desktopSrc={
+                productResponse.data.images.galleryImages[1].desktopSrc
+              }
+              altText={productResponse.data.images.galleryImages[1].altText}
+              ariaLabel={productResponse.data.images.galleryImages[1].ariaLabel}
               pictureClasses="rounded-sm md:col-start-1 md:row-start-2"
               classes="h-full rounded-sm"
             />
             <ResponsivePicture
-              mobileSrc={product.images.galleryImages[2].mobileSrc}
-              tabletSrc={product.images.galleryImages[2].tabletSrc}
-              desktopSrc={product.images.galleryImages[2].desktopSrc}
-              altText={product.images.galleryImages[2].altText}
-              ariaLabel={product.images.galleryImages[2].ariaLabel}
+              mobileSrc={productResponse.data.images.galleryImages[2].mobileSrc}
+              tabletSrc={productResponse.data.images.galleryImages[2].tabletSrc}
+              desktopSrc={
+                productResponse.data.images.galleryImages[2].desktopSrc
+              }
+              altText={productResponse.data.images.galleryImages[2].altText}
+              ariaLabel={productResponse.data.images.galleryImages[2].ariaLabel}
               pictureClasses="rounded-sm md:col-start-2 md:row-span-2 "
               classes="h-full rounded-sm"
             />
@@ -170,12 +195,12 @@ const Product = () => {
               )}
               onReset={() => {
                 queryClient.prefetchQuery(
-                  getRelatedProductsQueryOptions(product.id),
+                  getRelatedProductsQueryOptions(productResponse.data.id),
                 );
               }}
             >
               <Suspense fallback={<LoadingSpinner />}>
-                <RelatedProducts id={product.id} />
+                <RelatedProducts id={productResponse.data.id} />
               </Suspense>
             </ErrorBoundary>
           </Container>
