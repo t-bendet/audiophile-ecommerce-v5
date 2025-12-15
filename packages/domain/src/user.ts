@@ -132,7 +132,7 @@ export const UserDTOSchema = z
     email: EmailValidator,
     role: z.enum(ROLE),
     emailVerified: z.boolean(),
-    createdAt: z.date(),
+    createdAt: z.coerce.date(),
     v: z.number(),
   })
   .strict();
