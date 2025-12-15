@@ -30,10 +30,10 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       }
     >
       <ErrorBoundary FallbackComponent={MainErrorFallback}>
-          <QueryClientProvider client={queryClient}>
-            {import.meta.env.DEV && <ReactQueryDevtools />}
-            <Toaster />
-            {/* <AuthLoader
+        <QueryClientProvider client={queryClient}>
+          {import.meta.env.DEV && <ReactQueryDevtools />}
+          <Toaster />
+          {/* <AuthLoader
               renderLoading={() => (
                 <div className="flex h-screen w-screen items-center justify-center">
                   <Spinner size="xl" />
@@ -42,8 +42,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             >
               {children}
             </AuthLoader> */}
-            {children}
-          </QueryClientProvider>
+          {children}
+        </QueryClientProvider>
       </ErrorBoundary>
     </React.Suspense>
   );
