@@ -18,10 +18,14 @@ import { LoaderFunctionArgs, useParams } from "react-router-dom";
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    const category = params.categoryName as NAME;
-    const query = getProductsByCategoryQueryOptions(category);
-    queryClient.ensureQueryData(query);
-    return null; // Ensure the loader returns null if no data is available
+    try {
+      const category = params.categoryName as NAME;
+      const query = getProductsByCategoryQueryOptions(category);
+      await queryClient.ensureQueryData(query);
+      return null;
+    } catch (error) {
+      throw error;
+    }
   };
 
 const Category = () => {

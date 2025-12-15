@@ -23,10 +23,31 @@ import { LoaderFunctionArgs, useNavigate, useParams } from "react-router-dom";
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    const slug = params.productSlug as string;
-    const query = getProductBySlugQueryOptions(slug);
-    queryClient.ensureQueryData(query);
-    return null; // Ensure the loader returns null if no data is available
+    try {
+      const slug = params.productSlug as string;
+
+      const query = getProductBySlugQueryOptions(slug);
+      await queryClient.ensureQueryData(query);
+
+      return null;
+    } catch (error) {
+      // If it's already a Response (from our validation), re-throw it
+      if (error instanceof Response) {
+        throw error;
+      }
+
+      // Handle 404 from API
+      const axiosError = error as { response?: { status: number } };
+      if (axiosError?.response?.status === 404) {
+        throw new Response("Product not found", {
+          status: 404,
+          statusText: "Not Found",
+        });
+      }
+
+      // Re-throw other errors
+      throw error;
+    }
   };
 
 const Product = () => {
