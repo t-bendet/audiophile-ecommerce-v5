@@ -82,7 +82,7 @@ export const ConfigDeleteByIdRequestSchema = createRequestSchema({
 export const ConfigDTOSchema = z.object({
   id: IdValidator("Config"),
   name: z.string(),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
   v: z.number(),
   featuredProductId: IdValidator("Featured Product"),
   showCaseCoverId: string("ShowcaseCover Product"),

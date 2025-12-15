@@ -88,7 +88,7 @@ const ProductPropertiesSchema = z
     ),
     images: ProductImagesObjectSchema,
     v: z.number().int().nonnegative(),
-    createdAt: z.date(),
+    createdAt: z.coerce.date(),
     categoryId: IdValidator("Category"),
     id: IdValidator("Product"),
   })
