@@ -39,7 +39,7 @@ const getAllProducts: TGetProducts = async ({ filters, signal }) => {
       signal,
     },
   );
-  const result = ProductGetAllResponseSchema.safeParse(response.data.data);
+  const result = ProductGetAllResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {
@@ -65,7 +65,7 @@ const getRelatedProducts: TGetRelatedProducts = async ({ id, signal }) => {
   const response = await api.get(`/products/related-products/${id}`, {
     signal,
   });
-  const result = ProductGetRelatedResponseSchema.safeParse(response.data.data);
+  const result = ProductGetRelatedResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {
@@ -92,9 +92,7 @@ const getProductsByCategory: TGetProductsByCategory = async ({
   signal,
 }) => {
   const response = await api.get(`/products/category/${category}`, { signal });
-  const result = ProductGetByCategoryResponseSchema.safeParse(
-    response.data.data,
-  );
+  const result = ProductGetByCategoryResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {
@@ -115,7 +113,7 @@ type TGetShowCaseProducts = TBaseHandler<ProductGetShowCaseResponse>;
 
 const getShowCaseProducts: TGetShowCaseProducts = async ({ signal }) => {
   const response = await api.get("/products/show-case", { signal });
-  const result = ProductGetShowCaseResponseSchema.safeParse(response.data.data);
+  const result = ProductGetShowCaseResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {
