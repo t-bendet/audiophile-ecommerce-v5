@@ -2,7 +2,7 @@ import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { Section } from "@/components/ui/section";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { $Enums } from "database";
+import { $Enums } from "@repo/database";
 import { getProductsByCategoryQueryOptions } from "../api/get-products";
 import ProductCard from "./product-card";
 

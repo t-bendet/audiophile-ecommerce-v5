@@ -1,5 +1,4 @@
 import { BestGearSection } from "@/components/sections";
-import { Head } from "@/components/seo/head";
 import { Section } from "@/components/ui/section";
 import FeaturedProductSection from "./featured-product-section";
 import ShowCaseProductsSection from "./show-case-products-section";
@@ -18,7 +17,6 @@ const Home = () => {
   const queryClient = useQueryClient();
   return (
     <>
-      <Head description={"Welcome to Audiophile"} title="Home" />
       <main>
         <Section classes="mb-10 h-[calc(100vh-(var(--nav-bar-height)))] w-full bg-neutral-900 md:mb-24 lg:mb-30">
           <Container classes="grid h-full grid-cols-1 bg-neutral-600">
