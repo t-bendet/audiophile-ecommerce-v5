@@ -12,7 +12,7 @@ type TGetAllCategories = TBaseHandler<CategoryGetAllResponse>;
 
 const getAllCategories: TGetAllCategories = async ({ signal }) => {
   const response = await api.get("/categories", { signal });
-  const result = CategoryGetAllResponseSchema.safeParse(response.data.data);
+  const result = CategoryGetAllResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
     ``;
