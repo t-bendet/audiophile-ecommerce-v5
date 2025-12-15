@@ -1,4 +1,4 @@
-import {
+import type {
   Prisma,
   Product as PrismaProduct,
   ProductsImagesThumbnail,
