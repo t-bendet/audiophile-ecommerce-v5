@@ -15,9 +15,12 @@ const getAllCategories: TGetAllCategories = async ({ signal }) => {
   const result = CategoryGetAllResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
-    ``;
   } else {
-    throw new Error("Failed to fetch categories");
+    throw new Error(
+      `Failed to fetch categories: ${result.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ")}`,
+    );
   }
 };
 
