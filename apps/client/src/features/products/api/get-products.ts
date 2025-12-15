@@ -1,76 +1,71 @@
 import { api } from "@/lib/api-client";
 import {
-  $Enums,
   TBaseHandler,
   TBaseRequestParams,
   TExtendsRequestParams,
-  TProduct,
-  TRelatedProducts,
-  TShowCaseProducts,
-  TProductsByCategory,
 } from "@/types/api";
-import { IdValidator } from "@/utils/validators";
 import { queryOptions } from "@tanstack/react-query";
-import { z } from "zod";
 import productKeys from "./product-keys";
+import {
+  Product,
+  ProductGetAllResponse,
+  ProductGetAllResponseSchema,
+  ProductGetByCategoryResponse,
+  ProductGetByCategoryResponseSchema,
+  ProductGetRelatedResponse,
+  ProductGetRelatedResponseSchema,
+  NAME,
+  ProductGetShowCaseResponse,
+  ProductGetShowCaseResponseSchema,
+} from "@repo/domain";
 
 // ** GetProducts
 
-type productKeys = keyof TProduct;
+type productKeys = keyof Product;
 
 // TODO needs more work,also for the return type of the products
 type TProductFilters = Partial<Record<productKeys, string>>;
 
 type TGetProducts = TBaseHandler<
-  TProduct[],
+  ProductGetAllResponse,
   TExtendsRequestParams<{ filters?: TProductFilters }>
 >;
 
-const getProducts: TGetProducts = ({ filters, signal }) => {
+const getAllProducts: TGetProducts = async ({ filters, signal }) => {
   const queryParams = new URLSearchParams(filters).toString();
-  return api.get(`/products${queryParams ? `?${queryParams}` : ""}`, {
-    signal,
-  });
+  const response = await api.get(
+    `/products${queryParams ? `?${queryParams}` : ""}`,
+    {
+      signal,
+    },
+  );
+  const result = ProductGetAllResponseSchema.safeParse(response.data.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw new Error("Failed to fetch Product");
+  }
 };
 
-export const getProductsQueryOptions = (filters?: TProductFilters) =>
+export const getAllProductsQueryOptions = (filters?: TProductFilters) =>
   queryOptions({
     queryKey: productKeys.list(filters),
     queryFn: ({ signal }: TBaseRequestParams) =>
-      getProducts({ filters, signal }),
+      getAllProducts({ filters, signal }),
   });
 
 // ** GetRelatedProducts
 
 type TGetRelatedProducts = TBaseHandler<
-  TRelatedProducts,
+  ProductGetRelatedResponse,
   TExtendsRequestParams<{ id: string }>
 >;
-
-const RelatedProductSchema = z.object({
-  shortLabel: z.string(),
-  id: IdValidator("product"),
-  slug: z.string(),
-  images: z.object({
-    relatedProductImage: z.object({
-      mobileSrc: z.string(),
-      tabletSrc: z.string(),
-      desktopSrc: z.string(),
-      altText: z.string(),
-      ariaLabel: z.string(),
-    }),
-  }),
-});
-
-const RelatedProductsSchema = z.array(
-  RelatedProductSchema,
-) satisfies z.Schema<TRelatedProducts>;
 
 const getRelatedProducts: TGetRelatedProducts = async ({ id, signal }) => {
   const response = await api.get(`/products/related-products/${id}`, {
     signal,
   });
-  const result = RelatedProductsSchema.safeParse(response.data.data);
+  const result = ProductGetRelatedResponseSchema.safeParse(response.data.data);
   if (result.success) {
     return result.data;
   } else {
@@ -87,30 +82,9 @@ export const getRelatedProductsQueryOptions = (id: string) =>
 
 // ** GetProductsByCategory
 
-const ProductByCategorySchema = z.object({
-  description: z.string(),
-  slug: z.string(),
-  fullLabel: z.array(z.string()),
-  id: IdValidator("product"),
-  isNewProduct: z.boolean(),
-  images: z.object({
-    introImage: z.object({
-      mobileSrc: z.string(),
-      tabletSrc: z.string(),
-      desktopSrc: z.string(),
-      altText: z.string(),
-      ariaLabel: z.string(),
-    }),
-  }),
-});
-
-const ProductsByCategorySchemas = z.array(
-  ProductByCategorySchema,
-) satisfies z.Schema<TProductsByCategory>;
-
 type TGetProductsByCategory = TBaseHandler<
-  TProductsByCategory,
-  TExtendsRequestParams<{ category: $Enums.NAME }>
+  ProductGetByCategoryResponse,
+  TExtendsRequestParams<{ category: NAME }>
 >;
 
 const getProductsByCategory: TGetProductsByCategory = async ({
@@ -118,7 +92,9 @@ const getProductsByCategory: TGetProductsByCategory = async ({
   signal,
 }) => {
   const response = await api.get(`/products/category/${category}`, { signal });
-  const result = ProductsByCategorySchemas.safeParse(response.data.data);
+  const result = ProductGetByCategoryResponseSchema.safeParse(
+    response.data.data,
+  );
   if (result.success) {
     return result.data;
   } else {
@@ -126,7 +102,7 @@ const getProductsByCategory: TGetProductsByCategory = async ({
   }
 };
 
-export const getProductsByCategoryQueryOptions = (category: $Enums.NAME) =>
+export const getProductsByCategoryQueryOptions = (category: NAME) =>
   queryOptions({
     queryKey: productKeys.productsByCategoryList(category),
     queryFn: ({ signal }: TBaseRequestParams) =>
@@ -135,34 +111,11 @@ export const getProductsByCategoryQueryOptions = (category: $Enums.NAME) =>
 
 // ** GetShowCaseProducts
 
-const ShowCaseProductSchema = z.object({
-  shortLabel: z.string(),
-  slug: z.string(),
-  id: IdValidator("product"),
-  categoryId: IdValidator("category"),
-  showCaseImageText: z.string().nullable(),
-  images: z.object({
-    showCaseImage: z.object({
-      mobileSrc: z.string(),
-      tabletSrc: z.string(),
-      desktopSrc: z.string(),
-      altText: z.string(),
-      ariaLabel: z.string(),
-    }),
-  }),
-});
-
-const ShowCaseProductsSchema = z.object({
-  cover: ShowCaseProductSchema,
-  grid: ShowCaseProductSchema,
-  wide: ShowCaseProductSchema,
-}) satisfies z.Schema<TShowCaseProducts>;
-
-type TGetShowCaseProducts = TBaseHandler<TShowCaseProducts>;
+type TGetShowCaseProducts = TBaseHandler<ProductGetShowCaseResponse>;
 
 const getShowCaseProducts: TGetShowCaseProducts = async ({ signal }) => {
   const response = await api.get("/products/show-case", { signal });
-  const result = ShowCaseProductsSchema.safeParse(response.data.data);
+  const result = ProductGetShowCaseResponseSchema.safeParse(response.data.data);
   if (result.success) {
     return result.data;
   } else {

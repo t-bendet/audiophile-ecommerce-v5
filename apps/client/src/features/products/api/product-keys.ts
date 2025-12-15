@@ -1,4 +1,4 @@
-import { $Enums } from "@/types/api";
+import { NAME } from "@repo/database";
 
 const productKeys = {
   all: ["products"] as const,
@@ -7,7 +7,7 @@ const productKeys = {
     [...productKeys.lists(), { filters }] as const,
   relatedProductsList: (id: string) =>
     [...productKeys.lists(), "related-products", id] as const,
-  productsByCategoryList: (category: $Enums.NAME) =>
+  productsByCategoryList: (category: NAME) =>
     [...productKeys.lists(), category] as const,
   showCaseProductsList: () => [...productKeys.lists(), "show-case"] as const,
   details: () => [...productKeys.all, "detail"] as const,

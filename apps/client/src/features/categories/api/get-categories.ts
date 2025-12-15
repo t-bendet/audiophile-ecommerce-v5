@@ -8,13 +8,14 @@ import {
 } from "@repo/domain";
 import { queryOptions } from "@tanstack/react-query";
 
-const getAllCategories: TBaseHandler<CategoryGetAllResponse> = async ({
-  signal,
-}) => {
+type TGetAllCategories = TBaseHandler<CategoryGetAllResponse>;
+
+const getAllCategories: TGetAllCategories = async ({ signal }) => {
   const response = await api.get("/categories", { signal });
   const result = CategoryGetAllResponseSchema.safeParse(response.data.data);
   if (result.success) {
     return result.data;
+    ``;
   } else {
     throw new Error("Failed to fetch categories");
   }
