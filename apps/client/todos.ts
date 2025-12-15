@@ -2,7 +2,6 @@
 // TODO decide on error handling strategy, use react-query error boundary or custom error component
 // TODO rethink the whole error handling strategy,for backend and frontend(big task)
 // TODO refactor to use bulletproof-react auth patterns
-// TODO pnpm course
 // TODO axios refresher
 // TODO Lib - auth and authorization files
 // TODO Provider -  add AuthLoader
