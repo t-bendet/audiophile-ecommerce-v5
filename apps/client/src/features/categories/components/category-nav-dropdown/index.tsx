@@ -1,6 +1,5 @@
 import Icon from "@/assets/icon-arrow-right.svg?react";
 import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
-import { $Enums } from "@/types/api";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { getProductsByCategoryQueryOptions } from "../../../products/api/get-products";
@@ -11,11 +10,14 @@ const CategoryNavDropdown = ({
   clickHandler?: () => void;
 }) => {
   const queryClient = useQueryClient();
-  const { data: categories } = useSuspenseQuery(getCategoriesQueryOptions());
+  const { data: categoriesResponse } = useSuspenseQuery(
+    getCategoriesQueryOptions(),
+  );
   return (
     <nav onClick={clickHandler}>
+      \
       <ul className="flex flex-col gap-4 text-neutral-900 md:flex-row md:justify-around lg:gap-8">
-        {categories.map((category) => (
+        {categoriesResponse.data.map((category) => (
           <li
             className="col-auto grid grid-cols-1 grid-rows-[25%_1fr_80px] justify-items-center rounded-md"
             key={category.id}
@@ -36,9 +38,7 @@ const CategoryNavDropdown = ({
                 className="tracking-600 inline-flex items-center gap-2 text-xs font-bold uppercase opacity-50 hover:underline"
                 onMouseEnter={() => {
                   queryClient.ensureQueryData(
-                    getProductsByCategoryQueryOptions(
-                      category.name as $Enums.NAME,
-                    ),
+                    getProductsByCategoryQueryOptions(category.name),
                   );
                 }}
               >
