@@ -9,7 +9,7 @@ import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-p
 import ProductsList from "@/features/products/components/products-list";
 import ProductsListSkeleton from "@/features/products/components/products-list-skeleton";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
-import { $Enums } from "@repo/database";
+import { NAME } from "@repo/domain";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { LoaderFunctionArgs, useParams } from "react-router-dom";
@@ -18,14 +18,14 @@ import { LoaderFunctionArgs, useParams } from "react-router-dom";
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    const category = params.categoryName as $Enums.NAME;
+    const category = params.categoryName as NAME;
     const query = getProductsByCategoryQueryOptions(category);
     queryClient.ensureQueryData(query);
     return null; // Ensure the loader returns null if no data is available
   };
 
 const Category = () => {
-  const { categoryName } = useParams<{ categoryName: $Enums.NAME }>();
+  const { categoryName } = useParams<{ categoryName: NAME }>();
   const queryClient = useQueryClient();
   return (
     <>

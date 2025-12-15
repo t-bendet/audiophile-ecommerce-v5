@@ -1,5 +1,3 @@
-// TODOdelet after moving all types to @repo/domain
-
 export interface TBaseRequestParams {
   signal: AbortSignal;
 }

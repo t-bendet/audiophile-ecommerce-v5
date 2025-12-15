@@ -1,12 +1,18 @@
 import { NavLink } from "react-router-dom";
 import { paths } from "@/config/paths";
-import { categoryNames } from "@/utils/const";
+import { NAME } from "@repo/domain";
 import {
   getProductsByCategoryQueryOptions,
   getShowCaseProductsQueryOptions,
 } from "@/features/products/api/get-products";
 import { useQueryClient } from "@tanstack/react-query";
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
+
+const categoryNames = [
+  "Headphones",
+  "Earphones",
+  "Speakers",
+] as const satisfies NAME[];
 
 export const NavLinks = () => {
   const queryClient = useQueryClient();
