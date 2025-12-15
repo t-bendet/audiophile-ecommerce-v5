@@ -91,7 +91,9 @@ const getProductsByCategory: TGetProductsByCategory = async ({
   category,
   signal,
 }) => {
-  const response = await api.get(`/products/category/${category}`, { signal });
+  const response = await api.get(`/categories/${category}/products`, {
+    signal,
+  });
   const result = ProductGetByCategoryResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
