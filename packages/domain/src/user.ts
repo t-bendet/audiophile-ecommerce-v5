@@ -1,4 +1,4 @@
-import { $Enums, Prisma, User as PrismaUser } from "@repo/database";
+import type { Prisma, User as PrismaUser } from "@repo/database";
 import { z } from "zod";
 import {
   createRequestSchema,
@@ -27,8 +27,8 @@ export type UserScalarFieldEnum = Prisma.UserScalarFieldEnum;
 
 // *  ===== Entity Specific Types =====
 
-export const ROLE = $Enums.ROLE;
-export type ROLE = $Enums.ROLE;
+export const ROLE = ["ADMIN", "USER"] as const;
+export type ROLE = (typeof ROLE)[number];
 
 // * =====  Common Schemas =====
 
@@ -132,7 +132,7 @@ export const UserDTOSchema = z
     email: EmailValidator,
     role: z.enum(ROLE),
     emailVerified: z.boolean(),
-    createdAt: z.date(),
+    createdAt: z.coerce.date(),
     v: z.number(),
   })
   .strict();

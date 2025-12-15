@@ -6,8 +6,6 @@ import { paths } from "@/config/paths";
 import { getProductBySlugQueryOptions } from "../../api/get-product";
 import { useQueryClient } from "@tanstack/react-query";
 
-// TODO decide on strategy for add and remove from cart actions,design wrapper and + - small button
-
 export default function ProductActions(props: {
   classes?: string;
   children?: React.ReactNode;

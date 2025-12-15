@@ -6,9 +6,6 @@ import ProductDescription from "./product-description";
 import ProductPrice from "./product-price";
 import ProductActions from "./product-actions";
 
-// TODO work on buttons
-// TODO add error boundary handling for missing context values
-
 type TProductDetails = {
   isNewProduct: boolean;
   title: string[];
@@ -64,7 +61,6 @@ Product.Description = ProductDescription;
 Product.Price = ProductPrice;
 Product.Actions = ProductActions;
 
-// TODO go over this details and test
 // ** featured product card
 // ** is new product - font size 14,  grey label - mb -24px
 // ** product fullLabel - font size 56px(desk,tablet) ,36px(mobile) ,color white - mb -24px

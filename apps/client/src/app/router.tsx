@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { MainErrorFallback } from "@/components/errors/main";
+import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import { paths } from "@/config/paths";
 
 // import { ProtectedRoute } from "@/lib/auth";
@@ -13,7 +14,7 @@ const createAppRouter = (queryClient: QueryClient) =>
     {
       path: "/",
       element: <RootLayout />,
-
+      errorElement: <MainErrorFallback />,
       children: [
         {
           path: "/",
@@ -33,6 +34,7 @@ const createAppRouter = (queryClient: QueryClient) =>
               },
               path: paths.home.path,
               index: true,
+              errorElement: <RouteErrorBoundary />,
             },
             {
               lazy: {
@@ -46,6 +48,7 @@ const createAppRouter = (queryClient: QueryClient) =>
                 },
               },
               path: paths.product.path,
+              errorElement: <RouteErrorBoundary />,
             },
             {
               lazy: {
@@ -59,6 +62,7 @@ const createAppRouter = (queryClient: QueryClient) =>
                 },
               },
               path: paths.category.path,
+              errorElement: <RouteErrorBoundary />,
             },
 
             {

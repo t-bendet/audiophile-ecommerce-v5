@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { paths } from "@/config/paths";
-import { categoryNames } from "@/utils/const";
+import { NAME } from "@repo/domain";
 import {
   getProductsByCategoryQueryOptions,
   getShowCaseProductsQueryOptions,
@@ -27,7 +27,7 @@ export const NavLinks = () => {
           {"home"}
         </NavLink>
       </li>
-      {categoryNames.map((category) => {
+      {NAME.map((category) => {
         return (
           <li key={category}>
             <NavLink

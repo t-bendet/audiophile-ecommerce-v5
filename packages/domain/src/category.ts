@@ -3,7 +3,6 @@ import type {
   Category as PrismaCategory,
   CategoriesThumbnail,
 } from "@repo/database";
-import { $Enums } from "@repo/database";
 import { z } from "zod";
 import type {
   EmptyResponse,
@@ -28,9 +27,9 @@ export type CategorySelect = Prisma.CategorySelect;
 export type CategoryScalarFieldEnum = Prisma.CategoryScalarFieldEnum;
 
 // *  ===== Entity Specific Types =====
-
-export const NAME = $Enums.NAME;
-export type NAME = $Enums.NAME;
+// Decouple enum values from Prisma runtime for browser bundles
+export const NAME = ["Headphones", "Earphones", "Speakers"] as const;
+export type NAME = (typeof NAME)[number];
 export type CategoryProductsCreateManyInput =
   Prisma.ProductCreateManyCategoryInputEnvelope["data"];
 
@@ -93,7 +92,7 @@ export const CategoryDeleteByIdRequestSchema = createRequestSchema({
 export const CategoryDTOSchema = z.object({
   name: z.enum(NAME),
   id: IdValidator("Category"),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
   v: z.number(),
   thumbnail: CategoryThumbnailSchema,
 }) satisfies z.ZodType<Category>;

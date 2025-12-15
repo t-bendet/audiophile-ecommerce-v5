@@ -1,5 +1,5 @@
 import type { Prisma, Config as PrismaConfig } from "@repo/database";
-import { z } from "zod";
+import { string, z } from "zod";
 import type {
   EmptyResponse,
   ListResponse,
@@ -16,8 +16,8 @@ import { IdValidator, NameValidator } from "./shared.js";
 // * ===== Database Type Re-exports (Service Generics )=====
 
 export type Config = PrismaConfig;
-export type ConfigCreateInput = Prisma.ConfigCreateInput;
-export type ConfigUpdateInput = Prisma.ConfigUpdateInput;
+export type ConfigCreateInput = Prisma.ConfigUncheckedCreateInput;
+export type ConfigUpdateInput = Prisma.ConfigUncheckedUpdateInput;
 export type ConfigWhereInput = Prisma.ConfigWhereInput;
 export type ConfigSelect = Prisma.ConfigSelect;
 export type ConfigScalarFieldEnum = Prisma.ConfigScalarFieldEnum;
@@ -50,8 +50,10 @@ export const ConfigCreateRequestSchema = createRequestSchema({
   body: z
     .object({
       name: NameValidator("Config"),
-      featuredProduct: IdValidator("Featured Product"),
-      showCaseProducts: ConfigShowCaseProductsSchema,
+      featuredProductId: IdValidator("Featured Product"),
+      showCaseCoverId: string("ShowcaseCover Product"),
+      showCaseWideId: string("ShowcaseWide Product"),
+      showCaseGridId: string("ShowcaseGrid Product"),
     })
     .strict() satisfies z.Schema<ConfigCreateInput>,
 });
@@ -62,8 +64,10 @@ export const ConfigUpdateByIdRequestSchema = createRequestSchema({
   body: z
     .object({
       name: NameValidator("Config").optional(),
-      featuredProduct: IdValidator("Featured Product").optional(),
-      showCaseProducts: ConfigShowCaseProductsSchema.optional(),
+      featuredProductId: IdValidator("Featured Product").optional(),
+      showCaseCoverId: IdValidator("ShowcaseCover Product").optional(),
+      showCaseWideId: IdValidator("ShowcaseWide Product").optional(),
+      showCaseGridId: IdValidator("ShowcaseGrid Product").optional(),
     })
     .strict() satisfies z.ZodType<ConfigUpdateInput>,
 });
@@ -78,10 +82,12 @@ export const ConfigDeleteByIdRequestSchema = createRequestSchema({
 export const ConfigDTOSchema = z.object({
   id: IdValidator("Config"),
   name: z.string(),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
   v: z.number(),
-  featuredProduct: IdValidator("Featured Product"),
-  showCaseProducts: ConfigShowCaseProductsSchema,
+  featuredProductId: IdValidator("Featured Product"),
+  showCaseCoverId: string("ShowcaseCover Product"),
+  showCaseWideId: string("ShowcaseWide Product"),
+  showCaseGridId: string("ShowcaseGrid Product"),
 }) satisfies z.ZodType<Config>;
 
 // * =====   Response Schemas & Types ( For Frontend)=====
