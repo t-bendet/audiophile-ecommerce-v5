@@ -1,10 +1,8 @@
 // ** General / Infrastructure
-// TODO make sure create env  get caught by error component if fails
 // TODO decide on error handling strategy, use react-query error boundary or custom error component
 // TODO rethink the whole error handling strategy,for backend and frontend(big task)
 // TODO refactor to use bulletproof-react auth patterns
 // TODO axios refresher
-// TODO validation strategy for api calls - use asserts and type predicates ?
 // TODO Provider - what does Suspense does here, is it required?
 // TODO change src attributes to z.url in all schemas
 // TODO go over stephen grider steps for planning routes
@@ -14,7 +12,7 @@
 // TODO standerdize import paths (some use @/ ,some use relative paths)
 // TODO go over client loaders throws errors
 // TODO standerdize parsing error throwing in api clients
-// TODO go over route-error-boundary and errors.ts ,allagin with error handling on server and make sure errors are thrown on loaders
+// TODO go over route-error-boundary and errors.ts ,allagin with error handling on server and make sure errors are thrown on loaders ,also make sure each error hs a type(also in env)
 
 //   throw new Error(
 //     `Failed to fetch categories: ${result.error.issues
@@ -26,7 +24,6 @@
 // TODO go over changes again
 // TODO make this baseURL configurable
 // TODO type the error response properly
-// TODO add error handler for zod?
 // TODO explore api interceptors,and check if i can move the error handling from there
 
 // ** Authentication / Authorization
