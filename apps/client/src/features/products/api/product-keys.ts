@@ -1,4 +1,4 @@
-import { NAME } from "@repo/database";
+import { NAME } from "@repo/domain";
 
 const productKeys = {
   all: ["products"] as const,

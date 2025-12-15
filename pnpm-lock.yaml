@@ -38,9 +38,6 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.7
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@repo/database':
-        specifier: workspace:*
-        version: link:../../packages/database
       '@repo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
