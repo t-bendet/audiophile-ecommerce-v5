@@ -23,7 +23,6 @@ import {
 
 type productKeys = keyof Product;
 
-// TODO needs more work,also for the return type of the products
 type TProductFilters = Partial<Record<productKeys, string>>;
 
 type TGetProducts = TBaseHandler<

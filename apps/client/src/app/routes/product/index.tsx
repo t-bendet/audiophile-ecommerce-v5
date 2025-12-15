@@ -20,8 +20,6 @@ import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { LoaderFunctionArgs, useNavigate, useParams } from "react-router-dom";
 
-// TODO -actions - add to cart, increase, decrease
-
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {

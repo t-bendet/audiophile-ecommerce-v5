@@ -7,8 +7,6 @@ type TErrorBlockProps = {
   onReset?: () => void;
 };
 
-// TODO work on responsive design
-
 const ErrorBlock = ({
   title,
   message,
