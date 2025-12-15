@@ -1,19 +1,19 @@
-import { api } from "@/lib/api-client";
+import { getApi } from "@/lib/api-client";
 import {
   TBaseHandler,
   TBaseRequestParams,
   TExtendsRequestParams,
 } from "@/types/api";
-import { queryOptions } from "@tanstack/react-query";
-import productKeys from "./product-keys";
 import {
-  ProductGetByIdResponseSchema,
   ProductGetByIdResponse,
+  ProductGetByIdResponseSchema,
   ProductGetBySlugResponse,
   ProductGetBySlugResponseSchema,
   ProductGetFeaturedResponse,
   ProductGetFeaturedResponseSchema,
 } from "@repo/domain";
+import { queryOptions } from "@tanstack/react-query";
+import productKeys from "./product-keys";
 
 // ** GetProductById
 
@@ -23,6 +23,7 @@ type TGetProductById = TBaseHandler<
 >;
 
 const getProductById: TGetProductById = async ({ id, signal }) => {
+  const api = await getApi();
   const response = await api.get(`/products/${id}`, { signal });
   const result = ProductGetByIdResponseSchema.safeParse(response.data);
   if (result.success) {
@@ -46,6 +47,7 @@ type TGetProductBySlug = TBaseHandler<
 >;
 
 const getProductBySlug: TGetProductBySlug = async ({ slug, signal }) => {
+  const api = await getApi();
   const response = await api.get(`/products/slug/${slug}`, { signal });
   const result = ProductGetBySlugResponseSchema.safeParse(response.data);
   if (result.success) {
@@ -67,6 +69,7 @@ export const getProductBySlugQueryOptions = (slug: string) =>
 type TGetFeaturedProduct = TBaseHandler<ProductGetFeaturedResponse>;
 
 const getFeaturedProduct: TGetFeaturedProduct = async ({ signal }) => {
+  const api = await getApi();
   const response = await api.get("/products/featured", { signal });
   const result = ProductGetFeaturedResponseSchema.safeParse(response.data);
   if (result.success) {
