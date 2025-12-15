@@ -2,15 +2,11 @@ import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { Section } from "@/components/ui/section";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { $Enums } from "@repo/database";
+import { NAME } from "@repo/domain";
 import { getProductsByCategoryQueryOptions } from "../api/get-products";
 import ProductCard from "./product-card";
 
-export default function ProductsList({
-  categoryName,
-}: {
-  categoryName: $Enums.NAME;
-}) {
+export default function ProductsList({ categoryName }: { categoryName: NAME }) {
   const { data: ProductsResponse } = useSuspenseQuery(
     getProductsByCategoryQueryOptions(categoryName),
   );
