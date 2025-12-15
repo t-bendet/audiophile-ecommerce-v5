@@ -15,7 +15,6 @@ const CategoryNavDropdown = ({
   );
   return (
     <nav onClick={clickHandler}>
-      \
       <ul className="flex flex-col gap-4 text-neutral-900 md:flex-row md:justify-around lg:gap-8">
         {categoriesResponse.data.map((category) => (
           <li
