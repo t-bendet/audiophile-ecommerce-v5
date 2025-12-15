@@ -10,7 +10,7 @@
 // TODO go over stephen grider steps for planning routes
 // TODO Provider check bulletproof react patterns for react-query setup
 // TODO layouts refactor - bulletproof react patterns
-
+// TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
 // ** API Client (src/lib/api-client.ts)
 // TODO make this baseURL configurable
 // TODO type the error response properly
