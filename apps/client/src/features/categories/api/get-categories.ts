@@ -1,6 +1,6 @@
 // ** Get All Categories
 
-import { api } from "@/lib/api-client";
+import { getApi } from "@/lib/api-client";
 import { TBaseHandler, TBaseRequestParams } from "@/types/api";
 import {
   CategoryGetAllResponse,
@@ -11,6 +11,7 @@ import { queryOptions } from "@tanstack/react-query";
 type TGetAllCategories = TBaseHandler<CategoryGetAllResponse>;
 
 const getAllCategories: TGetAllCategories = async ({ signal }) => {
+  const api = await getApi();
   const response = await api.get("/categories", { signal });
   const result = CategoryGetAllResponseSchema.safeParse(response.data);
   if (result.success) {

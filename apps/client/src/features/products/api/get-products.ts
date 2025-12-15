@@ -1,12 +1,11 @@
-import { api } from "@/lib/api-client";
+import { getApi } from "@/lib/api-client";
 import {
   TBaseHandler,
   TBaseRequestParams,
   TExtendsRequestParams,
 } from "@/types/api";
-import { queryOptions } from "@tanstack/react-query";
-import productKeys from "./product-keys";
 import {
+  NAME,
   Product,
   ProductGetAllResponse,
   ProductGetAllResponseSchema,
@@ -14,10 +13,11 @@ import {
   ProductGetByCategoryResponseSchema,
   ProductGetRelatedResponse,
   ProductGetRelatedResponseSchema,
-  NAME,
   ProductGetShowCaseResponse,
   ProductGetShowCaseResponseSchema,
 } from "@repo/domain";
+import { queryOptions } from "@tanstack/react-query";
+import productKeys from "./product-keys";
 
 // ** GetProducts
 
@@ -31,6 +31,7 @@ type TGetProducts = TBaseHandler<
 >;
 
 const getAllProducts: TGetProducts = async ({ filters, signal }) => {
+  const api = await getApi();
   const queryParams = new URLSearchParams(filters).toString();
   const response = await api.get(
     `/products${queryParams ? `?${queryParams}` : ""}`,
@@ -61,6 +62,7 @@ type TGetRelatedProducts = TBaseHandler<
 >;
 
 const getRelatedProducts: TGetRelatedProducts = async ({ id, signal }) => {
+  const api = await getApi();
   const response = await api.get(`/products/related-products/${id}`, {
     signal,
   });
@@ -90,6 +92,7 @@ const getProductsByCategory: TGetProductsByCategory = async ({
   category,
   signal,
 }) => {
+  const api = await getApi();
   const response = await api.get(`/categories/${category}/products`, {
     signal,
   });
@@ -113,6 +116,7 @@ export const getProductsByCategoryQueryOptions = (category: NAME) =>
 type TGetShowCaseProducts = TBaseHandler<ProductGetShowCaseResponse>;
 
 const getShowCaseProducts: TGetShowCaseProducts = async ({ signal }) => {
+  const api = await getApi();
   const response = await api.get("/products/show-case", { signal });
   const result = ProductGetShowCaseResponseSchema.safeParse(response.data);
   if (result.success) {
