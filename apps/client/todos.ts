@@ -11,6 +11,15 @@
 // TODO Provider check bulletproof react patterns for react-query setup
 // TODO layouts refactor - bulletproof react patterns
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
+// TODO standerdize import paths (some use @/ ,some use relative paths)
+// TODO standerdize parsing error throwing in api clients
+
+//   throw new Error(
+//     `Failed to fetch categories: ${result.error.issues
+//       .map((i) => `${i.path.join(".")}: ${i.message}`)
+//       .join("; ")}`,
+//   );
+// }
 // ** API Client (src/lib/api-client.ts)
 // TODO make this baseURL configurable
 // TODO type the error response properly
