@@ -12,7 +12,9 @@
 // TODO layouts refactor - bulletproof react patterns
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
 // TODO standerdize import paths (some use @/ ,some use relative paths)
+// TODO go over client loaders throws errors
 // TODO standerdize parsing error throwing in api clients
+// TODO go over route-error-boundary and errors.ts ,allagin with error handling on server and make sure errors are thrown on loaders
 
 //   throw new Error(
 //     `Failed to fetch categories: ${result.error.issues
@@ -21,6 +23,7 @@
 //   );
 // }
 // ** API Client (src/lib/api-client.ts)
+// TODO go over changes again
 // TODO make this baseURL configurable
 // TODO type the error response properly
 // TODO add error handler for zod?

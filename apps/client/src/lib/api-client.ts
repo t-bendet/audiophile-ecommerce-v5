@@ -23,24 +23,37 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Don't handle cancelled requests
     if (isCancel(error)) {
-      return;
+      return Promise.reject(error);
     }
-    const message = error.response?.data?.message || error.message;
-    toast({
-      type: "background",
-      title: "Error",
-      description: message,
-      variant: "destructive",
-    });
 
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const message = error.response?.data?.message || error.message;
+
+    // Handle auth errors (let auth layer handle redirect)
+    if (status === 401) {
       const searchParams = new URLSearchParams();
       const redirectTo =
         searchParams.get("redirectTo") || window.location.pathname;
-      window.location.href = paths.auth.login.getHref(redirectTo);
+      error.redirectTo = redirectTo;
+      return Promise.reject(error);
     }
-    console.log(error);
+
+    // Don't show toast for expected client errors (4xx) - let UI handle them
+    if (status && status >= 400 && status < 500) {
+      return Promise.reject(error);
+    }
+
+    // Show toast only for server errors (5xx) or network errors
+    if (!status || status >= 500) {
+      toast({
+        type: "background",
+        title: "Server Error",
+        description: message || "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
+    }
 
     return Promise.reject(error);
   },
