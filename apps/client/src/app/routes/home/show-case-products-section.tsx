@@ -9,8 +9,6 @@ import { Link } from "react-router-dom";
 import { Fragment } from "react/jsx-runtime";
 // import CircleSvg from "@/assets/pattern-circles.svg?react";
 
-// TODO add svg to zx9 and finish spacings - add children to responsive picture?
-// TODO svg workshop
 // mobile size should be 558 - 558
 
 // <Container classes="h-[20%] w-[20%] bg-neutral-600">

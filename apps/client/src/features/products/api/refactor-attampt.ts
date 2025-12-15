@@ -1,5 +1,3 @@
-// TODO redo or delete this file
-
 // function getListQueryOptions(payload: payloadType) {
 //   switch (payload.type) {
 //     case "getProducts":

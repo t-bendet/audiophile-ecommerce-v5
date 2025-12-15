@@ -12,10 +12,6 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   return config;
 }
 
-// TODO make this baseURL configurable
-// TODO type the error response properly
-// TODO add error handler for zod?
-
 export const api = Axios.create({
   baseURL: `http://localhost:${env.PORT}/api/v1/`,
 });
