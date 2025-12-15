@@ -9,6 +9,7 @@
 // TODO change src attributes to z.url in all schemas
 // TODO go over stephen grider steps for planning routes
 // TODO Provider check bulletproof react patterns for react-query setup
+// TODO layouts refactor - bulletproof react patterns
 
 // ** API Client (src/lib/api-client.ts)
 // TODO make this baseURL configurable
