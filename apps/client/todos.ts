@@ -8,6 +8,7 @@
 // TODO Provider - what does Suspense does here, is it required?
 // TODO change src attributes to z.url in all schemas
 // TODO go over stephen grider steps for planning routes
+// TODO Provider check bulletproof react patterns for react-query setup
 
 // ** API Client (src/lib/api-client.ts)
 // TODO make this baseURL configurable
