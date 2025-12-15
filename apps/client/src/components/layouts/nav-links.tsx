@@ -8,12 +8,6 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 
-const categoryNames = [
-  "Headphones",
-  "Earphones",
-  "Speakers",
-] as const satisfies NAME[];
-
 export const NavLinks = () => {
   const queryClient = useQueryClient();
   return (
@@ -33,7 +27,7 @@ export const NavLinks = () => {
           {"home"}
         </NavLink>
       </li>
-      {categoryNames.map((category) => {
+      {NAME.map((category) => {
         return (
           <li key={category}>
             <NavLink

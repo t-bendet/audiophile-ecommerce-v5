@@ -42,7 +42,6 @@ const Home = () => {
         </Section>
 
         <Section classes="md:mb-24 lg:mb-42">
-          {" "}
           <ErrorBoundary
             FallbackComponent={({ error, resetErrorBoundary }) => (
               <Container classes="mb-30">
