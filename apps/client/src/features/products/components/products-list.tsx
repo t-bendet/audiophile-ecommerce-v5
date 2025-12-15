@@ -11,12 +11,12 @@ export default function ProductsList({
 }: {
   categoryName: $Enums.NAME;
 }) {
-  const { data: products } = useSuspenseQuery(
+  const { data: ProductsResponse } = useSuspenseQuery(
     getProductsByCategoryQueryOptions(categoryName),
   );
   return (
     <>
-      {products.map((product, i) => (
+      {ProductsResponse.data.map((product, i) => (
         <Section key={product.id}>
           <Container
             classes={`flex flex-col gap-8 md:gap-14 lg:flex-row lg:gap-31 ${i % 2 === 1 ? "lg:flex-row-reverse" : ""}`}

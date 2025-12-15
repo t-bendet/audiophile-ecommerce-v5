@@ -163,36 +163,32 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 
 export const ProductDTOSchema = ProductPropertiesSchema;
 
-export const ProductsByCategoryNameSchema = z.array(
-  ProductPropertiesSchema.pick({
-    id: true,
-    description: true,
-    isNewProduct: true,
-    fullLabel: true,
-    slug: true,
+export const ProductsByCategoryNameSchema = ProductPropertiesSchema.pick({
+  id: true,
+  description: true,
+  isNewProduct: true,
+  fullLabel: true,
+  slug: true,
+})
+  .extend({
+    images: z.object({
+      introImage: ProductImagesPropertiesSchema,
+    }),
   })
-    .extend({
-      images: z.object({
-        introImage: ProductImagesPropertiesSchema,
-      }),
-    })
-    .strict()
-);
+  .strict();
 
-export const ProductRelatedProductsDTOSchema = z.array(
-  ProductPropertiesSchema.pick({
-    id: true,
-    shortLabel: true,
-    images: true,
-    slug: true,
+export const ProductRelatedProductsDTOSchema = ProductPropertiesSchema.pick({
+  id: true,
+  shortLabel: true,
+  images: true,
+  slug: true,
+})
+  .extend({
+    images: z.object({
+      relatedProductImage: ProductImagesPropertiesSchema,
+    }),
   })
-    .extend({
-      images: z.object({
-        relatedProductImage: ProductImagesPropertiesSchema,
-      }),
-    })
-    .strict()
-);
+  .strict();
 
 export const ProductShowCaseProductsSchema = z.record(
   z.enum(["showCaseCover", "showCaseWide", "showCaseGrid"]),

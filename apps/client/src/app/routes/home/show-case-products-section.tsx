@@ -22,27 +22,29 @@ import { Fragment } from "react/jsx-runtime";
 // <Container classes="h-[20%] w-[20%] bg-neutral-600
 
 const ShowCaseProductsSection = () => {
-  const { data: product } = useSuspenseQuery(getShowCaseProductsQueryOptions());
+  const { data: productResponse } = useSuspenseQuery(
+    getShowCaseProductsQueryOptions(),
+  );
   const queryClient = useQueryClient();
-
+  const { showCaseCover, showCaseGrid, showCaseWide } = productResponse.data;
   return (
     <>
       <article>
         <Container classes="bg-primary-500 flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center lg:gap-30">
           <section className="mx-auto w-[60%] max-w-[240px] lg:mx-0 lg:mb-[-10px] lg:max-w-[410px]">
             <ResponsivePicture
-              altText={product.cover.images.showCaseImage?.altText || ""}
-              ariaLabel={product.cover.images.showCaseImage?.ariaLabel || ""}
-              mobileSrc={product.cover.images.showCaseImage?.mobileSrc || ""}
-              tabletSrc={product.cover.images.showCaseImage?.tabletSrc || ""}
-              desktopSrc={product.cover.images.showCaseImage?.desktopSrc || ""}
+              altText={showCaseCover?.images.showCaseImage?.altText || ""}
+              ariaLabel={showCaseCover?.images.showCaseImage?.ariaLabel || ""}
+              mobileSrc={showCaseCover?.images.showCaseImage?.mobileSrc || ""}
+              tabletSrc={showCaseCover?.images.showCaseImage?.tabletSrc || ""}
+              desktopSrc={showCaseCover?.images.showCaseImage?.desktopSrc || ""}
               classes="mx-auto"
             />
           </section>
           <section className="max-w-[30ch] text-center md:max-w-[35ch] lg:max-w-[40ch] lg:p-6 lg:text-left">
             <header>
               <h2 className="tracking-300 mb-6 text-3xl font-bold uppercase md:text-5xl">
-                {product.cover.shortLabel.split(" ").map((word, index) => (
+                {showCaseCover?.shortLabel.split(" ").map((word, index) => (
                   <Fragment key={index}>
                     <span>{word}</span>
                     <br />
@@ -51,15 +53,17 @@ const ShowCaseProductsSection = () => {
               </h2>
             </header>
             <p className="mb-6 opacity-75 md:mb-10">
-              {product.cover.showCaseImageText}
+              {showCaseCover?.showCaseImageText}
             </p>
             <div>
               <Button variant={"outlineReversed"} asChild>
                 <Link
-                  to={paths.product.getHref(product.cover.slug)}
+                  to={paths.product.getHref(showCaseCover?.slug as string)}
                   onMouseEnter={() =>
                     queryClient.ensureQueryData(
-                      getProductBySlugQueryOptions(product.cover.slug),
+                      getProductBySlugQueryOptions(
+                        showCaseCover?.slug as string,
+                      ),
                     )
                   }
                 >
@@ -73,27 +77,29 @@ const ShowCaseProductsSection = () => {
       <article>
         <Container classes="grid h-full grid-cols-1 overflow-hidden rounded-sm">
           <ResponsivePicture
-            altText={product.wide.images.showCaseImage?.altText || ""}
-            ariaLabel={product.wide.images.showCaseImage?.ariaLabel || ""}
-            mobileSrc={product.wide.images.showCaseImage?.mobileSrc || ""}
-            tabletSrc={product.wide.images.showCaseImage?.tabletSrc || ""}
-            desktopSrc={product.wide.images.showCaseImage?.desktopSrc || ""}
+            altText={showCaseWide?.images.showCaseImage?.altText || ""}
+            ariaLabel={showCaseWide?.images.showCaseImage?.ariaLabel || ""}
+            mobileSrc={showCaseWide?.images.showCaseImage?.mobileSrc || ""}
+            tabletSrc={showCaseWide?.images.showCaseImage?.tabletSrc || ""}
+            desktopSrc={showCaseWide?.images.showCaseImage?.desktopSrc || ""}
             classes="w-full"
             pictureClasses="col-span-full row-span-full"
           />
           <div className="z-10 col-span-full row-span-full ml-6 self-center md:ml-16 lg:ml-24">
             <header>
               <h2 className="text-2xl font-bold tracking-[0.07em] text-neutral-900 uppercase">
-                {product.wide.shortLabel}
+                {showCaseWide?.shortLabel}
               </h2>
             </header>
             <div className="mt-8">
               <Button variant={"outline"} asChild>
                 <Link
-                  to={paths.product.getHref(product.wide.slug)}
+                  to={paths.product.getHref(showCaseWide?.slug as string)}
                   onMouseEnter={() =>
                     queryClient.ensureQueryData(
-                      getProductBySlugQueryOptions(product.wide.slug),
+                      getProductBySlugQueryOptions(
+                        showCaseWide?.slug as string,
+                      ),
                     )
                   }
                 >
@@ -109,27 +115,29 @@ const ShowCaseProductsSection = () => {
         <Container classes="lg: grid grid-cols-1 grid-rows-2 gap-6 md:grid-cols-2 md:grid-rows-1 md:gap-3 lg:gap-7">
           <section className="overflow-hidden rounded-sm">
             <ResponsivePicture
-              altText={product.grid.images.showCaseImage?.altText || ""}
-              ariaLabel={product.grid.images.showCaseImage?.ariaLabel || ""}
-              mobileSrc={product.grid.images.showCaseImage?.mobileSrc || ""}
-              tabletSrc={product.grid.images.showCaseImage?.tabletSrc || ""}
-              desktopSrc={product.grid.images.showCaseImage?.desktopSrc || ""}
+              altText={showCaseGrid?.images.showCaseImage?.altText || ""}
+              ariaLabel={showCaseGrid?.images.showCaseImage?.ariaLabel || ""}
+              mobileSrc={showCaseGrid?.images.showCaseImage?.mobileSrc || ""}
+              tabletSrc={showCaseGrid?.images.showCaseImage?.tabletSrc || ""}
+              desktopSrc={showCaseGrid?.images.showCaseImage?.desktopSrc || ""}
             />
           </section>
           <section className="flex items-center overflow-hidden rounded-sm bg-neutral-200">
             <div className="ml-6 md:ml-10 lg:ml-24">
               <header>
                 <h2 className="text-2xl font-bold tracking-[0.07em] text-neutral-900 uppercase">
-                  {product.grid.shortLabel}
+                  {showCaseGrid?.shortLabel}
                 </h2>
               </header>
               <div className="mt-8">
                 <Button variant={"outline"} asChild>
                   <Link
-                    to={paths.product.getHref(product.grid.slug)}
+                    to={paths.product.getHref(showCaseGrid?.slug as string)}
                     onMouseEnter={() =>
                       queryClient.ensureQueryData(
-                        getProductBySlugQueryOptions(product.grid.slug),
+                        getProductBySlugQueryOptions(
+                          showCaseGrid?.slug as string,
+                        ),
                       )
                     }
                   >
