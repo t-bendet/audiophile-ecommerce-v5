@@ -20,6 +20,30 @@ export default defineConfig({
       "@utils": path.resolve(__dirname, "./src/utils"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          query: ["@tanstack/react-query"],
+          radix: [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-navigation-menu",
+            "@radix-ui/react-tooltip",
+            "@radix-ui/react-toast",
+          ],
+          icons: ["lucide-react"],
+          util: [
+            "axios",
+            "zod",
+            "clsx",
+            "class-variance-authority",
+            "tailwind-merge",
+          ],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       "/api": {
