@@ -1,9 +1,10 @@
-import { toast } from "@/hooks/use-toast";
 import Axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
   isCancel,
 } from "axios";
+import { AppError, ErrorCode } from "@repo/domain";
+import { toast } from "@/hooks/use-toast";
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.headers) {
@@ -30,10 +31,10 @@ export async function getApi(): Promise<AxiosInstance> {
       const mod = await import("@/config/env");
       env = mod.env;
     } catch (err: any) {
-      const e: any = err instanceof Error ? err : new Error(String(err));
-      e.name = "EnvValidationError";
-      e.isEnvError = true;
-      throw e;
+      throw new AppError(
+        "An unexpected error occurred",
+        ErrorCode.INTERNAL_ERROR,
+      );
     }
 
     apiInstance = Axios.create({
