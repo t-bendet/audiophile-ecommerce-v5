@@ -1,5 +1,6 @@
 import ErrorBlock from "@/components/errors/ErrorBlock";
 import LoadingSpinner from "@/components/layouts/loading-spinner";
+import { isCriticalError } from "@/lib/errors";
 import { BestGearSection } from "@/components/sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
@@ -22,10 +23,11 @@ const Home = () => {
           <Container classes="grid h-full grid-cols-1 bg-neutral-600">
             <ErrorBoundary
               FallbackComponent={({ error, resetErrorBoundary }) => {
-                if (error.name === "EnvValidationError") {
-                  console.log(error, "env");
+                // Re-throw critical errors so they bubble to router boundary
+                if (isCriticalError(error)) {
                   throw error;
                 }
+                // Handle section-specific errors locally
                 return (
                   <div className="flex items-center justify-center">
                     <ErrorBlock

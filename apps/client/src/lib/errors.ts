@@ -63,6 +63,14 @@ export function isEnvError(error: unknown): error is EnvValidationError {
   );
 }
 
+/**
+ * Check if error is critical and should bubble up to router boundary.
+ * Critical errors: env validation, auth failures, etc.
+ */
+export function isCriticalError(error: unknown): boolean {
+  return isEnvError(error) || (error as any)?.status === 401;
+}
+
 // Helper to extract user-friendly error message
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
