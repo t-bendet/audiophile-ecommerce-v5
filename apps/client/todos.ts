@@ -20,6 +20,7 @@
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
 // TODO https://reactrouter.com/api/utils/createContext
 // TODO React 19’s Document Metadata
+// TODO react router middleware
 // ** API Client (src/lib/api-client.ts)
 // TODO go over changes again
 // TODO make this baseURL configurable
