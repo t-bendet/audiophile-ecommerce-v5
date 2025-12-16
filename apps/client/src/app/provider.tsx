@@ -1,11 +1,15 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import * as React from "react";
-import { ErrorBoundary } from "react-error-boundary";
 import { MainErrorFallback } from "@/components/errors/main";
 import { Spinner } from "@/components/ui/spinner";
 import { Toaster } from "@/components/ui/toaster";
 import { queryConfig } from "@/lib/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as React from "react";
+import { ErrorBoundary } from "react-error-boundary";
+const ReactQueryDevtoolsLazy = React.lazy(() =>
+  import("@tanstack/react-query-devtools").then((m) => ({
+    default: m.ReactQueryDevtools,
+  })),
+);
 
 // import { AuthLoader } from "@/lib/auth";
 
@@ -31,7 +35,11 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     >
       <ErrorBoundary FallbackComponent={MainErrorFallback}>
         <QueryClientProvider client={queryClient}>
-          {import.meta.env.DEV && <ReactQueryDevtools />}
+          {import.meta.env.DEV && (
+            <React.Suspense fallback={null}>
+              <ReactQueryDevtoolsLazy />
+            </React.Suspense>
+          )}
           <Toaster />
           {/* <AuthLoader
               renderLoading={() => (
