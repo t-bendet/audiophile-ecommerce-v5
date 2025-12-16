@@ -20,6 +20,7 @@
 // TODO layouts refactor - bulletproof react patterns
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
 // TODO standerdize import paths (some use @/ ,some use relative paths)
+// TODO https://reactrouter.com/api/utils/createContext
 
 // ** API Client (src/lib/api-client.ts)
 // TODO go over changes again
