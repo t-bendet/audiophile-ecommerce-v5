@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { Spinner } from "../ui/spinner";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function LoadingSpinner(props: { classes?: string }) {
   return (

@@ -10,8 +10,8 @@ import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-pro
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import FeaturedProductSection from "./featured-product-section";
-import ShowCaseProductsSection from "./show-case-products-section";
+import FeaturedProductSection from "@/app/routes/home/featured-product-section";
+import ShowCaseProductsSection from "@/app/routes/home/show-case-products-section";
 import { LoaderFunctionArgs } from "react-router-dom";
 
 const Home = () => {

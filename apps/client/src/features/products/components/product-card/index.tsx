@@ -1,10 +1,10 @@
 import { cn } from "@/lib/cn";
 import React, { createContext, useContext } from "react";
-import ProductNewIndicator from "./product-new-indicator";
-import ProductTitle from "./product-title";
-import ProductDescription from "./product-description";
-import ProductPrice from "./product-price";
-import ProductActions from "./product-actions";
+import ProductNewIndicator from "@/features/products/components/product-card/product-new-indicator";
+import ProductTitle from "@/features/products/components/product-card/product-title";
+import ProductDescription from "@/features/products/components/product-card/product-description";
+import ProductPrice from "@/features/products/components/product-card/product-price";
+import ProductActions from "@/features/products/components/product-card/product-actions";
 
 type TProductDetails = {
   isNewProduct: boolean;

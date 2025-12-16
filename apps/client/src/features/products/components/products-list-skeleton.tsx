@@ -1,7 +1,7 @@
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Skeleton } from "@/components/ui/skeleton";
-import ProductSkeleton from "./product-skeleton";
+import ProductSkeleton from "@/features/products/components/product-skeleton";
 
 const ProductsListSkeleton = () => {
   return (
