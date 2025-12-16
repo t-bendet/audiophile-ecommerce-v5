@@ -5,7 +5,6 @@ import type {
   ConfigDTO,
   ConfigSelect,
   ConfigUpdateInput,
-  ConfigWhereInput,
 } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 

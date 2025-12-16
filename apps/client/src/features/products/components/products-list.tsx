@@ -3,8 +3,8 @@ import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { Section } from "@/components/ui/section";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { NAME } from "@repo/domain";
-import { getProductsByCategoryQueryOptions } from "../api/get-products";
-import ProductCard from "./product-card";
+import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
+import ProductCard from "@/features/products/components/product-card";
 
 export default function ProductsList({ categoryName }: { categoryName: NAME }) {
   const { data: ProductsResponse } = useSuspenseQuery(

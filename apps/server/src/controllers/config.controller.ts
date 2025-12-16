@@ -1,8 +1,4 @@
-import {
-  createEmptyResponse,
-  createListResponse,
-  createSingleItemResponse,
-} from "@repo/domain";
+import { createEmptyResponse, createSingleItemResponse } from "@repo/domain";
 import { RequestHandler } from "express";
 import { configService } from "../services/config.service.js";
 import catchAsync from "../utils/catchAsync.js";

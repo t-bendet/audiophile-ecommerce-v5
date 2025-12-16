@@ -1,3 +1,5 @@
+import FeaturedProductSection from "@/app/routes/home/featured-product-section";
+import ShowCaseProductsSection from "@/app/routes/home/show-case-products-section";
 import ErrorBlock from "@/components/errors/ErrorBlock";
 import LoadingSpinner from "@/components/layouts/loading-spinner";
 import { BestGearSection } from "@/components/sections";
@@ -10,8 +12,7 @@ import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-pro
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import FeaturedProductSection from "./featured-product-section";
-import ShowCaseProductsSection from "./show-case-products-section";
+import { LoaderFunctionArgs } from "react-router-dom";
 
 const Home = () => {
   const queryClient = useQueryClient();
@@ -22,16 +23,13 @@ const Home = () => {
           <Container classes="grid h-full grid-cols-1 bg-neutral-600">
             <ErrorBoundary
               FallbackComponent={({ error, resetErrorBoundary }) => {
-                if (error.name === "EnvValidationError") {
-                  console.log(error, "env");
-                  throw error;
-                }
                 return (
                   <div className="flex items-center justify-center">
                     <ErrorBlock
                       title="Error loading featured product"
                       message={error.message}
                       onReset={resetErrorBoundary}
+                      error={error}
                     />
                   </div>
                 );
@@ -56,6 +54,7 @@ const Home = () => {
                     title={`Error loading categories`}
                     message={error.message}
                     onReset={resetErrorBoundary}
+                    error={error}
                   />
                 </div>
               </Container>
@@ -80,6 +79,7 @@ const Home = () => {
                   title="Error loading showcase products"
                   message={error.message}
                   onReset={resetErrorBoundary}
+                  error={error}
                 />
               </Container>
             )}
@@ -101,10 +101,13 @@ const Home = () => {
   );
 };
 
-export const clientLoader = async (queryClient: QueryClient) => {
-  queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
-  queryClient.ensureQueryData(getFeaturedProductQueryOptions());
-  return null;
-};
+export const clientLoader =
+  (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
+    queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
+    queryClient.ensureQueryData(getFeaturedProductQueryOptions());
+    // console.log({ context });
+
+    return null;
+  };
 
 export default Home;

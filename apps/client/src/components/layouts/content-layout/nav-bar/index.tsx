@@ -6,7 +6,7 @@ import { paths } from "@/config/paths";
 import useMedia from "@/hooks/useMedia";
 import { Link } from "react-router-dom";
 import { NavLinks } from "@/components/layouts/nav-links";
-import NavBarDialog from "./nav-bar-dialog";
+import NavBarDialog from "@/components/layouts/content-layout/nav-bar/nav-bar-dialog";
 
 function AvatarDemo() {
   return (

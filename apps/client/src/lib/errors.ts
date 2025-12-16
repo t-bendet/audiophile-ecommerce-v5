@@ -1,65 +1,24 @@
-// Error classification for better handling across the app
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public code?: string,
-    public details?: unknown,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
-
-export class ValidationError extends Error {
-  constructor(
-    message: string,
-    public issues: Array<{ path: string; message: string }>,
-  ) {
-    super(message);
-    this.name = "ValidationError";
-  }
-}
-
-export class NetworkError extends Error {
-  constructor(
-    message = "Network connection failed. Please check your internet connection.",
-  ) {
-    super(message);
-    this.name = "NetworkError";
-  }
-}
-
-export class EnvValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "EnvValidationError";
-  }
-}
+import { AppError, ErrorCode } from "@repo/domain";
 
 // Type guards
-export function isApiError(error: unknown): error is ApiError {
-  return error instanceof ApiError || (error as Error)?.name === "ApiError";
-}
-
-export function isValidationError(error: unknown): error is ValidationError {
+export function isAppError(error: unknown): error is AppError {
   return (
-    error instanceof ValidationError ||
-    (error as Error)?.name === "ValidationError"
+    error instanceof AppError ||
+    Boolean((error as any)?.code && (error as any)?.statusCode)
   );
 }
 
-export function isNetworkError(error: unknown): error is NetworkError {
+/**
+ * Check if error is critical and should bubble up to router boundary.
+ * Critical errors: env validation, auth failures, token issues.
+ */
+export function isCriticalError(error: unknown): boolean {
+  if (!isAppError(error)) return false;
   return (
-    error instanceof NetworkError || (error as Error)?.name === "NetworkError"
-  );
-}
-
-export function isEnvError(error: unknown): error is EnvValidationError {
-  return (
-    error instanceof EnvValidationError ||
-    (error as Error)?.name === "EnvValidationError"
+    error.code === ErrorCode.UNAUTHORIZED ||
+    error.code === ErrorCode.INVALID_TOKEN ||
+    error.code === ErrorCode.TOKEN_EXPIRED ||
+    error.code === ErrorCode.VALIDATION_ERROR
   );
 }
 
@@ -81,18 +40,33 @@ export function classifyHttpError(error: unknown): Error {
     message: string;
     code?: string;
   };
-  if (axiosError.code === "ERR_BAD_REQUEST") {
-    return new ApiError("Bad Request", axiosError.response?.status || 400);
-  }
-
   // Network/connection errors
   if (axiosError.code === "ERR_NETWORK" || !axiosError.response) {
-    return new NetworkError();
+    return new AppError(
+      "Network connection failed. Please check your internet connection.",
+      ErrorCode.EXTERNAL_SERVICE_ERROR,
+      503,
+    );
   }
 
   const status = axiosError.response.status;
   const message =
     axiosError.response.data?.message || axiosError.message || "Request failed";
 
-  return new ApiError(message, status);
+  // Map common statuses to codes
+  if (status === 400 || status === 422) {
+    return new AppError(message, ErrorCode.VALIDATION_ERROR, status);
+  }
+  if (status === 401) {
+    return new AppError(message, ErrorCode.UNAUTHORIZED, status);
+  }
+  if (status === 403) {
+    return new AppError(message, ErrorCode.FORBIDDEN, status);
+  }
+  if (status === 404) {
+    return new AppError(message, ErrorCode.NOT_FOUND, status);
+  }
+
+  // Server errors or unknown
+  return new AppError(message, ErrorCode.INTERNAL_ERROR, status ?? 500);
 }

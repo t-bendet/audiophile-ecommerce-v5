@@ -1,5 +1,4 @@
-import { ErrorCode, Meta } from "@repo/domain";
-import AppError from "../utils/appError.js";
+import { AppError, ErrorCode, Meta } from "@repo/domain";
 
 /**
  * Simplified abstract base class for CRUD operations.

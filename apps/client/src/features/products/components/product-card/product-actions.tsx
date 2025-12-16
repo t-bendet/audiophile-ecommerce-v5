@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { UseProductCardContext } from "./index";
+import { UseProductCardContext } from "@/features/products/components/product-card/index";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
 import { paths } from "@/config/paths";
-import { getProductBySlugQueryOptions } from "../../api/get-product";
+import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function ProductActions(props: {

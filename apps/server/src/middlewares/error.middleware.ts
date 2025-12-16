@@ -1,8 +1,7 @@
 import { Prisma } from "@repo/database";
-import { createErrorResponse, ErrorCode } from "@repo/domain";
+import { AppError, createErrorResponse, ErrorCode } from "@repo/domain";
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
-import AppError from "../utils/appError.js";
 import { env } from "../utils/env.js";
 
 // ------------------ Specific Error Handlers ------------------

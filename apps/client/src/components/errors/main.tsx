@@ -1,6 +1,8 @@
-import { Button } from "@components/ui/button";
+import { Button } from "@/components/ui/button";
+// import { useRouteError } from "react-router-dom";
 
 export const MainErrorFallback = () => {
+  // const error = useRouteError();
   return (
     <div
       className="flex h-screen w-screen flex-col items-center justify-center bg-neutral-800 text-red-500"

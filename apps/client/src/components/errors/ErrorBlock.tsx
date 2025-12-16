@@ -1,10 +1,12 @@
 import { PropsWithChildren } from "react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
+import { isCriticalError } from "@/lib/errors";
 
 type TErrorBlockProps = {
   title: string;
   message: string;
   onReset?: () => void;
+  error: unknown;
 };
 
 const ErrorBlock = ({
@@ -12,7 +14,13 @@ const ErrorBlock = ({
   message,
   onReset,
   children,
+  error,
 }: PropsWithChildren<TErrorBlockProps>) => {
+  // Re-throw critical errors so they bubble to router boundary
+
+  if (isCriticalError(error)) {
+    throw error;
+  }
   return (
     <div className="bg-primary-400 flex gap-4 rounded p-4 text-left">
       <div className="bg-primary-700 flex h-12 w-12 items-center justify-center rounded-4xl text-3xl">

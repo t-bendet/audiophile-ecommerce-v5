@@ -1,12 +1,12 @@
 import { prisma } from "@repo/database";
 import {
+  AppError,
   AuthLoginUser,
   AuthResponse,
   AuthSignUpUser,
   ErrorCode,
 } from "@repo/domain";
 import jwt from "jsonwebtoken";
-import AppError from "../utils/appError.js";
 import { env } from "../utils/env.js";
 
 /**

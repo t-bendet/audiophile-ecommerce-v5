@@ -1,14 +1,15 @@
-import { Button } from "@components/ui/button";
-import { Container } from "@components/ui/container";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
 import {
   isRouteErrorResponse,
   useNavigate,
   useRouteError,
 } from "react-router-dom";
-import { isApiError, isNetworkError, getErrorMessage } from "@/lib/errors";
+import { isAppError, getErrorMessage, isCriticalError } from "@/lib/errors";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
+  console.log({ error }, "router level");
   const navigate = useNavigate();
 
   let statusCode = 500;
@@ -29,25 +30,22 @@ export function RouteErrorBoundary() {
       title = "Bad Request";
     }
   }
-  // Custom API errors
-  else if (isApiError(error)) {
-    console.log({ error }, "isApiError");
-    statusCode = error.status;
+  // Custom AppError (includes network classified into AppError)
+  else if (isAppError(error)) {
+    statusCode = error.statusCode;
     title = statusCode === 404 ? "Not Found" : "Request Failed";
     message = error.message;
   }
-  // Network errors
-  else if (isNetworkError(error)) {
-    console.log("isNetworkError");
-
-    title = "Connection Error";
-    message = error.message;
+  // Critical fallback
+  else if (isCriticalError(error)) {
+    title = "Critical Error";
+    message = "A critical error occurred. Please try again later.";
   }
 
   return (
     <Container classes="flex min-h-[50vh] items-center justify-center">
       <div className="text-center">
-        <h1 className="text-primary-400 mb-4 text-6xl font-bold">
+        <h1 className="text-primary-500 mb-4 text-6xl font-bold">
           {statusCode}
         </h1>
         <h2 className="mb-2 text-2xl font-semibold text-neutral-900">

@@ -164,6 +164,126 @@ Database credentials in [docker-compose.yml](docker-compose.yml) must match `DAT
 
 ---
 
+## Client App Conventions
+
+### React Router v7 Middleware
+
+**Documentation**: https://reactrouter.com/how-to/middleware
+
+The client uses React Router v7 with middleware support for:
+
+- Authentication checks before route rendering
+- Request/response logging and timing
+- Error classification and handling
+- Context sharing between routes
+
+**Key concepts:**
+
+- **Middleware chain**: Executes parent → child on the way down, child → parent on the way up
+- **Server middleware**: Runs on server for document requests and `.data` requests (Framework mode)
+- **Client middleware**: Runs in browser for client-side navigations (Framework + Data mode)
+- **Context API**: Type-safe context using `createContext()` and `RouterContextProvider`
+- **`next()` function**: Calls next middleware in chain or executes route handlers
+
+**Common patterns:**
+
+```typescript
+// Authentication middleware
+export const middleware: Route.MiddlewareFunction[] = [
+  async ({ request, context }) => {
+    const user = await getUserFromSession(request);
+    if (!user) throw redirect("/login");
+    context.set(userContext, user);
+  },
+];
+
+// Logging middleware
+async function loggingMiddleware({ request }, next) {
+  const start = performance.now();
+  const response = await next();
+  console.log(
+    `${request.method} ${request.url} - ${performance.now() - start}ms`
+  );
+  return response;
+}
+
+// Error handling middleware
+async function errorMiddleware({ request }, next) {
+  const response = await next();
+  if (response.status === 404) {
+    const redirect = await checkCMSRedirects(request.url);
+    if (redirect) throw redirect(redirect, 302);
+  }
+  return response;
+}
+```
+
+**Error handling in middleware:**
+
+- Middleware can throw and it will be caught by nearest ErrorBoundary
+- `next()` never throws - always returns a Response (even for errors)
+- Errors thrown before `next()` bubble to highest route with loader
+- Errors thrown after `next()` bubble from the throwing route
+
+**When to use:**
+
+- Use for cross-cutting concerns (auth, logging, timing)
+- Use for request/response transformations
+- Use when you need to run code before/after handlers
+- Prefer over higher-order components for request-level logic
+
+### TanStack Query (React Query)
+
+**Documentation**: https://tanstack.com/query/latest/docs/framework/react/overview
+
+TanStack Query is the server state management library used for data fetching, caching, and synchronization. It handles the complexity of managing remote data.
+
+**Key features:**
+
+- **Automatic caching**: Caches query results with configurable staleTime
+- **Deduplication**: Multiple requests for same data coalesced into one
+- **Background refetching**: Automatically updates stale data
+- **Retry logic**: Configurable retry on failure (server/network errors)
+- **Pagination & lazy loading**: Built-in patterns for handling large datasets
+- **TypeScript support**: Full type safety for queries and mutations
+- **DevTools**: React Query Devtools for debugging in development
+
+**Common patterns:**
+
+```typescript
+// Define query options
+export const getProductByIdQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: ["products", id],
+    queryFn: () => getApi().then((api) => api.get(`/products/${id}`)),
+    staleTime: 60000, // 1 minute
+  });
+
+// Use in component
+const { data, isPending, error } = useQuery(getProductByIdQueryOptions(id));
+
+// Use in loader
+export async function loader({ context }) {
+  const queryClient = context.get(queryClientContext);
+  return await queryClient.ensureQueryData(getProductByIdQueryOptions(id));
+}
+```
+
+**Retry configuration** (apps/client/src/lib/react-query.ts):
+
+- Client errors (4xx): No retry, fail immediately
+- Server errors (5xx): Retry up to 2 times (exponential backoff)
+- Network errors: Retry up to 2 times
+- Respects `throwOnError: true` for ErrorBoundary integration
+
+**Error handling:**
+
+- Errors thrown to ErrorBoundary when `throwOnError: true`
+- Use with middleware error processing for consistent error handling
+- Validates retry eligibility based on status code
+
+---
+
 ## Active TODOs
 
 See [todos.js](todos.js) for tracked tasks, including:
