@@ -14,7 +14,7 @@ import CategoryNavDropdown from "@/features/categories/components/category-nav-d
 import { useQueryClient } from "@tanstack/react-query";
 import { Suspense, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import LoadingSpinner from "../../loading-spinner";
+import LoadingSpinner from "@/components/layouts/loading-spinner";
 
 export default function NavBarDialog() {
   const [open, setOpen] = useState(false);
