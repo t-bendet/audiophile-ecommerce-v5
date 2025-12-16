@@ -1,6 +1,5 @@
 import ErrorBlock from "@/components/errors/ErrorBlock";
 import LoadingSpinner from "@/components/layouts/loading-spinner";
-import { isCriticalError } from "@/lib/errors";
 import { BestGearSection } from "@/components/sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
@@ -23,17 +22,13 @@ const Home = () => {
           <Container classes="grid h-full grid-cols-1 bg-neutral-600">
             <ErrorBoundary
               FallbackComponent={({ error, resetErrorBoundary }) => {
-                // Re-throw critical errors so they bubble to router boundary
-                if (isCriticalError(error)) {
-                  throw error;
-                }
-                // Handle section-specific errors locally
                 return (
                   <div className="flex items-center justify-center">
                     <ErrorBlock
                       title="Error loading featured product"
                       message={error.message}
                       onReset={resetErrorBoundary}
+                      error={error}
                     />
                   </div>
                 );
@@ -58,6 +53,7 @@ const Home = () => {
                     title={`Error loading categories`}
                     message={error.message}
                     onReset={resetErrorBoundary}
+                    error={error}
                   />
                 </div>
               </Container>
@@ -82,6 +78,7 @@ const Home = () => {
                   title="Error loading showcase products"
                   message={error.message}
                   onReset={resetErrorBoundary}
+                  error={error}
                 />
               </Container>
             )}

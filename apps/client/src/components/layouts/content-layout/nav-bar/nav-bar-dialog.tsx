@@ -46,6 +46,7 @@ export default function NavBarDialog() {
                   title={`Error loading categories`}
                   message={error.message}
                   onReset={resetErrorBoundary}
+                  error={error}
                 />
               </div>
             </Container>

@@ -189,6 +189,7 @@ const Product = () => {
                       title={`Error loading related products`}
                       message={error.message}
                       onReset={resetErrorBoundary}
+                      error={error}
                     />
                   </div>
                 </Container>
@@ -216,6 +217,7 @@ const Product = () => {
                   title={`Error loading categories`}
                   message={error.message}
                   onReset={resetErrorBoundary}
+                  error={error}
                 />
               </div>
             </Container>
