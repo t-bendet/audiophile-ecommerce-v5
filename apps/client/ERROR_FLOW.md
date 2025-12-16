@@ -3,19 +3,13 @@
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Current State (v1)](#current-state-v1)
-   - Architecture
-   - Error Flow Diagram
-   - How Each Layer Works
-3. [Error Classification](#error-classification)
-4. [Error Handling Strategy](#error-handling-strategy)
-   - ErrorBoundary Hierarchy
-   - Toast Rules
-   - Retry Logic
-5. [React Query Integration](#react-query-integration)
-6. [Target State (v2 with Middleware)](#target-state-v2-with-middleware)
-7. [Implementation Roadmap](#implementation-roadmap)
-8. [Reference & Examples](#reference--examples)
+2. [PART 1: Current State (v1)](#part-1-current-state)
+3. [PART 2: Error Classification](#part-2-error-classification)
+4. [PART 3: Error Handling Strategy](#part-3-error-handling-strategy)
+5. [PART 4: React Query Integration](#part-4-react-query-integration)
+6. [PART 5: Target State (v2 with Middleware)](#part-5-target-state)
+7. [PART 6: Implementation Roadmap](#part-6-implementation-roadmap)
+8. [PART 7: Reference & Examples](#part-7-reference--examples)
 
 ---
 
@@ -93,7 +87,7 @@ Axios makes HTTP request
             ├─ If 401: Set redirectTo, classify to AppError(UNAUTHORIZED)
             ├─ If 4xx: Classify to AppError(from server code field)
             ├─ If 5xx: Show toast, classify to AppError
-            ├─ If network: Classify to AppError(NETWORK_ERROR)
+            ├─ If network: Classify to AppError(EXTERNAL_SERVICE_ERROR)
             └─ Throw AppError to React Query
                 ↓
             React Query catches AppError
@@ -140,7 +134,7 @@ Axios makes HTTP request
 - Offers refresh button
 - Logs error to console (dev) or monitoring service (prod)
 
-**Code:** `apps/client/src/components/errors/main-error-fallback.tsx`
+**Code:** `apps/client/src/components/errors/main.tsx`
 
 #### Layer 2: React Router ErrorBoundary (RouteErrorBoundary)
 
@@ -182,7 +176,7 @@ Axios makes HTTP request
 - Re-throws critical errors to parent
 - Keeps rest of app functional
 
-**Code:** `apps/client/src/components/errors/error-block.tsx`
+**Code:** `apps/client/src/components/errors/ErrorBlock.tsx`
 
 **Re-throw rule:**
 
@@ -252,47 +246,66 @@ Errors are classified early at the API boundary using `classifyHttpError()` func
 ### Classification Decision Tree
 
 ```
-HTTP Error Response
+Error Received
     │
-    ├─ Network Error (ERR_NETWORK or no response)?
-    │   └─ YES → AppError(NETWORK_ERROR, 503)
-    │             "Network connection failed..."
+    ├─ Is Axios Error (use isAxiosError())?
+    │   └─ NO → Handle as generic Error
     │
-    └─ HTTP Response Exists
+    └─ YES → Check axios error code
         │
-        ├─ Server provided custom code field?
-        │   ├─ YES → Map code to ErrorCode enum
-        │   │        Examples: "VALIDATION_ERROR", "NOT_FOUND", "UNAUTHORIZED"
+        ├─ Network/Transport Errors?
+        │   ├─ ERR_NETWORK → No internet connection
+        │   ├─ ECONNABORTED → Connection aborted
+        │   ├─ ETIMEDOUT → Request timeout
+        │   ├─ ERR_BAD_RESPONSE → Invalid response format
+        │   └─ Result: AppError(EXTERNAL_SERVICE_ERROR, 503)
+        │
+        ├─ Request Errors?
+        │   ├─ ERR_BAD_REQUEST → Malformed request
+        │   ├─ ERR_INVALID_URL → Invalid URL
+        │   ├─ ERR_BAD_OPTION → Invalid axios config
+        │   └─ Result: AppError(BAD_REQUEST, 400)
+        │
+        ├─ Axios Config Errors?
+        │   ├─ ERR_BAD_OPTION_VALUE → Invalid config value
+        │   ├─ ERR_DEPRECATED → Deprecated feature used
+        │   └─ Result: AppError(INTERNAL_ERROR, 500)
+        │
+        ├─ Redirect/Cancellation Errors?
+        │   ├─ ERR_FR_TOO_MANY_REDIRECTS → Too many redirects
+        │   ├─ ERR_CANCELED → Request cancelled
+        │   └─ Result: AppError(OPERATION_FAILED, 500 or skip)
+        │
+        ├─ HTTP Response Exists?
         │   │
-        │   └─ NO → Fall back to status code
+        │   ├─ Server provided custom code field?
+        │   │   ├─ YES → Map code to ErrorCode enum
+        │   │   │        Examples: "VALIDATION_ERROR", "NOT_FOUND", "UNAUTHORIZED"
+        │   │   │
+        │   │   └─ NO → Fall back to status code
+        │   │
+        │   ├─ Status 400 or 422?
+        │   │   └─ AppError(VALIDATION_ERROR, 400)
+        │   │       "Please check your input..."
+        │   │
+        │   ├─ Status 401?
+        │   │   └─ AppError(UNAUTHORIZED, 401)
+        │   │       "Please log in to continue..."
+        │   │
+        │   ├─ Status 403?
+        │   │   └─ AppError(FORBIDDEN, 403)
+        │   │       "You don't have permission..."
+        │   │
+        │   ├─ Status 404?
+        │   │   └─ AppError(NOT_FOUND, 404)
+        │   │       "Resource not found..."
+        │   │
+        │   └─ Status 5xx?
+        │       └─ AppError(INTERNAL_ERROR, 500)
+        │           "Service temporarily unavailable. Retrying..."
         │
-        ├─ Status 400 or 422?
-        │   └─ AppError(VALIDATION_ERROR, 400)
-        │       "Please check your input..."
-        │
-        ├─ Status 401?
-        │   └─ AppError(UNAUTHORIZED, 401)
-        │       "Please log in to continue..."
-        │
-        ├─ Status 403?
-        │   └─ AppError(FORBIDDEN, 403)
-        │       "You don't have permission..."
-        │
-        ├─ Status 404?
-        │   └─ AppError(NOT_FOUND, 404)
-        │       "Resource not found..."
-        │
-        ├─ Status 409?
-        │   └─ AppError(CONFLICT, 409)
-        │       "Resource already exists..."
-        │
-        ├─ Status 429?
-        │   └─ AppError(RATE_LIMITED, 429)
-        │       "Too many requests. Please wait..."
-        │
-        └─ Status 5xx?
-            └─ AppError(INTERNAL_ERROR, 500)
-                "Service temporarily unavailable. Retrying..."
+        └─ No HTTP Response?
+            └─ Already handled by network/transport error check above
 ```
 
 ### Classification Result
@@ -311,6 +324,11 @@ interface AppError {
 **Type guards for classification:**
 
 ```typescript
+// Check if error is from axios (before other type checks)
+isAxiosError(error): boolean
+// Returns true if error originated from axios
+// Use this FIRST to differentiate axios-specific errors from generic errors
+
 // Check if error is AppError (vs generic Error)
 isAppError(error): boolean
 
@@ -322,7 +340,29 @@ isCriticalError(error): boolean
 getErrorMessage(error): string
 ```
 
-**Code reference:** [apps/client/src/lib/errors.ts](apps/client/src/lib/errors.ts)
+**Axios Error Codes Reference:**
+
+When `isAxiosError(error)` returns true, check `error.code` for:
+
+- **Network/Transport Errors:**
+  - `ERR_NETWORK` - No internet connection or network failure
+  - `ECONNABORTED` - Connection was aborted
+  - `ETIMEDOUT` - Request timeout
+  - `ERR_BAD_RESPONSE` - Server responded with invalid data format
+
+- **Request/Configuration Errors:**
+  - `ERR_BAD_REQUEST` - Malformed request syntax
+  - `ERR_INVALID_URL` - URL is invalid
+  - `ERR_BAD_OPTION` - Invalid axios configuration option
+  - `ERR_BAD_OPTION_VALUE` - Invalid value for axios option
+
+- **Axios-Specific Errors:**
+  - `ERR_FR_TOO_MANY_REDIRECTS` - Too many HTTP redirects
+  - `ERR_CANCELED` - Request was cancelled
+  - `ERR_DEPRECATED` - Using deprecated axios feature
+  - `ERR_NOT_SUPPORT` - Unsupported operation for environment
+
+**Code reference:** [apps/client/src/lib/errors.ts](apps/client/src/lib/errors.ts) and [axios documentation](https://axios-http.com/docs/intro)
 
 ---
 
@@ -396,25 +436,15 @@ Toasts are used for **background/async errors that don't block navigation**:
 
 ### When NOT to Show Toast
 
-❌ **4xx Validation Errors**
-
-- Field-specific errors shown inline with form
-- User action required to fix
-
 ❌ **404 Not Found**
 
 - Shown as page content
 - User must navigate elsewhere
 
-❌ **409 Conflict**
+❌ **Other 4xx Errors**
 
-- Handled in component logic
-- Resource state should be refreshed
-
-❌ **429 Rate Limited**
-
-- Shown inline with countdown
-- User should wait before retrying
+- Field-specific or context-specific handling
+- User action required based on error type
 
 **Implementation:** `apps/client/src/lib/api-client.ts`
 
@@ -454,34 +484,35 @@ React Query manages server state and automatically handles caching, refetching, 
 
 ```typescript
 // apps/client/src/lib/react-query.ts
-const queryClientConfig = {
-  defaultOptions: {
-    queries: {
-      // Throw errors to ErrorBoundary for critical codes only
-      throwOnError: (error) => {
-        return isAppError(error) && isCriticalError(error);
-      },
+const queryConfig = {
+  queries: {
+    // Throw errors to ErrorBoundary (with opt-out for optional data)
+    throwOnError: (_error, query) => {
+      // Don't throw for certain query keys (e.g., optional data)
+      if (query.queryKey[0] === "optional-data") return false;
 
-      // Retry strategy based on error type
-      retry: (failureCount, error) => {
-        if (!isAppError(error)) return true; // Retry unknown errors
-
-        // 4xx errors: don't retry (user's fault or data conflict)
-        if (error.statusCode >= 400 && error.statusCode < 500) {
-          return false;
-        }
-
-        // 5xx errors: retry up to 2 times
-        return failureCount < 2;
-      },
-
-      // Other defaults
-      staleTime: 60000, // 60 seconds - data fresh for 1 minute
-      gcTime: 5 * 60 * 1000, // 5 minutes - cleanup unused data
-      refetchOnWindowFocus: true, // Refresh when app regains focus
-      refetchOnReconnect: true, // Refresh when network reconnects
-      refetchOnMount: "stale", // Refresh stale data on component mount
+      // Throw all other errors to ErrorBoundary
+      return true;
     },
+
+    // Retry strategy based on error type
+    retry: (failureCount, error) => {
+      const axiosError = error as { response?: { status: number } };
+      const status = axiosError?.response?.status;
+
+      // Don't retry client errors (4xx)
+      if (status && status >= 400 && status < 500) {
+        return false;
+      }
+
+      // Retry server/network errors up to 2 times
+      return failureCount < 2;
+    },
+
+    // Other defaults
+    staleTime: 1000 * 60, // 60 seconds - data fresh for 1 minute
+    refetchOnWindowFocus: false, // Don't refresh when app regains focus
+    // Note: refetchOnReconnect and refetchOnMount handled by React Query defaults
   },
 };
 ```
@@ -558,26 +589,34 @@ return <Content data={query.data} />;
 
 `throwOnError` controls whether errors are thrown to ErrorBoundary or stored in query state:
 
-**When `throwOnError: true` (conditional function):**
+**Current implementation (throws all errors by default):**
 
 ```
 Error occurs in query
     ↓
-Check: isCriticalError(error)?
-    ├─ YES → Throw error
+Check: Is this "optional-data" query?
+    ├─ YES → Store in query.error (don't throw)
     │        ↓
-    │        ErrorBoundary catches
+    │        Component can read query.error
     │        ↓
-    │        Component doesn't render (error UI shown)
+    │        Component renders with error UI inline
     │
-    └─ NO → Store in query.error
+    └─ NO → Throw error
             ↓
-            Component can read query.error
+            ErrorBoundary catches (checks isCriticalError)
             ↓
-            Component renders with error UI inline
+            If critical: Show error page
+            If not critical: ErrorBlock handles locally
 ```
 
-**When `throwOnError: false`:**
+**Why throw all errors?**
+
+- Simpler error handling flow (ErrorBoundary hierarchy handles all cases)
+- Avoids duplicate error handling in every component
+- ErrorBoundary's `isCriticalError()` check determines final behavior
+- Components can still use `query.error` if they want to handle locally
+
+**When `throwOnError: false` (alternative approach):**
 
 ```
 Error occurs in query
@@ -791,17 +830,15 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 
 ### HTTP Status Codes → ErrorCode Mapping
 
-| HTTP Status | ErrorCode           | Meaning           | User Action              |
-| ----------- | ------------------- | ----------------- | ------------------------ |
-| 400         | VALIDATION_ERROR    | Invalid input     | Fix and retry            |
-| 401         | UNAUTHORIZED        | Not authenticated | Log in                   |
-| 403         | FORBIDDEN           | Not authorized    | Contact support          |
-| 404         | NOT_FOUND           | Resource missing  | Navigate elsewhere       |
-| 409         | CONFLICT            | Resource conflict | Refresh and retry        |
-| 429         | RATE_LIMITED        | Too many requests | Wait and retry           |
-| 500         | INTERNAL_ERROR      | Server error      | Retry or contact support |
-| 503         | SERVICE_UNAVAILABLE | Service down      | Retry later              |
-| Network     | NETWORK_ERROR       | No connection     | Check network            |
+| HTTP Status | ErrorCode              | Meaning                 | User Action              |
+| ----------- | ---------------------- | ----------------------- | ------------------------ |
+| 400         | VALIDATION_ERROR       | Invalid input           | Fix and retry            |
+| 401         | UNAUTHORIZED           | Not authenticated       | Log in                   |
+| 403         | FORBIDDEN              | Not authorized          | Contact support          |
+| 404         | NOT_FOUND              | Resource missing        | Navigate elsewhere       |
+| 500         | INTERNAL_ERROR         | Server error            | Retry or contact support |
+| 503         | SERVICE_UNAVAILABLE    | Service down            | Retry later              |
+| 5xx/Network | EXTERNAL_SERVICE_ERROR | Server/connection issue | Retry                    |
 
 ### Error Codes by Category
 
@@ -815,7 +852,6 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 **Validation (form errors)**
 
 - VALIDATION_ERROR (400/422)
-- CONFLICT (409)
 
 **Not Found (resource missing)**
 
@@ -825,11 +861,7 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 
 - INTERNAL_ERROR (500)
 - SERVICE_UNAVAILABLE (503)
-- EXTERNAL_SERVICE_ERROR
-
-**Network Issues (transient)**
-
-- NETWORK_ERROR
+- EXTERNAL_SERVICE_ERROR (network/5xx)
 
 ## Key Components
 
@@ -886,13 +918,13 @@ classifyHttpError() → AppError(UNAUTHORIZED, 401, "Invalid credentials")
     ↓
 Throw AppError to React Query
     ↓
-React Query sees isCriticalError(error) = true
-    ↓
-Throw error (throwOnError: true condition met)
+React Query throwOnError: true → Throw error to ErrorBoundary
     ↓
 LoginForm ErrorBoundary catches
     ↓
-isCriticalError = true → Re-throw to parent
+Check: isCriticalError(error)? → YES (UNAUTHORIZED is critical)
+    ↓
+Re-throw to parent (RouteErrorBoundary)
     ↓
 RouteErrorBoundary catches
     ↓
@@ -926,17 +958,21 @@ React Query: Is 5xx? → Retry (up to 2 times)
     ├─ Wait 1s
     ├─ Retry 2: Still 500
     ├─ Wait 2s
-    └─ Give up
+    └─ Give up, still errored
     ↓
-throwOnError: false (not critical) → Store in query.error
+throwOnError: true → Throw error to ErrorBoundary
     ↓
-Route loader gets query error
+ProductList ErrorBoundary catches
     ↓
-Throw error to RouteErrorBoundary
+Check: isCriticalError(error)? → NO (INTERNAL_ERROR is not critical)
+    ↓
+Render error inline with ErrorBlock
     ↓
 Show: "Failed to load products. Please try again."
     ↓
 Show retry button
+    ↓
+User clicks retry → refetch happens
 ```
 
 ### Example 3: Validation Error on Form Submit
@@ -967,9 +1003,15 @@ Throw AppError to React Query
     ↓
 React Query: Is 4xx? → No retry
     ↓
-throwOnError: false → Store in query.error
+throwOnError: true → Throw error to ErrorBoundary
     ↓
-Component can access mutation.error.details
+Form component ErrorBoundary catches
+    ↓
+Check: isCriticalError(error)? → YES (VALIDATION_ERROR is critical)
+    ↓
+Re-throw to parent form boundary
+    ↓
+Parent can access error.details for field-level errors
     ↓
 Show field-level errors next to inputs
     ↓
@@ -985,11 +1027,11 @@ Component has useQuery(getProductByIdQueryOptions)
     ↓
 Data already cached and fresh
     ↓
-User loses internet connection
+Stale time (60s) expires
     ↓
-Window loses focus and regains focus (refetchOnWindowFocus: true)
+Component unmounts and remounts (route change)
     ↓
-React Query starts background refetch
+React Query starts refetch (refetchOnMount: "stale")
     ↓
 GET /api/products/:id (no network)
     ↓
@@ -997,15 +1039,16 @@ Axios throws ERR_NETWORK
     ↓
 Axios interceptor catches
     ↓
-classifyHttpError() → AppError(NETWORK_ERROR, 503)
+classifyHttpError() → AppError(EXTERNAL_SERVICE_ERROR, 503)
     ↓
 Show toast: "Network connection lost..."
     ↓
 Throw AppError to React Query
     ↓
-React Query: Is 5xx/network? → Retry (up to 2x)
+React Query: Is network error? → Retry (up to 2x)
     │
     ├─ Retry 1: Still no network
+    ├─ Wait 1s
     ├─ Retry 2: Network restored!
     └─ Success
     ↓
@@ -1084,6 +1127,41 @@ Component shows updated data
 5. **Should QueryClientContext be always available or opt-in per route?**
    - Always available = simpler implementation
    - Opt-in = more control, clearer intent
+
+---
+
+## Known Gaps in Current Implementation
+
+Based on analysis of the codebase, these areas could be improved:
+
+### ✅ What's Currently Working
+
+1. **Global Error Boundary** - `MainErrorFallback` catches app-level errors
+2. **Route Error Boundary** - `RouteErrorBoundary` catches routing errors
+3. **Component-level Error Boundaries** - Individual features have error isolation
+4. **API Interceptor** - Classifies HTTP errors consistently
+5. **Suspense Boundaries** - Used with ErrorBoundary for async loading
+
+### ⚠️ Known Limitations
+
+1. **Loader Errors** - Route loaders may not throw errors that bubble to error boundaries
+2. **Optional Data Queries** - Some non-critical queries might not need throwOnError
+3. **Layout Components** - Nav/footer have no error isolation (affects whole page)
+4. **Related Products** - Error in this section crashes entire page
+5. **Zod Validation** - Schema mismatch errors need better user messaging
+
+### Testing Scenarios
+
+When testing error handling, verify:
+
+- Network disconnection and recovery
+- 404 invalid routes/product slugs
+- 400/422 validation error responses
+- 500/503 server error with retry
+- 401 auth redirect
+- Loader function failures
+- Component render errors
+- Concurrent multiple failures
 
 ---
 
