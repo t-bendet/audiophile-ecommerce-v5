@@ -88,11 +88,9 @@ export const AppRouter = () => {
 };
 
 // export const clientLoader =
-//   (queryClient: QueryClient) =>
-//   async ({ request }: LoaderFunctionArgs) => {
+//   (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
 //     await queryClient.prefetchQuery(getFeaturedProductQueryOptions());
 //     await queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
-//     console.log(request.url);
-
+//     console.log({ context });
 //     return null;
 //   };
