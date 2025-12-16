@@ -1,4 +1,4 @@
-import { Button } from "@components/ui/button";
+import { Button } from "@/components/ui/button";
 // import { useRouteError } from "react-router-dom";
 
 export const MainErrorFallback = () => {
