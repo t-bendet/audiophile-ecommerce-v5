@@ -1,9 +1,9 @@
 import express from "express";
+import authRouter from "./auth.route.js";
 import categoryRouter from "./category.route.js";
+import configRouter from "./config.route.js";
 import productRouter from "./product.route.js";
 import userRouter from "./user.route.js";
-import configRouter from "./config.route.js";
-import authRouter from "./auth.route.js";
 
 const indexRoute: express.Router = express.Router();
 

@@ -6,5 +6,6 @@ export * from "./error-codes.js";
 export * from "./common.js";
 export * from "./shared.js";
 export * from "./auth.js";
+export * from "./app-error.js";
 
 // ** use strict() for input validation schemas

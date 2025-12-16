@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { getProductBySlugQueryOptions } from "../../api/get-product";
-import { getRelatedProductsQueryOptions } from "../../api/get-products";
+import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
+import { getRelatedProductsQueryOptions } from "@/features/products/api/get-products";
 
 const RelatedProducts = ({ id }: { id: string }) => {
   const { data: productsResponse } = useSuspenseQuery(

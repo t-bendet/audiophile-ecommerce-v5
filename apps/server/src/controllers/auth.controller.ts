@@ -1,4 +1,5 @@
 import {
+  AppError,
   createEmptyResponse,
   createSingleItemResponse,
   ErrorCode,
@@ -8,7 +9,6 @@ import { Request, RequestHandler, Response } from "express";
 import { authService } from "../services/auth.service.js";
 import catchAsync from "../utils/catchAsync.js";
 import { env } from "../utils/env.js";
-import AppError from "../utils/appError.js";
 
 /**
  * Auth Controller handles HTTP layer only

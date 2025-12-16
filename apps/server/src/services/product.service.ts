@@ -1,5 +1,6 @@
 import { NAME, prisma } from "@repo/database";
 import {
+  AppError,
   ErrorCode,
   ExtendedQueryParams,
   Meta,
@@ -14,7 +15,6 @@ import {
   ProductUpdateInput,
   ProductWhereInput,
 } from "@repo/domain";
-import AppError from "../utils/appError.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 export class ProductService extends AbstractCrudService<
@@ -102,7 +102,6 @@ export class ProductService extends AbstractCrudService<
 
     // Build query components locally
     const where = this.buildProductWhere(name, price);
-    console.log({ where });
     const select = this.parseProductSelect(fields);
     const orderBy = this.parseProductOrderBy(sort);
 
@@ -166,7 +165,7 @@ export class ProductService extends AbstractCrudService<
 
   async getProductsByCategoryName(
     categoryName: NAME
-  ): Promise<{ data: ProductsByCategoryNameDTO; meta: Meta }> {
+  ): Promise<{ data: ProductsByCategoryNameDTO[]; meta: Meta }> {
     // Find category by name
     const products = await prisma.product.findMany({
       where: {
@@ -217,7 +216,7 @@ export class ProductService extends AbstractCrudService<
 
   async getRelatedProducts(
     productId: string
-  ): Promise<{ data: ProductRelatedProductsDTO; meta: Meta }> {
+  ): Promise<{ data: ProductRelatedProductsDTO[]; meta: Meta }> {
     // Get base product info
     const product = await prisma.product.findUnique({
       where: { id: productId },
