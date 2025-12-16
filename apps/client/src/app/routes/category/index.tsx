@@ -47,6 +47,7 @@ const Category = () => {
                   title={`Error loading ${categoryName} products`}
                   message={error.message}
                   onReset={resetErrorBoundary}
+                  error={error}
                 />
               </div>
             </Container>
@@ -71,6 +72,7 @@ const Category = () => {
                     title={`Error loading categories`}
                     message={error.message}
                     onReset={resetErrorBoundary}
+                    error={error}
                   />
                 </div>
               </Container>

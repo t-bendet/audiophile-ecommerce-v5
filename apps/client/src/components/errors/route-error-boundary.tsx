@@ -57,7 +57,7 @@ export function RouteErrorBoundary() {
   return (
     <Container classes="flex min-h-[50vh] items-center justify-center">
       <div className="text-center">
-        <h1 className="text-primary-400 mb-4 text-6xl font-bold">
+        <h1 className="text-primary-500 mb-4 text-6xl font-bold">
           {statusCode}
         </h1>
         <h2 className="mb-2 text-2xl font-semibold text-neutral-900">
