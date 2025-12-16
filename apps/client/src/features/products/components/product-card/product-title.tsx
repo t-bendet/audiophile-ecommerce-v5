@@ -1,5 +1,5 @@
 import { Fragment } from "react/jsx-runtime";
-import { UseProductCardContext } from "./index";
+import { UseProductCardContext } from "@/features/products/components/product-card/index";
 import { cn } from "@/lib/cn";
 
 export default function ProductTitle(props: { classes?: string }) {

@@ -1,5 +1,5 @@
 import currencyFormatter from "@/utils/formatters";
-import { UseProductCardContext } from "./index";
+import { UseProductCardContext } from "@/features/products/components/product-card/index";
 import { cn } from "@/lib/cn";
 
 export default function ProductPrice(props: { classes?: string }) {
