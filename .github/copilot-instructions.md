@@ -282,6 +282,31 @@ export async function loader({ context }) {
 - Use with middleware error processing for consistent error handling
 - Validates retry eligibility based on status code
 
+### HTTP Client (Axios)
+
+**Documentation**: https://axios-http.com/docs/intro
+
+Axios is used for making HTTP requests with automatic error classification and retry strategies integrated with React Query.
+
+**Key features:**
+
+- **Request/response interceptors**: Central place for error handling, auth headers, and request transformation
+- **Automatic error classification**: HTTP errors classified to `AppError` with semantic `ErrorCode` values
+- **Built-in timeout handling**: Configurable request timeouts
+- **Cancellation support**: Ability to cancel in-flight requests
+- **Type-safe API**: Full TypeScript support for request/response types
+
+**Common patterns:**
+
+- All HTTP requests go through `getApi()` for lazy initialization with interceptors
+- Error responses automatically classified using `classifyHttpError()`
+- 401 errors set `redirectTo` for auth layer handling
+- 4xx errors shown inline in UI, not as toasts
+- 5xx and network errors show toast notifications
+- All errors thrown as `AppError` to React Query for consistent handling
+
+**Key file**: [apps/client/src/lib/api-client.ts](apps/client/src/lib/api-client.ts)
+
 ---
 
 ## Active TODOs
