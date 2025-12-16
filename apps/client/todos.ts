@@ -13,13 +13,11 @@
 
 // TODO refactor to use bulletproof-react auth patterns
 // TODO axios refresher
-// TODO Provider - what does Suspense does here, is it required?
 // TODO change src attributes to z.url in all schemas
 // TODO go over stephen grider steps for planning routes
 // TODO Provider check bulletproof react patterns for react-query setup
 // TODO layouts refactor - bulletproof react patterns
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
-// TODO standerdize import paths (some use @/ ,some use relative paths)
 // TODO https://reactrouter.com/api/utils/createContext
 
 // ** API Client (src/lib/api-client.ts)
