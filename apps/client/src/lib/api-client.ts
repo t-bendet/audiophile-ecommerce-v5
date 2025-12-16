@@ -5,6 +5,7 @@ import Axios, {
 } from "axios";
 import { AppError, ErrorCode } from "@repo/domain";
 import { toast } from "@/hooks/use-toast";
+import { classifyHttpError } from "@/lib/errors";
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.headers) {
@@ -54,7 +55,6 @@ export async function getApi(): Promise<AxiosInstance> {
         }
 
         const status = error.response?.status;
-        const message = error.response?.data?.message || error.message;
 
         // Handle auth errors (let auth layer handle redirect)
         if (status === 401) {
@@ -65,23 +65,22 @@ export async function getApi(): Promise<AxiosInstance> {
           return Promise.reject(error);
         }
 
-        // Don't show toast for expected client errors (4xx) - let UI handle them
+        // For expected client errors (4xx), classify to AppError and let UI handle
         if (status && status >= 400 && status < 500) {
-          return Promise.reject(error);
+          return Promise.reject(classifyHttpError(error));
         }
 
-        // Show toast only for server errors (5xx) or network errors
+        // Show generic toast for server errors (5xx) or network errors
         if (!status || status >= 500) {
           toast({
             type: "background",
             title: "Server Error",
-            description:
-              message || "Something went wrong. Please try again later.",
+            description: "An unexpected error occurred",
             variant: "destructive",
           });
         }
 
-        return Promise.reject(error);
+        return Promise.reject(classifyHttpError(error));
       },
     );
   }
