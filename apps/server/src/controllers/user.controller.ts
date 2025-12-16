@@ -1,4 +1,5 @@
 import {
+  AppError,
   createEmptyResponse,
   createListResponse,
   createSingleItemResponse,
@@ -7,7 +8,6 @@ import {
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { userService } from "../services/user.service.js";
 import catchAsync from "../utils/catchAsync.js";
-import AppError from "../utils/appError.js";
 
 export const getMe = (req: Request, _res: Response, next: NextFunction) => {
   if (!req.user || !req.user.id) {

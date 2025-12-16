@@ -2,7 +2,6 @@ import {
   ProductCreateRequestSchema,
   ProductDeleteByIdRequestSchema,
   ProductGetAllRequestSchema,
-  ProductGetByCategorySchema,
   ProductGetByIdRequestSchema,
   ProductGetByPathSchema,
   ProductGetBySlugSchema,

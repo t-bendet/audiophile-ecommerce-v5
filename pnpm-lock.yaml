@@ -296,6 +296,9 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../config-typescript
+      '@types/node':
+        specifier: ^24.1.0
+        version: 24.10.4
       eslint:
         specifier: ^9.0.0
         version: 9.39.2(jiti@2.6.1)

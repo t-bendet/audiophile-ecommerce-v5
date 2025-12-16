@@ -1,8 +1,7 @@
 import { prisma } from "@repo/database";
-import { UserPublicInfo, ErrorCode } from "@repo/domain";
+import { AppError, ErrorCode, UserPublicInfo } from "@repo/domain";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import jwt from "jsonwebtoken";
-import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
 import { env } from "../utils/env.js";
 
