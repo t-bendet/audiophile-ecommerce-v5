@@ -1,7 +1,7 @@
+import { ErrorCode } from "@repo/domain";
 import { RequestHandler } from "express";
 import { ZodType } from "zod";
-import { ErrorCode } from "@repo/domain";
-import AppError from "../utils/appError.js";
+import { AppError } from "@repo/domain";
 import catchAsync from "../utils/catchAsync.js";
 
 // * Middleware to validate request (params, body, query) against a Zod schema

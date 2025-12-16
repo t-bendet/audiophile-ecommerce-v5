@@ -1,3 +1,5 @@
+import FeaturedProductSection from "@/app/routes/home/featured-product-section";
+import ShowCaseProductsSection from "@/app/routes/home/show-case-products-section";
 import ErrorBlock from "@/components/errors/ErrorBlock";
 import LoadingSpinner from "@/components/layouts/loading-spinner";
 import { BestGearSection } from "@/components/sections";
@@ -10,8 +12,6 @@ import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-pro
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import FeaturedProductSection from "@/app/routes/home/featured-product-section";
-import ShowCaseProductsSection from "@/app/routes/home/show-case-products-section";
 import { LoaderFunctionArgs } from "react-router-dom";
 
 const Home = () => {
@@ -106,6 +106,7 @@ export const clientLoader =
     queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
     queryClient.ensureQueryData(getFeaturedProductQueryOptions());
     // console.log({ context });
+
     return null;
   };
 

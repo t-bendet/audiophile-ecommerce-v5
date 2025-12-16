@@ -5,11 +5,9 @@ import type {
   CategoryDTO,
   CategorySelect,
   CategoryUpdateInput,
-  CategoryWhereInput,
   NAME,
 } from "@repo/domain";
-import { ErrorCode, NAME as NAME_ENUM } from "@repo/domain";
-import AppError from "../utils/appError.js";
+import { NAME as NAME_ENUM } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 export class CategoryService extends AbstractCrudService<

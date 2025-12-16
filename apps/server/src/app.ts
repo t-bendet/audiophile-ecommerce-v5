@@ -1,8 +1,7 @@
+import { AppError, ErrorCode, UserPublicInfo } from "@repo/domain";
 import express, { Express } from "express";
 import globalErrorHandler from "./middlewares/error.middleware.js";
 import indexRoute from "./routes/index.js";
-import { UserPublicInfo, ErrorCode } from "@repo/domain";
-import AppError from "./utils/appError.js";
 
 declare global {
   namespace Express {

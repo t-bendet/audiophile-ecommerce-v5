@@ -1,12 +1,11 @@
 import { prisma } from "@repo/database";
 import type {
   ROLE,
-  UserPublicInfo,
   UserCreateInput,
   UserDTO,
+  UserPublicInfo,
   UserSelect,
   UserUpdateInput,
-  UserWhereInput,
 } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
