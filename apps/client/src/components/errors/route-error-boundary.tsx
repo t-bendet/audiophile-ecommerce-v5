@@ -5,10 +5,16 @@ import {
   useNavigate,
   useRouteError,
 } from "react-router-dom";
-import { isApiError, isNetworkError, getErrorMessage } from "@/lib/errors";
+import {
+  isApiError,
+  isNetworkError,
+  getErrorMessage,
+  isCriticalError,
+} from "@/lib/errors";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
+  console.log({ error }, "router level");
   const navigate = useNavigate();
 
   let statusCode = 500;
@@ -42,6 +48,10 @@ export function RouteErrorBoundary() {
 
     title = "Connection Error";
     message = error.message;
+  } else if (isCriticalError(error)) {
+    // For critical errors, show generic message
+    title = "Critical Error";
+    message = "A critical error occurred. Please try again later.";
   }
 
   return (
