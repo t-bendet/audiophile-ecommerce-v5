@@ -9,6 +9,16 @@ import { paths } from "@/config/paths";
 
 // import { ProtectedRoute } from "@/lib/auth";
 
+const convert = (queryClient: QueryClient) => (m: any) => {
+  const { clientLoader, clientAction, default: Component, ...rest } = m;
+  return {
+    ...rest,
+    loader: clientLoader?.(queryClient),
+    action: clientAction?.(queryClient),
+    Component,
+  };
+};
+
 const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
     {
@@ -22,56 +32,27 @@ const createAppRouter = (queryClient: QueryClient) =>
           ErrorBoundary: MainErrorFallback,
           children: [
             {
-              lazy: {
-                loader: async () => {
-                  return (await import("./routes/home")).clientLoader(
-                    queryClient,
-                  );
-                },
-                Component: async () => {
-                  return (await import("./routes/home")).default;
-                },
-              },
+              lazy: () => import("./routes/home").then(convert(queryClient)),
               path: paths.home.path,
               index: true,
               errorElement: <RouteErrorBoundary />,
             },
             {
-              lazy: {
-                Component: async () => {
-                  return (await import("./routes/product")).default;
-                },
-                loader: async () => {
-                  return (await import("./routes/product")).clientLoader(
-                    queryClient,
-                  );
-                },
-              },
+              lazy: () => import("./routes/product").then(convert(queryClient)),
               path: paths.product.path,
               errorElement: <RouteErrorBoundary />,
             },
             {
-              lazy: {
-                Component: async () => {
-                  return (await import("./routes/category")).default;
-                },
-                loader: async () => {
-                  return (await import("./routes/category")).clientLoader(
-                    queryClient,
-                  );
-                },
-              },
+              lazy: () =>
+                import("./routes/category").then(convert(queryClient)),
               path: paths.category.path,
               errorElement: <RouteErrorBoundary />,
             },
 
             {
               path: "*",
-              lazy: {
-                Component: async () => {
-                  return (await import("./routes/not-found")).default;
-                },
-              },
+              lazy: () =>
+                import("./routes/not-found").then(convert(queryClient)),
             },
           ],
         },

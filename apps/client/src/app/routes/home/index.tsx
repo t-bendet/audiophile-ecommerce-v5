@@ -12,6 +12,7 @@ import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import FeaturedProductSection from "./featured-product-section";
 import ShowCaseProductsSection from "./show-case-products-section";
+import { LoaderFunctionArgs } from "react-router-dom";
 
 const Home = () => {
   const queryClient = useQueryClient();
@@ -100,10 +101,12 @@ const Home = () => {
   );
 };
 
-export const clientLoader = async (queryClient: QueryClient) => {
-  queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
-  queryClient.ensureQueryData(getFeaturedProductQueryOptions());
-  return null;
-};
+export const clientLoader =
+  (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
+    queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
+    queryClient.ensureQueryData(getFeaturedProductQueryOptions());
+    // console.log({ context });
+    return null;
+  };
 
 export default Home;
