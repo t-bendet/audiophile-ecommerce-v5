@@ -1,7 +1,7 @@
-import { ResponsivePicture } from "@components/ui/responsivePicture";
-import bestGearDesktopImg from "../../assets/desktop/image-best-gear.jpg";
-import bestGearMobileImg from "../../assets/mobile/image-best-gear.jpg";
-import bestGearTabletImg from "../../assets/tablet/image-best-gear.jpg";
+import { ResponsivePicture } from "@/components/ui/responsivePicture";
+import bestGearDesktopImg from "@/assets/desktop/image-best-gear.jpg";
+import bestGearMobileImg from "@/assets/mobile/image-best-gear.jpg";
+import bestGearTabletImg from "@/assets/tablet/image-best-gear.jpg";
 import { Container } from "@/components/ui/container";
 
 export const BestGearSection = () => {
