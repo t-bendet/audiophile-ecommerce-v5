@@ -62,3 +62,5 @@
 // TODO https://react.dev/reference/react-dom/preload
 // TODO webP
 // TODO add min size for site
+// TODO add severity levels to errors
+// TODO switch toast to sonner
