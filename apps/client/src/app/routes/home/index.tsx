@@ -1,98 +1,46 @@
 import FeaturedProductSection from "@/app/routes/home/featured-product-section";
 import ShowCaseProductsSection from "@/app/routes/home/show-case-products-section";
-import ErrorBlock from "@/components/errors/ErrorBlock";
-import LoadingSpinner from "@/components/layouts/loading-spinner";
+import { SafeRenderWithErrorBlock } from "@/components/errors/ErrorBlockWithBoundary";
 import { BestGearSection } from "@/components/sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
+import { QueryClient } from "@tanstack/react-query";
 import { LoaderFunctionArgs } from "react-router-dom";
 
 const Home = () => {
-  const queryClient = useQueryClient();
   return (
     <>
       <main>
         <Section classes="mb-10 h-[calc(100vh-(var(--nav-bar-height)))] w-full bg-neutral-900 md:mb-24 lg:mb-30">
           <Container classes="grid h-full grid-cols-1 bg-neutral-600">
-            <ErrorBoundary
-              FallbackComponent={({ error, resetErrorBoundary }) => {
-                return (
-                  <div className="flex items-center justify-center">
-                    <ErrorBlock
-                      title="Error loading featured product"
-                      message={error.message}
-                      onReset={resetErrorBoundary}
-                      error={error}
-                    />
-                  </div>
-                );
-              }}
-              onReset={() => {
-                queryClient.prefetchQuery(getFeaturedProductQueryOptions());
-              }}
+            <SafeRenderWithErrorBlock
+              title="Error loading featured product"
+              spinnerClasses="bg-neutral-900"
             >
-              <Suspense fallback={<LoadingSpinner classes="bg-neutral-900" />}>
-                <FeaturedProductSection />
-              </Suspense>
-            </ErrorBoundary>
+              <FeaturedProductSection />
+            </SafeRenderWithErrorBlock>
           </Container>
         </Section>
 
         <Section classes="md:mb-24 lg:mb-42">
-          <ErrorBoundary
-            FallbackComponent={({ error, resetErrorBoundary }) => (
-              <Container classes="mb-30">
-                <div className="flex items-center justify-center">
-                  <ErrorBlock
-                    title={`Error loading categories`}
-                    message={error.message}
-                    onReset={resetErrorBoundary}
-                    error={error}
-                  />
-                </div>
-              </Container>
-            )}
-            onReset={() => {
-              queryClient.prefetchQuery(getCategoriesQueryOptions());
-            }}
+          <SafeRenderWithErrorBlock
+            title="Error loading categories"
+            containerClasses="mb-30"
           >
-            <Suspense fallback={<LoadingSpinner />}>
-              <Container>
-                <CategoryNavDropdown />
-              </Container>
-            </Suspense>
-          </ErrorBoundary>
+            <Container>
+              <CategoryNavDropdown />
+            </Container>
+          </SafeRenderWithErrorBlock>
         </Section>
 
         <Section classes="space-y-6 md:mb-24 md:space-y-8 lg:mb-53 lg:space-y-12">
-          <ErrorBoundary
-            FallbackComponent={({ error, resetErrorBoundary }) => (
-              <Container>
-                <ErrorBlock
-                  title="Error loading showcase products"
-                  message={error.message}
-                  onReset={resetErrorBoundary}
-                  error={error}
-                />
-              </Container>
-            )}
-            onReset={() => {
-              queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
-            }}
-          >
-            <Suspense fallback={<LoadingSpinner />}>
-              <ShowCaseProductsSection />
-            </Suspense>
-          </ErrorBoundary>
+          <SafeRenderWithErrorBlock title="Error loading showcase products">
+            <ShowCaseProductsSection />
+          </SafeRenderWithErrorBlock>
         </Section>
-
         <Section classes="md:mb-24 lg:mb-47">
           <BestGearSection />
         </Section>

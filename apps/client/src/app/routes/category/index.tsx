@@ -1,17 +1,13 @@
-import ErrorBlock from "@/components/errors/ErrorBlock";
-import LoadingSpinner from "@/components/layouts/loading-spinner";
+import { SafeRenderWithErrorBlock } from "@/components/errors/ErrorBlockWithBoundary";
 import { BestGearSection } from "@/components/sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
 import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 import ProductsList from "@/features/products/components/products-list";
 import ProductsListSkeleton from "@/features/products/components/products-list-skeleton";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { NAME } from "@repo/domain";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
+import { QueryClient } from "@tanstack/react-query";
 import { LoaderFunctionArgs, useParams } from "react-router-dom";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -30,7 +26,6 @@ export const clientLoader =
 
 const Category = () => {
   const { categoryName } = useParams<{ categoryName: NAME }>();
-  const queryClient = useQueryClient();
   return (
     <>
       <header className="bg-neutral-900 py-8 md:py-24">
@@ -39,54 +34,23 @@ const Category = () => {
         </h1>
       </header>
       <main className="mt-16 md:mt-30 lg:mt-40">
-        <ErrorBoundary
-          FallbackComponent={({ error, resetErrorBoundary }) => (
-            <Container classes="mb-30">
-              <div className="flex items-center justify-center">
-                <ErrorBlock
-                  title={`Error loading ${categoryName} products`}
-                  message={error.message}
-                  onReset={resetErrorBoundary}
-                  error={error}
-                />
-              </div>
-            </Container>
-          )}
-          onReset={() => {
-            queryClient.prefetchQuery(
-              getProductsByCategoryQueryOptions(categoryName!),
-            );
-          }}
+        <SafeRenderWithErrorBlock
+          title={`Error loading ${categoryName} products`}
+          containerClasses="mb-30"
+          fallback={<ProductsListSkeleton />}
         >
-          <Suspense fallback={<ProductsListSkeleton />}>
-            <ProductsList categoryName={categoryName!} />
-          </Suspense>
-        </ErrorBoundary>
+          <ProductsList categoryName={categoryName!} />
+        </SafeRenderWithErrorBlock>
 
         <Section>
-          <ErrorBoundary
-            FallbackComponent={({ error, resetErrorBoundary }) => (
-              <Container classes="mb-30">
-                <div className="flex items-center justify-center">
-                  <ErrorBlock
-                    title={`Error loading categories`}
-                    message={error.message}
-                    onReset={resetErrorBoundary}
-                    error={error}
-                  />
-                </div>
-              </Container>
-            )}
-            onReset={() => {
-              queryClient.prefetchQuery(getCategoriesQueryOptions());
-            }}
+          <SafeRenderWithErrorBlock
+            title="Error loading categories"
+            containerClasses="mb-30"
           >
-            <Suspense fallback={<LoadingSpinner />}>
-              <Container>
-                <CategoryNavDropdown />
-              </Container>
-            </Suspense>
-          </ErrorBoundary>
+            <Container>
+              <CategoryNavDropdown />
+            </Container>
+          </SafeRenderWithErrorBlock>
         </Section>
         <Section>
           <BestGearSection />
