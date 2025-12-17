@@ -27,14 +27,12 @@ const Home = () => {
                 <ErrorBoundary
                   FallbackComponent={({ error, resetErrorBoundary }) => {
                     return (
-                      <div className="flex items-center justify-center">
-                        <ErrorBlock
-                          title="Error loading featured product"
-                          message={error.message}
-                          onReset={resetErrorBoundary}
-                          error={error}
-                        />
-                      </div>
+                      <ErrorBlock
+                        title="Error loading featured product"
+                        message={error.message}
+                        onReset={resetErrorBoundary}
+                        error={error}
+                      />
                     );
                   }}
                   onReset={reset}
@@ -53,16 +51,13 @@ const Home = () => {
         <Section classes="md:mb-24 lg:mb-42">
           <ErrorBoundary
             FallbackComponent={({ error, resetErrorBoundary }) => (
-              <Container classes="mb-30">
-                <div className="flex items-center justify-center">
-                  <ErrorBlock
-                    title={`Error loading categories`}
-                    message={error.message}
-                    onReset={resetErrorBoundary}
-                    error={error}
-                  />
-                </div>
-              </Container>
+              <ErrorBlock
+                title={`Error loading categories`}
+                message={error.message}
+                onReset={resetErrorBoundary}
+                error={error}
+                containerClasses="mb-30"
+              />
             )}
             onReset={() => {
               queryClient.prefetchQuery(getCategoriesQueryOptions());
@@ -79,14 +74,12 @@ const Home = () => {
         <Section classes="space-y-6 md:mb-24 md:space-y-8 lg:mb-53 lg:space-y-12">
           <ErrorBoundary
             FallbackComponent={({ error, resetErrorBoundary }) => (
-              <Container>
-                <ErrorBlock
-                  title="Error loading showcase products"
-                  message={error.message}
-                  onReset={resetErrorBoundary}
-                  error={error}
-                />
-              </Container>
+              <ErrorBlock
+                title="Error loading showcase products"
+                message={error.message}
+                onReset={resetErrorBoundary}
+                error={error}
+              />
             )}
             onReset={() => {
               queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
