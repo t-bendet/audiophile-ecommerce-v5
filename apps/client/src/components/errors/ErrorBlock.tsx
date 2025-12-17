@@ -1,4 +1,3 @@
-import { PropsWithChildren } from "react";
 import { Button } from "@/components/ui/button";
 import { isCriticalError } from "@/lib/errors";
 import { Container } from "../ui/container";
@@ -16,10 +15,9 @@ const ErrorBlock = ({
   title,
   message,
   onReset,
-  children,
   error,
   containerClasses,
-}: PropsWithChildren<TErrorBlockProps>) => {
+}: TErrorBlockProps) => {
   // Re-throw critical errors so they bubble to router boundary
 
   if (isCriticalError(error)) {
@@ -36,7 +34,6 @@ const ErrorBlock = ({
         <div className="clr-primary-700 fw-bold flow">
           <h2 className="text-lg font-bold">{title}</h2>
           <p className="max-sm:text-center">{message}</p>
-          {children}
         </div>
         {onReset && <Button onClick={onReset}>Retry</Button>}
       </div>
