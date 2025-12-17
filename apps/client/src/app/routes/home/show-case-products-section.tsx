@@ -5,7 +5,7 @@ import { paths } from "@/config/paths";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Fragment } from "react/jsx-runtime";
 // import CircleSvg from "@/assets/pattern-circles.svg?react";
 

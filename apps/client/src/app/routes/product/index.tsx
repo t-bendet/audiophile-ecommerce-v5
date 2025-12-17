@@ -9,7 +9,7 @@ import { getProductBySlugQueryOptions } from "@/features/products/api/get-produc
 import ProductCard from "@/features/products/components/product-card";
 import RelatedProducts from "@/features/products/components/related-products";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { LoaderFunctionArgs, useNavigate, useParams } from "react-router-dom";
+import { LoaderFunctionArgs, useNavigate, useParams } from "react-router";
 
 export const clientLoader =
   (queryClient: QueryClient) =>

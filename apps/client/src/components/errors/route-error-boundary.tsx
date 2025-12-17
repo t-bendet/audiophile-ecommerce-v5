@@ -1,10 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import {
-  isRouteErrorResponse,
-  useNavigate,
-  useRouteError,
-} from "react-router-dom";
+import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
 import { isAppError, getErrorMessage, isCriticalError } from "@/lib/errors";
 
 export function RouteErrorBoundary() {

@@ -1,7 +1,7 @@
 import Icon from "@/assets/icon-arrow-right.svg?react";
 import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 
 const CategoryNavDropdown = ({

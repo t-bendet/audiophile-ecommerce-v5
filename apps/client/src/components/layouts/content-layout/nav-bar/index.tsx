@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Container } from "@/components/ui/container";
 import { paths } from "@/config/paths";
 import useMedia from "@/hooks/useMedia";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { NavLinks } from "@/components/layouts/nav-links";
 import NavBarDialog from "@/components/layouts/content-layout/nav-bar/nav-bar-dialog";
 
