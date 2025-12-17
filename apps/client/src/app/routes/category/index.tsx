@@ -8,7 +8,7 @@ import ProductsList from "@/features/products/components/products-list";
 import ProductsListSkeleton from "@/features/products/components/products-list-skeleton";
 import { NAME } from "@repo/domain";
 import { QueryClient } from "@tanstack/react-query";
-import { LoaderFunctionArgs, useParams } from "react-router-dom";
+import { LoaderFunctionArgs, useParams } from "react-router";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const clientLoader =

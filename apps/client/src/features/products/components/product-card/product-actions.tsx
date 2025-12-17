@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { UseProductCardContext } from "@/features/products/components/product-card/index";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";

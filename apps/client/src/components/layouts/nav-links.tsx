@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { paths } from "@/config/paths";
 import { NAME } from "@repo/domain";
 import {

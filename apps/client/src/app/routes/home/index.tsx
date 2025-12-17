@@ -8,7 +8,7 @@ import CategoryNavDropdown from "@/features/categories/components/category-nav-d
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
 import { QueryClient } from "@tanstack/react-query";
-import { LoaderFunctionArgs } from "react-router-dom";
+import { LoaderFunctionArgs } from "react-router";
 
 const Home = () => {
   return (
