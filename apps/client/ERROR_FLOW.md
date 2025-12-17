@@ -630,6 +630,89 @@ Component can access query.error and query.isError
 Component renders error UI inline (or retries)
 ```
 
+### Handling Errors Inline vs Throwing to ErrorBoundary
+
+**Current behavior with `throwOnError: true`:**
+
+With the current global configuration, ALL queries (including regular `useQuery`) will throw errors to the nearest ErrorBoundary. This means you cannot check `query.error` inline:
+
+```typescript
+function MyComponent() {
+  const query = useQuery(someQueryOptions);
+
+  // ❌ This code never executes because error is thrown before render completes
+  if (query.error) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  return <div>{query.data}</div>;
+}
+```
+
+**The error will be thrown and caught by ErrorBoundary**, preventing inline error handling.
+
+**To handle errors inline within a component:**
+
+**Option 1: Override per-query**
+
+```typescript
+const query = useQuery({
+  ...someQueryOptions,
+  throwOnError: false, // Override global config for this query only
+});
+
+// ✅ Now you can check query.error and handle inline
+if (query.error) {
+  return <div>Error: {query.error.message}</div>;
+}
+```
+
+**Option 2: Use query metadata for conditional throwing**
+
+Modify your global config to check query metadata:
+
+```typescript
+// apps/client/src/lib/react-query.ts
+throwOnError: (_error, query) => {
+  // Don't throw for queries marked for inline error handling
+  if (query.meta?.inlineErrors) return false;
+
+  // Don't throw for optional data
+  if (query.queryKey[0] === "optional-data") return false;
+
+  // Throw all others to ErrorBoundary
+  return true;
+};
+```
+
+Then mark queries that need inline error handling:
+
+```typescript
+const query = useQuery({
+  ...someQueryOptions,
+  meta: { inlineErrors: true }, // Signal: handle errors inline
+});
+
+// ✅ Now error is stored in query.error, not thrown
+if (query.error) {
+  return <div>Error: {query.error.message}</div>;
+}
+```
+
+**When to use each approach:**
+
+- **Throw to ErrorBoundary (throwOnError: true):**
+  - Critical errors that should prevent component rendering
+  - When using Suspense boundaries
+  - Consistent error UI across features
+  - Default for most queries
+
+- **Handle inline (throwOnError: false):**
+  - Optional/non-critical data
+  - Need custom error UI per component
+  - Want to show partial data with error message
+  - Background refetch errors while showing cached data
+
 ---
 
 # PART 5: TARGET STATE
@@ -688,6 +771,229 @@ HTTP Error → Axios → AppError → React Query → Middleware (intercept) →
 - Logging and monitoring
 - Conditional retry or transformation
 - Boundary selection (which boundary should handle?)
+
+### Middleware Retry Strategies
+
+Middleware can coordinate retries at the route/navigation level, complementing React Query’s per-query retries.
+
+**Approach 1: Retry route once and invalidate queries**
+
+```typescript
+export const errorMiddleware: Route.MiddlewareFunction = async (
+  { request, context },
+  next,
+) => {
+  const queryClient = context.get(queryClientContext);
+  let attempts = 0;
+  const maxAttempts = 2;
+
+  while (attempts <= maxAttempts) {
+    try {
+      return await next();
+    } catch (error) {
+      if (!isAppError(error)) throw error;
+
+      // Only retry server/network errors
+      if (
+        error.statusCode >= 500 ||
+        error.code === ErrorCode.EXTERNAL_SERVICE_ERROR
+      ) {
+        attempts++;
+        if (attempts <= maxAttempts) {
+          await delay(1000 * attempts); // simple backoff
+          queryClient.invalidateQueries(); // refetch failed data
+          continue; // retry route load
+        }
+      }
+      throw error; // no retry for 4xx or after max attempts
+    }
+  }
+};
+```
+
+**Approach 2: Error-type driven strategy**
+
+```typescript
+function shouldRetry(error: AppError): boolean {
+  if (error.statusCode >= 400 && error.statusCode < 500) return false; // user action
+  return [
+    ErrorCode.EXTERNAL_SERVICE_ERROR,
+    ErrorCode.SERVICE_UNAVAILABLE,
+    ErrorCode.INTERNAL_ERROR,
+  ].includes(error.code);
+}
+
+export const errorMiddleware: Route.MiddlewareFunction = async ({}, next) => {
+  try {
+    return await next();
+  } catch (error) {
+    if (!isAppError(error)) throw error;
+    if (!shouldRetry(error)) throw error;
+
+    // Retry with controlled backoff
+    await delay(1500);
+    return next();
+  }
+};
+```
+
+**Approach 3: Circuit breaker (protect backend)**
+
+```typescript
+const circuits = new Map<string, { failures: number; lastFailure: number }>();
+
+export const errorMiddleware: Route.MiddlewareFunction = async (
+  { request },
+  next,
+) => {
+  const key = new URL(request.url).pathname;
+  const circuit = circuits.get(key) ?? { failures: 0, lastFailure: 0 };
+
+  // Open circuit: too many failures recently
+  if (circuit.failures >= 5 && Date.now() - circuit.lastFailure < 60_000) {
+    throw new AppError(
+      "Service temporarily unavailable. Please try again later.",
+      ErrorCode.SERVICE_UNAVAILABLE,
+      503,
+    );
+  }
+
+  try {
+    const res = await next();
+    circuits.set(key, { failures: 0, lastFailure: 0 });
+    return res;
+  } catch (error) {
+    if (isAppError(error) && error.statusCode >= 500) {
+      circuit.failures += 1;
+      circuit.lastFailure = Date.now();
+      circuits.set(key, circuit);
+      // One controlled retry
+      await delay(1000 * Math.min(circuit.failures, 3));
+      return next();
+    }
+    throw error;
+  }
+};
+```
+
+**Hybrid: Let React Query handle per-query retries; middleware handles route-level policies**
+
+- React Query: keep `retry` for 5xx/network per query (up to 2 attempts).
+- Middleware: log, gate, and optionally retry the entire route once when systemic errors occur.
+
+**Trade-offs (summary):**
+
+- React Query retries: granular, fast; good when only some queries fail.
+- Middleware retries: coordinated, broader; good for dependent queries that should succeed together.
+- Circuit breaker: prevents thrashing when a route is consistently failing.
+
+### Loader Prefetch Error Handling
+
+Route loaders prefetch critical data **before** the route component renders. Errors in prefetch can either **block navigation** or **allow navigation** with error state in the component.
+
+**Approach 1: Blocking prefetch (fail-fast)**
+
+Throw prefetch errors to block navigation and show error page:
+
+```typescript
+export const loader = async ({ context }: LoaderFunctionArgs) => {
+  const queryClient = context.get(queryClientContext);
+
+  try {
+    // Ensure critical data is loaded; throw if it fails
+    await queryClient.ensureQueryData(getProductsQueryOptions());
+    return null;
+  } catch (error) {
+    // Error prevents route load; ErrorBoundary shows error page
+    throw error;
+  }
+};
+```
+
+**When to use blocking:**
+
+- Critical data the page cannot function without
+- Auth/permission checks (401/403 should block)
+- SEO-critical pages that need full data
+
+**Approach 2: Non-blocking prefetch (graceful degradation)**
+
+Catch prefetch errors and allow navigation; component handles missing data:
+
+```typescript
+export const loader = async ({ context }: LoaderFunctionArgs) => {
+  const queryClient = context.get(queryClientContext);
+
+  // Attempt prefetch but don't block if it fails
+  await queryClient.prefetchQuery(getProductsQueryOptions()).catch((error) => {
+    console.warn("Prefetch failed, component will handle:", error);
+    // Silently continue; component shows loading/retry state
+  });
+
+  return null; // Allow navigation regardless of prefetch result
+};
+```
+
+**When to use non-blocking:**
+
+- Optional/supplementary data (related products, recommendations)
+- Data with fallback UI (skeleton, cached data)
+- Background loading that's nice-to-have but not critical
+
+**Approach 3: Hybrid (critical + optional)**
+
+Prefetch multiple queries; fail on critical, succeed on optional:
+
+```typescript
+export const loader = async ({ context }: LoaderFunctionArgs) => {
+  const queryClient = context.get(queryClientContext);
+
+  try {
+    // Critical: must succeed
+    await queryClient.ensureQueryData(getProductByIdQueryOptions(id));
+  } catch (error) {
+    // Critical prefetch failed; block navigation
+    throw error;
+  }
+
+  // Optional: best-effort, don't block
+  queryClient.prefetchQuery(getRelatedProductsQueryOptions()).catch(() => {
+    console.warn("Related products prefetch failed");
+  });
+
+  return null;
+};
+```
+
+**Error handling in component:**
+
+When using non-blocking prefetch, component receives the query state normally:
+
+```typescript
+function ProductPage() {
+  const query = useQuery(getProductsQueryOptions());
+
+  if (query.isPending) return <LoadingSpinner />;
+  if (query.isError) return <ErrorBlock error={query.error} />;
+
+  // Data loaded (either from prefetch or background fetch)
+  return <ProductList data={query.data} />;
+}
+```
+
+**Decision tree for prefetch strategy:**
+
+```
+Is the data essential for page function?
+    │
+    ├─ YES → Use blocking prefetch
+    │        ├─ Throw on prefetch error
+    │        └─ ErrorBoundary shows error page
+    │
+    └─ NO → Use non-blocking prefetch
+            ├─ Catch prefetch error silently
+            └─ Component loads with query state (loading/error/success)
+```
 
 ### Implementation Pattern (5 Steps)
 
@@ -1104,29 +1410,155 @@ Component shows updated data
 }
 ```
 
+### Production Use Case: Form Validation Details
+
+**Valid scenario:** For `VALIDATION_ERROR` (400/422) responses on form submissions, include `details` field in production to show field-level error messages to the user.
+
+**When to include `details`:**
+
+✅ `VALIDATION_ERROR` (400/422): Include field-level messages for form errors  
+❌ `UNAUTHORIZED` (401): No details (no sensitive auth info)  
+❌ `FORBIDDEN` (403): No details  
+❌ `NOT_FOUND` (404): No details  
+❌ `INTERNAL_ERROR` (500): No details (no internal stack traces)
+
+**Production example with `details`:**
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "statusCode": 422,
+  "message": "Please check your input and try again",
+  "details": {
+    "email": "Invalid email format",
+    "age": "Must be at least 18",
+    "password": "Password must be at least 8 characters"
+  }
+}
+```
+
+**Guidelines for `details` in production:**
+
+1. **Sanitize:** Only include user-facing validation messages; no SQL/Prisma errors, stack traces, or internal codes.
+2. **Whitelist fields:** Only include form field names; no PII beyond what user entered.
+3. **Structure:** Simple `Record<string, string>` with field name → user-friendly message.
+4. **Keep it actionable:** Messages should guide users on how to fix the error.
+
+**Server-side implementation (example):**
+
+```typescript
+// On validation error, extract Zod/validation errors and shape details
+const validationErrors = parseZodError(error); // { email: "...", age: "..." }
+
+throw new AppError(
+  "Please check your input and try again",
+  ErrorCode.VALIDATION_ERROR,
+  422,
+  { details: validationErrors }, // Only for VALIDATION_ERROR
+);
+```
+
+**Client-side handling:**
+
+For form submissions, configure the mutation to handle errors inline and display `details`:
+
+```typescript
+const mutation = useMutation({
+  mutationFn: submitForm,
+  meta: { inlineErrors: true }, // Override global throwOnError for this mutation
+});
+
+if (mutation.error?.details) {
+  // Render field-level errors from details
+  return (
+    <>
+      {Object.entries(mutation.error.details).map(([field, message]) => (
+        <span key={field} className="text-red-500 text-sm">{message}</span>
+      ))}
+    </>
+  );
+}
+```
+
+Or if `VALIDATION_ERROR` remains critical (thrown to ErrorBoundary), ensure the parent form boundary reads `error.details`:
+
+```typescript
+export function FormErrorBoundary({ children, onSubmit }: Props) {
+  return (
+    <ErrorBoundary
+      FallbackComponent={({ error }) => {
+        if (isAppError(error) && error.code === ErrorCode.VALIDATION_ERROR) {
+          // Pass details to form for field-level rendering
+          return <FormWithErrors error={error} details={error.details} />;
+        }
+        return <ErrorBlock error={error} />;
+      }}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+```
+
 ---
 
 ## Open Questions
 
 1. **Should we implement middleware immediately or incrementally?**
-   - Pro: Incremental = lower risk
-   - Con: Incremental = extended parallel code paths
+   - ✅ **Decision:** Incremental (lower risk)
+   - **Rationale:** Start with Phase 1 (logging, error context). Phase 2+ (retry, rate limiting) when needed. See PART 6: Implementation Roadmap.
 
 2. **Should middleware processing be async or sync?**
-   - Pro: Async = can call services, write logs
-   - Con: Async = delays error handling
+   - ✅ **Decision:** Sync first, with design for async expansion
+   - **Approach:** Log and classify errors synchronously. Fire-and-forget async for non-blocking operations (telemetry, analytics).
+
+   ```typescript
+   // Sync logging + error context
+   export async function errorProcessingMiddleware({ request }, next) {
+     const start = performance.now();
+     const response = await next();
+
+     // Sync: log timing and status
+     const duration = performance.now() - start;
+     if (!response.ok) {
+       const error = await response.json().catch(() => ({}));
+       console.error(
+         `[${request.method}] ${request.url} - ${response.status} (${duration}ms)`,
+       );
+     }
+
+     // Fire-and-forget async: send telemetry (doesn't block)
+     if (!response.ok && duration > 5000) {
+       sendTelemetryAsync({
+         method: request.method,
+         url: request.url,
+         status: response.status,
+         duration,
+       }).catch(console.error);
+     }
+
+     return response;
+   }
+
+   // To expand to fully async in future: move sync operations into async context
+   // export async function errorProcessingMiddleware({ request }, next) {
+   //   const error = await classifyErrorAsync(response); // if needed
+   // }
+   ```
 
 3. **What errors should trigger automatic retry in middleware vs React Query?**
-   - Current: React Query handles retry
-   - Proposed: Could move to middleware for more control
+   - ✅ **Decision:** React Query handles retry (current approach)
+   - **Rationale:** React Query already configured with retry strategy. Middleware focuses on logging and error context, not retry logic. Simpler, cleaner separation of concerns.
 
 4. **How to handle errors in middleware that occur during prefetch?**
-   - Should they block route load or allow navigation?
-   - Should they trigger fallback UI or show error page?
+   - ✅ **Decision:** Allow navigation, trigger fallback UI or error page per critical error strategy
+   - **Approach:** Use loader error boundaries + critical/non-critical classification. See PART 5: Loader Prefetch Error Handling.
+   - **Pattern:** Blocking errors (auth, critical data) prevent navigation; non-blocking (enrichment data) allow navigation with fallback UI.
 
 5. **Should QueryClientContext be always available or opt-in per route?**
-   - Always available = simpler implementation
-   - Opt-in = more control, clearer intent
+   - ✅ **Decision:** Always available (simpler implementation)
+   - **Rationale:** Single provider at root. No per-route configuration. Signal intent via middleware naming and error handling strategy, not context availability.
+   - **Pattern:** See PART 5: QueryClientContext Guidance.
 
 ---
 
@@ -1165,5 +1597,5 @@ When testing error handling, verify:
 
 ---
 
-**Last Updated:** 2024
+**Last Updated:** December 17, 2025
 **Status:** Current implementation complete (v1), Target state documented (v2)
