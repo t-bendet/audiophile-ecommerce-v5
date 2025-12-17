@@ -18,7 +18,8 @@ export function isCriticalError(error: unknown): boolean {
     error.code === ErrorCode.UNAUTHORIZED ||
     error.code === ErrorCode.INVALID_TOKEN ||
     error.code === ErrorCode.TOKEN_EXPIRED ||
-    error.code === ErrorCode.VALIDATION_ERROR
+    error.code === ErrorCode.VALIDATION_ERROR ||
+    error.code === ErrorCode.INTERNAL_ERROR
   );
 }
 
