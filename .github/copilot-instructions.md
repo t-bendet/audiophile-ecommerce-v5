@@ -309,6 +309,18 @@ Axios is used for making HTTP requests with automatic error classification and r
 
 ---
 
+## Documentation Conventions
+
+### Markdown Files
+
+When updating or creating any `.md` documentation files in this repo:
+
+1. **Always update the "Last Updated" date** at the bottom of the file to the current date (format: `Month DD, YYYY`)
+2. Example: `**Last Updated:** December 17, 2025`
+3. This applies to all documentation files (ERROR_FLOW.md, guides, examples, etc.)
+
+---
+
 ## Active TODOs
 
 See [todos.js](todos.js) for tracked tasks, including:
