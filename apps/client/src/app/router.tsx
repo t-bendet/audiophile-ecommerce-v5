@@ -68,10 +68,10 @@ export const AppRouter = () => {
   return <RouterProvider router={router} />;
 };
 
-// export const clientLoader =
-//   (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
-//     await queryClient.prefetchQuery(getFeaturedProductQueryOptions());
-//     await queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
-//     console.log({ context });
-//     return null;
-//   };
+// const onError: ClientOnErrorFunction = (
+//   error,
+//   { location, params, unstable_pattern, errorInfo },
+// ) => {
+//   // make sure to still log the error so you can see it
+//   console.log({ location, params, unstable_pattern, errorInfo, error });
+// };
