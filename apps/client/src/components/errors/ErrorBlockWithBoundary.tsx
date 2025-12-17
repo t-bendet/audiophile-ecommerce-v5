@@ -9,6 +9,7 @@ type TSafeRenderWithErrorBlockProps = {
   title: string;
   containerClasses?: string;
   spinnerClasses?: string;
+  fallback?: React.ReactNode;
 };
 
 export const SafeRenderWithErrorBlock = ({
@@ -16,6 +17,7 @@ export const SafeRenderWithErrorBlock = ({
   containerClasses,
   children,
   spinnerClasses,
+  fallback,
 }: PropsWithChildren<TSafeRenderWithErrorBlockProps>) => {
   return (
     <QueryErrorResetBoundary>
@@ -34,7 +36,11 @@ export const SafeRenderWithErrorBlock = ({
           }}
           onReset={reset}
         >
-          <Suspense fallback={<LoadingSpinner classes={cn(spinnerClasses)} />}>
+          <Suspense
+            fallback={
+              fallback ?? <LoadingSpinner classes={cn(spinnerClasses)} />
+            }
+          >
             {children}
           </Suspense>
         </ErrorBoundary>

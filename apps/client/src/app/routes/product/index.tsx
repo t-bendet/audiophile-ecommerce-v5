@@ -1,23 +1,14 @@
-import ErrorBlock from "@/components/errors/ErrorBlock";
-import LoadingSpinner from "@/components/layouts/loading-spinner";
+import { SafeRenderWithErrorBlock } from "@/components/errors/ErrorBlockWithBoundary";
 import { BestGearSection } from "@/components/sections";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { Section } from "@/components/ui/section";
-import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
-import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
-import { getRelatedProductsQueryOptions } from "@/features/products/api/get-products";
 import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
+import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import ProductCard from "@/features/products/components/product-card";
 import RelatedProducts from "@/features/products/components/related-products";
-import {
-  QueryClient,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
+import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { LoaderFunctionArgs, useNavigate, useParams } from "react-router-dom";
 
 export const clientLoader =
@@ -56,7 +47,6 @@ const Product = () => {
     getProductBySlugQueryOptions(productSlug!),
   );
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   return (
     <>
@@ -181,57 +171,25 @@ const Product = () => {
             <h2 className="tracking-300 mb-10 text-center text-xl font-bold uppercase md:mb-14 md:text-[32px] lg:mb-16">
               you may also like
             </h2>
-            <ErrorBoundary
-              FallbackComponent={({ error, resetErrorBoundary }) => (
-                <Container classes="mb-30">
-                  <div className="flex items-center justify-center">
-                    <ErrorBlock
-                      title={`Error loading related products`}
-                      message={error.message}
-                      onReset={resetErrorBoundary}
-                      error={error}
-                    />
-                  </div>
-                </Container>
-              )}
-              onReset={() => {
-                queryClient.prefetchQuery(
-                  getRelatedProductsQueryOptions(productResponse.data.id),
-                );
-              }}
+            <SafeRenderWithErrorBlock
+              title="Error loading related products"
+              containerClasses="mb-30"
             >
-              <Suspense fallback={<LoadingSpinner />}>
-                <RelatedProducts id={productResponse.data.id} />
-              </Suspense>
-            </ErrorBoundary>
+              <RelatedProducts id={productResponse.data.id} />
+            </SafeRenderWithErrorBlock>
           </Container>
         </aside>
       </main>
 
       <Section>
-        <ErrorBoundary
-          FallbackComponent={({ error, resetErrorBoundary }) => (
-            <Container classes="mb-30">
-              <div className="flex items-center justify-center">
-                <ErrorBlock
-                  title={`Error loading categories`}
-                  message={error.message}
-                  onReset={resetErrorBoundary}
-                  error={error}
-                />
-              </div>
-            </Container>
-          )}
-          onReset={() => {
-            queryClient.prefetchQuery(getCategoriesQueryOptions());
-          }}
+        <SafeRenderWithErrorBlock
+          title="Error loading categories"
+          containerClasses="mb-30"
         >
-          <Suspense fallback={<LoadingSpinner />}>
-            <Container>
-              <CategoryNavDropdown />
-            </Container>
-          </Suspense>
-        </ErrorBoundary>
+          <Container>
+            <CategoryNavDropdown />
+          </Container>
+        </SafeRenderWithErrorBlock>
       </Section>
       <Section>
         <BestGearSection />
