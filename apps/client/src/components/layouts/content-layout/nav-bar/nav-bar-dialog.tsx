@@ -1,7 +1,6 @@
 import HamburgerIcon from "@/assets/icon-hamburger.svg?react";
-import ErrorBlock from "@/components/errors/ErrorBlock";
+import { SafeRenderWithErrorBlock } from "@/components/errors/ErrorBlockWithBoundary";
 import { Button } from "@/components/ui/button";
-import { Container } from "@/components/ui/container";
 import {
   Dialog,
   DialogContent,
@@ -9,16 +8,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
-import { useQueryClient } from "@tanstack/react-query";
-import { Suspense, useState } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import LoadingSpinner from "@/components/layouts/loading-spinner";
+import { useState } from "react";
 
 export default function NavBarDialog() {
   const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
 
   return (
     <Dialog defaultOpen={false} open={open} onOpenChange={setOpen}>
@@ -31,34 +25,19 @@ export default function NavBarDialog() {
       <DialogContent
         aria-describedby="main-menu"
         showCloseButton={false}
-        className="fixed inset-0 top-(--nav-bar-height) w-full max-w-full translate-x-[0] translate-y-[0] rounded-t-none max-sm:overflow-scroll sm:max-w-full md:bottom-auto"
+        className="fixed inset-0 top-(--nav-bar-height) w-full max-w-full translate-x-0 translate-y-0 rounded-t-none max-sm:overflow-scroll sm:max-w-full md:bottom-auto"
       >
         <DialogTitle className="sr-only">Main menu</DialogTitle>
         <DialogDescription className="sr-only">
           Make changes to your profile here. Click save when you&apos;re done.
         </DialogDescription>
 
-        <ErrorBoundary
-          FallbackComponent={({ error, resetErrorBoundary }) => (
-            <Container classes="mb-30">
-              <div className="flex items-center justify-center">
-                <ErrorBlock
-                  title={`Error loading categories`}
-                  message={error.message}
-                  onReset={resetErrorBoundary}
-                  error={error}
-                />
-              </div>
-            </Container>
-          )}
-          onReset={() => {
-            queryClient.prefetchQuery(getCategoriesQueryOptions());
-          }}
+        <SafeRenderWithErrorBlock
+          title="Error loading categories"
+          containerClasses="mb-30"
         >
-          <Suspense fallback={<LoadingSpinner />}>
-            <CategoryNavDropdown clickHandler={() => setOpen(false)} />
-          </Suspense>
-        </ErrorBoundary>
+          <CategoryNavDropdown clickHandler={() => setOpen(false)} />
+        </SafeRenderWithErrorBlock>
       </DialogContent>
     </Dialog>
   );
