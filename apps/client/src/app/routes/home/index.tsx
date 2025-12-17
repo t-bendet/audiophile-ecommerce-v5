@@ -13,6 +13,7 @@ import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { LoaderFunctionArgs } from "react-router-dom";
+import { QueryErrorResetBoundary } from "@tanstack/react-query";
 
 const Home = () => {
   const queryClient = useQueryClient();
@@ -21,27 +22,31 @@ const Home = () => {
       <main>
         <Section classes="mb-10 h-[calc(100vh-(var(--nav-bar-height)))] w-full bg-neutral-900 md:mb-24 lg:mb-30">
           <Container classes="grid h-full grid-cols-1 bg-neutral-600">
-            <ErrorBoundary
-              FallbackComponent={({ error, resetErrorBoundary }) => {
-                return (
-                  <div className="flex items-center justify-center">
-                    <ErrorBlock
-                      title="Error loading featured product"
-                      message={error.message}
-                      onReset={resetErrorBoundary}
-                      error={error}
-                    />
-                  </div>
-                );
-              }}
-              onReset={() => {
-                queryClient.prefetchQuery(getFeaturedProductQueryOptions());
-              }}
-            >
-              <Suspense fallback={<LoadingSpinner classes="bg-neutral-900" />}>
-                <FeaturedProductSection />
-              </Suspense>
-            </ErrorBoundary>
+            <QueryErrorResetBoundary>
+              {({ reset }) => (
+                <ErrorBoundary
+                  FallbackComponent={({ error, resetErrorBoundary }) => {
+                    return (
+                      <div className="flex items-center justify-center">
+                        <ErrorBlock
+                          title="Error loading featured product"
+                          message={error.message}
+                          onReset={resetErrorBoundary}
+                          error={error}
+                        />
+                      </div>
+                    );
+                  }}
+                  onReset={reset}
+                >
+                  <Suspense
+                    fallback={<LoadingSpinner classes="bg-neutral-900" />}
+                  >
+                    <FeaturedProductSection />
+                  </Suspense>
+                </ErrorBoundary>
+              )}
+            </QueryErrorResetBoundary>
           </Container>
         </Section>
 
