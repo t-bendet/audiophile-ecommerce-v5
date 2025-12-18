@@ -52,9 +52,9 @@ const Home = () => {
 
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    queryClient.ensureQueryData(getFeaturedProductQueryOptions());
-    queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
-    queryClient.ensureQueryData(getCategoriesQueryOptions());
+    queryClient.prefetchQuery(getFeaturedProductQueryOptions());
+    queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
+    queryClient.prefetchQuery(getCategoriesQueryOptions());
     // console.log({context});
 
     return null;
