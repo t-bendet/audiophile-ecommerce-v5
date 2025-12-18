@@ -1,4 +1,3 @@
-import { errorContext } from "@/app/error-context";
 import FeaturedProductSection from "@/app/routes/home/featured-product-section";
 import ShowCaseProductsSection from "@/app/routes/home/show-case-products-section";
 import { SafeRenderWithErrorBlock } from "@/components/errors/SafeRenderWithErrorBlock";
