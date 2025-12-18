@@ -6,7 +6,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import { MainErrorFallback } from "@/components/errors/main";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import { paths } from "@/config/paths";
-import { errorMiddleware } from "./error-middleware";
+import { errorMiddleware } from "@/lib/errors/middleware";
 
 // import { ProtectedRoute } from "@/lib/auth";
 
