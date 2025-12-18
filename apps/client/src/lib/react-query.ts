@@ -1,4 +1,4 @@
-import { classifyHttpError } from "@/lib/errors";
+import { classifyHttpError } from "@/lib/errors/errors";
 import { DefaultOptions } from "@tanstack/react-query";
 
 export const queryConfig = {
