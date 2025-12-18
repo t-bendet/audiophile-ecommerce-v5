@@ -172,5 +172,3 @@ const ShowCaseProductsSection = () => {
   );
 };
 export default ShowCaseProductsSection;
-
-// flex flex-col gap-6
