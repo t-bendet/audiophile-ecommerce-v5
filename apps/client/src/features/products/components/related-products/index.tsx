@@ -35,6 +35,11 @@ const RelatedProducts = ({ id }: { id: string }) => {
                 getProductBySlugQueryOptions(product.slug),
               );
             }}
+            onFocus={() => {
+              queryClient.ensureQueryData(
+                getProductBySlugQueryOptions(product.slug),
+              );
+            }}
           >
             See Product
           </Button>

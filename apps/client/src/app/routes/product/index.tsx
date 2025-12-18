@@ -11,36 +11,6 @@ import RelatedProducts from "@/features/products/components/related-products";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { LoaderFunctionArgs, useNavigate, useParams } from "react-router";
 
-export const clientLoader =
-  (queryClient: QueryClient) =>
-  async ({ params }: LoaderFunctionArgs) => {
-    try {
-      const slug = params.productSlug as string;
-
-      const query = getProductBySlugQueryOptions(slug);
-      await queryClient.ensureQueryData(query);
-
-      return null;
-    } catch (error) {
-      // If it's already a Response (from our validation), re-throw it
-      if (error instanceof Response) {
-        throw error;
-      }
-
-      // Handle 404 from API
-      const axiosError = error as { response?: { status: number } };
-      if (axiosError?.response?.status === 404) {
-        throw new Response("Product not found", {
-          status: 404,
-          statusText: "Not Found",
-        });
-      }
-
-      // Re-throw other errors
-      throw error;
-    }
-  };
-
 const Product = () => {
   const { productSlug } = useParams();
   const { data: productResponse } = useSuspenseQuery(
@@ -199,3 +169,14 @@ const Product = () => {
 };
 
 export default Product;
+
+export const clientLoader =
+  (queryClient: QueryClient) =>
+  async ({ params }: LoaderFunctionArgs) => {
+    await queryClient.ensureQueryData(
+      getProductBySlugQueryOptions(params.productSlug as string),
+    );
+    // TODO how to get id for related products prefetching?
+    // getRelatedProductsQueryOptions(id)
+    return null;
+  };
