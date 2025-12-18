@@ -1,5 +1,5 @@
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
-import { BestGearSection } from "@/components/sections";
+import { BestGearSection } from "@/components/page-sections";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
