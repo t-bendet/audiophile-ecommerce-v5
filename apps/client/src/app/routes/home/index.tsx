@@ -1,9 +1,11 @@
+import { errorContext } from "@/app/error-context";
 import FeaturedProductSection from "@/app/routes/home/featured-product-section";
 import ShowCaseProductsSection from "@/app/routes/home/show-case-products-section";
 import { SafeRenderWithErrorBlock } from "@/components/errors/SafeRenderWithErrorBlock";
 import { BestGearSection } from "@/components/sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
+import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
@@ -51,9 +53,10 @@ const Home = () => {
 
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
     queryClient.ensureQueryData(getFeaturedProductQueryOptions());
-    // console.log({ context });
+    queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
+    queryClient.ensureQueryData(getCategoriesQueryOptions());
+    // console.log({context});
 
     return null;
   };
