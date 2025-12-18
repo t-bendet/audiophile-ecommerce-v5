@@ -28,10 +28,10 @@ export default function ProductActions(props: {
         <Link
           to={paths.product.getHref(slug)}
           onMouseEnter={() =>
-            queryClient.ensureQueryData(getProductBySlugQueryOptions(slug))
+            queryClient.prefetchQuery(getProductBySlugQueryOptions(slug))
           }
           onFocus={() =>
-            queryClient.ensureQueryData(getProductBySlugQueryOptions(slug))
+            queryClient.prefetchQuery(getProductBySlugQueryOptions(slug))
           }
         >
           <Button variant="accent">see product</Button>

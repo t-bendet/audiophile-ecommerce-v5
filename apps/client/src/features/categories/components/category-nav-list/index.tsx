@@ -32,12 +32,12 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
                 to={`/category/${category.name}`}
                 className="tracking-600 inline-flex items-center gap-2 text-xs font-bold uppercase opacity-50 hover:underline"
                 onMouseEnter={() => {
-                  queryClient.ensureQueryData(
+                  queryClient.prefetchQuery(
                     getProductsByCategoryQueryOptions(category.name),
                   );
                 }}
                 onFocus={() => {
-                  queryClient.ensureQueryData(
+                  queryClient.prefetchQuery(
                     getProductsByCategoryQueryOptions(category.name),
                   );
                 }}
