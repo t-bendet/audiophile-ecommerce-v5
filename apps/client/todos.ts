@@ -1,4 +1,9 @@
 // ** General / Infrastructure
+// TODO wha happens when error is thrown by onhover or onfocus prefetching in react query? how to handle it?
+// TODO change nav links path to use paths configuration
+// TODO go over all loaders and actions and make sure errors are thrown properly
+// TODO standardize error handling strategy between server and client
+
 // TODO rethink the whole error handling strategy,for backend and frontend(big task)
 // TODO go over route-error-boundary and errors.ts ,allagin with error handling on server and make sure errors are thrown on loaders ,also make sure each error hs a type(also in env)
 
