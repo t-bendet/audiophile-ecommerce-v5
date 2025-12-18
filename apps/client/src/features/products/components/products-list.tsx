@@ -1,18 +1,17 @@
 import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { Section } from "@/components/ui/section";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { NAME } from "@repo/domain";
-import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 import ProductCard from "@/features/products/components/product-card";
+import { ProductGetByCategoryResponse } from "@repo/domain";
 
-export default function ProductsList({ categoryName }: { categoryName: NAME }) {
-  const { data: ProductsResponse } = useSuspenseQuery(
-    getProductsByCategoryQueryOptions(categoryName),
-  );
+type TProductListProps = {
+  products: ProductGetByCategoryResponse["data"];
+};
+
+export default function ProductsList({ products }: TProductListProps) {
   return (
     <>
-      {ProductsResponse.data.map((product, i) => (
+      {products.map((product, i) => (
         <Section key={product.id}>
           <Container
             classes={`flex flex-col gap-8 md:gap-14 lg:flex-row lg:gap-31 ${i % 2 === 1 ? "lg:flex-row-reverse" : ""}`}
