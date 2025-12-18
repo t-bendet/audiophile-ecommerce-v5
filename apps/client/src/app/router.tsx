@@ -17,11 +17,8 @@ const convert = (queryClient: QueryClient) => (m: any) => {
     loader: clientLoader?.(queryClient),
     action: clientAction?.(queryClient),
     Component,
-    // element: Component ? <Component /> : undefined,
   };
 };
-
-// TODO In React Router v6+, you use the element prop with a React element (an instance of a component rendered via JSX, like <Home />) instead of the older component prop which expected a React component class or function directly (e.g., {Home}
 
 const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
