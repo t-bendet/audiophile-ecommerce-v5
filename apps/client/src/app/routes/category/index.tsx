@@ -10,20 +10,6 @@ import { NAME } from "@repo/domain";
 import { QueryClient } from "@tanstack/react-query";
 import { LoaderFunctionArgs, useParams } from "react-router";
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const clientLoader =
-  (queryClient: QueryClient) =>
-  async ({ params }: LoaderFunctionArgs) => {
-    try {
-      const category = params.categoryName as NAME;
-      const query = getProductsByCategoryQueryOptions(category);
-      await queryClient.ensureQueryData(query);
-      return null;
-    } catch (error) {
-      throw error;
-    }
-  };
-
 const Category = () => {
   const { categoryName } = useParams<{ categoryName: NAME }>();
   return (
@@ -61,3 +47,13 @@ const Category = () => {
 };
 
 export default Category;
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const clientLoader =
+  (queryClient: QueryClient) =>
+  async ({ params }: LoaderFunctionArgs) => {
+    await queryClient.ensureQueryData(
+      getProductsByCategoryQueryOptions(params.categoryName as NAME),
+    );
+    return null;
+  };
