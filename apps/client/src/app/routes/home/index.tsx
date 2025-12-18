@@ -5,7 +5,7 @@ import { BestGearSection } from "@/components/sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
-import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
+import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
 import { QueryClient } from "@tanstack/react-query";
@@ -32,7 +32,7 @@ const Home = () => {
             containerClasses="mb-30"
           >
             <Container>
-              <CategoryNavDropdown />
+              <CategoryNavList />
             </Container>
           </SafeRenderWithErrorBlock>
         </Section>
