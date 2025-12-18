@@ -58,14 +58,14 @@ const ShowCaseProductsSection = () => {
                 <Link
                   to={paths.product.getHref(showCaseCover?.slug as string)}
                   onMouseEnter={() =>
-                    queryClient.ensureQueryData(
+                    queryClient.prefetchQuery(
                       getProductBySlugQueryOptions(
                         showCaseCover?.slug as string,
                       ),
                     )
                   }
                   onFocus={() =>
-                    queryClient.ensureQueryData(
+                    queryClient.prefetchQuery(
                       getProductBySlugQueryOptions(
                         showCaseCover?.slug as string,
                       ),
@@ -101,14 +101,14 @@ const ShowCaseProductsSection = () => {
                 <Link
                   to={paths.product.getHref(showCaseWide?.slug as string)}
                   onMouseEnter={() =>
-                    queryClient.ensureQueryData(
+                    queryClient.prefetchQuery(
                       getProductBySlugQueryOptions(
                         showCaseWide?.slug as string,
                       ),
                     )
                   }
                   onFocus={() =>
-                    queryClient.ensureQueryData(
+                    queryClient.prefetchQuery(
                       getProductBySlugQueryOptions(
                         showCaseWide?.slug as string,
                       ),
@@ -146,14 +146,14 @@ const ShowCaseProductsSection = () => {
                   <Link
                     to={paths.product.getHref(showCaseGrid?.slug as string)}
                     onMouseEnter={() =>
-                      queryClient.ensureQueryData(
+                      queryClient.prefetchQuery(
                         getProductBySlugQueryOptions(
                           showCaseGrid?.slug as string,
                         ),
                       )
                     }
                     onFocus={() =>
-                      queryClient.ensureQueryData(
+                      queryClient.prefetchQuery(
                         getProductBySlugQueryOptions(
                           showCaseGrid?.slug as string,
                         ),

@@ -31,12 +31,12 @@ const RelatedProducts = ({ id }: { id: string }) => {
             className="mx-auto block"
             onClick={() => navigate(`/product/${product.slug}`)}
             onMouseEnter={() => {
-              queryClient.ensureQueryData(
+              queryClient.prefetchQuery(
                 getProductBySlugQueryOptions(product.slug),
               );
             }}
             onFocus={() => {
-              queryClient.ensureQueryData(
+              queryClient.prefetchQuery(
                 getProductBySlugQueryOptions(product.slug),
               );
             }}
