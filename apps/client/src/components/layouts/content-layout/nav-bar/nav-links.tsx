@@ -1,12 +1,12 @@
+import { NavLink } from "react-router";
 import { paths } from "@/config/paths";
-import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
+import { NAME } from "@repo/domain";
 import {
   getProductsByCategoryQueryOptions,
   getShowCaseProductsQueryOptions,
 } from "@/features/products/api/get-products";
-import { NAME } from "@repo/domain";
 import { useQueryClient } from "@tanstack/react-query";
-import { NavLink } from "react-router";
+import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 
 export const NavLinks = () => {
   const queryClient = useQueryClient();
