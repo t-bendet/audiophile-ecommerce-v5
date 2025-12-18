@@ -1,10 +1,10 @@
-import { Link } from "react-router";
-import { UseProductCardContext } from "@/features/products/components/product-card/index";
-import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
 import { paths } from "@/config/paths";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
+import { UseProductCardContext } from "@/features/products/components/product-card/index";
+import { cn } from "@/lib/cn";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router";
 
 export default function ProductActions(props: {
   classes?: string;
@@ -16,18 +16,21 @@ export default function ProductActions(props: {
   hasNavigateAction?: boolean;
 }) {
   const { slug } = UseProductCardContext();
+  const queryClient = useQueryClient();
   if (!props.children && !props.hasNavigateAction && !props.cartActions) {
     throw new Error(
       "ProductActions components must have at least one action in context , or a child component.",
     );
   }
-  const queryClient = useQueryClient();
   return (
     <div className={cn("flex gap-4", props.classes)}>
       {props.hasNavigateAction ? (
         <Link
           to={paths.product.getHref(slug)}
           onMouseEnter={() =>
+            queryClient.ensureQueryData(getProductBySlugQueryOptions(slug))
+          }
+          onFocus={() =>
             queryClient.ensureQueryData(getProductBySlugQueryOptions(slug))
           }
         >

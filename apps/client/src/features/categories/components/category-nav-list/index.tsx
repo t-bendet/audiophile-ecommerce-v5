@@ -1,14 +1,10 @@
 import Icon from "@/assets/icon-arrow-right.svg?react";
 import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
+import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
-import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 
-const CategoryNavDropdown = ({
-  clickHandler,
-}: {
-  clickHandler?: () => void;
-}) => {
+const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
   const queryClient = useQueryClient();
   const { data: categoriesResponse } = useSuspenseQuery(
     getCategoriesQueryOptions(),
@@ -40,6 +36,11 @@ const CategoryNavDropdown = ({
                     getProductsByCategoryQueryOptions(category.name),
                   );
                 }}
+                onFocus={() => {
+                  queryClient.ensureQueryData(
+                    getProductsByCategoryQueryOptions(category.name),
+                  );
+                }}
               >
                 shop
                 <Icon />
@@ -52,4 +53,4 @@ const CategoryNavDropdown = ({
   );
 };
 
-export default CategoryNavDropdown;
+export default CategoryNavList;

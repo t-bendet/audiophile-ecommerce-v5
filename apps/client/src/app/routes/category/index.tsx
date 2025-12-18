@@ -2,7 +2,7 @@ import { SafeRenderWithErrorBlock } from "@/components/errors/SafeRenderWithErro
 import { BestGearSection } from "@/components/sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
+import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 import ProductsList from "@/features/products/components/products-list";
 import ProductsListSkeleton from "@/features/products/components/products-list-skeleton";
@@ -48,7 +48,7 @@ const Category = () => {
             containerClasses="mb-30"
           >
             <Container>
-              <CategoryNavDropdown />
+              <CategoryNavList />
             </Container>
           </SafeRenderWithErrorBlock>
         </Section>

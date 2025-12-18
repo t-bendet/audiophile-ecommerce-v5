@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { Section } from "@/components/ui/section";
-import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
+import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import ProductCard from "@/features/products/components/product-card";
 import RelatedProducts from "@/features/products/components/related-products";
@@ -187,7 +187,7 @@ const Product = () => {
           containerClasses="mb-30"
         >
           <Container>
-            <CategoryNavDropdown />
+            <CategoryNavList />
           </Container>
         </SafeRenderWithErrorBlock>
       </Section>
