@@ -1,4 +1,4 @@
-import { SafeRenderWithErrorBlock } from "@/components/errors/ErrorBlockWithBoundary";
+import { SafeRenderWithErrorBlock } from "@/components/errors/SafeRenderWithErrorBlock";
 import { BestGearSection } from "@/components/sections";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
