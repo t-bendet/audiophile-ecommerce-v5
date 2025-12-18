@@ -10,16 +10,19 @@ import { paths } from "@/config/paths";
 // import { ProtectedRoute } from "@/lib/auth";
 
 /**
- * Converts a lazily-loaded route module into a React Router v7 route configuration.
+ * Converts a lazily-loaded route module into a React Router v6+ route configuration.
  * 
  * React Router v6+ Pattern:
  * - For static routes: Use `element` prop with JSX (e.g., `element: <Home />`)
  * - For lazy routes: Use `Component` property with the component function/class (e.g., `Component: Home`)
  * 
- * When using the `lazy` property, React Router expects the loaded module to export:
- * - `Component`: The component function/class itself (NOT JSX)
- * - `loader`: Optional data loading function
- * - `action`: Optional action handler function
+ * When using the `lazy` property, React Router expects the loaded module to return an object with:
+ * - `Component`: The component function/class itself (NOT JSX) - extracted from the module's default export
+ * - `loader`: Optional data loading function - extracted from the module's `clientLoader` export
+ * - `action`: Optional action handler function - extracted from the module's `clientAction` export
+ * 
+ * This function transforms our route modules (which export default components and named `clientLoader`/`clientAction`)
+ * into the format React Router expects for lazy routes.
  * 
  * React Router will instantiate the `Component` internally, so we pass the function
  * reference directly, not a JSX element.
