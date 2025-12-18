@@ -1,11 +1,24 @@
+import { AppError, ErrorCode } from "@repo/domain";
 import * as z from "zod";
 
-const createEnv = () => {
-  const EnvSchema = z.object({
-    API_PROXY_PORT: z.string(),
-    PORT: z.string(),
-    MODE: z.enum(["development", "production"]),
-  });
+const EnvSchema = z.object({
+  API_PROXY_PORT: z.string(),
+  PORT: z.string(),
+  MODE: z.enum(["development", "production"]),
+  test: z.string(),
+});
+
+type Env = z.infer<typeof EnvSchema>;
+
+let validatedEnv: Env | null = null;
+
+/**
+ * Validate and initialize environment variables.
+ * Must be called once at app startup within ErrorBoundary context.
+ * Throws AppError if validation fails.
+ */
+export function initializeEnv(): void {
+  if (validatedEnv) return;
 
   const extractedEnvVars = Object.entries(import.meta.env).reduce<
     Record<string, string>
@@ -14,7 +27,7 @@ const createEnv = () => {
     if (key.startsWith("VITE_APP_")) {
       acc[key.replace("VITE_APP_", "")] = value;
     } else {
-      acc[key] = value; // Keep other env variables as is
+      acc[key] = value;
     }
     return acc;
   }, {});
@@ -22,14 +35,24 @@ const createEnv = () => {
   const parsedEnv = EnvSchema.safeParse(extractedEnvVars);
 
   if (!parsedEnv.success) {
-    throw new Error(
-      `Invalid env provided.
-      The following variables are missing or invalid:
-    ${z.prettifyError(parsedEnv.error)}`,
+    throw new AppError(
+      `Invalid environment configuration: ${z.prettifyError(parsedEnv.error)}`,
+      ErrorCode.INTERNAL_ERROR,
     );
   }
+  return;
+}
 
-  return parsedEnv.data;
-};
-
-export const env = createEnv();
+/**
+ * Get validated environment variables.
+ * Returns cached env if already initialized, otherwise throws error.
+ */
+export function getEnv(): Env {
+  if (!validatedEnv) {
+    throw new AppError(
+      "Environment not initialized. Call initializeEnv() first.",
+      ErrorCode.INTERNAL_ERROR,
+    );
+  }
+  return validatedEnv;
+}
