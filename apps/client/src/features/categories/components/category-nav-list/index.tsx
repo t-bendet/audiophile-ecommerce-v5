@@ -1,4 +1,5 @@
 import Icon from "@/assets/icon-arrow-right.svg?react";
+import { paths } from "@/config/paths";
 import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
@@ -29,7 +30,7 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
                 {category.name}
               </span>
               <Link
-                to={`/category/${category.name}`}
+                to={paths.category.getHref(category.name)}
                 className="tracking-600 inline-flex items-center gap-2 text-xs font-bold uppercase opacity-50 hover:underline"
                 onMouseEnter={() => {
                   queryClient.prefetchQuery(
