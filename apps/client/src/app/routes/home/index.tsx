@@ -1,6 +1,6 @@
-import FeaturedProductSection from "@/app/routes/home/featured-product-section";
-import ShowCaseProductsSection from "@/app/routes/home/show-case-products-section";
 import { SafeRenderWithErrorBlock } from "@/components/errors/SafeRenderWithErrorBlock";
+import FeaturedProductSection from "@/features/products/components/featured-product-section";
+import ShowCaseProductsSection from "@/features/products/components/showcase-section";
 import { BestGearSection } from "@/components/sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
