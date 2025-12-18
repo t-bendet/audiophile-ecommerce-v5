@@ -1,5 +1,4 @@
 // ** General / Infrastructure
-// TODO change nav links path to use paths configuration
 // TODO go over all loaders and actions and make sure errors are thrown properly
 // TODO standardize error handling strategy between server and client
 
