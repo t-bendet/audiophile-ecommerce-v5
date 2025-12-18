@@ -84,14 +84,13 @@ Axios makes HTTP request
     └─→ HTTP Error (any status)
             ↓
         Axios Interceptor (response.use())
-            ├─ If 401: Set redirectTo, classify to AppError(UNAUTHORIZED)
-            ├─ If 4xx: Classify to AppError(from server code field)
-            ├─ If 5xx: Classify to AppError(INTERNAL_ERROR)
-            ├─ If network: Classify to AppError(EXTERNAL_SERVICE_ERROR)
-            └─ Throw AppError to React Query (no toasts here)
+            ├─ If 401: Set redirectTo flag
+            ├─ For all errors: Throw raw HTTP error (no classification)
+            └─ No toasts, no retries, no UI decisions here
                 ↓
-            React Query catches AppError
-                ├─ Check error classification
+            React Query catches HTTP error
+                ├─ Classify to AppError via classifyHttpError()
+                ├─ Check classification for retry decision
                 ├─ If 4xx: No retry, throw to component
                 ├─ If 5xx: Retry up to 2x with backoff
                 └─ After retries exhausted OR 4xx: throw to ErrorBoundary
@@ -105,14 +104,14 @@ Axios makes HTTP request
 
 **Key characteristics of current flow:**
 
-- ✅ Errors classified at API boundary (single point)
-- ✅ Retry handled automatically by React Query
+- ✅ Axios is pure transport layer (no business logic)
+- ✅ React Query classifies errors and decides retry strategy
+- ✅ Components/queries decide toast and UI handling
 - ✅ Errors bubble to appropriate boundary
 - ✅ TypeScript guard functions for safe error handling
-- ✅ Axios interceptor is pure (classification only; no toasts)
+- ✅ Clear separation of concerns (transport, retry, UI)
 - ❌ No centralized middleware for cross-cutting concerns
 - ❌ No uniform error context across app
-- ❌ Retry strategy applies equally to all errors (not flexible)
 
 ### What Each Layer Does
 
@@ -188,7 +187,7 @@ Axios makes HTTP request
 
 **Location:** HTTP request/response boundary
 
-**Purpose:** Error classification and handling
+**Purpose:** Transport only; no business logic
 
 **Catches:**
 
@@ -198,10 +197,10 @@ Axios makes HTTP request
 
 **Behavior:**
 
-- Classifies error to `AppError` (see Error Classification)
-- For 401: Sets `redirectTo` for auth handler
-- For 5xx/4xx/network: No UI side effects; just classify
-- Throws `AppError` to React Query
+- For 401: Sets `redirectTo` flag on error object
+- For all errors: Throws raw HTTP error (no classification)
+- No toasts, no retries, no UI decisions
+- Pure transport: just passes error up
 
 **Code:** `apps/client/src/lib/api-client.ts`
 
@@ -209,21 +208,23 @@ Axios makes HTTP request
 
 **Location:** Data fetching layer
 
-**Purpose:** Cache management and retry logic
+**Purpose:** Cache management, retry logic, and error classification
 
 **Catches:**
 
-- Query errors from Axios
+- Raw HTTP errors from Axios
 - Network errors
 - Retry failures
 
 **Behavior:**
 
-- Retries based on error classification:
-  - 4xx errors: No retry (user's fault)
-  - 5xx errors: Retry up to 2x with backoff
-- Throws errors to ErrorBoundary (if `throwOnError: true`)
-- Stores errors in query state (if `throwOnError: false`)
+- Classifies error: `classifyHttpError(error)` → `AppError`
+- Decides retry based on classification:
+  - 4xx errors: No retry (user's fault, fail fast)
+  - 5xx errors: Retry up to 2x with exponential backoff
+- Throws classified `AppError` to ErrorBoundary (if `throwOnError: true`)
+- Stores classified error in query state (if `throwOnError: false`)
+- Does NOT handle toasts; components decide
 
 **Code:** `apps/client/src/lib/react-query.ts`
 
