@@ -1,5 +1,5 @@
 import HamburgerIcon from "@/assets/icon-hamburger.svg?react";
-import { SafeRenderWithErrorBlock } from "@/components/errors/SafeRenderWithErrorBlock";
+import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

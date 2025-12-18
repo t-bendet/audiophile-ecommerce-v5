@@ -1,4 +1,4 @@
-import { SafeRenderWithErrorBlock } from "@/components/errors/SafeRenderWithErrorBlock";
+import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import FeaturedProductSection from "@/features/products/components/featured-product-section";
 import ShowCaseProductsSection from "@/features/products/components/showcase-section";
 import { BestGearSection } from "@/components/sections";
