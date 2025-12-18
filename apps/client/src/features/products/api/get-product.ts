@@ -23,7 +23,7 @@ type TGetProductById = TBaseHandler<
 >;
 
 const getProductById: TGetProductById = async ({ id, signal }) => {
-  const api = await getApi();
+  const api = getApi();
   const response = await api.get(`/products/${id}`, { signal });
   const result = ProductGetByIdResponseSchema.safeParse(response.data);
   if (result.success) {
@@ -47,7 +47,7 @@ type TGetProductBySlug = TBaseHandler<
 >;
 
 const getProductBySlug: TGetProductBySlug = async ({ slug, signal }) => {
-  const api = await getApi();
+  const api = getApi();
   const response = await api.get(`/products/slug/${slug}`, { signal });
   const result = ProductGetBySlugResponseSchema.safeParse(response.data);
   if (result.success) {
@@ -69,7 +69,7 @@ export const getProductBySlugQueryOptions = (slug: string) =>
 type TGetFeaturedProduct = TBaseHandler<ProductGetFeaturedResponse>;
 
 const getFeaturedProduct: TGetFeaturedProduct = async ({ signal }) => {
-  const api = await getApi();
+  const api = getApi();
   const response = await api.get("/products/featured", { signal });
   const result = ProductGetFeaturedResponseSchema.safeParse(response.data);
   if (result.success) {

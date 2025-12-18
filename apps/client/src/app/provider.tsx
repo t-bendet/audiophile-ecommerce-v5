@@ -1,6 +1,7 @@
 import { MainErrorFallback } from "@/components/errors/main";
 import { Spinner } from "@/components/ui/spinner";
 import { Toaster } from "@/components/ui/toaster";
+import { initializeEnv } from "@/config/env";
 import { queryConfig } from "@/lib/react-query";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as React from "react";
@@ -15,6 +16,15 @@ const ReactQueryDevtoolsLazy = React.lazy(() =>
 
 type AppProviderProps = {
   children: React.ReactNode;
+};
+
+// Inner component that initializes env within ErrorBoundary
+const AppProviderInner = ({ children }: AppProviderProps) => {
+  // Initialize and validate environment at app startup
+  // If validation fails, ErrorBoundary (parent) will catch it
+  React.useMemo(() => initializeEnv(), []);
+
+  return <>{children}</>;
 };
 
 export const AppProvider = ({ children }: AppProviderProps) => {
@@ -35,13 +45,14 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     >
       <ErrorBoundary FallbackComponent={MainErrorFallback}>
         <QueryClientProvider client={queryClient}>
-          {import.meta.env.DEV && (
-            <React.Suspense fallback={null}>
-              <ReactQueryDevtoolsLazy />
-            </React.Suspense>
-          )}
-          <Toaster />
-          {/* <AuthLoader
+          <AppProviderInner>
+            {import.meta.env.DEV && (
+              <React.Suspense fallback={null}>
+                <ReactQueryDevtoolsLazy />
+              </React.Suspense>
+            )}
+            <Toaster />
+            {/* <AuthLoader
               renderLoading={() => (
                 <div className="flex h-screen w-screen items-center justify-center">
                   <Spinner size="xl" />
@@ -50,7 +61,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             >
               {children}
             </AuthLoader> */}
-          {children}
+            {children}
+          </AppProviderInner>
         </QueryClientProvider>
       </ErrorBoundary>
     </React.Suspense>

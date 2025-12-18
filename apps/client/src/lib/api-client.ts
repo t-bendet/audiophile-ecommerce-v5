@@ -1,11 +1,11 @@
+import { getEnv } from "@/config/env";
+import { toast } from "@/hooks/use-toast";
+import { classifyHttpError } from "@/lib/errors";
 import Axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
   isCancel,
 } from "axios";
-import { AppError, ErrorCode } from "@repo/domain";
-import { toast } from "@/hooks/use-toast";
-import { classifyHttpError } from "@/lib/errors";
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.headers) {
@@ -19,24 +19,12 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
 let apiInstance: AxiosInstance | null = null;
 
 /**
- * Lazy initialization of API client.
- * Creates Axios instance on first call, ensuring env is read within error boundary context.
- * Subsequent calls return the cached instance.
+ * Get or create Axios API client instance.
+ * Uses pre-validated environment variables (must call initializeEnv() first).
  */
-export async function getApi(): Promise<AxiosInstance> {
+export function getApi(): AxiosInstance {
   if (!apiInstance) {
-    // Import env inside function to defer evaluation until runtime
-    // If env import/validation fails, annotate with a recognizable error
-    let env: any;
-    try {
-      const mod = await import("@/config/env");
-      env = mod.env;
-    } catch (err: any) {
-      throw new AppError(
-        "An unexpected error occurred",
-        ErrorCode.INTERNAL_ERROR,
-      );
-    }
+    const env = getEnv();
 
     apiInstance = Axios.create({
       baseURL: `http://localhost:${env.PORT}/api/v1/`,
