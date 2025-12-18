@@ -23,7 +23,7 @@ This document describes how errors are handled across the client application, fr
 - Errors bubble up through ErrorBoundary hierarchy with clear catch/re-throw rules
 - React Query handles retry logic automatically based on error type
 - Development shows detailed errors; production shows sanitized messages
-- Toast notifications are reserved for background/async failures only
+- Toast notifications for background/async failures are triggered at the React Query/component layer; Axios stays classification-only
 
 ---
 
@@ -54,7 +54,7 @@ The current implementation uses a **5-layer error handling approach** without ce
 │                                                                    │
 │  Layer 4: API Client (Axios Interceptor)                          │
 │           └─ Classifies: HTTP errors → AppError                   │
-│           └─ Handles: 401 redirects, 5xx toasts                   │
+│           └─ Handles: 401 redirects; classification only (no UI)  │
 │           └─ STATUS: ✅ Implemented                               │
 │                                                                    │
 │  Layer 5: React Query                                             │
@@ -86,9 +86,9 @@ Axios makes HTTP request
         Axios Interceptor (response.use())
             ├─ If 401: Set redirectTo, classify to AppError(UNAUTHORIZED)
             ├─ If 4xx: Classify to AppError(from server code field)
-            ├─ If 5xx: Show toast, classify to AppError
+            ├─ If 5xx: Classify to AppError(INTERNAL_ERROR)
             ├─ If network: Classify to AppError(EXTERNAL_SERVICE_ERROR)
-            └─ Throw AppError to React Query
+            └─ Throw AppError to React Query (no toasts here)
                 ↓
             React Query catches AppError
                 ├─ Check error classification
@@ -109,7 +109,7 @@ Axios makes HTTP request
 - ✅ Retry handled automatically by React Query
 - ✅ Errors bubble to appropriate boundary
 - ✅ TypeScript guard functions for safe error handling
-- ❌ Toast logic in Axios (could show on non-critical 5xx)
+- ✅ Axios interceptor is pure (classification only; no toasts)
 - ❌ No centralized middleware for cross-cutting concerns
 - ❌ No uniform error context across app
 - ❌ Retry strategy applies equally to all errors (not flexible)
@@ -200,8 +200,7 @@ Axios makes HTTP request
 
 - Classifies error to `AppError` (see Error Classification)
 - For 401: Sets `redirectTo` for auth handler
-- For 5xx: Shows toast notification
-- For 4xx: No toast (shown inline)
+- For 5xx/4xx/network: No UI side effects; just classify
 - Throws `AppError` to React Query
 
 **Code:** `apps/client/src/lib/api-client.ts`
@@ -413,7 +412,7 @@ Error Occurs in Component
 
 ## Toast Notification Strategy
 
-Toasts are used for **background/async errors that don't block navigation**:
+Toasts are used for **background/async errors that don't block navigation** and are triggered by React Query/component handlers (Axios does not emit toasts):
 
 ### When to Show Toast
 
@@ -446,7 +445,7 @@ Toasts are used for **background/async errors that don't block navigation**:
 - Field-specific or context-specific handling
 - User action required based on error type
 
-**Implementation:** `apps/client/src/lib/api-client.ts`
+**Implementation:** Triggered in React Query/component error handlers; `api-client` is classification-only
 
 ## Retry Logic
 
@@ -1115,8 +1114,8 @@ export function RouteErrorBoundary() {
 **Step 5: Simplify Axios interceptor**
 
 ```typescript
-// Move toast logic to middleware
-// Axios just classifies and throws
+// Axios just classifies and throws (no toasts here)
+// Toasts are handled in React Query/component error paths
 interceptor.response.use(
   (response) => response.data,
   (error) => {
@@ -1148,7 +1147,7 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 
 ### Phase 3: Move Cross-Cutting Logic
 
-- [ ] Move toast logic from Axios → middleware
+- [ ] Toasts handled in React Query/components (Axios classification-only)
 - [ ] Move logging logic from components → middleware
 - [ ] Add error transformation in middleware
 

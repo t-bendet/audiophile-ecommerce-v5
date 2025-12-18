@@ -1,6 +1,4 @@
 import { getEnv } from "@/config/env";
-import { toast } from "@/hooks/use-toast";
-import { classifyHttpError } from "@/lib/errors";
 import Axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
@@ -42,33 +40,17 @@ export function getApi(): AxiosInstance {
           return Promise.reject(error);
         }
 
-        const status = error.response?.status;
-
         // Handle auth errors (let auth layer handle redirect)
+        const status = error.response?.status;
         if (status === 401) {
           const searchParams = new URLSearchParams();
           const redirectTo =
             searchParams.get("redirectTo") || window.location.pathname;
           error.redirectTo = redirectTo;
-          return Promise.reject(error);
         }
 
-        // For expected client errors (4xx), classify to AppError and let UI handle
-        if (status && status >= 400 && status < 500) {
-          return Promise.reject(classifyHttpError(error));
-        }
-
-        // Show generic toast for server errors (5xx) or network errors
-        if (!status || status >= 500) {
-          toast({
-            type: "background",
-            title: "Server Error",
-            description: "An unexpected error occurred",
-            variant: "destructive",
-          });
-        }
-
-        return Promise.reject(classifyHttpError(error));
+        // Throw raw error; let React Query/components handle classification and UI decisions
+        return Promise.reject(error);
       },
     );
   }

@@ -1,3 +1,4 @@
+import { classifyHttpError } from "@/lib/errors";
 import { DefaultOptions } from "@tanstack/react-query";
 
 export const queryConfig = {
@@ -12,11 +13,12 @@ export const queryConfig = {
     },
     refetchOnWindowFocus: false,
     retry: (failureCount, error) => {
-      const axiosError = error as { response?: { status: number } };
-      const status = axiosError?.response?.status;
+      // Classify error to check its type
+      const classifiedError = classifyHttpError(error);
+      const status = classifiedError.statusCode;
 
       // Don't retry client errors (4xx)
-      if (status && status >= 400 && status < 500) {
+      if (status >= 400 && status < 500) {
         return false;
       }
 

@@ -35,7 +35,7 @@ export function getErrorMessage(error: unknown): string {
 }
 
 // Helper to classify axios/fetch errors
-export function classifyHttpError(error: unknown): Error {
+export function classifyHttpError(error: unknown): AppError {
   const axiosError = error as {
     response?: { status: number; data?: { message?: string } };
     message: string;
