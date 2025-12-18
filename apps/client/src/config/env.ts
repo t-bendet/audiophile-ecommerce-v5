@@ -5,7 +5,7 @@ const EnvSchema = z.object({
   API_PROXY_PORT: z.string(),
   PORT: z.string(),
   MODE: z.enum(["development", "production"]),
-  test: z.string(),
+  // test: z.string(),
 });
 
 type Env = z.infer<typeof EnvSchema>;
@@ -17,7 +17,7 @@ let validatedEnv: Env | null = null;
  * Must be called once at app startup within ErrorBoundary context.
  * Throws AppError if validation fails.
  */
-export function initializeEnv(): void {
+function initializeEnv(): void {
   if (validatedEnv) return;
 
   const extractedEnvVars = Object.entries(import.meta.env).reduce<
@@ -40,6 +40,7 @@ export function initializeEnv(): void {
       ErrorCode.INTERNAL_ERROR,
     );
   }
+  validatedEnv = parsedEnv.data;
   return;
 }
 
@@ -56,3 +57,8 @@ export function getEnv(): Env {
   }
   return validatedEnv;
 }
+
+export const InitializeEnv = () => {
+  initializeEnv();
+  return null;
+};

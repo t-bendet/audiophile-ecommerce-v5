@@ -772,6 +772,54 @@ HTTP Error → Axios → AppError → React Query → Middleware (intercept) →
 - Conditional retry or transformation
 - Boundary selection (which boundary should handle?)
 
+### Environment Initialization Pattern
+
+Environment variables must be validated at app startup within the ErrorBoundary scope so that validation errors can be properly caught and displayed.
+
+**Implementation: `InitializeEnv` Component**
+
+```typescript
+// apps/client/src/config/env.ts
+export const InitializeEnv = () => {
+  initializeEnv(); // Validates env and throws AppError if invalid
+  return null;
+};
+```
+
+**Usage: Independent component inside ErrorBoundary**
+
+```typescript
+// apps/client/src/app/provider.tsx
+export const AppProvider = ({ children }: AppProviderProps) => {
+  return (
+    <React.Suspense fallback={<Spinner />}>
+      <ErrorBoundary FallbackComponent={MainErrorFallback}>
+        <InitializeEnv /> {/* Standalone component, no children */}
+        <QueryClientProvider client={queryClient}>
+          {/* ... rest of providers ... */}
+          {children}
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </React.Suspense>
+  );
+};
+```
+
+**How it works:**
+
+1. `AppProvider` wraps everything in `ErrorBoundary`
+2. `InitializeEnv` is rendered inside the boundary as a standalone component
+3. If `initializeEnv()` throws `AppError`, the boundary catches it
+4. `MainErrorFallback` displays the validation error to the user
+5. `QueryClientProvider` and children are not rendered until env is valid
+
+**Why this pattern:**
+
+- ✅ Simple and declarative (component inside boundary)
+- ✅ No need for wrapper components or higher-order functions
+- ✅ Clear separation of concerns (initialization vs providers)
+- ✅ Reusable for other initialization logic (e.g., `InitializeAuth`, `InitializeTheme`)
+
 ### Middleware Retry Strategies
 
 Middleware can coordinate retries at the route/navigation level, complementing React Query’s per-query retries.
@@ -1597,5 +1645,5 @@ When testing error handling, verify:
 
 ---
 
-**Last Updated:** December 17, 2025
+**Last Updated:** December 18, 2025
 **Status:** Current implementation complete (v1), Target state documented (v2)
