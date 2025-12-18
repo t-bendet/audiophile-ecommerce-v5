@@ -2,7 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { paths } from "@/config/paths";
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
-import { isAppError, getErrorMessage, isCriticalError } from "@/lib/errors";
+import {
+  isAppError,
+  getErrorMessage,
+  isCriticalError,
+} from "@/lib/errors/errors";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
