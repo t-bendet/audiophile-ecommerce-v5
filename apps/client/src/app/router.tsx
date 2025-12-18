@@ -9,6 +9,21 @@ import { paths } from "@/config/paths";
 
 // import { ProtectedRoute } from "@/lib/auth";
 
+/**
+ * Converts a lazily-loaded route module into a React Router v7 route configuration.
+ * 
+ * React Router v6+ Pattern:
+ * - For static routes: Use `element` prop with JSX (e.g., `element: <Home />`)
+ * - For lazy routes: Use `Component` property with the component function/class (e.g., `Component: Home`)
+ * 
+ * When using the `lazy` property, React Router expects the loaded module to export:
+ * - `Component`: The component function/class itself (NOT JSX)
+ * - `loader`: Optional data loading function
+ * - `action`: Optional action handler function
+ * 
+ * React Router will instantiate the `Component` internally, so we pass the function
+ * reference directly, not a JSX element.
+ */
 const convert = (queryClient: QueryClient) => (m: any) => {
   const { clientLoader, clientAction, default: Component, ...rest } = m;
   return {
@@ -23,14 +38,20 @@ const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
     {
       path: "/",
+      // Static route: Use `element` prop with JSX element (<Component />)
+      // This is the React Router v6+ standard for non-lazy routes
       element: <RootLayout />,
       errorElement: <MainErrorFallback />,
       children: [
         {
           path: "/",
+          // Static route: Use `element` prop with JSX element (<Component />)
           element: <ContentLayout />,
           ErrorBoundary: MainErrorFallback,
           children: [
+            // Lazy routes: Use `lazy` property with dynamic import
+            // The loaded module exports `Component` (function/class), not JSX
+            // The `convert` function extracts Component and passes it to React Router
             {
               lazy: () => import("./routes/home").then(convert(queryClient)),
               path: paths.home.path,
