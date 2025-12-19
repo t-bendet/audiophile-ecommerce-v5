@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { paths } from "@/config/paths";
+import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
 import {
-  isRouteErrorResponse,
-  useNavigate,
-  useRouteError,
-} from "react-router-dom";
-import { isAppError, getErrorMessage, isCriticalError } from "@/lib/errors";
+  isAppError,
+  getErrorMessage,
+  isCriticalError,
+} from "@/lib/errors/errors";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
@@ -56,7 +57,9 @@ export function RouteErrorBoundary() {
           <Button onClick={() => navigate(-1)} variant="outline">
             Go Back
           </Button>
-          <Button onClick={() => navigate("/")}>Go Home</Button>
+          <Button onClick={() => navigate(paths.home.getHref())}>
+            Go Home
+          </Button>
         </div>
       </div>
     </Container>

@@ -1,14 +1,15 @@
-import FeaturedProductSection from "@/app/routes/home/featured-product-section";
-import ShowCaseProductsSection from "@/app/routes/home/show-case-products-section";
-import { SafeRenderWithErrorBlock } from "@/components/errors/ErrorBlockWithBoundary";
-import { BestGearSection } from "@/components/sections";
+import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
+import FeaturedProductSection from "@/features/products/components/featured-product-section";
+import ShowCaseProductsSection from "@/features/products/components/showcase-section";
+import { BestGearSection } from "@/components/page-sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
+import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
+import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
 import { QueryClient } from "@tanstack/react-query";
-import { LoaderFunctionArgs } from "react-router-dom";
+import { LoaderFunctionArgs } from "react-router";
 
 const Home = () => {
   return (
@@ -31,7 +32,7 @@ const Home = () => {
             containerClasses="mb-30"
           >
             <Container>
-              <CategoryNavDropdown />
+              <CategoryNavList />
             </Container>
           </SafeRenderWithErrorBlock>
         </Section>
@@ -51,9 +52,10 @@ const Home = () => {
 
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
-    queryClient.ensureQueryData(getFeaturedProductQueryOptions());
-    // console.log({ context });
+    queryClient.prefetchQuery(getFeaturedProductQueryOptions());
+    queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
+    queryClient.prefetchQuery(getCategoriesQueryOptions());
+    // console.log({context});
 
     return null;
   };

@@ -2,8 +2,8 @@ import { cn } from "@/lib/cn";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PropsWithChildren, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import LoadingSpinner from "../layouts/loading-spinner";
-import ErrorBlock from "./ErrorBlock";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import ErrorBlock from "./error-block";
 
 type TSafeRenderWithErrorBlockProps = {
   title: string;

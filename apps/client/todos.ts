@@ -1,4 +1,7 @@
 // ** General / Infrastructure
+// TODO go over all loaders and actions and make sure errors are thrown properly
+// TODO standardize error handling strategy between server and client
+
 // TODO rethink the whole error handling strategy,for backend and frontend(big task)
 // TODO go over route-error-boundary and errors.ts ,allagin with error handling on server and make sure errors are thrown on loaders ,also make sure each error hs a type(also in env)
 
@@ -21,6 +24,7 @@
 // TODO https://reactrouter.com/api/utils/createContext
 // TODO React 19’s Document Metadata
 // TODO react router middleware
+
 // ** API Client (src/lib/api-client.ts)
 // TODO go over changes again
 // TODO make this baseURL configurable

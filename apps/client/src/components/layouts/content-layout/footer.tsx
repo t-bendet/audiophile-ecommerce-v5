@@ -3,8 +3,8 @@ import InstagramLogo from "@/assets/icon-instagram.svg?react";
 import TwitterLogo from "@/assets/icon-twitter.svg?react";
 import Logo from "@/assets/logo.svg?react";
 import { Container } from "@/components/ui/container";
-import { Link } from "react-router-dom";
-import { NavLinks } from "@/components/layouts/nav-links";
+import { Link } from "react-router";
+import { NavLinks } from "./nav-bar/nav-links";
 import { paths } from "@/config/paths";
 
 export const Footer = () => {

@@ -1,5 +1,5 @@
 import HamburgerIcon from "@/assets/icon-hamburger.svg?react";
-import { SafeRenderWithErrorBlock } from "@/components/errors/ErrorBlockWithBoundary";
+import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
+import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { useState } from "react";
 
 export default function NavBarDialog() {
@@ -36,7 +36,7 @@ export default function NavBarDialog() {
           title="Error loading categories"
           containerClasses="mb-30"
         >
-          <CategoryNavDropdown clickHandler={() => setOpen(false)} />
+          <CategoryNavList clickHandler={() => setOpen(false)} />
         </SafeRenderWithErrorBlock>
       </DialogContent>
     </Dialog>

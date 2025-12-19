@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { paths } from "@/config/paths";
 import { Container } from "@/components/ui/container";
 
