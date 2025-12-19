@@ -48,7 +48,7 @@ export default Category;
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    await queryClient.prefetchQuery(
+    await queryClient.ensureQueryData(
       getProductsByCategoryQueryOptions(params.categoryName as NAME),
     );
 
