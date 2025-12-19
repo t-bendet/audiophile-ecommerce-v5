@@ -6,6 +6,7 @@ import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { Section } from "@/components/ui/section";
 import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
+import { getRelatedProductsQueryOptions } from "@/features/products/api/get-products";
 import ProductCard from "@/features/products/components/product-card";
 import RelatedProducts from "@/features/products/components/related-products";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
@@ -173,10 +174,12 @@ export default Product;
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    await queryClient.prefetchQuery(
+    const productResponse = await queryClient.ensureQueryData(
       getProductBySlugQueryOptions(params.productSlug as string),
     );
-    // TODO how to get id for related products prefetching?
-    // getRelatedProductsQueryOptions(id)
+
+    await queryClient.prefetchQuery(
+      getRelatedProductsQueryOptions(productResponse.data.id),
+    );
     return null;
   };
