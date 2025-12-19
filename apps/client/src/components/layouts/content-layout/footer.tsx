@@ -2,10 +2,11 @@ import FacebookLogo from "@/assets/icon-facebook.svg?react";
 import InstagramLogo from "@/assets/icon-instagram.svg?react";
 import TwitterLogo from "@/assets/icon-twitter.svg?react";
 import Logo from "@/assets/logo.svg?react";
+import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import { Container } from "@/components/ui/container";
+import { paths } from "@/config/paths";
 import { Link } from "react-router";
 import { NavLinks } from "./nav-bar/nav-links";
-import { paths } from "@/config/paths";
 
 export const Footer = () => {
   return (
@@ -17,7 +18,9 @@ export const Footer = () => {
         >
           <Logo title="audiophile logo" />
         </Link>
-        <NavLinks />
+        <SafeRenderWithErrorBlock title="Error loading categories">
+          <NavLinks />
+        </SafeRenderWithErrorBlock>
         <p className="opacity-50 max-md:max-w-96 max-md:place-self-center md:col-span-2 md:max-lg:max-w-[680px] lg:col-span-1">
           Audiophile is an all in one stop to fulfill your audio needs. We're a
           small team of music lovers and sound specialists who are devoted to

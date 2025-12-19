@@ -1,6 +1,4 @@
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
-import FeaturedProductSection from "@/features/products/components/featured-product-section";
-import ShowCaseProductsSection from "@/features/products/components/showcase-section";
 import { BestGearSection } from "@/components/page-sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
@@ -8,6 +6,8 @@ import { getCategoriesQueryOptions } from "@/features/categories/api/get-categor
 import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
+import FeaturedProductSection from "@/features/products/components/featured-product-section";
+import ShowCaseProductsSection from "@/features/products/components/showcase-section";
 import { QueryClient } from "@tanstack/react-query";
 import { LoaderFunctionArgs } from "react-router";
 

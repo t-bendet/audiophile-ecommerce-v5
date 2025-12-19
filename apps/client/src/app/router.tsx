@@ -1,8 +1,7 @@
-import { ContentLayout, RootLayout } from "@/components/layouts";
+import { RootLayout } from "@/components/layouts";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
-
 import { MainErrorFallback } from "@/components/errors/main";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import { paths } from "@/config/paths";
@@ -23,15 +22,18 @@ const convert = (queryClient: QueryClient) => (m: any) => {
 const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
     {
-      path: "/",
+      path: paths.home.path,
       element: <RootLayout />,
       errorElement: <MainErrorFallback />,
       middleware: [errorMiddleware],
       children: [
         {
-          path: "/",
-          element: <ContentLayout />,
-          ErrorBoundary: MainErrorFallback,
+          lazy: () =>
+            import("@/components/layouts/content-layout").then(
+              convert(queryClient),
+            ),
+          path: paths.home.path,
+          errorElement: <MainErrorFallback />,
           children: [
             {
               lazy: () => import("./routes/home").then(convert(queryClient)),
