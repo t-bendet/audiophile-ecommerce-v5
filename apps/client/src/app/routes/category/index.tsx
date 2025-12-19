@@ -2,7 +2,6 @@ import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-e
 import { BestGearSection } from "@/components/page-sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 import ProductsList from "@/features/products/components/products-list";
@@ -49,10 +48,9 @@ export default Category;
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    await queryClient.ensureQueryData(
+    await queryClient.prefetchQuery(
       getProductsByCategoryQueryOptions(params.categoryName as NAME),
     );
-    await queryClient.prefetchQuery(getCategoriesQueryOptions());
 
     return null;
   };

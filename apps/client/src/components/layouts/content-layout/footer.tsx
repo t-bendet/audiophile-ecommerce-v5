@@ -11,17 +11,17 @@ import { NavLinks } from "./nav-bar/nav-links";
 export const Footer = () => {
   return (
     <footer className="relative mt-auto bg-neutral-900 text-center">
-      <Container classes="before:bg-primary-500 grid gap-y-12 pt-14 pb-10 before:absolute before:top-[1px] before:h-1 before:w-28 before:justify-self-center before:content-[''] md:grid-cols-2 md:gap-y-8 md:text-left md:before:justify-self-start">
+      <Container classes="before:bg-primary-500 grid gap-y-12 pt-14 pb-10 before:absolute before:top-px before:h-1 before:w-28 before:justify-self-center before:content-[''] md:grid-cols-2 md:gap-y-8 md:text-left md:before:justify-self-start">
         <Link
           className="hover:*:*:fill-primary-500 focus-visible:*:*:fill-primary-500 max-md:mx-auto md:col-span-2 lg:col-span-1"
           to={paths.home.path}
         >
           <Logo title="audiophile logo" />
         </Link>
-        <SafeRenderWithErrorBlock title="Error loading categories">
+        <SafeRenderWithErrorBlock title="Error loading categories navigation">
           <NavLinks />
         </SafeRenderWithErrorBlock>
-        <p className="opacity-50 max-md:max-w-96 max-md:place-self-center md:col-span-2 md:max-lg:max-w-[680px] lg:col-span-1">
+        <p className="opacity-50 max-md:max-w-96 max-md:place-self-center md:col-span-2 md:max-lg:max-w-170 lg:col-span-1">
           Audiophile is an all in one stop to fulfill your audio needs. We're a
           small team of music lovers and sound specialists who are devoted to
           helping you get the most out of personal audio. Come and visit our

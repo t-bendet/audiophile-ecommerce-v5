@@ -2,7 +2,6 @@ import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-e
 import { BestGearSection } from "@/components/page-sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
@@ -54,7 +53,6 @@ export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
     queryClient.prefetchQuery(getFeaturedProductQueryOptions());
     queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
-    queryClient.prefetchQuery(getCategoriesQueryOptions());
     // console.log({context});
 
     return null;
