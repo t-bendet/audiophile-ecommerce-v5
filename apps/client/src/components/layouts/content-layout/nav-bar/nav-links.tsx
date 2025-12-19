@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { paths } from "@/config/paths";
 import { NAME } from "@repo/domain";
 import {
@@ -20,8 +20,12 @@ export const NavLinks = () => {
           to={paths.home.path}
           onMouseEnter={() => {
             // Pre-fetch the category data when hovering over the link
-            queryClient.ensureQueryData(getFeaturedProductQueryOptions());
-            queryClient.ensureQueryData(getShowCaseProductsQueryOptions());
+            queryClient.prefetchQuery(getFeaturedProductQueryOptions());
+            queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
+          }}
+          onFocus={() => {
+            queryClient.prefetchQuery(getFeaturedProductQueryOptions());
+            queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
           }}
         >
           {"home"}
@@ -37,7 +41,12 @@ export const NavLinks = () => {
               to={paths.category.getHref(category)}
               onMouseEnter={() => {
                 // Pre-fetch the category data when hovering over the link
-                queryClient.ensureQueryData(
+                queryClient.prefetchQuery(
+                  getProductsByCategoryQueryOptions(category),
+                );
+              }}
+              onFocus={() => {
+                queryClient.prefetchQuery(
                   getProductsByCategoryQueryOptions(category),
                 );
               }}

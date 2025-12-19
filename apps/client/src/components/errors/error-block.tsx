@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
-import { isCriticalError } from "@/lib/errors";
+import { isCriticalError } from "@/lib/errors/errors";
 import { Container } from "../ui/container";
 
 type TErrorBlockProps = {

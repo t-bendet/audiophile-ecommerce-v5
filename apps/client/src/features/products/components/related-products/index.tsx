@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
+import { paths } from "@/config/paths";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import { getRelatedProductsQueryOptions } from "@/features/products/api/get-products";
 
@@ -29,9 +30,14 @@ const RelatedProducts = ({ id }: { id: string }) => {
           <Button
             variant="accent"
             className="mx-auto block"
-            onClick={() => navigate(`/product/${product.slug}`)}
+            onClick={() => navigate(paths.product.getHref(product.slug))}
             onMouseEnter={() => {
-              queryClient.ensureQueryData(
+              queryClient.prefetchQuery(
+                getProductBySlugQueryOptions(product.slug),
+              );
+            }}
+            onFocus={() => {
+              queryClient.prefetchQuery(
                 getProductBySlugQueryOptions(product.slug),
               );
             }}

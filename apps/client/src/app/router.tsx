@@ -1,11 +1,12 @@
 import { ContentLayout, RootLayout } from "@/components/layouts";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router";
 
 import { MainErrorFallback } from "@/components/errors/main";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import { paths } from "@/config/paths";
+import { errorMiddleware } from "@/lib/errors/middleware";
 
 // import { ProtectedRoute } from "@/lib/auth";
 
@@ -25,6 +26,7 @@ const createAppRouter = (queryClient: QueryClient) =>
       path: "/",
       element: <RootLayout />,
       errorElement: <MainErrorFallback />,
+      middleware: [errorMiddleware],
       children: [
         {
           path: "/",
@@ -68,10 +70,10 @@ export const AppRouter = () => {
   return <RouterProvider router={router} />;
 };
 
-// export const clientLoader =
-//   (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
-//     await queryClient.prefetchQuery(getFeaturedProductQueryOptions());
-//     await queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
-//     console.log({ context });
-//     return null;
-//   };
+// const onError: ClientOnErrorFunction = (
+//   error,
+//   { location, params, unstable_pattern, errorInfo },
+// ) => {
+//   // make sure to still log the error so you can see it
+//   console.log({ location, params, unstable_pattern, errorInfo, error });
+// };

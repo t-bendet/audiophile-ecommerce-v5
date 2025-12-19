@@ -23,7 +23,7 @@ This document describes how errors are handled across the client application, fr
 - Errors bubble up through ErrorBoundary hierarchy with clear catch/re-throw rules
 - React Query handles retry logic automatically based on error type
 - Development shows detailed errors; production shows sanitized messages
-- Toast notifications are reserved for background/async failures only
+- Toast notifications for background/async failures are triggered at the React Query/component layer; Axios stays classification-only
 
 ---
 
@@ -54,7 +54,7 @@ The current implementation uses a **5-layer error handling approach** without ce
 │                                                                    │
 │  Layer 4: API Client (Axios Interceptor)                          │
 │           └─ Classifies: HTTP errors → AppError                   │
-│           └─ Handles: 401 redirects, 5xx toasts                   │
+│           └─ Handles: 401 redirects; classification only (no UI)  │
 │           └─ STATUS: ✅ Implemented                               │
 │                                                                    │
 │  Layer 5: React Query                                             │
@@ -84,14 +84,13 @@ Axios makes HTTP request
     └─→ HTTP Error (any status)
             ↓
         Axios Interceptor (response.use())
-            ├─ If 401: Set redirectTo, classify to AppError(UNAUTHORIZED)
-            ├─ If 4xx: Classify to AppError(from server code field)
-            ├─ If 5xx: Show toast, classify to AppError
-            ├─ If network: Classify to AppError(EXTERNAL_SERVICE_ERROR)
-            └─ Throw AppError to React Query
+            ├─ If 401: Set redirectTo flag
+            ├─ For all errors: Throw raw HTTP error (no classification)
+            └─ No toasts, no retries, no UI decisions here
                 ↓
-            React Query catches AppError
-                ├─ Check error classification
+            React Query catches HTTP error
+                ├─ Classify to AppError via classifyHttpError()
+                ├─ Check classification for retry decision
                 ├─ If 4xx: No retry, throw to component
                 ├─ If 5xx: Retry up to 2x with backoff
                 └─ After retries exhausted OR 4xx: throw to ErrorBoundary
@@ -105,14 +104,14 @@ Axios makes HTTP request
 
 **Key characteristics of current flow:**
 
-- ✅ Errors classified at API boundary (single point)
-- ✅ Retry handled automatically by React Query
+- ✅ Axios is pure transport layer (no business logic)
+- ✅ React Query classifies errors and decides retry strategy
+- ✅ Components/queries decide toast and UI handling
 - ✅ Errors bubble to appropriate boundary
 - ✅ TypeScript guard functions for safe error handling
-- ❌ Toast logic in Axios (could show on non-critical 5xx)
+- ✅ Clear separation of concerns (transport, retry, UI)
 - ❌ No centralized middleware for cross-cutting concerns
 - ❌ No uniform error context across app
-- ❌ Retry strategy applies equally to all errors (not flexible)
 
 ### What Each Layer Does
 
@@ -188,7 +187,7 @@ Axios makes HTTP request
 
 **Location:** HTTP request/response boundary
 
-**Purpose:** Error classification and handling
+**Purpose:** Transport only; no business logic
 
 **Catches:**
 
@@ -198,11 +197,10 @@ Axios makes HTTP request
 
 **Behavior:**
 
-- Classifies error to `AppError` (see Error Classification)
-- For 401: Sets `redirectTo` for auth handler
-- For 5xx: Shows toast notification
-- For 4xx: No toast (shown inline)
-- Throws `AppError` to React Query
+- For 401: Sets `redirectTo` flag on error object
+- For all errors: Throws raw HTTP error (no classification)
+- No toasts, no retries, no UI decisions
+- Pure transport: just passes error up
 
 **Code:** `apps/client/src/lib/api-client.ts`
 
@@ -210,21 +208,23 @@ Axios makes HTTP request
 
 **Location:** Data fetching layer
 
-**Purpose:** Cache management and retry logic
+**Purpose:** Cache management, retry logic, and error classification
 
 **Catches:**
 
-- Query errors from Axios
+- Raw HTTP errors from Axios
 - Network errors
 - Retry failures
 
 **Behavior:**
 
-- Retries based on error classification:
-  - 4xx errors: No retry (user's fault)
-  - 5xx errors: Retry up to 2x with backoff
-- Throws errors to ErrorBoundary (if `throwOnError: true`)
-- Stores errors in query state (if `throwOnError: false`)
+- Classifies error: `classifyHttpError(error)` → `AppError`
+- Decides retry based on classification:
+  - 4xx errors: No retry (user's fault, fail fast)
+  - 5xx errors: Retry up to 2x with exponential backoff
+- Throws classified `AppError` to ErrorBoundary (if `throwOnError: true`)
+- Stores classified error in query state (if `throwOnError: false`)
+- Does NOT handle toasts; components decide
 
 **Code:** `apps/client/src/lib/react-query.ts`
 
@@ -413,7 +413,7 @@ Error Occurs in Component
 
 ## Toast Notification Strategy
 
-Toasts are used for **background/async errors that don't block navigation**:
+Toasts are used for **background/async errors that don't block navigation** and are triggered by React Query/component handlers (Axios does not emit toasts):
 
 ### When to Show Toast
 
@@ -446,7 +446,7 @@ Toasts are used for **background/async errors that don't block navigation**:
 - Field-specific or context-specific handling
 - User action required based on error type
 
-**Implementation:** `apps/client/src/lib/api-client.ts`
+**Implementation:** Triggered in React Query/component error handlers; `api-client` is classification-only
 
 ## Retry Logic
 
@@ -772,6 +772,54 @@ HTTP Error → Axios → AppError → React Query → Middleware (intercept) →
 - Conditional retry or transformation
 - Boundary selection (which boundary should handle?)
 
+### Environment Initialization Pattern
+
+Environment variables must be validated at app startup within the ErrorBoundary scope so that validation errors can be properly caught and displayed.
+
+**Implementation: `InitializeEnv` Component**
+
+```typescript
+// apps/client/src/config/env.ts
+export const InitializeEnv = () => {
+  initializeEnv(); // Validates env and throws AppError if invalid
+  return null;
+};
+```
+
+**Usage: Independent component inside ErrorBoundary**
+
+```typescript
+// apps/client/src/app/provider.tsx
+export const AppProvider = ({ children }: AppProviderProps) => {
+  return (
+    <React.Suspense fallback={<Spinner />}>
+      <ErrorBoundary FallbackComponent={MainErrorFallback}>
+        <InitializeEnv /> {/* Standalone component, no children */}
+        <QueryClientProvider client={queryClient}>
+          {/* ... rest of providers ... */}
+          {children}
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </React.Suspense>
+  );
+};
+```
+
+**How it works:**
+
+1. `AppProvider` wraps everything in `ErrorBoundary`
+2. `InitializeEnv` is rendered inside the boundary as a standalone component
+3. If `initializeEnv()` throws `AppError`, the boundary catches it
+4. `MainErrorFallback` displays the validation error to the user
+5. `QueryClientProvider` and children are not rendered until env is valid
+
+**Why this pattern:**
+
+- ✅ Simple and declarative (component inside boundary)
+- ✅ No need for wrapper components or higher-order functions
+- ✅ Clear separation of concerns (initialization vs providers)
+- ✅ Reusable for other initialization logic (e.g., `InitializeAuth`, `InitializeTheme`)
+
 ### Middleware Retry Strategies
 
 Middleware can coordinate retries at the route/navigation level, complementing React Query’s per-query retries.
@@ -1067,8 +1115,8 @@ export function RouteErrorBoundary() {
 **Step 5: Simplify Axios interceptor**
 
 ```typescript
-// Move toast logic to middleware
-// Axios just classifies and throws
+// Axios just classifies and throws (no toasts here)
+// Toasts are handled in React Query/component error paths
 interceptor.response.use(
   (response) => response.data,
   (error) => {
@@ -1100,7 +1148,7 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 
 ### Phase 3: Move Cross-Cutting Logic
 
-- [ ] Move toast logic from Axios → middleware
+- [ ] Toasts handled in React Query/components (Axios classification-only)
 - [ ] Move logging logic from components → middleware
 - [ ] Add error transformation in middleware
 
@@ -1597,5 +1645,5 @@ When testing error handling, verify:
 
 ---
 
-**Last Updated:** December 17, 2025
+**Last Updated:** December 18, 2025
 **Status:** Current implementation complete (v1), Target state documented (v2)

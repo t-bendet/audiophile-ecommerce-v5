@@ -1,12 +1,12 @@
 import CartIcon from "@/assets/icon-cart.svg?react";
 import Logo from "@/assets/logo.svg?react";
+import NavBarDialog from "@/components/layouts/content-layout/nav-bar/nav-bar-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Container } from "@/components/ui/container";
 import { paths } from "@/config/paths";
 import useMedia from "@/hooks/useMedia";
-import { Link } from "react-router-dom";
-import { NavLinks } from "@/components/layouts/nav-links";
-import NavBarDialog from "@/components/layouts/content-layout/nav-bar/nav-bar-dialog";
+import { Link } from "react-router";
+import { NavLinks } from "./nav-links";
 
 function AvatarDemo() {
   return (
@@ -22,7 +22,7 @@ export const Navbar = () => {
   return (
     <nav className="bg-neutral-900 max-md:border-b max-md:border-neutral-100/20">
       <Container>
-        <div className="flex h-[var(--nav-bar-height)] items-center justify-between md:border-b md:border-neutral-100/20">
+        <div className="flex h-(--nav-bar-height) items-center justify-between md:border-b md:border-neutral-100/20">
           {!isLarge && <NavBarDialog />}
           <Link
             to={paths.home.path}

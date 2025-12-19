@@ -5,7 +5,7 @@ import { paths } from "@/config/paths";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Fragment } from "react/jsx-runtime";
 // import CircleSvg from "@/assets/pattern-circles.svg?react";
 
@@ -29,7 +29,7 @@ const ShowCaseProductsSection = () => {
     <>
       <article>
         <Container classes="bg-primary-500 flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center lg:gap-30">
-          <section className="mx-auto w-[60%] max-w-[240px] lg:mx-0 lg:mb-[-10px] lg:max-w-[410px]">
+          <section className="mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5 lg:max-w-102.5">
             <ResponsivePicture
               altText={showCaseCover?.images.showCaseImage?.altText || ""}
               ariaLabel={showCaseCover?.images.showCaseImage?.ariaLabel || ""}
@@ -58,7 +58,14 @@ const ShowCaseProductsSection = () => {
                 <Link
                   to={paths.product.getHref(showCaseCover?.slug as string)}
                   onMouseEnter={() =>
-                    queryClient.ensureQueryData(
+                    queryClient.prefetchQuery(
+                      getProductBySlugQueryOptions(
+                        showCaseCover?.slug as string,
+                      ),
+                    )
+                  }
+                  onFocus={() =>
+                    queryClient.prefetchQuery(
                       getProductBySlugQueryOptions(
                         showCaseCover?.slug as string,
                       ),
@@ -94,7 +101,14 @@ const ShowCaseProductsSection = () => {
                 <Link
                   to={paths.product.getHref(showCaseWide?.slug as string)}
                   onMouseEnter={() =>
-                    queryClient.ensureQueryData(
+                    queryClient.prefetchQuery(
+                      getProductBySlugQueryOptions(
+                        showCaseWide?.slug as string,
+                      ),
+                    )
+                  }
+                  onFocus={() =>
+                    queryClient.prefetchQuery(
                       getProductBySlugQueryOptions(
                         showCaseWide?.slug as string,
                       ),
@@ -132,7 +146,14 @@ const ShowCaseProductsSection = () => {
                   <Link
                     to={paths.product.getHref(showCaseGrid?.slug as string)}
                     onMouseEnter={() =>
-                      queryClient.ensureQueryData(
+                      queryClient.prefetchQuery(
+                        getProductBySlugQueryOptions(
+                          showCaseGrid?.slug as string,
+                        ),
+                      )
+                    }
+                    onFocus={() =>
+                      queryClient.prefetchQuery(
                         getProductBySlugQueryOptions(
                           showCaseGrid?.slug as string,
                         ),
@@ -151,5 +172,3 @@ const ShowCaseProductsSection = () => {
   );
 };
 export default ShowCaseProductsSection;
-
-// flex flex-col gap-6

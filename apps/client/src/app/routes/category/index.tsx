@@ -1,31 +1,20 @@
-import { SafeRenderWithErrorBlock } from "@/components/errors/ErrorBlockWithBoundary";
-import { BestGearSection } from "@/components/sections";
+import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
+import { BestGearSection } from "@/components/page-sections";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
+import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
+import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 import ProductsList from "@/features/products/components/products-list";
-import ProductsListSkeleton from "@/features/products/components/products-list-skeleton";
 import { NAME } from "@repo/domain";
-import { QueryClient } from "@tanstack/react-query";
-import { LoaderFunctionArgs, useParams } from "react-router-dom";
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const clientLoader =
-  (queryClient: QueryClient) =>
-  async ({ params }: LoaderFunctionArgs) => {
-    try {
-      const category = params.categoryName as NAME;
-      const query = getProductsByCategoryQueryOptions(category);
-      await queryClient.ensureQueryData(query);
-      return null;
-    } catch (error) {
-      throw error;
-    }
-  };
+import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { LoaderFunctionArgs, useParams } from "react-router";
 
 const Category = () => {
   const { categoryName } = useParams<{ categoryName: NAME }>();
+  const { data: ProductsResponse } = useSuspenseQuery(
+    getProductsByCategoryQueryOptions(categoryName as NAME),
+  );
   return (
     <>
       <header className="bg-neutral-900 py-8 md:py-24">
@@ -34,13 +23,7 @@ const Category = () => {
         </h1>
       </header>
       <main className="mt-16 md:mt-30 lg:mt-40">
-        <SafeRenderWithErrorBlock
-          title={`Error loading ${categoryName} products`}
-          containerClasses="mb-30"
-          fallback={<ProductsListSkeleton />}
-        >
-          <ProductsList categoryName={categoryName!} />
-        </SafeRenderWithErrorBlock>
+        <ProductsList products={ProductsResponse.data} />
 
         <Section>
           <SafeRenderWithErrorBlock
@@ -48,7 +31,7 @@ const Category = () => {
             containerClasses="mb-30"
           >
             <Container>
-              <CategoryNavDropdown />
+              <CategoryNavList />
             </Container>
           </SafeRenderWithErrorBlock>
         </Section>
@@ -61,3 +44,15 @@ const Category = () => {
 };
 
 export default Category;
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const clientLoader =
+  (queryClient: QueryClient) =>
+  async ({ params }: LoaderFunctionArgs) => {
+    await queryClient.ensureQueryData(
+      getProductsByCategoryQueryOptions(params.categoryName as NAME),
+    );
+    await queryClient.prefetchQuery(getCategoriesQueryOptions());
+
+    return null;
+  };

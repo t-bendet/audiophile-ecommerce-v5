@@ -1,6 +1,7 @@
 import { MainErrorFallback } from "@/components/errors/main";
 import { Spinner } from "@/components/ui/spinner";
 import { Toaster } from "@/components/ui/toaster";
+import { InitializeEnv } from "@/config/env";
 import { queryConfig } from "@/lib/react-query";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as React from "react";
@@ -11,13 +12,7 @@ const ReactQueryDevtoolsLazy = React.lazy(() =>
   })),
 );
 
-// import { AuthLoader } from "@/lib/auth";
-
-type AppProviderProps = {
-  children: React.ReactNode;
-};
-
-export const AppProvider = ({ children }: AppProviderProps) => {
+export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [queryClient] = React.useState(
     () =>
       new QueryClient({
@@ -34,6 +29,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       }
     >
       <ErrorBoundary FallbackComponent={MainErrorFallback}>
+        <InitializeEnv />
         <QueryClientProvider client={queryClient}>
           {import.meta.env.DEV && (
             <React.Suspense fallback={null}>
@@ -41,15 +37,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             </React.Suspense>
           )}
           <Toaster />
-          {/* <AuthLoader
-              renderLoading={() => (
-                <div className="flex h-screen w-screen items-center justify-center">
-                  <Spinner size="xl" />
-                </div>
-              )}
-            >
-              {children}
-            </AuthLoader> */}
           {children}
         </QueryClientProvider>
       </ErrorBoundary>

@@ -1,45 +1,15 @@
-import { SafeRenderWithErrorBlock } from "@/components/errors/ErrorBlockWithBoundary";
-import { BestGearSection } from "@/components/sections";
+import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
+import { BestGearSection } from "@/components/page-sections";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { Section } from "@/components/ui/section";
-import CategoryNavDropdown from "@/features/categories/components/category-nav-dropdown";
+import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import ProductCard from "@/features/products/components/product-card";
 import RelatedProducts from "@/features/products/components/related-products";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { LoaderFunctionArgs, useNavigate, useParams } from "react-router-dom";
-
-export const clientLoader =
-  (queryClient: QueryClient) =>
-  async ({ params }: LoaderFunctionArgs) => {
-    try {
-      const slug = params.productSlug as string;
-
-      const query = getProductBySlugQueryOptions(slug);
-      await queryClient.ensureQueryData(query);
-
-      return null;
-    } catch (error) {
-      // If it's already a Response (from our validation), re-throw it
-      if (error instanceof Response) {
-        throw error;
-      }
-
-      // Handle 404 from API
-      const axiosError = error as { response?: { status: number } };
-      if (axiosError?.response?.status === 404) {
-        throw new Response("Product not found", {
-          status: 404,
-          statusText: "Not Found",
-        });
-      }
-
-      // Re-throw other errors
-      throw error;
-    }
-  };
+import { LoaderFunctionArgs, useNavigate, useParams } from "react-router";
 
 const Product = () => {
   const { productSlug } = useParams();
@@ -187,7 +157,7 @@ const Product = () => {
           containerClasses="mb-30"
         >
           <Container>
-            <CategoryNavDropdown />
+            <CategoryNavList />
           </Container>
         </SafeRenderWithErrorBlock>
       </Section>
@@ -199,3 +169,14 @@ const Product = () => {
 };
 
 export default Product;
+
+export const clientLoader =
+  (queryClient: QueryClient) =>
+  async ({ params }: LoaderFunctionArgs) => {
+    await queryClient.ensureQueryData(
+      getProductBySlugQueryOptions(params.productSlug as string),
+    );
+    // TODO how to get id for related products prefetching?
+    // getRelatedProductsQueryOptions(id)
+    return null;
+  };
