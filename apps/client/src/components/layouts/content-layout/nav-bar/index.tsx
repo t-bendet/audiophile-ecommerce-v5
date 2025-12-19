@@ -33,7 +33,7 @@ export const Navbar = () => {
           </Link>
           {isLarge && (
             <SafeRenderWithErrorBlock
-              title="Error loading categories"
+              title="Error loading categories navigation"
               containerClasses=""
             >
               <NavLinks />

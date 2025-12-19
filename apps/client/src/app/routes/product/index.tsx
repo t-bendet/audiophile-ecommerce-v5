@@ -173,7 +173,7 @@ export default Product;
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    await queryClient.ensureQueryData(
+    await queryClient.prefetchQuery(
       getProductBySlugQueryOptions(params.productSlug as string),
     );
     // TODO how to get id for related products prefetching?
