@@ -14,6 +14,7 @@ export const queryConfig = {
     refetchOnWindowFocus: false,
     retry: (failureCount, error) => {
       // Classify error to check its type
+      // TODO refactor to avoid double classification
       const classifiedError = classifyHttpError(error);
       const status = classifiedError.statusCode;
 
