@@ -20,9 +20,16 @@ const getAllCategories: TGetAllCategories = async ({ signal }) => {
   if (result.success) {
     return result.data;
   } else {
+    const details = result.error.issues.map((issue) => ({
+      code: issue.code,
+      message: issue.message,
+      path: issue.path.length > 0 ? issue.path.map(String) : undefined,
+    }));
     throw new AppError(
       `Failed to fetch categories: ${z.prettifyError(result.error)}`,
       ErrorCode.INTERNAL_ERROR,
+      undefined,
+      details,
     );
   }
 };
