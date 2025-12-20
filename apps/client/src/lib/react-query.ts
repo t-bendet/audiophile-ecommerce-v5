@@ -1,4 +1,4 @@
-import { classifyHttpError } from "@/lib/errors/errors";
+import { classifyAxiosError } from "@/lib/errors/errors";
 import { DefaultOptions } from "@tanstack/react-query";
 
 export const queryConfig = {
@@ -15,7 +15,7 @@ export const queryConfig = {
     retry: (failureCount, error) => {
       // Classify error to check its type
       // TODO refactor to avoid double classification
-      const classifiedError = classifyHttpError(error);
+      const classifiedError = classifyAxiosError(error);
       const status = classifiedError.statusCode;
 
       // Don't retry client errors (4xx)

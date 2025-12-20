@@ -84,18 +84,18 @@ Axios makes HTTP request
     └─→ HTTP Error (any status)
             ↓
         Axios Interceptor (response.use())
-            ├─ If 401: Set redirectTo flag
-            ├─ For all errors: Throw raw HTTP error (no classification)
-            └─ No toasts, no retries, no UI decisions here
+            ├─ Classify error via _classifyAxiosError()
+            ├─ If 401: Set redirectTo in error.details
+            └─ Throw AppError with ErrorCode
                 ↓
-            React Query catches HTTP error
-                ├─ Classify to AppError via classifyHttpError()
-                ├─ Check classification for retry decision
+            React Query catches AppError
+                ├─ Check status code for retry decision
                 ├─ If 4xx: No retry, throw to component
                 ├─ If 5xx: Retry up to 2x with backoff
                 └─ After retries exhausted OR 4xx: throw to ErrorBoundary
                     ↓
-                ErrorBoundary catches AppError
+                ErrorBoundary catches error
+                    ├─ Call normalizeError(error) → AppError
                     ├─ If critical: Re-throw to parent
                     └─ If non-critical: Render error UI inline
                             ↓
@@ -104,12 +104,14 @@ Axios makes HTTP request
 
 **Key characteristics of current flow:**
 
-- ✅ Axios is pure transport layer (no business logic)
-- ✅ React Query classifies errors and decides retry strategy
+- ✅ Axios classifies errors at transport layer (produces AppError)
+- ✅ React Query handles retry strategy based on status code
+- ✅ All errors normalized via `normalizeError()` before processing
 - ✅ Components/queries decide toast and UI handling
 - ✅ Errors bubble to appropriate boundary
 - ✅ TypeScript guard functions for safe error handling
 - ✅ Clear separation of concerns (transport, retry, UI)
+- ✅ Zod validation errors handled consistently
 - ❌ No centralized middleware for cross-cutting concerns
 - ❌ No uniform error context across app
 
@@ -225,6 +227,213 @@ Axios makes HTTP request
 - Throws classified `AppError` to ErrorBoundary (if `throwOnError: true`)
 - Stores classified error in query state (if `throwOnError: false`)
 - Does NOT handle toasts; components decide
+
+**Code:** `apps/client/src/lib/react-query.ts`
+
+### Error Normalization (Single Entry Point)
+
+All errors are normalized through a **single entry point** before any processing:
+
+```typescript
+// lib/errors/errors.ts
+export function normalizeError(error: unknown): AppError {
+  if (isAxiosError(error)) {
+    return _classifyAxiosError(error); // HTTP classification
+  } else if (error instanceof ZodError) {
+    // Validation errors from forms
+    const message = `Validation failed: ${error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`;
+    return new AppError(message, ErrorCode.VALIDATION_ERROR, 422, error.issues);
+  } else if (error instanceof Error) {
+    return new AppError(
+      error.message,
+      ErrorCode.INTERNAL_ERROR,
+      500,
+      undefined,
+      error.stack,
+    );
+  } else if (typeof error === "string") {
+    return new AppError(error, ErrorCode.INTERNAL_ERROR, 500);
+  }
+  return new AppError(
+    "An unknown error occurred",
+    ErrorCode.INTERNAL_ERROR,
+    500,
+  );
+}
+```
+
+**Handles:**
+
+- ✅ Axios errors (network, HTTP status, timeouts)
+- ✅ Zod validation errors (field-level details)
+- ✅ JavaScript errors (stack trace preservation)
+- ✅ String errors (edge cases)
+- ✅ Unknown types (fallback)
+
+**All error boundaries call `normalizeError()` before checking criticality or displaying UI.**
+
+### Practical Error Handling Patterns
+
+#### Pattern 1: Critical Data in Loaders (Fail-Fast)
+
+**Use when:** Data is required for page to render meaningfully
+
+```typescript
+// src/routes/product/[id].tsx
+export const loader = async (context: LoaderFunctionArgs) => {
+  const queryClient = context.get(queryClientContext);
+
+  try {
+    // ensureQueryData blocks render until successful
+    // throwOnError: true throws on failure → RouteErrorBoundary
+    return await queryClient.ensureQueryData(
+      getProductByIdQueryOptions(id)
+    );
+  } catch (error) {
+    // Normalize and throw for RouteErrorBoundary
+    throw normalizeError(error);
+  }
+};
+
+export const route = {
+  loader,
+  errorElement: <RouteErrorBoundary />,
+};
+```
+
+**Why this works:**
+
+- ✅ Explicit: We declare "this data is critical"
+- ✅ Blocking: Page doesn't render until it succeeds
+- ✅ Fail-fast: RouteErrorBoundary catches immediately
+- ✅ Full-page error: User sees comprehensive error UI with navigation options
+
+---
+
+#### Pattern 2: Non-Critical Data in Components (Graceful Degradation)
+
+**Use when:** Data is optional/supplementary; page can function without it
+
+```typescript
+// src/components/featured-product.tsx
+const FeaturedProduct = () => {
+  // useSuspenseQuery throws to nearest boundary (SafeRenderWithErrorBlock)
+  const { data: product } = useSuspenseQuery(
+    getProductByIdQueryOptions(featuredId)
+  );
+
+  return <ProductCard product={product} />;
+};
+
+export default FeaturedProduct;
+```
+
+**Wrapped with SafeRenderWithErrorBlock:**
+
+```typescript
+// src/components/page-sections/featured-section.tsx
+export const FeaturedSection = () => {
+  return (
+    <SafeRenderWithErrorBlock
+      title="Featured Product"
+      spinnerClasses="h-40"
+    >
+      <FeaturedProduct />
+    </SafeRenderWithErrorBlock>
+  );
+};
+```
+
+**Why this works:**
+
+- ✅ Graceful degradation: Error shows inline instead of breaking whole page
+- ✅ User choice: User can retry just this section
+- ✅ Non-blocking: Rest of page still renders
+- ⚠️ **Defensive re-throw**: If error is critical (forgot to handle in loader), SafeRenderWithErrorBlock rethrows to RouteErrorBoundary
+
+**SafeRenderWithErrorBlock behavior:**
+
+1. Catch error from child component
+2. Call `normalizeError(error)` → consistent AppError
+3. Check `isCriticalError(normalizedError)` → DEFENSIVE re-throw
+   - ⚠️ **This is a safety net**: Critical errors should fail in loaders
+   - If we reach here, we forgot to handle something → rethrow to RouteErrorBoundary
+4. For non-critical errors: Render ErrorBlock with title, message, "Retry" button
+
+---
+
+#### Pattern 3: Prefetching (Fire-and-Forget)
+
+**Use when:** Optimizing navigation by preloading data on hover/focus
+
+```typescript
+// src/components/product-card.tsx
+const handleMouseEnter = () => {
+  // Fire-and-forget: silently load data
+  // throwOnError: false → errors logged only
+  queryClient.prefetchQuery(getProductByIdQueryOptions(productId));
+};
+
+const handleFocus = () => {
+  // Accessibility: same behavior for keyboard navigation
+  queryClient.prefetchQuery(getProductByIdQueryOptions(productId));
+};
+
+<Link
+  to={`/products/${productId}`}
+  onMouseEnter={handleMouseEnter}
+  onFocus={handleFocus}
+>
+  {product.name}
+</Link>
+```
+
+**Why this works:**
+
+- ✅ Non-blocking: Doesn't affect UI if it fails
+- ✅ Silent failure: Errors logged but not shown
+- ✅ Optional data: If prefetch succeeds, navigation is instant; if it fails, loader handles it normally
+- ✅ Accessibility: Both mouse and keyboard users benefit
+
+---
+
+#### Pattern 4: Form Submission Error Handling
+
+**Use when:** Handling errors from user-initiated actions (forms, mutations)
+
+```typescript
+const ContactForm = () => {
+  const [error, setError] = useState<AppError | null>(null);
+
+  const handleSubmit = async (formData: unknown) => {
+    try {
+      setError(null);
+      await submitContactForm(formData);
+    } catch (error) {
+      const normalized = normalizeError(error);
+      setError(normalized);  // Show inline error
+    }
+  };
+
+  return (
+    <>
+      {error && <ErrorBlock message={error.message} />}
+      <form onSubmit={handleSubmit}>
+        {/* form fields */}
+      </form>
+    </>
+  );
+};
+```
+
+**Why this works:**
+
+- ✅ Explicit error state: Form controls when/how to show errors
+- ✅ Inline feedback: User sees error next to form
+- ✅ Normalized: Uses same error format as rest of app
+- ✅ No boundary throw: Validation errors don't break page
+
+---
 
 **Code:** `apps/client/src/lib/react-query.ts`
 
@@ -1645,5 +1854,5 @@ When testing error handling, verify:
 
 ---
 
-**Last Updated:** December 18, 2025
+**Last Updated:** December 20, 2025
 **Status:** Current implementation complete (v1), Target state documented (v2)
