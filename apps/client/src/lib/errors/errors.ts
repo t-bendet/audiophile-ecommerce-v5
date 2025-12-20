@@ -13,6 +13,7 @@ export function isAppError(error: unknown): error is AppError {
  * Critical errors: env validation, auth failures, token issues.
  */
 export function isCriticalError(error: unknown): boolean {
+  // TODO not good - there can a lot of cases where it's not an AppError but still critical
   if (!isAppError(error)) return false;
   return (
     error.code === ErrorCode.UNAUTHORIZED ||
