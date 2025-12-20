@@ -5,6 +5,7 @@ import { Section } from "@/components/ui/section";
 import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
 import ProductsList from "@/features/products/components/products-list";
+import { normalizeError } from "@/lib/errors/errors";
 import { NAME } from "@repo/domain";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { LoaderFunctionArgs, useParams } from "react-router";
@@ -48,9 +49,14 @@ export default Category;
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    await queryClient.ensureQueryData(
-      getProductsByCategoryQueryOptions(params.categoryName as NAME),
-    );
+    try {
+      await queryClient.ensureQueryData(
+        getProductsByCategoryQueryOptions(params.categoryName as NAME),
+      );
+    } catch (error) {
+      const normalized = normalizeError(error);
+      throw normalized;
+    }
 
     return null;
   };
