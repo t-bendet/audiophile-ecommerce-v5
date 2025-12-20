@@ -1,25 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { paths } from "@/config/paths";
-import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
 import {
-  isAppError,
   getErrorMessage,
   isCriticalError,
+  normalizeError,
 } from "@/lib/errors/errors";
+import { ErrorCode } from "@repo/domain";
+import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
-  console.log({ error }, "router level");
+  const normalizedError = normalizeError(error); // Normalize all incoming errors
+
+  console.log({ normalizedError }, "router level");
   const navigate = useNavigate();
 
-  let statusCode = 500;
+  let statusCode = normalizedError.statusCode;
   let title = "Something went wrong";
-  let message = getErrorMessage(error);
+  let message = getErrorMessage(normalizedError);
 
-  // React Router Response errors (thrown from loaders)
   if (isRouteErrorResponse(error)) {
-    console.log("isRouteErrorResponse");
+    console.log(error, "isRouteErrorResponse");
+    // React Router Response errors take precedence for status/title/message if available
     statusCode = error.status;
     title = error.statusText || `Error ${statusCode}`;
     message = error.data || message;
@@ -30,16 +33,19 @@ export function RouteErrorBoundary() {
     } else if (statusCode === 400) {
       title = "Bad Request";
     }
+  } else {
+    // For other normalized errors (AppError, ZodError, generic Error)
+    title =
+      normalizedError.code === ErrorCode.NOT_FOUND
+        ? "Not Found"
+        : normalizedError.code === ErrorCode.VALIDATION_ERROR
+          ? "Validation Error"
+          : "Request Failed";
   }
-  // Custom AppError (includes network classified into AppError)
-  else if (isAppError(error)) {
-    statusCode = error.statusCode;
-    title = statusCode === 404 ? "Not Found" : "Request Failed";
-    message = error.message;
-  }
-  // Critical fallback
-  else if (isCriticalError(error)) {
-    title = "Critical Error";
+
+  if (isCriticalError(normalizedError)) {
+    // Override with a generic critical error message for public display if truly critical
+    title = "Critical Application Error";
     message = "A critical error occurred. Please try again later.";
   }
 
