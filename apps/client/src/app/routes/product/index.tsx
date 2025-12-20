@@ -9,6 +9,7 @@ import { getProductBySlugQueryOptions } from "@/features/products/api/get-produc
 import { getRelatedProductsQueryOptions } from "@/features/products/api/get-products";
 import ProductCard from "@/features/products/components/product-card";
 import RelatedProducts from "@/features/products/components/related-products";
+import { normalizeError } from "@/lib/errors/errors";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { LoaderFunctionArgs, useNavigate, useParams } from "react-router";
 
@@ -174,12 +175,18 @@ export default Product;
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
-    const productResponse = await queryClient.ensureQueryData(
-      getProductBySlugQueryOptions(params.productSlug as string),
-    );
+    try {
+      const productResponse = await queryClient.ensureQueryData(
+        getProductBySlugQueryOptions(params.productSlug as string),
+      );
 
-    await queryClient.prefetchQuery(
-      getRelatedProductsQueryOptions(productResponse.data.id),
-    );
+      await queryClient.prefetchQuery(
+        getRelatedProductsQueryOptions(productResponse.data.id),
+      );
+    } catch (error) {
+      const normalized = normalizeError(error);
+      throw normalized;
+    }
+
     return null;
   };
