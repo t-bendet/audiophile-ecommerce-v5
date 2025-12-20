@@ -33,24 +33,21 @@ const createAppRouter = (queryClient: QueryClient) =>
               convert(queryClient),
             ),
           path: paths.home.path,
-          errorElement: <MainErrorFallback />,
+          errorElement: <RouteErrorBoundary />,
           children: [
             {
               lazy: () => import("./routes/home").then(convert(queryClient)),
               path: paths.home.path,
               index: true,
-              errorElement: <RouteErrorBoundary />,
             },
             {
               lazy: () => import("./routes/product").then(convert(queryClient)),
               path: paths.product.path,
-              errorElement: <RouteErrorBoundary />,
             },
             {
               lazy: () =>
                 import("./routes/category").then(convert(queryClient)),
               path: paths.category.path,
-              errorElement: <RouteErrorBoundary />,
             },
 
             {
