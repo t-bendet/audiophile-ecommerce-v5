@@ -1,16 +1,27 @@
-import { AppError, ErrorCode } from "@repo/domain";
+import { AppError, ErrorCode, ErrorResponse } from "@repo/domain";
 import { AxiosError, isAxiosError } from "axios";
 import { ZodError } from "zod";
 
 // Type guards
-const isZodError = (err: unknown): err is ZodError => {
+const isClientSchemaValidationError = (err: unknown): err is ZodError => {
   return err instanceof ZodError;
+};
+
+const isAppError = (err: unknown): err is AppError => {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    typeof (err as any).code === "string" &&
+    Object.values(ErrorCode).includes((err as any).code) &&
+    typeof (err as any).statusCode === "number" &&
+    typeof (err as any).message === "string"
+  );
 };
 
 // TODO is server error with app error
 // TODO continue to copy from server error.middleware.ts as needed
 // TODO move to common package if shared between client/server
-// safety net for unexpected zod errors
+// schema validation on api requests payloads(client side) or responses(server side)?
 const handleZodError = (err: ZodError) => {
   const message = `Validation failed: ${err.issues.length} error(s)`;
 
@@ -38,6 +49,7 @@ export function normalizeError(error: unknown): AppError {
 
   // Axios errors (HTTP/network) - check before generic Error since AxiosError extends Error
   if (isAxiosError(error)) {
+    // either network error or HTTP error response
     return classifyAxiosError(error);
   }
 
@@ -80,38 +92,29 @@ export function normalizeError(error: unknown): AppError {
 /**
  * Helper to classify Axios errors into AppError. Used internally by normalizeError.
  */
-export function classifyAxiosError(
-  error: AxiosError<AppError | undefined>,
-): AppError {
+export function classifyAxiosError(error: AxiosError<ErrorResponse>): AppError {
   // Network/connection errors
-  if (error.code === "ERR_NETWORK" || !error.response) {
+  // do we have an error.response.data
+  if (error.code == "ERR_NETWORK" || !error.response) {
     return new AppError(
       "Network connection failed. Please check your internet connection.",
       ErrorCode.EXTERNAL_SERVICE_ERROR,
       503,
     );
   }
-  const status = error.response.status;
-  const message =
-    error.response.data?.message || error.message || "Request failed";
-  const code = error.response.data?.code; // Attempt to get custom backend error code
 
-  // Map common statuses to codes, prioritizing backend code if available
-  if (code) {
-    // If backend provided an explicit ErrorCode
-    return new AppError(message, code, status);
-  } else if (status === 400 || status === 422) {
-    return new AppError(message, ErrorCode.VALIDATION_ERROR, status);
-  } else if (status === 401) {
-    return new AppError(message, ErrorCode.UNAUTHORIZED, status);
-  } else if (status === 403) {
-    return new AppError(message, ErrorCode.FORBIDDEN, status);
-  } else if (status === 404) {
-    return new AppError(message, ErrorCode.NOT_FOUND, status);
+  if (error.code == "ERR_BAD_RESPONSE" || error.code == "ERR_BAD_REQUEST") {
+    if (isAppError(error.response.data.error)) {
+      return error.response.data.error;
+    }
   }
 
   // Server errors or unknown HTTP errors
-  return new AppError(message, ErrorCode.INTERNAL_ERROR, status ?? 500);
+  return new AppError(
+    "Something went very wrong!",
+    ErrorCode.INTERNAL_ERROR,
+    500,
+  );
 }
 
 /**
