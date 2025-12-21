@@ -54,8 +54,7 @@ export const clientLoader =
         getProductsByCategoryQueryOptions(params.categoryName as NAME),
       );
     } catch (error) {
-      const normalized = normalizeError(error);
-      throw normalized;
+      throw normalizeError(error);
     }
 
     return null;

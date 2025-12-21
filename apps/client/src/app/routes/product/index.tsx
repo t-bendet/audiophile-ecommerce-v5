@@ -184,8 +184,7 @@ export const clientLoader =
         getRelatedProductsQueryOptions(productResponse.data.id),
       );
     } catch (error) {
-      const normalized = normalizeError(error);
-      throw normalized;
+      throw normalizeError(error);
     }
 
     return null;
