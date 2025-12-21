@@ -1,9 +1,6 @@
 // ** General / Infrastructure
-// TODO go over all loaders and actions and make sure errors are thrown properly
-// TODO standardize error handling strategy between server and client
-
-// TODO rethink the whole error handling strategy,for backend and frontend(big task)
-// TODO go over route-error-boundary and errors.ts ,allagin with error handling on server and make sure errors are thrown on loaders ,also make sure each error hs a type(also in env)
+// TODO standerdize parsing error throwing in api clients ,classifyHttpError
+// TODO standardize zod error handling strategy between server and client
 
 //   throw new Error(
 //     `Failed to fetch categories: ${result.error.issues
@@ -11,22 +8,17 @@
 //       .join("; ")}`,
 //   );
 // }
-// TODO go over client loaders throws errors
-// TODO standerdize parsing error throwing in api clients
 
 // TODO refactor to use bulletproof-react auth patterns
 // TODO axios refresher
 // TODO change src attributes to z.url in all schemas
 // TODO go over stephen grider steps for planning routes
 // TODO Provider check bulletproof react patterns for react-query setup
-// TODO layouts refactor - bulletproof react patterns
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
 // TODO https://reactrouter.com/api/utils/createContext
 // TODO React 19’s Document Metadata
-// TODO react router middleware
 
 // ** API Client (src/lib/api-client.ts)
-// TODO go over changes again
 // TODO make this baseURL configurable
 // TODO type the error response properly
 // TODO explore api interceptors,and check if i can move the error handling from there

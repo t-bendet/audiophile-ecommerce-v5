@@ -1,5 +1,6 @@
 import CartIcon from "@/assets/icon-cart.svg?react";
 import Logo from "@/assets/logo.svg?react";
+import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import NavBarDialog from "@/components/layouts/content-layout/nav-bar/nav-bar-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Container } from "@/components/ui/container";
@@ -30,7 +31,14 @@ export const Navbar = () => {
           >
             <Logo title="audiophile logo" />
           </Link>
-          {isLarge && <NavLinks />}
+          {isLarge && (
+            <SafeRenderWithErrorBlock
+              title="Error loading categories navigation"
+              containerClasses=""
+            >
+              <NavLinks />
+            </SafeRenderWithErrorBlock>
+          )}
           <div className="flex items-center gap-4">
             <CartIcon
               className="hover:*:fill-primary-500 focus-visible:*:fill-primary-500 cursor-pointer"

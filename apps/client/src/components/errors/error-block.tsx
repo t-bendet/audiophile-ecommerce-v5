@@ -1,13 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
-import { isCriticalError } from "@/lib/errors/errors";
 import { Container } from "../ui/container";
 
 type TErrorBlockProps = {
   title: string;
   message: string;
   onReset?: () => void;
-  error: unknown;
   containerClasses?: string;
 };
 
@@ -15,14 +13,10 @@ const ErrorBlock = ({
   title,
   message,
   onReset,
-  error,
   containerClasses,
 }: TErrorBlockProps) => {
   // Re-throw critical errors so they bubble to router boundary
 
-  if (isCriticalError(error)) {
-    throw error;
-  }
   return (
     <Container
       classes={cn("flex items-center justify-center", containerClasses)}
