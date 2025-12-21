@@ -1,24 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { paths } from "@/config/paths";
-import {
-  getErrorMessage,
-  isCriticalError,
-  normalizeError,
-} from "@/lib/errors/errors";
+import { isCriticalError, normalizeError } from "@/lib/errors/errors";
 import { ErrorCode } from "@repo/domain";
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
+  console.log({ error });
   const normalizedError = normalizeError(error); // Normalize all incoming errors
 
-  console.log({ normalizedError }, "router level");
   const navigate = useNavigate();
 
   let statusCode = normalizedError.statusCode;
   let title = "Something went wrong";
-  let message = getErrorMessage(normalizedError);
+  let message = normalizedError.message;
 
   if (isRouteErrorResponse(error)) {
     console.log(error, "isRouteErrorResponse");
