@@ -143,6 +143,7 @@ const sendErrorDev = (err: unknown, _req: Request, res: Response) => {
       code,
       stack,
       details,
+      statusCode,
     })
   );
 };
@@ -154,6 +155,7 @@ const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
       createErrorResponse(err.message, {
         code: err.code,
         details: err.details,
+        statusCode: err.statusCode,
       })
     );
   }
@@ -163,6 +165,7 @@ const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
   return res.status(500).json(
     createErrorResponse("Something went very wrong!", {
       code: ErrorCode.INTERNAL_ERROR,
+      statusCode: 500,
     })
   );
 };

@@ -36,6 +36,7 @@ export const ErrorObjectSchema = z.object({
   message: z.string(),
   details: z.array(ErrorDetailSchema).optional(),
   stack: z.string().optional(),
+  statusCode: z.number(),
 });
 
 export type ErrorObject = z.infer<typeof ErrorObjectSchema>;
@@ -132,6 +133,7 @@ export function createErrorResponse(
   message: string,
   options: Omit<ErrorObject, "message">
 ): ErrorResponse {
+  console.log({ options });
   return {
     success: false,
     timestamp: new Date().toISOString(),
