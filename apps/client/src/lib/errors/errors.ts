@@ -1,25 +1,48 @@
 import { AppError, ErrorCode } from "@repo/domain";
-import { isAxiosError } from "axios";
+import { AxiosError, isAxiosError } from "axios";
 import { ZodError } from "zod";
 
 // Type guards
-export function isAppError(error: unknown): error is AppError {
-  return (
-    error instanceof AppError ||
-    Boolean((error as any)?.code && (error as any)?.statusCode)
-  );
-}
+const isZodError = (err: unknown): err is ZodError => {
+  return err instanceof ZodError;
+};
+
+// TODO is server error with app error
+// TODO continue to copy from server error.middleware.ts as needed
+// TODO move to common package if shared between client/server
+// safety net for unexpected zod errors
+const handleZodError = (err: ZodError) => {
+  const message = `Validation failed: ${err.issues.length} error(s)`;
+
+  // Parse Zod issues into structured details
+  const details = err.issues.map((issue) => ({
+    code: issue.code,
+    message: issue.message,
+    path: issue.path.length > 0 ? issue.path.map(String) : undefined,
+  }));
+
+  return new AppError(message, ErrorCode.VALIDATION_ERROR, undefined, details);
+};
 
 /**
  * Normalizes any error into an AppError. This is the central function
  * to process all errors in the client application.
+ *
+ * Order matters: Check specific error types (AxiosError, ZodError) before generic Error.
  */
 export function normalizeError(error: unknown): AppError {
+  // Already normalized
+  if (error instanceof AppError) {
+    return error;
+  }
+
+  // Axios errors (HTTP/network) - check before generic Error since AxiosError extends Error
   if (isAxiosError(error)) {
-    // Axios errors (network, HTTP status) are classified first
     return classifyAxiosError(error);
-  } else if (error instanceof ZodError) {
-    // Zod validation errors
+  }
+
+  // Zod validation errors - check before generic Error since ZodError extends Error
+  if (error instanceof ZodError) {
     const message = `Validation failed: ${error.issues
       .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
       .join("; ")}`;
@@ -29,18 +52,23 @@ export function normalizeError(error: unknown): AppError {
       path: issue.path.length > 0 ? issue.path.map(String) : undefined,
     }));
     return new AppError(message, ErrorCode.VALIDATION_ERROR, 422, details);
-  } else if (error instanceof Error) {
-    // Generic JavaScript errors
+  }
+
+  // Generic JavaScript errors (after specific Error subtypes)
+  if (error instanceof Error) {
     return new AppError(
       error.message,
       ErrorCode.INTERNAL_ERROR,
       500,
       undefined,
     );
-  } else if (typeof error === "string") {
-    // String errors
+  }
+
+  // String errors
+  if (typeof error === "string") {
     return new AppError(error, ErrorCode.INTERNAL_ERROR, 500);
   }
+
   // Fallback for unknown error types
   return new AppError(
     "An unknown error occurred",
@@ -52,12 +80,9 @@ export function normalizeError(error: unknown): AppError {
 /**
  * Helper to classify Axios errors into AppError. Used internally by normalizeError.
  */
-export function classifyAxiosError(error: {
-  // Marked as private, for internal use in normalizeError
-  response?: { status: number; data?: { message?: string; code?: ErrorCode } };
-  message: string;
-  code?: string;
-}): AppError {
+export function classifyAxiosError(
+  error: AxiosError<AppError | undefined>,
+): AppError {
   // Network/connection errors
   if (error.code === "ERR_NETWORK" || !error.response) {
     return new AppError(
@@ -66,7 +91,6 @@ export function classifyAxiosError(error: {
       503,
     );
   }
-
   const status = error.response.status;
   const message =
     error.response.data?.message || error.message || "Request failed";
@@ -105,10 +129,4 @@ export function isCriticalError(error: AppError): boolean {
     error.code === ErrorCode.EXTERNAL_SERVICE_ERROR || // Network issues are critical
     error.statusCode >= 500 // Generic server errors
   );
-}
-
-// Helper to extract user-friendly error message from a normalized AppError
-export function getErrorMessage(error: AppError): string {
-  // Assumes error is already normalized to AppError type
-  return error.message;
 }
