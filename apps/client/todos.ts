@@ -10,7 +10,6 @@
 // }
 
 // TODO refactor to use bulletproof-react auth patterns
-// TODO axios refresher
 // TODO change src attributes to z.url in all schemas
 // TODO go over stephen grider steps for planning routes
 // TODO Provider check bulletproof react patterns for react-query setup
@@ -20,8 +19,6 @@
 
 // ** API Client (src/lib/api-client.ts)
 // TODO make this baseURL configurable
-// TODO type the error response properly
-// TODO explore api interceptors,and check if i can move the error handling from there
 
 // ** Authentication / Authorization
 // TODO Lib - auth and authorization files
