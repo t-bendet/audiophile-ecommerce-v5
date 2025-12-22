@@ -1,4 +1,4 @@
-import { classifyAxiosError } from "@/lib/errors/errors";
+import { processAxiosError } from "@/lib/errors/errors";
 import { ErrorResponse } from "@repo/domain";
 import { DefaultOptions } from "@tanstack/react-query";
 import { AxiosError } from "axios";
@@ -17,7 +17,7 @@ export const queryConfig = {
     retry: (failureCount, error) => {
       // Classify error to check its type
       // TODO refactor to avoid double classification
-      const classifiedError = classifyAxiosError(
+      const classifiedError = processAxiosError(
         error as AxiosError<ErrorResponse>,
       );
       const status = classifiedError.statusCode;
