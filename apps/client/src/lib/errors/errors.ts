@@ -23,7 +23,7 @@ const handleZodError = (err: ZodError) => {
   const message = `Validation failed: ${err.issues.length} error(s)`;
   // Parse Zod issues into structured details
   // TODO consider using treeifyError for better error paths
-  // TODO consider which error messages to expose to client
+  // TODO consider which error messages to expose to client(on route level and feature level and form level)
   const details = err.issues.map((issue) => ({
     code: issue.code,
     message: issue.message,
