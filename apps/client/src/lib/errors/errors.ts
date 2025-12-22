@@ -21,14 +21,14 @@ const isAppError = (err: unknown): err is AppError => {
 // schema validation on api requests payloads(client side) or responses(server side)?
 const handleZodError = (err: ZodError) => {
   const message = `Validation failed: ${err.issues.length} error(s)`;
-
   // Parse Zod issues into structured details
+  // TODO consider using treeifyError for better error paths
+  // TODO consider which error messages to expose to client
   const details = err.issues.map((issue) => ({
     code: issue.code,
     message: issue.message,
     path: issue.path.length > 0 ? issue.path.map(String) : undefined,
   }));
-
   return new AppError(message, ErrorCode.VALIDATION_ERROR, 422, details);
 };
 
@@ -98,13 +98,16 @@ export function normalizeError(error: unknown): AppError {
     // either network error or HTTP error response
     // if we have a response with data, try to extract AppError from it
     // otherwise classify as network error and create generic AppError
-    // TODO add check for if details are present in error.response.data.error, if axios error and details present it's a server side zod error
-    // TODO check this assumption
+    // TODO if it is a post/create/update request, and we have error.response.data.error.details as zod error details,
+    // TODO it means server side validation failed, and something was wrong with the request payload or params(usually payload on this kind of requests)
+    // TODO we can reconstruct a zod error from the details and provide more specific validation error to client
+
     return processAxiosError(error);
   }
 
   // Zod validation errors - check before generic Error since ZodError extends Error
   // to check schema validation errors on client side
+  // on client side we only expect zod errors from schema validation of api responses or local form validations
   if (isClientZodError(error)) {
     return handleZodError(error);
   }
