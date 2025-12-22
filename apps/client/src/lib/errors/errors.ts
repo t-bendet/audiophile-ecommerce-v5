@@ -89,6 +89,10 @@ export function isCriticalError(error: AppError): boolean {
  */
 export function normalizeError(error: unknown): AppError {
   // Already normalized
+  if (import.meta.env.MODE === "development") {
+    console.log({ error }, "normalizeError DEV ONLY");
+  }
+
   if (error instanceof AppError) {
     return error;
   }
