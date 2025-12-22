@@ -7,41 +7,40 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
-  const normalizedError = normalizeError(error); // Normalize all incoming errors
-
   const navigate = useNavigate();
 
-  let statusCode = normalizedError.statusCode;
-  let title = "Something went wrong";
-  let message = normalizedError.message;
+  let statusCode: number;
+  let title: string;
+  let message: string;
 
   if (isRouteErrorResponse(error)) {
-    console.log(error, "isRouteErrorResponse");
-    // React Router Response errors take precedence for status/title/message if available
+    // React Router Response errors - extract directly without normalization
     statusCode = error.status;
     title = error.statusText || `Error ${statusCode}`;
-    message = error.data || message;
+    message = error.data || "An error occurred";
 
+    // Special case for 404
     if (statusCode === 404) {
       title = "Page Not Found";
       message = "The page you're looking for doesn't exist.";
-    } else if (statusCode === 400) {
-      title = "Bad Request";
     }
   } else {
-    // For other normalized errors (AppError, ZodError, generic Error)
-    title =
-      normalizedError.code === ErrorCode.NOT_FOUND
-        ? "Not Found"
-        : normalizedError.code === ErrorCode.VALIDATION_ERROR
-          ? "Validation Error"
-          : "Request Failed";
-  }
+    // All other errors - normalize first
+    const normalizedError = normalizeError(error);
+    statusCode = normalizedError.statusCode;
+    title = "Request Failed";
+    message = normalizedError.message;
 
-  if (isCriticalError(normalizedError)) {
-    // Override with a generic critical error message for public display if truly critical
-    title = "Critical Application Error";
-    message = "A critical error occurred. Please try again later.";
+    // Special case for NOT_FOUND code
+    if (normalizedError.code === ErrorCode.NOT_FOUND) {
+      title = "Not Found";
+    }
+
+    // Critical error override - don't leak internal details
+    if (isCriticalError(normalizedError)) {
+      title = "Critical Application Error";
+      message = "A critical error occurred. Please try again later.";
+    }
   }
 
   return (
