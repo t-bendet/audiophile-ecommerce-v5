@@ -7,7 +7,6 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
-  console.log({ error });
   const normalizedError = normalizeError(error); // Normalize all incoming errors
 
   const navigate = useNavigate();
