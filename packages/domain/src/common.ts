@@ -130,17 +130,12 @@ export function createEmptyResponse(): EmptyResponse {
 /**
  * Create an error response
  */
-export function createErrorResponse(
-  message: string,
-  options: Omit<ErrorObject, "message">
-): ErrorResponse {
-  //
+export function createErrorResponse(options: ErrorObject): ErrorResponse {
   return {
     success: false,
     timestamp: new Date().toISOString(),
     data: null,
     error: {
-      message,
       ...options,
     },
   };
