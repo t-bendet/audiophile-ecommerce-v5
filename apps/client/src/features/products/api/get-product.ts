@@ -29,7 +29,7 @@ const getProductById: TGetProductById = async ({ id, signal }) => {
   if (result.success) {
     return result.data;
   } else {
-    throw new Error("Failed to fetch Product");
+    throw result.error;
   }
 };
 
@@ -53,7 +53,7 @@ const getProductBySlug: TGetProductBySlug = async ({ slug, signal }) => {
   if (result.success) {
     return result.data;
   } else {
-    throw new Error("Failed to fetch Product");
+    throw result.error;
   }
 };
 
@@ -75,7 +75,7 @@ const getFeaturedProduct: TGetFeaturedProduct = async ({ signal }) => {
   if (result.success) {
     return result.data;
   } else {
-    throw new Error("Failed to fetch featured product");
+    throw result.error;
   }
 };
 

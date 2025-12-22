@@ -43,7 +43,7 @@ const getAllProducts: TGetProducts = async ({ filters, signal }) => {
   if (result.success) {
     return result.data;
   } else {
-    throw new Error("Failed to fetch Product");
+    throw result.error;
   }
 };
 
@@ -70,7 +70,7 @@ const getRelatedProducts: TGetRelatedProducts = async ({ id, signal }) => {
   if (result.success) {
     return result.data;
   } else {
-    throw new Error("Failed to fetch related products");
+    throw result.error;
   }
 };
 
@@ -100,7 +100,7 @@ const getProductsByCategory: TGetProductsByCategory = async ({
   if (result.success) {
     return result.data;
   } else {
-    throw new Error("Failed to fetch category products");
+    throw result.error;
   }
 };
 
@@ -122,7 +122,7 @@ const getShowCaseProducts: TGetShowCaseProducts = async ({ signal }) => {
   if (result.success) {
     return result.data;
   } else {
-    throw new Error("Failed to fetch show case");
+    throw result.error;
   }
 };
 export const getShowCaseProductsQueryOptions = () =>
