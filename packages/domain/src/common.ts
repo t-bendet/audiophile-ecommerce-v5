@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AppError } from "./app-error.js";
 import { ErrorCode } from "./error-codes.js";
 
 // ===== Envelope Pattern - Response Wrapper =====
@@ -37,7 +38,7 @@ export const ErrorObjectSchema = z.object({
   details: z.array(ErrorDetailSchema).optional(),
   stack: z.string().optional(),
   statusCode: z.number(),
-});
+}) satisfies z.ZodType<Omit<AppError, "name" | "cause">>;
 
 export type ErrorObject = z.infer<typeof ErrorObjectSchema>;
 
@@ -129,17 +130,12 @@ export function createEmptyResponse(): EmptyResponse {
 /**
  * Create an error response
  */
-export function createErrorResponse(
-  message: string,
-  options: Omit<ErrorObject, "message">
-): ErrorResponse {
-  console.log({ options });
+export function createErrorResponse(options: ErrorObject): ErrorResponse {
   return {
     success: false,
     timestamp: new Date().toISOString(),
     data: null,
     error: {
-      message,
       ...options,
     },
   };

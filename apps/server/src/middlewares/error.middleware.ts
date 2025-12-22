@@ -139,7 +139,8 @@ const sendErrorDev = (err: unknown, _req: Request, res: Response) => {
   const details = err instanceof AppError ? err.details : undefined;
 
   return res.status(statusCode).json(
-    createErrorResponse(message, {
+    createErrorResponse({
+      message,
       code,
       stack,
       details,
@@ -152,7 +153,8 @@ const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
   // Operational, trusted error: send message to client
   if (err instanceof AppError) {
     return res.status(err.statusCode).json(
-      createErrorResponse(err.message, {
+      createErrorResponse({
+        message: err.message,
         code: err.code,
         details: err.details,
         statusCode: err.statusCode,
@@ -163,7 +165,8 @@ const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
   // Programming or other unknown error: don't leak error details
   console.error("ERROR 💥", err);
   return res.status(500).json(
-    createErrorResponse("Something went very wrong!", {
+    createErrorResponse({
+      message: "Something went very wrong!",
       code: ErrorCode.INTERNAL_ERROR,
       statusCode: 500,
     })

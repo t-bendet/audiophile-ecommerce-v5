@@ -30,7 +30,7 @@ export const SafeRenderWithErrorBlock = ({
             // and caught by RouteErrorBoundary. If a critical error reaches here, it means
             // we forgot to fail in the loader—rethrow it to prevent silent failures.
             if (isCriticalError(normalizedError)) {
-              throw normalizedError;
+              throw normalizeError(error);
             }
             return (
               <ErrorBlock
