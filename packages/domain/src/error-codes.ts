@@ -4,6 +4,10 @@
  * Standard application error codes
  * Use these for consistent error handling across the API
  */
+
+// TODO add validation error codes for different scenarios (e.g. invalid input, missing fields, etc.) 400 422
+// TODO make sure accross the app we use these error codes consistently and with right http status codes
+
 export enum ErrorCode {
   // Validation errors (400)
   VALIDATION_ERROR = "VALIDATION_ERROR",
