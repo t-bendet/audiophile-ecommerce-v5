@@ -1,17 +1,7 @@
 // ** General / Infrastructure
-// TODO standerdize parsing error throwing in api clients ,classifyHttpError
-// TODO standardize zod error handling strategy between server and client
-
-//   throw new Error(
-//     `Failed to fetch categories: ${result.error.issues
-//       .map((i) => `${i.path.join(".")}: ${i.message}`)
-//       .join("; ")}`,
-//   );
-// }
 
 // TODO refactor to use bulletproof-react auth patterns
 // TODO change src attributes to z.url in all schemas
-// TODO go over stephen grider steps for planning routes
 // TODO Provider check bulletproof react patterns for react-query setup
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
 // TODO https://reactrouter.com/api/utils/createContext
