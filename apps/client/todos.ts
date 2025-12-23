@@ -14,7 +14,7 @@
 // TODO work on responsive design (ErrorBlock.tsx)
 // TODO Dialog - create variants for cart,thank you and nav ,refactor
 // TODO Navbar handle dialog and avatar
-
+// TODO create global loading spinner component
 // ** Products Feature
 // TODO needs more work,also for the return type of the products (get-products.ts)
 // TODO redo or delete this file (refactor-attampt.ts)
@@ -23,7 +23,8 @@
 // TODO add error boundary handling for missing context values (product-card/index.tsx)
 // TODO go over this details and test (product-card/index.tsx - card variants)
 // TODO -actions - add to cart, increase, decrease (routes/product/index.tsx)
-
+// TODO -details page - related products (routes/product/index.tsx) handle refreshe bug (notswitching to new product on slug change on some cases)
+// TODO related products zod validation dealays loading (get-products.ts)
 // ** Home Page
 // TODO add svg to zx9 and finish spacings - add children to responsive picture? (show-case-products-section.tsx)
 // TODO svg workshop (show-case-products-section.tsx)
