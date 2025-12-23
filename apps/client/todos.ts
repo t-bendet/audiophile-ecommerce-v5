@@ -1,7 +1,6 @@
 // ** General / Infrastructure
 
 // TODO refactor to use bulletproof-react auth patterns
-// TODO change src attributes to z.url in all schemas
 // TODO Provider check bulletproof react patterns for react-query setup
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
 // TODO React 19’s Document Metadata
