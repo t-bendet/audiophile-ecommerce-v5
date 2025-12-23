@@ -1,4 +1,4 @@
-import { processAxiosError } from "@/lib/errors/errors";
+import { isClientZodError, processAxiosError } from "@/lib/errors/errors";
 import { ErrorResponse } from "@repo/domain";
 import { DefaultOptions } from "@tanstack/react-query";
 import { AxiosError } from "axios";
@@ -22,7 +22,7 @@ export const queryConfig = {
       const status = classifiedError.statusCode;
 
       // Don't retry client errors (4xx)
-      if (status >= 400 && status < 500) {
+      if ((status >= 400 && status < 500) || isClientZodError(error)) {
         return false;
       }
 

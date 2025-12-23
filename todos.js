@@ -2,7 +2,6 @@
 // WORKSPACE & ARCHITECTURE
 // ============================================================================
 // TODO OpenAPI + zod-to-openapi: Generate OpenAPI from your zod schemas; use a client generator (or orval) to produce typed clients for frontend.
-// TODO add web folder and react ts config
 // TODO what happens when i delete a category with products? cascade or restrict?
 
 // ============================================================================
@@ -60,7 +59,6 @@
 // Line: 10
 // Context: consider adding config id to env variables for easy access
 // TODO: consider adding config id to env variables for easy access
-// TODO handel CORS in server
 // TODO implement forgot password and reset password
 // TODO switch to cloudinary upload images and products from dashboard? url or image upload
 // TODO add errors for update same value
