@@ -4,8 +4,9 @@ import * as z from "zod";
 const EnvSchema = z.object({
   API_PROXY_PORT: z.string(),
   PORT: z.string(),
+  API_BASE_URL: z.url(),
+  API_POSTFIX: z.string(),
   MODE: z.enum(["development", "production"]),
-  // test: z.string(),
 });
 
 type Env = z.infer<typeof EnvSchema>;

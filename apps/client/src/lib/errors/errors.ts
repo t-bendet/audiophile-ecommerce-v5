@@ -3,7 +3,7 @@ import { AxiosError, isAxiosError } from "axios";
 import { ZodError } from "zod";
 
 // Type guards
-const isClientZodError = (err: unknown): err is ZodError => {
+export const isClientZodError = (err: unknown): err is ZodError => {
   return err instanceof ZodError;
 };
 
