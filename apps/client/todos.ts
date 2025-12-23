@@ -4,11 +4,7 @@
 // TODO change src attributes to z.url in all schemas
 // TODO Provider check bulletproof react patterns for react-query setup
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
-// TODO https://reactrouter.com/api/utils/createContext
 // TODO React 19’s Document Metadata
-
-// ** API Client (src/lib/api-client.ts)
-// TODO make this baseURL configurable
 
 // ** Authentication / Authorization
 // TODO Lib - auth and authorization files
@@ -19,7 +15,6 @@
 // TODO work on responsive design (ErrorBlock.tsx)
 // TODO Dialog - create variants for cart,thank you and nav ,refactor
 // TODO Navbar handle dialog and avatar
-// TODO helmet component -no meta data showing
 
 // ** Products Feature
 // TODO needs more work,also for the return type of the products (get-products.ts)
