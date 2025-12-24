@@ -35,7 +35,7 @@ export const ProductsImagesThumbnailSchema = z
   .object({
     altText: z.string().min(1, "Alt text is required"),
     ariaLabel: z.string().min(1, "Aria label is required"),
-    src: z.string().min(1, "Src is required"),
+    src: z.url("Src must be a valid URL"),
   })
   .strict() satisfies z.Schema<ProductsImagesThumbnail>;
 
@@ -43,9 +43,9 @@ export const ProductImagesPropertiesSchema = z
   .object({
     altText: z.string().min(1, "Alt text is required"),
     ariaLabel: z.string().min(1, "Aria label is required"),
-    desktopSrc: z.string().min(1, "Desktop src is required"),
-    mobileSrc: z.string().min(1, "Mobile src is required"),
-    tabletSrc: z.string().min(1, "Tablet src is required"),
+    desktopSrc: z.url("Desktop src must be a valid URL"),
+    mobileSrc: z.url("Mobile src must be a valid URL"),
+    tabletSrc: z.url("Tablet src must be a valid URL"),
   })
   .strict();
 

@@ -37,6 +37,7 @@ export const getProductByIdQueryOptions = (id: string) =>
   queryOptions({
     queryKey: productKeys.detail(id),
     queryFn: ({ signal }: TBaseRequestParams) => getProductById({ id, signal }),
+    refetchOnMount: false, // Prevent refetch when component remounts during navigation
   });
 
 // ** GetProductBySlug
@@ -62,6 +63,7 @@ export const getProductBySlugQueryOptions = (slug: string) =>
     queryKey: productKeys.detail(slug),
     queryFn: ({ signal }: TBaseRequestParams) =>
       getProductBySlug({ slug, signal }),
+    refetchOnMount: false, // Prevent refetch when component remounts during navigation
   });
 
 // ** GetFeaturedProduct

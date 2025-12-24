@@ -17,6 +17,28 @@ app.set("query parser", "extended");
 
 app.use(express.json());
 
+// Minimal CORS for dev when calling API directly from Vite (5173)
+// TODO add proper env variable handling for CORS origins
+if (process.env.NODE_ENV === "development") {
+  const devOrigin = `http://localhost:${process.env.VITE_APP_PORT || 5173}`;
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", devOrigin);
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    );
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+    );
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(204);
+    }
+    next();
+  });
+}
+
 app.use("/api/v1", indexRoute);
 
 app.all(/.*/, (req, res, next) => {
