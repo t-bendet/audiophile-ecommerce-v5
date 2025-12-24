@@ -1,8 +1,8 @@
-import { UseProductCardContext } from "@/features/products/components/product-card/index";
+import { useProductCardContext } from "@/features/products/components/product-card/index";
 import { cn } from "@/lib/cn";
 
 export default function ProductNewIndicator(props: { classes?: string }) {
-  const { isNewProduct } = UseProductCardContext();
+  const { isNewProduct } = useProductCardContext();
   return (
     <>
       {isNewProduct ? (
@@ -18,3 +18,5 @@ export default function ProductNewIndicator(props: { classes?: string }) {
     </>
   );
 }
+
+ProductNewIndicator.displayName = "ProductCard.NewIndicator";

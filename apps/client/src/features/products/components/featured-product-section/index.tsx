@@ -1,12 +1,16 @@
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
 import ProductCard from "@/features/products/components/product-card";
+import { AppError, ErrorCode } from "@repo/domain";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 const FeaturedProductSection = () => {
   const { data: product } = useSuspenseQuery(getFeaturedProductQueryOptions());
   if (!product.data.images.featuredImage) {
-    throw new Error("Featured product does not have a featured image.");
+    throw new AppError(
+      "Featured product does not have a featured image.",
+      ErrorCode.COMPONENT_COMPOSITION_ERROR,
+    );
   }
 
   return (
@@ -26,7 +30,7 @@ const FeaturedProductSection = () => {
         <ProductCard
           product={{
             id: product.data.id,
-            title: product.data.fullLabel,
+            fullLabel: product.data.fullLabel,
             isNewProduct: product.data.isNewProduct,
             slug: product.data.slug,
             description: product.data.featuredImageText || "",
