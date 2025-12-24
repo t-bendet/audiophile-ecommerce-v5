@@ -11,12 +11,25 @@ import ProductCard from "@/features/products/components/product-card";
 import RelatedProducts from "@/features/products/components/related-products";
 import { normalizeError } from "@/lib/errors/errors";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { LoaderFunctionArgs, useNavigate, useParams } from "react-router";
+import {
+  LoaderFunctionArgs,
+  useNavigate,
+  useNavigation,
+  useParams,
+} from "react-router";
 
 const Product = () => {
   const { productSlug } = useParams();
+  const navigation = useNavigation();
+
+  // During navigation, use the pending slug to prevent fetching old product
+  const activeSlug =
+    navigation.state === "loading" && navigation.location
+      ? navigation.location.pathname.split("/").pop()!
+      : productSlug!;
+
   const { data: productResponse } = useSuspenseQuery(
-    getProductBySlugQueryOptions(productSlug!),
+    getProductBySlugQueryOptions(activeSlug),
   );
   const navigate = useNavigate();
 
@@ -34,7 +47,7 @@ const Product = () => {
         </Button>
       </Container>
 
-      <main className="text-neutral-900">
+      <main className="text-neutral-900" key={productSlug}>
         <Section classes="max-sm:mb-22">
           <Container classes="flex flex-col gap-y-8 md:flex-row md:gap-x-17 lg:gap-x-31">
             <ResponsivePicture
@@ -179,8 +192,7 @@ export const clientLoader =
       const productResponse = await queryClient.ensureQueryData(
         getProductBySlugQueryOptions(params.productSlug as string),
       );
-
-      await queryClient.prefetchQuery(
+      queryClient.prefetchQuery(
         getRelatedProductsQueryOptions(productResponse.data.id),
       );
     } catch (error) {
