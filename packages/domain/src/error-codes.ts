@@ -34,6 +34,9 @@ export enum ErrorCode {
   BAD_REQUEST = "BAD_REQUEST",
   UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY",
 
+  // Component/UI errors (400)
+  COMPONENT_COMPOSITION_ERROR = "COMPONENT_COMPOSITION_ERROR",
+
   // Server errors (500, 502, 503)
   INTERNAL_ERROR = "INTERNAL_ERROR",
   DATABASE_ERROR = "DATABASE_ERROR",
@@ -73,6 +76,9 @@ export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
 
   // Request errors
   [ErrorCode.UNPROCESSABLE_ENTITY]: 422,
+
+  // Component/UI errors (400)
+  [ErrorCode.COMPONENT_COMPOSITION_ERROR]: 400,
 
   // Server errors (500)
   [ErrorCode.INTERNAL_ERROR]: 500,

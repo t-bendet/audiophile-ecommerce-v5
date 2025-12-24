@@ -4,6 +4,7 @@ import ProductNewIndicator from "@/features/products/components/product-card/pro
 import ProductPrice from "@/features/products/components/product-card/product-price";
 import ProductTitle from "@/features/products/components/product-card/product-title";
 import { cn } from "@/lib/cn";
+import { AppError, ErrorCode } from "@repo/domain";
 import React, { createContext, useContext } from "react";
 
 type ProductDetails = {
@@ -26,8 +27,9 @@ const ProductCardContext = createContext<ProductDetails | null>(null);
 export function useProductCardContext() {
   const ctx = useContext(ProductCardContext);
   if (!ctx) {
-    throw new Error(
-      "ProductCard Error : ProductCard-related components must be wrapped by <ProductCard/>.",
+    throw new AppError(
+      "ProductCard-related components must be wrapped by <ProductCard/>.",
+      ErrorCode.COMPONENT_COMPOSITION_ERROR,
     );
   }
   return ctx;
