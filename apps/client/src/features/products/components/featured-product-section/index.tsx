@@ -26,7 +26,7 @@ const FeaturedProductSection = () => {
         <ProductCard
           product={{
             id: product.data.id,
-            title: product.data.fullLabel,
+            fullLabel: product.data.fullLabel,
             isNewProduct: product.data.isNewProduct,
             slug: product.data.slug,
             description: product.data.featuredImageText || "",

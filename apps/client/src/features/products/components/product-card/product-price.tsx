@@ -1,9 +1,9 @@
 import currencyFormatter from "@/utils/formatters";
-import { UseProductCardContext } from "@/features/products/components/product-card/index";
+import { useProductCardContext } from "@/features/products/components/product-card/index";
 import { cn } from "@/lib/cn";
 
 export default function ProductPrice(props: { classes?: string }) {
-  const { price } = UseProductCardContext();
+  const { price } = useProductCardContext();
   if (!price) {
     throw new Error("ProductPrice components must have a price in context.");
   }
@@ -18,3 +18,5 @@ export default function ProductPrice(props: { classes?: string }) {
     </p>
   );
 }
+
+ProductPrice.displayName = "ProductCard.Price";

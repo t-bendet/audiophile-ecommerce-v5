@@ -27,7 +27,7 @@ export default function ProductsList({ products }: TProductListProps) {
             <ProductCard
               product={{
                 id: product.id,
-                title: product.fullLabel,
+                fullLabel: product.fullLabel,
                 isNewProduct: product.isNewProduct,
                 slug: product.slug,
                 description: product.description,
