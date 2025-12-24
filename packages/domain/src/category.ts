@@ -38,7 +38,7 @@ export type CategoryProductsCreateManyInput =
 export const CategoryThumbnailSchema = z.object({
   altText: z.string().min(1, "Alt text is required"),
   ariaLabel: z.string().min(1, "Aria label is required"),
-  src: z.string().min(1, "Src is required"),
+  src: z.url("Src must be a valid URL"),
 }) satisfies z.Schema<CategoriesThumbnail>;
 
 // * ===== RequestSchemas =====

@@ -3,7 +3,7 @@ import { AxiosError, isAxiosError } from "axios";
 import { ZodError } from "zod";
 
 // Type guards
-const isClientZodError = (err: unknown): err is ZodError => {
+export const isClientZodError = (err: unknown): err is ZodError => {
   return err instanceof ZodError;
 };
 
@@ -72,13 +72,17 @@ export function processAxiosError(error: AxiosError<ErrorResponse>): AppError {
  * Critical errors: env validation, auth failures, token issues, internal server errors.
  */
 export function isCriticalError(error: AppError): boolean {
-  // Assumes error is already normalized to AppError type
-  // TODO rethink criteria for critical errors on client side
-  return (
-    error.code === ErrorCode.INTERNAL_ERROR ||
-    error.code === ErrorCode.EXTERNAL_SERVICE_ERROR || // Network issues are critical
-    error.statusCode >= 500 // Generic server errors
-  );
+  // Only data-loading and auth errors are critical and should crash the route.
+  // Component composition errors and other 4xx errors should be caught by SafeRenderWithErrorBlock.
+  const criticalCodes = [
+    ErrorCode.INTERNAL_ERROR, // Server errors from loaders/API
+    ErrorCode.EXTERNAL_SERVICE_ERROR, // Network issues from loaders
+  ];
+
+  const isCriticalCode = criticalCodes.includes(error.code as ErrorCode);
+  const isServerError = error.statusCode >= 500;
+
+  return isCriticalCode || isServerError;
 }
 
 /**
