@@ -1,9 +1,9 @@
-import { Fragment } from "react/jsx-runtime";
-import { UseProductCardContext } from "@/features/products/components/product-card/index";
+import { useProductCardContext } from "@/features/products/components/product-card/index";
 import { cn } from "@/lib/cn";
+import { Fragment } from "react/jsx-runtime";
 
 export default function ProductTitle(props: { classes?: string }) {
-  const { title } = UseProductCardContext();
+  const { fullLabel: title } = useProductCardContext();
   return (
     <header>
       <h2
@@ -21,3 +21,5 @@ export default function ProductTitle(props: { classes?: string }) {
     </header>
   );
 }
+
+ProductTitle.displayName = "ProductCard.Title";

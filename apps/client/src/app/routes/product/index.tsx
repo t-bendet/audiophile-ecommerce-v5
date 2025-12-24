@@ -61,7 +61,7 @@ const Product = () => {
             <ProductCard
               product={{
                 id: productResponse.data.id,
-                title: productResponse.data.fullLabel,
+                fullLabel: productResponse.data.fullLabel,
                 isNewProduct: productResponse.data.isNewProduct,
                 slug: productResponse.data.slug,
                 description: productResponse.data.description,
