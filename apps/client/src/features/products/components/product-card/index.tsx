@@ -1,48 +1,47 @@
-import { cn } from "@/lib/cn";
-import React, { createContext, useContext } from "react";
-import ProductNewIndicator from "@/features/products/components/product-card/product-new-indicator";
-import ProductTitle from "@/features/products/components/product-card/product-title";
-import ProductDescription from "@/features/products/components/product-card/product-description";
-import ProductPrice from "@/features/products/components/product-card/product-price";
 import ProductActions from "@/features/products/components/product-card/product-actions";
+import ProductDescription from "@/features/products/components/product-card/product-description";
+import ProductNewIndicator from "@/features/products/components/product-card/product-new-indicator";
+import ProductPrice from "@/features/products/components/product-card/product-price";
+import ProductTitle from "@/features/products/components/product-card/product-title";
+import { cn } from "@/lib/cn";
+import { AppError, ErrorCode } from "@repo/domain";
+import React, { createContext, useContext } from "react";
 
-type TProductDetails = {
+type ProductDetails = {
   isNewProduct: boolean;
-  title: string[];
+  fullLabel: string[];
   description: string;
   price?: number; // Optional, if price is not always available
   slug: string;
   id: string;
 };
 
-type TProductCardProps = {
+interface ProductCardProps {
   children: React.ReactNode;
   classes?: string;
-  product: TProductDetails;
-};
+  product: ProductDetails;
+}
 
-const ProductCardContext = createContext<TProductDetails | null>(null);
+const ProductCardContext = createContext<ProductDetails | null>(null);
 
-export function UseProductCardContext() {
+export function useProductCardContext() {
   const ctx = useContext(ProductCardContext);
   if (!ctx) {
-    throw new Error(
+    throw new AppError(
       "ProductCard-related components must be wrapped by <ProductCard/>.",
+      ErrorCode.COMPONENT_COMPOSITION_ERROR,
     );
   }
   return ctx;
 }
 
-export default function Product({
+export default function ProductCard({
   children,
   classes,
   product,
-}: TProductCardProps) {
-  const ContextValue = {
-    ...product,
-  };
+}: ProductCardProps) {
   return (
-    <ProductCardContext.Provider value={ContextValue}>
+    <ProductCardContext.Provider value={product}>
       <article
         className={cn(
           "flex flex-col items-center justify-center space-y-4 text-center lg:items-start lg:text-left",
@@ -55,11 +54,13 @@ export default function Product({
   );
 }
 
-Product.NewIndicator = ProductNewIndicator;
-Product.Title = ProductTitle;
-Product.Description = ProductDescription;
-Product.Price = ProductPrice;
-Product.Actions = ProductActions;
+ProductCard.displayName = "ProductCard";
+
+ProductCard.NewIndicator = ProductNewIndicator;
+ProductCard.Title = ProductTitle;
+ProductCard.Description = ProductDescription;
+ProductCard.Price = ProductPrice;
+ProductCard.Actions = ProductActions;
 
 // ** featured product card
 // ** is new product - font size 14,  grey label - mb -24px
