@@ -11,6 +11,7 @@
 // TODO add signup and login pages,and buttons to navbar
 
 // ** Components
+// TODO add skeleton loaders where needed
 // TODO work on responsive design (ErrorBlock.tsx)
 // TODO Dialog - create variants for cart,thank you and nav ,refactor
 // TODO Navbar handle dialog and avatar
