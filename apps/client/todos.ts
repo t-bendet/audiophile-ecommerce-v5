@@ -1,7 +1,5 @@
 // ** General / Infrastructure
-// TODO   if (!product.data.images.featuredImage) {
-// throw new Error("Featured product does not have a featured image.");
-// } --- IGNORE --- refactor to use AppError and ErrorCode.COMPONENT_COMPOSITION_ERROR but something that will crash the app on missing image
+
 // TODO refactor to use bulletproof-react auth patterns
 // TODO Provider check bulletproof react patterns for react-query setup
 // TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
