@@ -23,8 +23,6 @@
 // TODO add error boundary handling for missing context values (product-card/index.tsx)
 // TODO go over this details and test (product-card/index.tsx - card variants)
 // TODO -actions - add to cart, increase, decrease (routes/product/index.tsx)
-// TODO -details page - related products (routes/product/index.tsx) handle refreshe bug (notswitching to new product on slug change on some cases)
-// TODO related products zod validation dealays loading (get-products.ts)(something with id being passed as prop)
 // ** Home Page
 // TODO add svg to zx9 and finish spacings - add children to responsive picture? (show-case-products-section.tsx)
 // TODO svg workshop (show-case-products-section.tsx)
