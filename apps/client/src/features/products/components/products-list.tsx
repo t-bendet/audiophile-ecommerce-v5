@@ -2,10 +2,10 @@ import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { Section } from "@/components/ui/section";
 import ProductCard from "@/features/products/components/product-card";
-import { ProductGetByCategoryResponse } from "@repo/domain";
+import { ProductsByCategoryNameDTO } from "@repo/domain";
 
 type TProductListProps = {
-  products: ProductGetByCategoryResponse["data"];
+  products: ProductsByCategoryNameDTO[];
 };
 
 export default function ProductsList({ products }: TProductListProps) {

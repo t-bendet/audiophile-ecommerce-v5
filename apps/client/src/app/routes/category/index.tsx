@@ -8,18 +8,26 @@ import ProductsList from "@/features/products/components/products-list";
 import { normalizeError } from "@/lib/errors/errors";
 import { NAME } from "@repo/domain";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { LoaderFunctionArgs, useParams } from "react-router";
+import { LoaderFunctionArgs, useNavigation, useParams } from "react-router";
 
 const Category = () => {
   const { categoryName } = useParams<{ categoryName: NAME }>();
+  const navigation = useNavigation();
+
+  const activeCategory =
+    navigation.state === "loading" &&
+    navigation.location?.pathname.startsWith("/category/")
+      ? navigation.location.pathname.split("/").pop()!
+      : categoryName!;
+  console.log({ navigation, activeCategory, categoryName });
   const { data: ProductsResponse } = useSuspenseQuery(
-    getProductsByCategoryQueryOptions(categoryName as NAME),
+    getProductsByCategoryQueryOptions(activeCategory as NAME),
   );
   return (
     <>
       <header className="bg-neutral-900 py-8 md:py-24">
         <h1 className="tracking-500 text-center text-2xl font-bold uppercase md:text-4xl">
-          {categoryName}
+          {activeCategory}
         </h1>
       </header>
       <main className="mt-16 md:mt-30 lg:mt-40">
@@ -45,7 +53,6 @@ const Category = () => {
 
 export default Category;
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
