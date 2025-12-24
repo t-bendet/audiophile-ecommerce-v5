@@ -22,12 +22,12 @@ const Product = () => {
   const { productSlug } = useParams();
   const navigation = useNavigation();
 
-  // During navigation, use the pending slug to prevent fetching old product
+  // During navigation, use the pending slug only if navigating to another product
   const activeSlug =
-    navigation.state === "loading" && navigation.location
+    navigation.state === "loading" &&
+    navigation.location?.pathname.startsWith("/product/")
       ? navigation.location.pathname.split("/").pop()!
       : productSlug!;
-
   const { data: productResponse } = useSuspenseQuery(
     getProductBySlugQueryOptions(activeSlug),
   );
