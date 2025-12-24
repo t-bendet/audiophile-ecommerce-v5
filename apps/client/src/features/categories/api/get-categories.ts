@@ -25,4 +25,5 @@ export const getCategoriesQueryOptions = () =>
   queryOptions({
     queryKey: ["categories"],
     queryFn: ({ signal }: TBaseRequestParams) => getAllCategories({ signal }),
+    refetchOnMount: false, // Prevent refetch when component remounts during navigation
   });
