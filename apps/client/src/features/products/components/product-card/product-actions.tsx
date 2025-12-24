@@ -3,6 +3,7 @@ import { paths } from "@/config/paths";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import { useProductCardContext } from "@/features/products/components/product-card/index";
 import { cn } from "@/lib/cn";
+import { AppError, ErrorCode } from "@repo/domain";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 
@@ -18,8 +19,9 @@ export default function ProductActions(props: {
   const { slug } = useProductCardContext();
   const queryClient = useQueryClient();
   if (!props.children && !props.hasNavigateAction && !props.cartActions) {
-    throw new Error(
+    throw new AppError(
       "ProductActions components must have at least one action in context , or a child component.",
+      ErrorCode.COMPONENT_COMPOSITION_ERROR,
     );
   }
   return (
