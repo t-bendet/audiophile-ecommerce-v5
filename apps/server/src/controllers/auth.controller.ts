@@ -3,6 +3,7 @@ import {
   createEmptyResponse,
   createSingleItemResponse,
   ErrorCode,
+  UserDTO,
   UserPublicInfo,
 } from "@repo/domain";
 import { Request, RequestHandler, Response } from "express";
@@ -26,7 +27,7 @@ import { env } from "../utils/env.js";
  * Handles cookie setting and response formatting
  */
 const createAndSendToken = (
-  user: UserPublicInfo,
+  user: UserDTO,
   token: string,
   statusCode: number,
   req: Request,
