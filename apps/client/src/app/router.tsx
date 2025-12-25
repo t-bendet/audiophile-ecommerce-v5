@@ -5,7 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import { MainErrorFallback } from "@/components/errors/main";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import { paths } from "@/config/paths";
-import { errorMiddleware } from "@/lib/errors/middleware";
+import { performanceMiddleware } from "@/app/middleware/performance";
 
 // import { ProtectedRoute } from "@/lib/auth";
 
@@ -25,7 +25,7 @@ const createAppRouter = (queryClient: QueryClient) =>
       path: paths.home.path,
       element: <RootLayout />,
       errorElement: <MainErrorFallback />,
-      middleware: [errorMiddleware],
+      middleware: [performanceMiddleware],
       children: [
         {
           lazy: () =>
