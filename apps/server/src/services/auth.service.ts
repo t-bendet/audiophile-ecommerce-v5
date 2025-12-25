@@ -5,6 +5,8 @@ import {
   AuthResponse,
   AuthSignUpUser,
   ErrorCode,
+  UserDTO,
+  UserPublicInfo,
 } from "@repo/domain";
 import jwt from "jsonwebtoken";
 import { env } from "../utils/env.js";
@@ -25,6 +27,17 @@ import { env } from "../utils/env.js";
  * - Request/Response objects
  */
 export class AuthService {
+  protected toDTO(entity: UserPublicInfo): UserDTO {
+    return {
+      id: entity.id,
+      name: entity.name,
+      email: entity.email,
+      role: entity.role,
+      emailVerified: entity.emailVerified,
+      createdAt: entity.createdAt,
+      v: entity.v,
+    } satisfies UserDTO;
+  }
   /**
    * Sign a JWT token for a user
    */
@@ -52,9 +65,9 @@ export class AuthService {
 
     // Generate token
     const token = this.signToken(user.id);
-
+    const userDTO = this.toDTO(user);
     return {
-      user,
+      user: userDTO,
       token,
     };
   }
@@ -92,9 +105,10 @@ export class AuthService {
 
     // Remove password from returned user object
     const { password: _, ...userWithoutPassword } = user;
+    const userDTO = this.toDTO(userWithoutPassword);
 
     return {
-      user: userWithoutPassword,
+      user: userDTO,
       token,
     };
   }
@@ -143,9 +157,10 @@ export class AuthService {
 
     // Generate new token
     const token = this.signToken(updatedUser.id);
+    const userDTO = this.toDTO(updatedUser);
 
     return {
-      user: updatedUser,
+      user: userDTO,
       token,
     };
   }
