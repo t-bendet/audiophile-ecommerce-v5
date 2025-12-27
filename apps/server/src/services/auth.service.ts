@@ -1,9 +1,9 @@
 import { prisma } from "@repo/database";
 import {
   AppError,
-  AuthLoginUser,
-  AuthResponse,
-  AuthSignUpUser,
+  AuthLoginRequest,
+  AuthSessionDTO,
+  AuthSignUpRequest,
   ErrorCode,
   UserDTO,
   UserPublicInfo,
@@ -52,7 +52,7 @@ export class AuthService {
    * @param data - User registration data
    * @returns The created user with token
    */
-  async signup(data: AuthSignUpUser): Promise<AuthResponse> {
+  async signup(data: AuthSignUpRequest): Promise<AuthSessionDTO> {
     // Create user with Prisma (password hashing happens via schema defaults)
     const user = await prisma.user.create({
       data: {
@@ -78,7 +78,7 @@ export class AuthService {
    * @param password - User password (plain text)
    * @returns User data without password
    */
-  async login({ email, password }: AuthLoginUser): Promise<AuthResponse> {
+  async login({ email, password }: AuthLoginRequest): Promise<AuthSessionDTO> {
     // Find user with password field
     const user = await prisma.user.findUniqueOrThrow({
       where: { email },
@@ -124,7 +124,7 @@ export class AuthService {
     userId: string,
     currentPassword: string,
     newPassword: string
-  ): Promise<AuthResponse> {
+  ): Promise<AuthSessionDTO> {
     // Get user with password field
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: userId },

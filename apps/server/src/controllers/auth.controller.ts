@@ -4,7 +4,6 @@ import {
   createSingleItemResponse,
   ErrorCode,
   UserDTO,
-  UserPublicInfo,
 } from "@repo/domain";
 import { Request, RequestHandler, Response } from "express";
 import { authService } from "../services/auth.service.js";
