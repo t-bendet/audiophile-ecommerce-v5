@@ -10,4 +10,10 @@ export type TBaseHandler<
   TParams extends TExtendsRequestParams = TExtendsRequestParams,
 > = (TParams: TParams) => Promise<TData>;
 
+export type TMutationHandler<
+  TData,
+  TBody extends object,
+  TParams extends object,
+> = (body: TBody, params: TParams) => Promise<TData>;
+
 export default {};
