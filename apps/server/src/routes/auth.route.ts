@@ -3,9 +3,9 @@ import * as authController from "../controllers/auth.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
 import {
-  AuthSignUpUserSchema,
-  AuthLoginUserSchema,
-  AuthUpdateUserPasswordSchema,
+  AuthSignUpRequestSchema,
+  AuthLoginRequestSchema,
+  AuthUpdatePasswordRequestSchema,
 } from "@repo/domain";
 
 const authRouter: express.Router = express.Router();
@@ -14,13 +14,13 @@ const authRouter: express.Router = express.Router();
 
 authRouter.post(
   "/signup",
-  validateSchema(AuthSignUpUserSchema),
+  validateSchema(AuthSignUpRequestSchema),
   authController.signup
 );
 
 authRouter.post(
   "/login",
-  validateSchema(AuthLoginUserSchema),
+  validateSchema(AuthLoginRequestSchema),
   authController.login
 );
 
@@ -35,7 +35,7 @@ authRouter.get("/logout", authController.logout);
 
 authRouter.patch(
   "/updateMyPassword",
-  validateSchema(AuthUpdateUserPasswordSchema),
+  validateSchema(AuthUpdatePasswordRequestSchema),
   authController.updatePassword
 );
 
