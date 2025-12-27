@@ -1,6 +1,6 @@
 import type { MiddlewareFunction } from "react-router";
 
-export const errorMiddleware: MiddlewareFunction = async (
+export const performanceMiddleware: MiddlewareFunction = async (
   // scaffold for future use
   _context,
   next,

@@ -1,8 +1,16 @@
 import z from "zod";
-import { EmailValidator, NameValidator, PasswordValidator } from "./shared.js";
-import { UserPublicInfo } from "./user.js";
+import { SingleItemResponse, SingleItemResponseSchema } from "./index.js";
+import {
+  EmailValidator,
+  IdValidator,
+  NameValidator,
+  PasswordValidator,
+} from "./shared.js";
+import { ROLE, UserDTO } from "./user.js";
 
-export const AuthSignUpUserSchema = z.object({
+// * ===== RequestSchemas =====
+
+export const AuthSignUpRequestSchema = z.object({
   body: z
     .object({
       name: NameValidator("User"),
@@ -18,9 +26,11 @@ export const AuthSignUpUserSchema = z.object({
     }),
 });
 
-export type AuthSignUpUser = z.infer<typeof AuthSignUpUserSchema.shape.body>;
+export type AuthSignUpRequest = z.infer<
+  typeof AuthSignUpRequestSchema.shape.body
+>;
 
-export const AuthLoginUserSchema = z.object({
+export const AuthLoginRequestSchema = z.object({
   body: z
     .object({
       email: EmailValidator,
@@ -29,9 +39,11 @@ export const AuthLoginUserSchema = z.object({
     .strict(),
 });
 
-export type AuthLoginUser = z.infer<typeof AuthLoginUserSchema.shape.body>;
+export type AuthLoginRequest = z.infer<
+  typeof AuthLoginRequestSchema.shape.body
+>;
 
-export const AuthUpdateUserPasswordSchema = z.object({
+export const AuthUpdatePasswordRequestSchema = z.object({
   body: z
     .object({
       currentPassword: PasswordValidator("Current Password"),
@@ -46,11 +58,42 @@ export const AuthUpdateUserPasswordSchema = z.object({
     }),
 });
 
-export type AuthUpdateUserPassword = z.infer<
-  typeof AuthUpdateUserPasswordSchema.shape.body
+export type AuthUpdateUserPasswordRequest = z.infer<
+  typeof AuthUpdatePasswordRequestSchema.shape.body
 >;
 
-export type AuthResponse = {
-  user: UserPublicInfo;
-  token: string;
-};
+// * =====  DTO Types (if needed)=====
+
+const AuthSessionDTOSchema = z
+  .object({
+    user: z.object({
+      id: IdValidator("User"),
+      name: NameValidator("User"),
+      email: EmailValidator,
+      role: z.enum(ROLE),
+      emailVerified: z.boolean(),
+      createdAt: z.coerce.date(),
+      v: z.number(),
+    }),
+    token: z.string(),
+  })
+  .strict() satisfies z.ZodType<{ user: UserDTO; token: string }>;
+
+export type AuthSessionDTO = z.infer<typeof AuthSessionDTOSchema>;
+
+// * =====   Response Schemas & Types ( For Frontend)=====
+
+export const AuthSignUpResponseSchema =
+  SingleItemResponseSchema(AuthSessionDTOSchema);
+
+export type AuthSignUpResponse = SingleItemResponse<AuthSessionDTO>;
+
+// export const AuthLoginUserResponseSchema = z.object({
+//   user: UserDTO,
+//   token: z.string(),
+// });
+
+// export const AuthUpdateUserPasswordResponseSchema = z.object({
+//   user: UserDTO,
+//   token: z.string(),
+// });
