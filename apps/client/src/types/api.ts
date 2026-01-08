@@ -13,7 +13,7 @@ export type TBaseHandler<
 export type TMutationHandler<
   TData,
   TBody extends object,
-  TParams extends object,
+  TParams extends object = object,
 > = (body: TBody, params: TParams) => Promise<TData>;
 
 export default {};
