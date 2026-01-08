@@ -152,6 +152,10 @@ export const UserGetByIdResponseSchema =
   SingleItemResponseSchema(UserDTOSchema);
 export type UserGetByIdResponse = SingleItemResponse<UserDTO>;
 
+// GetMe response (single DTO)
+export const UserGetMeResponseSchema = SingleItemResponseSchema(UserDTOSchema);
+export type UserGetMeResponse = SingleItemResponse<UserDTO>;
+
 // Create response (single DTO)
 export const UserCreateResponseSchema = SingleItemResponseSchema(UserDTOSchema);
 export type UserCreateResponse = SingleItemResponse<UserDTO>;
