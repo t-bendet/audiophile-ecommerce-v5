@@ -25,7 +25,7 @@ import { env } from "../utils/env.js";
  * Helper function to create token and send response
  * Handles cookie setting and response formatting
  */
-const createAndSendToken = (
+const createAndSendAuthCookie = (
   user: UserDTO,
   token: string,
   statusCode: number,
@@ -45,7 +45,8 @@ const createAndSendToken = (
 
   res.cookie("jwt", token, cookieOptions);
 
-  res.status(statusCode).json(createSingleItemResponse({ user, token }));
+  // Token sent via HTTP-only cookie, response contains only user data
+  res.status(statusCode).json(createSingleItemResponse(user));
 };
 
 /**
@@ -54,7 +55,7 @@ const createAndSendToken = (
  */
 export const signup: RequestHandler = catchAsync(async (req, res, next) => {
   const { token, user } = await authService.signup(req.verified?.body);
-  createAndSendToken(user, token, 201, req, res);
+  createAndSendAuthCookie(user, token, 201, req, res);
 });
 
 /**
@@ -64,7 +65,7 @@ export const signup: RequestHandler = catchAsync(async (req, res, next) => {
 export const login: RequestHandler = catchAsync(async (req, res, next) => {
   const { email, password } = req.verified?.body;
   const { user, token } = await authService.login({ email, password });
-  createAndSendToken(user, token, 200, req, res);
+  createAndSendAuthCookie(user, token, 200, req, res);
 });
 
 /**
@@ -101,6 +102,6 @@ export const updatePassword: RequestHandler = catchAsync(
       password
     );
     const { token, user } = userData;
-    createAndSendToken(user, token, 200, req, res);
+    createAndSendAuthCookie(user, token, 200, req, res);
   }
 );

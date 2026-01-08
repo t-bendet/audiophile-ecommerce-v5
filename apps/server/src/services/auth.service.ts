@@ -2,7 +2,6 @@ import { prisma } from "@repo/database";
 import {
   AppError,
   AuthLoginRequest,
-  AuthSessionDTO,
   AuthSignUpRequest,
   ErrorCode,
   UserDTO,
@@ -10,6 +9,11 @@ import {
 } from "@repo/domain";
 import jwt from "jsonwebtoken";
 import { env } from "../utils/env.js";
+
+type AuthSessionDTO = {
+  user: UserDTO;
+  token: string;
+};
 
 /**
  * AuthService handles all authentication business logic
@@ -52,7 +56,9 @@ export class AuthService {
    * @param data - User registration data
    * @returns The created user with token
    */
-  async signup(data: AuthSignUpRequest): Promise<AuthSessionDTO> {
+  async signup(
+    data: AuthSignUpRequest
+  ): Promise<{ user: UserDTO; token: string }> {
     // Create user with Prisma (password hashing happens via schema defaults)
     const user = await prisma.user.create({
       data: {
