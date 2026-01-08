@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router";
 
 import { paths } from "@/config/paths";
 import { getApi } from "@/lib/api-client";
-import { TBaseHandler, TMutationHandler } from "@/types/api";
+import { TMutationHandler } from "@/types/api";
 import {
   AuthLoginRequest,
   AuthLoginResponse,
@@ -18,20 +18,19 @@ import {
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
 
-type TGetUser = TBaseHandler<UserGetMeResponse["data"]>;
+type TGetUser = () => Promise<UserGetMeResponse>;
 
-const getUser: TGetUser = async ({ signal }) => {
+const getUser: TGetUser = async () => {
   const api = getApi();
-  const response = await api.get("/users/me", { signal });
+  const response = await api.get("/users/me");
   const result = UserGetMeResponseSchema.safeParse(response.data);
   if (result.success) {
-    return result.data.data;
+    return result.data;
   } else {
     throw result.error;
   }
 };
 
-// TODO type this
 const logout = (): Promise<void> => {
   const api = getApi();
   return api.post("/auth/logout");
@@ -66,7 +65,10 @@ const signUpUser: TSignupUser = async (body) => {
 };
 
 const authConfig = {
-  userFn: getUser,
+  userFn: async () => {
+    const response = await getUser();
+    return response.data; // Extract user from response wrapper
+  },
   loginFn: async (body: AuthLoginRequest) => {
     const response = await loginUser(body, {});
     return response.data; // Extract user from response wrapper
