@@ -1,4 +1,4 @@
-import { RootLayout } from "@/components/layouts";
+import { RootLayout } from "@/components/layouts/root-layout";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
