@@ -22,9 +22,9 @@ export const AuthSignUpRequestSchema = z.object({
     .strict(),
 });
 
-export interface AuthSignUpRequest extends z.infer<
+export type AuthSignUpRequest = z.infer<
   typeof AuthSignUpRequestSchema.shape.body
-> {}
+>;
 
 export const AuthLoginRequestSchema = z.object({
   body: z
@@ -35,9 +35,9 @@ export const AuthLoginRequestSchema = z.object({
     .strict(),
 });
 
-export interface AuthLoginRequest extends z.infer<
+export type AuthLoginRequest = z.infer<
   typeof AuthLoginRequestSchema.shape.body
-> {}
+>;
 
 export const AuthUpdatePasswordRequestSchema = z.object({
   body: z

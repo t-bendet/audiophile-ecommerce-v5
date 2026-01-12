@@ -36,9 +36,12 @@ const logout = (): Promise<void> => {
 
 type TLoginUser = TMutationHandler<AuthResponse, AuthLoginRequest>;
 
-const loginUser: TLoginUser = async (body) => {
+const loginUser: TLoginUser = async ({ email, password }) => {
   const api = getApi();
-  const response = await api.post("/auth/login", body);
+  const response = await api.post("/auth/login", {
+    email,
+    password,
+  });
   const result = AuthResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
@@ -49,9 +52,19 @@ const loginUser: TLoginUser = async (body) => {
 
 type TSignupUser = TMutationHandler<AuthResponse, AuthSignUpRequest>;
 
-const signUpUser: TSignupUser = async (body) => {
+const signUpUser: TSignupUser = async ({
+  name,
+  email,
+  password,
+  passwordConfirm,
+}) => {
   const api = getApi();
-  const response = await api.post("/auth/signup", body);
+  const response = await api.post("/auth/signup", {
+    name,
+    email,
+    password,
+    passwordConfirm,
+  });
 
   const result = AuthResponseSchema.safeParse(response.data);
   if (result.success) {
