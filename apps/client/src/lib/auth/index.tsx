@@ -6,24 +6,22 @@ import { getApi } from "@/lib/api-client";
 import { TMutationHandler } from "@/types/api";
 import {
   AuthLoginRequest,
-  AuthLoginResponse,
-  AuthLoginResponseSchema,
   AuthSignUpRequest,
-  AuthSignUpResponse,
-  AuthSignUpResponseSchema,
-  UserGetMeResponse,
-  UserGetMeResponseSchema,
+  AuthResponse,
+  AuthResponseSchema,
+  UserDTOResponse,
+  UserDTOResponseSchema,
 } from "@repo/domain";
 
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
 
-type TGetUser = () => Promise<UserGetMeResponse>;
+type TGetUser = () => Promise<UserDTOResponse>;
 
 const getUser: TGetUser = async () => {
   const api = getApi();
   const response = await api.get("/users/me");
-  const result = UserGetMeResponseSchema.safeParse(response.data);
+  const result = UserDTOResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {
@@ -36,13 +34,12 @@ const logout = (): Promise<void> => {
   return api.post("/auth/logout");
 };
 
-type TLoginUser = TMutationHandler<AuthLoginResponse, AuthLoginRequest>;
+type TLoginUser = TMutationHandler<AuthResponse, AuthLoginRequest>;
 
 const loginUser: TLoginUser = async (body) => {
   const api = getApi();
-
   const response = await api.post("/auth/login", body);
-  const result = AuthLoginResponseSchema.safeParse(response.data);
+  const result = AuthResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {
@@ -50,13 +47,13 @@ const loginUser: TLoginUser = async (body) => {
   }
 };
 
-type TSignupUser = TMutationHandler<AuthSignUpResponse, AuthSignUpRequest>;
+type TSignupUser = TMutationHandler<AuthResponse, AuthSignUpRequest>;
 
 const signUpUser: TSignupUser = async (body) => {
   const api = getApi();
   const response = await api.post("/auth/signup", body);
 
-  const result = AuthSignUpResponseSchema.safeParse(response.data);
+  const result = AuthResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {

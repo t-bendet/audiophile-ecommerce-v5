@@ -60,10 +60,6 @@ export interface AuthUpdateUserPasswordRequest extends z.infer<
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
-export const AuthSignUpResponseSchema = SingleItemResponseSchema(UserDTOSchema);
+export const AuthResponseSchema = SingleItemResponseSchema(UserDTOSchema);
 
-export type AuthSignUpResponse = SingleItemResponse<UserDTO>;
-
-export const AuthLoginResponseSchema = SingleItemResponseSchema(UserDTOSchema);
-
-export type AuthLoginResponse = SingleItemResponse<UserDTO>;
+export type AuthResponse = SingleItemResponse<UserDTO>;

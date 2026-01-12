@@ -147,24 +147,6 @@ export type UserDTO = z.infer<typeof UserDTOSchema>;
 export const UserGetAllResponseSchema = ListResponseSchema(UserDTOSchema);
 export type UserGetAllResponse = ListResponse<UserDTO>;
 
-// Detail/Get response (single DTO)
-export const UserGetByIdResponseSchema =
-  SingleItemResponseSchema(UserDTOSchema);
-export type UserGetByIdResponse = SingleItemResponse<UserDTO>;
-
 // GetMe response (single DTO)
-export const UserGetMeResponseSchema = SingleItemResponseSchema(UserDTOSchema);
-export type UserGetMeResponse = SingleItemResponse<UserDTO>;
-
-// Create response (single DTO)
-export const UserCreateResponseSchema = SingleItemResponseSchema(UserDTOSchema);
-export type UserCreateResponse = SingleItemResponse<UserDTO>;
-
-// Update response (single DTO)
-export const UserUpdateByIdResponseSchema =
-  SingleItemResponseSchema(UserDTOSchema);
-export type UserUpdateByIdResponse = SingleItemResponse<UserDTO>;
-
-// Delete response (no content)
-export const UserDeleteByIdResponseSchema = EmptyResponseSchema;
-export type UserDeleteByIdResponse = EmptyResponse;
+export const UserDTOResponseSchema = SingleItemResponseSchema(UserDTOSchema);
+export type UserDTOResponse = SingleItemResponse<UserDTO>;

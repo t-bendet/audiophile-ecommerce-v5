@@ -22,7 +22,6 @@ const convert = (queryClient: QueryClient) => (m: any) => {
 const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
     {
-      path: paths.home.path,
       element: <RootLayout />,
       errorElement: <MainErrorFallback />,
       middleware: [performanceMiddleware],
