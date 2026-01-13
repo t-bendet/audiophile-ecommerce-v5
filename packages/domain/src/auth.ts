@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { SingleItemResponse, SingleItemResponseSchema } from "./common.js";
+import {
+  EmptyResponse,
+  EmptyResponseSchema,
+  SingleItemResponse,
+  SingleItemResponseSchema,
+} from "./common.js";
 import { EmailValidator, NameValidator, PasswordValidator } from "./shared.js";
 import { UserDTO, UserDTOSchema } from "./user.js";
 
@@ -63,3 +68,7 @@ export interface AuthUpdateUserPasswordRequest extends z.infer<
 export const AuthResponseSchema = SingleItemResponseSchema(UserDTOSchema);
 
 export type AuthResponse = SingleItemResponse<UserDTO>;
+
+export const AuthLogoutResponseSchema = EmptyResponseSchema;
+
+export type AuthLogoutResponse = EmptyResponse;

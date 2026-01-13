@@ -1,26 +1,40 @@
-import { configureAuth } from "react-query-auth";
-import { Navigate, useLocation } from "react-router";
-
-import { paths } from "@/config/paths";
 import { getApi } from "@/lib/api-client";
-import { TMutationHandler } from "@/types/api";
+import {
+  TBaseHandler,
+  TBaseRequestParams,
+  TMutationHandler,
+} from "@/types/api";
 import {
   AuthLoginRequest,
-  AuthSignUpRequest,
+  AuthLogoutResponse,
+  AuthLogoutResponseSchema,
   AuthResponse,
   AuthResponseSchema,
+  AuthSignUpRequest,
   UserDTOResponse,
   UserDTOResponseSchema,
 } from "@repo/domain";
+import {
+  QueryClient,
+  queryOptions,
+  useMutation,
+  useQuery,
+} from "@tanstack/react-query";
+
+const USER_QUERY_KEY = "authenticated-user";
 
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
 
-type TGetUser = () => Promise<UserDTOResponse>;
+// ** Get User (Me)
 
-const getUser: TGetUser = async () => {
+// TODO check how zod errors propagate here
+
+type TGetUser = TBaseHandler<UserDTOResponse>;
+
+const getUser: TGetUser = async ({ signal }) => {
   const api = getApi();
-  const response = await api.get("/users/me");
+  const response = await api.get("/users/me", { signal });
   const result = UserDTOResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
@@ -29,14 +43,45 @@ const getUser: TGetUser = async () => {
   }
 };
 
-const logout = (): Promise<void> => {
+export const getUserQueryOptions = () =>
+  queryOptions({
+    queryKey: ["authenticated-user"],
+    queryFn: ({ signal }: TBaseRequestParams) => getUser({ signal }),
+    // TODO refetchOnWindowFocus ,reconsider
+    refetchOnMount: false, // Prevent refetch when component remounts during navigation
+    staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
+    select: (data) => data.data, // Return only the user DTO
+  });
+
+// ** Logout User
+
+type TGetLogoutUser = TBaseHandler<AuthLogoutResponse>;
+
+const logoutUser: TGetLogoutUser = async ({ signal }) => {
   const api = getApi();
-  return api.post("/auth/logout");
+  const response = await api.get("/auth/logout", { signal });
+  const result = AuthLogoutResponseSchema.safeParse(response.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
 };
 
-type TLoginUser = TMutationHandler<AuthResponse, AuthLoginRequest>;
+export const useLogoutUser = () => {
+  return useQuery({
+    queryKey: ["authenticated-user"],
+    queryFn: logoutUser,
+    staleTime: Infinity, // User data usually doesn't go stale quickly
+    select: (data) => data.data, // Return only the user DTO
+  });
+};
 
-const loginUser: TLoginUser = async ({ email, password }) => {
+// ** Login User
+
+type TPostLoginUser = TMutationHandler<AuthResponse, AuthLoginRequest>;
+
+const postLoginUser: TPostLoginUser = async ({ email, password }) => {
   const api = getApi();
   const response = await api.post("/auth/login", {
     email,
@@ -50,9 +95,21 @@ const loginUser: TLoginUser = async ({ email, password }) => {
   }
 };
 
-type TSignupUser = TMutationHandler<AuthResponse, AuthSignUpRequest>;
+export const useLogin = (queryClient: QueryClient) => {
+  return useMutation({
+    mutationFn: postLoginUser,
+    onSuccess: (user) => {
+      // Manually set the user data in the cache after a successful login
+      queryClient.setQueryData([USER_QUERY_KEY], user.data);
+    },
+  });
+};
 
-const signUpUser: TSignupUser = async ({
+// ** Signup User
+
+type TPostSignupUser = TMutationHandler<AuthResponse, AuthSignUpRequest>;
+
+const postSignupUser: TPostSignupUser = async ({
   name,
   email,
   password,
@@ -74,34 +131,12 @@ const signUpUser: TSignupUser = async ({
   }
 };
 
-const authConfig = {
-  userFn: async () => {
-    const response = await getUser();
-    return response.data; // Extract user from response wrapper
-  },
-  loginFn: async (body: AuthLoginRequest) => {
-    const response = await loginUser(body, {});
-    return response.data; // Extract user from response wrapper
-  },
-  registerFn: async (body: AuthSignUpRequest) => {
-    const response = await signUpUser(body, {});
-    return response.data; // Extract user from response wrapper
-  },
-  logoutFn: logout,
-};
-
-export const { useUser, useLogin, useLogout, useRegister, AuthLoader } =
-  configureAuth(authConfig);
-
-export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const user = useUser();
-  const location = useLocation();
-
-  if (!user.data) {
-    return (
-      <Navigate to={paths.auth.login.getHref(location.pathname)} replace />
-    );
-  }
-
-  return children;
+export const useSignup = (queryClient: QueryClient) => {
+  return useMutation({
+    mutationFn: postSignupUser,
+    onSuccess: (user) => {
+      // Manually set the user data in the cache after a successful login
+      queryClient.setQueryData([USER_QUERY_KEY], user.data);
+    },
+  });
 };
