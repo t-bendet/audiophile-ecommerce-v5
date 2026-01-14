@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { SingleItemResponse, SingleItemResponseSchema } from "./common.js";
+import {
+  EmptyResponse,
+  EmptyResponseSchema,
+  SingleItemResponse,
+  SingleItemResponseSchema,
+} from "./common.js";
 import { EmailValidator, NameValidator, PasswordValidator } from "./shared.js";
 import { UserDTO, UserDTOSchema } from "./user.js";
 
@@ -22,9 +27,9 @@ export const AuthSignUpRequestSchema = z.object({
     .strict(),
 });
 
-export interface AuthSignUpRequest extends z.infer<
+export type AuthSignUpRequest = z.infer<
   typeof AuthSignUpRequestSchema.shape.body
-> {}
+>;
 
 export const AuthLoginRequestSchema = z.object({
   body: z
@@ -35,9 +40,9 @@ export const AuthLoginRequestSchema = z.object({
     .strict(),
 });
 
-export interface AuthLoginRequest extends z.infer<
+export type AuthLoginRequest = z.infer<
   typeof AuthLoginRequestSchema.shape.body
-> {}
+>;
 
 export const AuthUpdatePasswordRequestSchema = z.object({
   body: z
@@ -60,10 +65,10 @@ export interface AuthUpdateUserPasswordRequest extends z.infer<
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
-export const AuthSignUpResponseSchema = SingleItemResponseSchema(UserDTOSchema);
+export const AuthResponseSchema = SingleItemResponseSchema(UserDTOSchema);
 
-export type AuthSignUpResponse = SingleItemResponse<UserDTO>;
+export type AuthResponse = SingleItemResponse<UserDTO>;
 
-export const AuthLoginResponseSchema = SingleItemResponseSchema(UserDTOSchema);
+export const AuthLogoutResponseSchema = EmptyResponseSchema;
 
-export type AuthLoginResponse = SingleItemResponse<UserDTO>;
+export type AuthLogoutResponse = EmptyResponse;

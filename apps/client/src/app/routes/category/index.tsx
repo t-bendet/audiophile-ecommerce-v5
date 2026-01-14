@@ -19,7 +19,6 @@ const Category = () => {
     navigation.location?.pathname.startsWith("/category/")
       ? navigation.location.pathname.split("/").pop()!
       : categoryName!;
-  console.log({ navigation, activeCategory, categoryName });
   const { data: ProductsResponse } = useSuspenseQuery(
     getProductsByCategoryQueryOptions(activeCategory as NAME),
   );
