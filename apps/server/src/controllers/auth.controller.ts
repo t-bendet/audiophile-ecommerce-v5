@@ -72,10 +72,14 @@ export const login: RequestHandler = catchAsync(async (req, res, next) => {
  * Log out a user
  * Clears JWT cookie
  */
-export const logout = (_req: Request, res: Response) => {
-  res.cookie("jwt", "loggedout", {
-    expires: new Date(Date.now() + 10 * 1000),
+export const logout = (req: Request, res: Response) => {
+  // res.cookie("jwt", "loggedout", {
+  //   expires: new Date(Date.now() + 10 * 1000),
+  //   httpOnly: true,
+  // });
+  res.clearCookie("jwt", {
     httpOnly: true,
+    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
   });
   res.status(200).json(createEmptyResponse());
 };
