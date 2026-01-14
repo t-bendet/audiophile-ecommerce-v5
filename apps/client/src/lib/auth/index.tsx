@@ -21,7 +21,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 
-const USER_QUERY_KEY = "authenticated-user";
+export const USER_QUERY_KEY = "authenticated-user";
 
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
@@ -45,11 +45,11 @@ const getUser: TGetUser = async ({ signal }) => {
 
 export const getUserQueryOptions = () =>
   queryOptions({
-    queryKey: ["authenticated-user"],
+    queryKey: [USER_QUERY_KEY],
     queryFn: ({ signal }: TBaseRequestParams) => getUser({ signal }),
     // TODO refetchOnWindowFocus ,reconsider
-    refetchOnMount: false, // Prevent refetch when component remounts during navigation
-    staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
+    refetchOnMount: true, // Prevent refetch when component remounts during navigation
+    // staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
     select: (data) => data?.data, // Return only the user DTO
     // initialData: null,
   });
@@ -71,7 +71,7 @@ const logoutUser: TGetLogoutUser = async ({ signal }) => {
 
 export const useLogoutUser = () => {
   return useQuery({
-    queryKey: ["authenticated-user"],
+    queryKey: [USER_QUERY_KEY],
     queryFn: logoutUser,
     staleTime: Infinity, // User data usually doesn't go stale quickly
     select: (data) => data.data, // Return only the user DTO
@@ -99,6 +99,7 @@ const postLoginUser: TPostLoginUser = async ({ email, password }) => {
 export const useLogin = (queryClient: QueryClient) => {
   return useMutation({
     mutationFn: postLoginUser,
+    mutationKey: [USER_QUERY_KEY],
     onSuccess: (user) => {
       // Manually set the user data in the cache after a successful login
       queryClient.setQueryData([USER_QUERY_KEY], user.data);
@@ -135,6 +136,7 @@ const postSignupUser: TPostSignupUser = async ({
 export const useSignup = (queryClient: QueryClient) => {
   return useMutation({
     mutationFn: postSignupUser,
+    mutationKey: [USER_QUERY_KEY],
     onSuccess: (user) => {
       // Manually set the user data in the cache after a successful login
       queryClient.setQueryData([USER_QUERY_KEY], user.data);

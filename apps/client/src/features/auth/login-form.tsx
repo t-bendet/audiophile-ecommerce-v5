@@ -14,13 +14,15 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/cn";
-import z from "zod";
-import { useForm } from "@tanstack/react-form";
+import { paths } from "@/config/paths";
 import { useToast } from "@/hooks/use-toast";
-import { useLogin } from "@/lib/auth";
+import { useLogin, USER_QUERY_KEY } from "@/lib/auth";
+import { cn } from "@/lib/cn";
+import { normalizeError } from "@/lib/errors/errors";
+import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { log } from "console";
+import { Link } from "react-router";
+import z from "zod";
 
 const loginSchema = z.object({
   email: z.email("Please provide a valid email!"),
@@ -36,7 +38,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const login = useLogin(queryClient);
+  const { mutate: login, isPending, error } = useLogin(queryClient);
   const form = useForm({
     defaultValues: {
       email: "",
@@ -45,13 +47,26 @@ export function LoginForm({
     validators: {
       onSubmit: loginSchema,
     },
+
     onSubmit: async ({ value }) => {
-      login.mutate(value, {
+      login(value, {
+        // TODO handle success and error properly
+        // TODO delete client cookie on unsuccessful login attempt to avoid stale cookies,on server side -error middleware [INVALID_CREDENTIALS,EXPIRED_JWT,NOT_FOUND(only user),etc]
         onSuccess: () => {
           toast({
             title: "Login Successful",
             description: `Welcome back, ${value}!`,
           });
+        },
+        onError(error) {
+          const normalizedError = normalizeError(error);
+          toast({
+            title: "Login Failed",
+            description: normalizedError.message,
+            variant: "destructive",
+            duration: 3000,
+          });
+          queryClient.setQueryData([USER_QUERY_KEY], null);
         },
       });
     },
@@ -108,6 +123,7 @@ export function LoginForm({
                     <Field data-invalid={isInvalid}>
                       <div className="flex items-center">
                         <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                        {/* TODO implement forgot password functionality */}
                         <a
                           href="#"
                           className="ml-auto text-sm underline-offset-4 hover:underline"
@@ -135,11 +151,12 @@ export function LoginForm({
               />
 
               <Field>
-                <Button type="submit" form="login-form">
+                <Button type="submit" form="login-form" disabled={isPending}>
                   Login
                 </Button>
                 <FieldDescription className="text-primary-500 text-center">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
+                  Don&apos;t have an account?{" "}
+                  <Link to={paths.auth.signup.path}>Sign up</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>
