@@ -129,7 +129,7 @@ const normalizeError = (err: unknown): AppError | unknown => {
   return err;
 };
 
-const sendErrorDev = (err: unknown, _req: Request, res: Response) => {
+const sendErrorDev = (err: unknown, req: Request, res: Response) => {
   const statusCode = err instanceof AppError ? err.statusCode : 500;
   const code = (
     err instanceof AppError ? err.code : ErrorCode.INTERNAL_ERROR
@@ -137,6 +137,15 @@ const sendErrorDev = (err: unknown, _req: Request, res: Response) => {
   const message = err instanceof Error ? err.message : "Unknown error";
   const stack = err instanceof Error ? err.stack : undefined;
   const details = err instanceof AppError ? err.details : undefined;
+
+  if (code === ErrorCode.INVALID_CREDENTIALS) {
+    {
+      res.clearCookie("jwt", {
+        httpOnly: true,
+        secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+      });
+    }
+  }
 
   return res.status(statusCode).json(
     createErrorResponse({
@@ -149,9 +158,18 @@ const sendErrorDev = (err: unknown, _req: Request, res: Response) => {
   );
 };
 
-const sendErrorProd = (err: unknown, _req: Request, res: Response) => {
+const sendErrorProd = (err: unknown, req: Request, res: Response) => {
   // Operational, trusted error: send message to client
+
   if (err instanceof AppError) {
+    if (err.code === ErrorCode.INVALID_CREDENTIALS) {
+      {
+        res.clearCookie("jwt", {
+          httpOnly: true,
+          secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+        });
+      }
+    }
     return res.status(err.statusCode).json(
       createErrorResponse({
         message: err.message,

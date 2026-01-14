@@ -39,6 +39,7 @@ export function LoginForm({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { mutate: login, isPending, error } = useLogin(queryClient);
+  console.log({ error });
   const form = useForm({
     defaultValues: {
       email: "",
@@ -51,7 +52,7 @@ export function LoginForm({
     onSubmit: async ({ value }) => {
       login(value, {
         // TODO handle success and error properly
-        // TODO delete client cookie on unsuccessful login attempt to avoid stale cookies,on server side -error middleware [INVALID_CREDENTIALS,EXPIRED_JWT,NOT_FOUND(only user),etc]
+
         onSuccess: () => {
           toast({
             title: "Login Successful",
