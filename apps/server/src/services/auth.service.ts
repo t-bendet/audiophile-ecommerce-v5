@@ -86,12 +86,19 @@ export class AuthService {
    */
   async login({ email, password }: AuthLoginRequest): Promise<AuthSessionDTO> {
     // Find user with password field
-    const user = await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUnique({
       where: { email },
       omit: {
         password: false,
       },
     });
+
+    if (!user) {
+      throw new AppError(
+        "Incorrect email or password",
+        ErrorCode.INVALID_CREDENTIALS
+      );
+    }
 
     // Validate password using Prisma's custom method
     const isPasswordValid = await prisma.user.validatePassword(
@@ -132,12 +139,19 @@ export class AuthService {
     newPassword: string
   ): Promise<AuthSessionDTO> {
     // Get user with password field
-    const user = await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       omit: {
         password: false,
       },
     });
+
+    if (!user) {
+      throw new AppError(
+        "Your current password is wrong.",
+        ErrorCode.INVALID_CREDENTIALS
+      );
+    }
 
     // Validate current password
     const isPasswordValid = await prisma.user.validatePassword(
