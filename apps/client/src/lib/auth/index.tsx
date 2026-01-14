@@ -50,7 +50,8 @@ export const getUserQueryOptions = () =>
     // TODO refetchOnWindowFocus ,reconsider
     refetchOnMount: false, // Prevent refetch when component remounts during navigation
     staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
-    select: (data) => data.data, // Return only the user DTO
+    select: (data) => data?.data, // Return only the user DTO
+    // initialData: null,
   });
 
 // ** Logout User

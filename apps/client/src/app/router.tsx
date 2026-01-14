@@ -51,7 +51,11 @@ const createAppRouter = (queryClient: QueryClient) =>
               path: paths.category.path,
               errorElement: <RouteErrorBoundary />,
             },
-
+            {
+              lazy: () =>
+                import("./routes/auth/login").then(convert(queryClient)),
+              path: paths.auth.login.path,
+            },
             {
               path: "*",
               lazy: () =>
