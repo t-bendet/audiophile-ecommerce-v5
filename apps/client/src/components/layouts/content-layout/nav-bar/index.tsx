@@ -2,21 +2,12 @@ import CartIcon from "@/assets/icon-cart.svg?react";
 import Logo from "@/assets/logo.svg?react";
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import NavBarDialog from "@/components/layouts/content-layout/nav-bar/nav-bar-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Container } from "@/components/ui/container";
 import { paths } from "@/config/paths";
 import useMedia from "@/hooks/useMedia";
 import { Link } from "react-router";
 import { NavLinks } from "./nav-links";
-
-function AvatarDemo() {
-  return (
-    <Avatar>
-      <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-      <AvatarFallback className="text-primary-400">CN</AvatarFallback>
-    </Avatar>
-  );
-}
+import { UserAvatarDropdown } from "./user-avatar-dropdown";
 
 export const Navbar = () => {
   const isLarge = useMedia("lg");
@@ -44,7 +35,7 @@ export const Navbar = () => {
               className="hover:*:fill-primary-500 focus-visible:*:fill-primary-500 cursor-pointer"
               title="cart icon"
             />
-            <AvatarDemo />
+            <UserAvatarDropdown />
           </div>
         </div>
       </Container>
