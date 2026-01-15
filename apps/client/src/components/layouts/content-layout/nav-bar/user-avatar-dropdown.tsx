@@ -10,25 +10,18 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getUserQueryOptions } from "@/lib/auth";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { ChevronsUpDown } from "lucide-react";
 
 export function UserAvatarDropdown() {
-  // const user = useSuspenseQuery(getUserQueryOptions());
-
-  // if (!user) {
-  //   // Show login/signup buttons
-  //   return <div>Please log in</div>;
-  // }
   // TODO demo purpose only,replace with actual user data
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button>
-          <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
+          <span className="sr-only">Open user menu</span>
+          {/* <p>Hello Tal</p> */}
+          <p>Hello Guest</p>
+          <ChevronsUpDown className="ml-auto size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-white text-black" align="start">
