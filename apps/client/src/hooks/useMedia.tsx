@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
 const breakPointsMap = {
+  sm: "(min-width: 36rem)",
   md: "(min-width: 48rem)",
   lg: "(min-width: 64rem)",
 } as const;
