@@ -128,3 +128,14 @@
 // TODO go over turborepo core-concepts,https://turborepo.com/docs/core-concepts
 // TODO go over monorepo best practices
 // TODO jsdoc comments for all service methods
+
+// TODO export const test: RequestHandler< better typing example
+//   { name: string },
+//   { username: string; password: string; remember: boolean; title: string },
+//   { username: string; password: string; remember: boolean; title: string }
+// > = async (_req, res) => {
+//   const { name } = _req.params;
+//   const body = _req.body;
+//   const dto = await productService.getFeaturedProduct();
+//   res.status(200).json(createSingleItemResponse(dto));
+// };

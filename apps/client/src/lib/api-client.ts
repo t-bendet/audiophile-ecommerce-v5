@@ -40,8 +40,9 @@ export function getApi(): AxiosInstance {
           return Promise.reject(error);
         }
 
-        // Handle auth errors (let auth layer handle redirect)
         const status = error.response?.status;
+        // TODO centralize redirect logic?
+        // Handle auth errors (let auth layer handle redirect)
         if (status === 401) {
           const searchParams = new URLSearchParams();
           const redirectTo =

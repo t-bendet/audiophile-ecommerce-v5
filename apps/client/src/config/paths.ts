@@ -22,10 +22,10 @@ export const paths = {
     orderDetails: {},
   },
   auth: {
-    register: {
-      path: "/auth/register",
+    signup: {
+      path: "/auth/signup",
       getHref: (redirectTo?: string | null | undefined) =>
-        `/auth/register${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}`,
+        `/auth/signup${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}`,
     },
     login: {
       path: "/auth/login",
@@ -34,7 +34,14 @@ export const paths = {
     },
   },
   account: {
-    root: {},
+    root: {
+      path: "/account/:id",
+      getHref: (id: string) => `/account/${id}`,
+    },
+    profile: {
+      path: "/account/profile",
+      getHref: () => "/account/profile",
+    },
     orders: {},
     addresses: {},
     paymentMethods: {},
