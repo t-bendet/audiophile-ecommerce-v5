@@ -2,7 +2,6 @@ import { prisma } from "@repo/database";
 import {
   AppError,
   AuthLoginRequest,
-  AuthSessionDTO,
   AuthSignUpRequest,
   ErrorCode,
   UserDTO,
@@ -10,6 +9,11 @@ import {
 } from "@repo/domain";
 import jwt from "jsonwebtoken";
 import { env } from "../utils/env.js";
+
+type AuthSessionDTO = {
+  user: UserDTO;
+  token: string;
+};
 
 /**
  * AuthService handles all authentication business logic
@@ -52,7 +56,9 @@ export class AuthService {
    * @param data - User registration data
    * @returns The created user with token
    */
-  async signup(data: AuthSignUpRequest): Promise<AuthSessionDTO> {
+  async signup(
+    data: AuthSignUpRequest
+  ): Promise<{ user: UserDTO; token: string }> {
     // Create user with Prisma (password hashing happens via schema defaults)
     const user = await prisma.user.create({
       data: {
@@ -80,12 +86,19 @@ export class AuthService {
    */
   async login({ email, password }: AuthLoginRequest): Promise<AuthSessionDTO> {
     // Find user with password field
-    const user = await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUnique({
       where: { email },
       omit: {
         password: false,
       },
     });
+
+    if (!user) {
+      throw new AppError(
+        "Incorrect email or password",
+        ErrorCode.INVALID_CREDENTIALS
+      );
+    }
 
     // Validate password using Prisma's custom method
     const isPasswordValid = await prisma.user.validatePassword(
@@ -126,12 +139,19 @@ export class AuthService {
     newPassword: string
   ): Promise<AuthSessionDTO> {
     // Get user with password field
-    const user = await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       omit: {
         password: false,
       },
     });
+
+    if (!user) {
+      throw new AppError(
+        "Your current password is wrong.",
+        ErrorCode.INVALID_CREDENTIALS
+      );
+    }
 
     // Validate current password
     const isPasswordValid = await prisma.user.validatePassword(

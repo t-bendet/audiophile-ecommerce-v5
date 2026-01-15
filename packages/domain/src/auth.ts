@@ -1,12 +1,12 @@
-import z from "zod";
-import { SingleItemResponse, SingleItemResponseSchema } from "./index.js";
+import { z } from "zod";
 import {
-  EmailValidator,
-  IdValidator,
-  NameValidator,
-  PasswordValidator,
-} from "./shared.js";
-import { ROLE, UserDTO } from "./user.js";
+  EmptyResponse,
+  EmptyResponseSchema,
+  SingleItemResponse,
+  SingleItemResponseSchema,
+} from "./common.js";
+import { EmailValidator, NameValidator, PasswordValidator } from "./shared.js";
+import { UserDTO, UserDTOSchema } from "./user.js";
 
 // * ===== RequestSchemas =====
 
@@ -23,7 +23,8 @@ export const AuthSignUpRequestSchema = z.object({
       message: "Password and PasswordConfirm must match!",
       params: { passwordConfirm: "passwordConfirm" },
       path: ["password match"],
-    }),
+    })
+    .strict(),
 });
 
 export type AuthSignUpRequest = z.infer<
@@ -58,42 +59,16 @@ export const AuthUpdatePasswordRequestSchema = z.object({
     }),
 });
 
-export type AuthUpdateUserPasswordRequest = z.infer<
+export interface AuthUpdateUserPasswordRequest extends z.infer<
   typeof AuthUpdatePasswordRequestSchema.shape.body
->;
-
-// * =====  DTO Types (if needed)=====
-
-const AuthSessionDTOSchema = z
-  .object({
-    user: z.object({
-      id: IdValidator("User"),
-      name: NameValidator("User"),
-      email: EmailValidator,
-      role: z.enum(ROLE),
-      emailVerified: z.boolean(),
-      createdAt: z.coerce.date(),
-      v: z.number(),
-    }),
-    token: z.string(),
-  })
-  .strict() satisfies z.ZodType<{ user: UserDTO; token: string }>;
-
-export type AuthSessionDTO = z.infer<typeof AuthSessionDTOSchema>;
+> {}
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 
-export const AuthSignUpResponseSchema =
-  SingleItemResponseSchema(AuthSessionDTOSchema);
+export const AuthResponseSchema = SingleItemResponseSchema(UserDTOSchema);
 
-export type AuthSignUpResponse = SingleItemResponse<AuthSessionDTO>;
+export type AuthResponse = SingleItemResponse<UserDTO>;
 
-// export const AuthLoginUserResponseSchema = z.object({
-//   user: UserDTO,
-//   token: z.string(),
-// });
+export const AuthLogoutResponseSchema = EmptyResponseSchema;
 
-// export const AuthUpdateUserPasswordResponseSchema = z.object({
-//   user: UserDTO,
-//   token: z.string(),
-// });
+export type AuthLogoutResponse = EmptyResponse;

@@ -1,4 +1,4 @@
-import { RootLayout } from "@/components/layouts";
+import { RootLayout } from "@/components/layouts/root-layout";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
@@ -22,7 +22,6 @@ const convert = (queryClient: QueryClient) => (m: any) => {
 const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
     {
-      path: paths.home.path,
       element: <RootLayout />,
       errorElement: <MainErrorFallback />,
       middleware: [performanceMiddleware],
@@ -52,7 +51,32 @@ const createAppRouter = (queryClient: QueryClient) =>
               path: paths.category.path,
               errorElement: <RouteErrorBoundary />,
             },
-
+            {
+              lazy: () =>
+                import("@/components/layouts/user-area-layout").then(
+                  convert(queryClient),
+                ),
+              path: paths.account.root.path,
+              children: [
+                {
+                  lazy: () =>
+                    import("./routes/account/profile").then(
+                      convert(queryClient),
+                    ),
+                  index: true,
+                },
+              ],
+            },
+            {
+              lazy: () =>
+                import("./routes/auth/login").then(convert(queryClient)),
+              path: paths.auth.login.path,
+            },
+            {
+              lazy: () =>
+                import("./routes/auth/signup").then(convert(queryClient)),
+              path: paths.auth.signup.path,
+            },
             {
               path: "*",
               lazy: () =>

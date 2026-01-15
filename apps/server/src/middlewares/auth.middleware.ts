@@ -14,12 +14,20 @@ import { env } from "../utils/env.js";
 export const authenticate: RequestHandler = catchAsync(
   async (req, _res, next) => {
     // * 1) Getting token and check if it's there
-    const { authorization } = req.headers;
+    const { authorization, cookie } = req.headers;
     let token;
     if (authorization?.startsWith("Bearer")) {
       token = authorization.replace("Bearer ", "");
     } else if (req.cookies?.jwt) {
       token = req.cookies.jwt;
+    } else if (cookie) {
+      const cookies = Object.fromEntries(
+        cookie.split("; ").map((c) => {
+          const [key, value] = c.split("=");
+          return [key, value];
+        })
+      );
+      token = cookies["jwt"];
     }
     if (!token) {
       return next(
