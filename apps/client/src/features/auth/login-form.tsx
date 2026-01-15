@@ -21,7 +21,7 @@ import { cn } from "@/lib/cn";
 import { normalizeError } from "@/lib/errors/errors";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import z from "zod";
 
 const loginSchema = z.object({
@@ -37,8 +37,10 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const { toast } = useToast();
+  const navigate = useNavigate();
+
   const queryClient = useQueryClient();
-  const { mutate: login, isPending, error } = useLogin(queryClient);
+  const { mutate: login, isPending } = useLogin(queryClient);
   const form = useForm({
     defaultValues: {
       email: "",
@@ -50,13 +52,9 @@ export function LoginForm({
 
     onSubmit: async ({ value }) => {
       login(value, {
-        // TODO handle success and error properly
-        // TODO delete client cookie on unsuccessful login attempt to avoid stale cookies,on server side -error middleware [INVALID_CREDENTIALS,EXPIRED_JWT,NOT_FOUND(only user),etc]
-        onSuccess: () => {
-          toast({
-            title: "Login Successful",
-            description: `Welcome back, ${value}!`,
-          });
+        onSuccess: ({ data }) => {
+          // TODO add redirect logic if came from a protected route
+          navigate(paths.account.root.getHref(data.id));
         },
         onError(error) {
           const normalizedError = normalizeError(error);

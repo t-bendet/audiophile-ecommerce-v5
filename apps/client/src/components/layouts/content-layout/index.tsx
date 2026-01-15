@@ -7,7 +7,6 @@ import {
   QueryClient,
   useIsFetching,
   useIsMutating,
-  useIsRestoring,
 } from "@tanstack/react-query";
 import { LoaderFunctionArgs, Outlet } from "react-router";
 
