@@ -53,6 +53,22 @@ const createAppRouter = (queryClient: QueryClient) =>
             },
             {
               lazy: () =>
+                import("@/components/layouts/user-area-layout").then(
+                  convert(queryClient),
+                ),
+              path: paths.account.root.path,
+              children: [
+                {
+                  lazy: () =>
+                    import("./routes/account/profile").then(
+                      convert(queryClient),
+                    ),
+                  index: true,
+                },
+              ],
+            },
+            {
+              lazy: () =>
                 import("./routes/auth/login").then(convert(queryClient)),
               path: paths.auth.login.path,
             },

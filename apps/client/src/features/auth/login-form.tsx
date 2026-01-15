@@ -52,9 +52,9 @@ export function LoginForm({
 
     onSubmit: async ({ value }) => {
       login(value, {
-        onSuccess: () => {
+        onSuccess: ({ data }) => {
           // TODO add redirect logic if came from a protected route
-          navigate(paths.account.root);
+          navigate(paths.account.root.getHref(data.id));
         },
         onError(error) {
           const normalizedError = normalizeError(error);

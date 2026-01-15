@@ -8,7 +8,7 @@ import useMedia from "@/hooks/useMedia";
 import { HomeIcon } from "lucide-react";
 import { Link } from "react-router";
 import { NavLinks } from "./nav-links";
-import { UserAvatarDropdown } from "./user-avatar-dropdown";
+import { UserDropdown } from "./user-avatar-dropdown";
 
 export const Navbar = () => {
   const isLarge = useMedia("lg");
@@ -43,7 +43,7 @@ export const Navbar = () => {
             </SafeRenderWithErrorBlock>
           )}
           <div className="flex items-center">
-            <UserAvatarDropdown />
+            <UserDropdown />
             <CartIcon
               className="hover:*:fill-primary-500 focus-visible:*:fill-primary-500 cursor-pointer"
               title="cart icon"
