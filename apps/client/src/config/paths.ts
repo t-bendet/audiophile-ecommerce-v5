@@ -34,7 +34,14 @@ export const paths = {
     },
   },
   account: {
-    root: {},
+    root: {
+      path: "/account/:id",
+      getHref: (id: string) => `/account/${id}`,
+    },
+    profile: {
+      path: "/account/profile",
+      getHref: () => "/account/profile",
+    },
     orders: {},
     addresses: {},
     paymentMethods: {},
