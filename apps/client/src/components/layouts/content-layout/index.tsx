@@ -1,8 +1,7 @@
 import { Footer } from "@/components/layouts/content-layout/footer";
 import { Navbar } from "@/components/layouts/content-layout/nav-bar";
 import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
-import { getUserQueryOptions, USER_QUERY_KEY } from "@/lib/auth";
-import { normalizeError } from "@/lib/errors/errors";
+import { USER_QUERY_KEY } from "@/lib/auth";
 import {
   QueryClient,
   useIsFetching,
@@ -16,7 +15,7 @@ const ContentLayout = () => {
 
   const isLoading = isFetching + isMutating > 0;
 
-  console.log({ isLoading, isFetching, isMutating });
+  // console.log({ isLoading, isFetching, isMutating });
   // TODO add auth loader state handling here(or globally), e.g. show a top loading bar when user auth state is being checked/refetched
   return (
     <>
@@ -33,17 +32,6 @@ const ContentLayout = () => {
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
     await queryClient.prefetchQuery(getCategoriesQueryOptions());
-    // TODO find a better approach then just calling  getUser to check auth status,will do for now
-    try {
-      await queryClient.ensureQueryData(getUserQueryOptions());
-    } catch (error) {
-      const normalizedError = normalizeError(error);
-      if (normalizedError.code === "UNAUTHORIZED") {
-        // silently fail, user is not logged in
-      } else {
-        throw normalizedError;
-      }
-    }
     return null;
   };
 

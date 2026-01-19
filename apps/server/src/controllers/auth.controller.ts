@@ -9,6 +9,8 @@ import { Request, RequestHandler, Response } from "express";
 import { authService } from "../services/auth.service.js";
 import catchAsync from "../utils/catchAsync.js";
 import { env } from "../utils/env.js";
+import { getTokenFromRequest } from "../middlewares/auth.middleware.js";
+import { is } from "zod/locales";
 
 /**
  * Auth Controller handles HTTP layer only
@@ -86,13 +88,13 @@ export const logout = (req: Request, res: Response) => {
 
 /**
  * Update user password
- * Gets user ID from request, delegates to service, sends response with new token
+ * Gets user ID from request(after authentication), delegates to service, sends response with new token
  */
 export const updatePassword: RequestHandler = catchAsync(
   async (req, res, next) => {
     // passwordConfirm and currentPassword validation handled in zod schema
     const { currentPassword, password } = req.verified?.body;
-    const userId = req.user?.id;
+    const userId = req.user?.id!;
 
     if (!userId) {
       return next(
@@ -107,5 +109,16 @@ export const updatePassword: RequestHandler = catchAsync(
     );
     const { token, user } = userData;
     createAndSendAuthCookie(user, token, 200, req, res);
+  }
+);
+
+export const getUserAuthStatus: RequestHandler = catchAsync(
+  async (req, res, _next) => {
+    // 1) Get token from request
+    const token = getTokenFromRequest(req);
+    // 2) checkAuthStatus in authService
+    const user = await authService.checkIsAuthenticated(token);
+
+    res.status(200).json(createSingleItemResponse({ isAuthenticated: user }));
   }
 );

@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { paths } from "@/config/paths";
 import { UserDTO } from "@repo/domain";
 import { ChevronsUpDown, IdCardLanyard, LogInIcon, LogOut } from "lucide-react";
+import { Activity } from "react";
 import { NavLink } from "react-router";
 
 function LoggedInUserDropdown({ user }: { user: UserDTO }) {
@@ -90,9 +91,14 @@ export function UserDropdown() {
     v: 0,
   };
 
-  return !user ? (
-    <LoggedInUserDropdown user={user} />
-  ) : (
-    <AnonymousUserDropdown />
+  return (
+    <>
+      <Activity mode={user.id ? "visible" : "hidden"}>
+        <LoggedInUserDropdown user={user} />
+      </Activity>
+      <Activity mode={!user.id ? "visible" : "hidden"}>
+        <AnonymousUserDropdown />
+      </Activity>
+    </>
   );
 }
