@@ -1,9 +1,26 @@
-import { prisma } from "@repo/database";
 import { AppError, ErrorCode, UserPublicInfo } from "@repo/domain";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import jwt from "jsonwebtoken";
+import { authService } from "../services/auth.service.js";
 import catchAsync from "../utils/catchAsync.js";
-import { env } from "../utils/env.js";
+
+export const getTokenFromRequest = (req: Request): string | null => {
+  const { authorization, cookie } = req.headers;
+  let token: string | null = null;
+  if (authorization?.startsWith("Bearer")) {
+    token = authorization.replace("Bearer ", "");
+  } else if (req.cookies?.jwt) {
+    token = req.cookies.jwt;
+  } else if (cookie) {
+    const cookies = Object.fromEntries(
+      cookie.split("; ").map((c) => {
+        const [key, value] = c.split("=");
+        return [key, value];
+      })
+    );
+    token = cookies["jwt"];
+  }
+  return token;
+};
 
 /**
  * Middleware to authenticate users via JWT token.
@@ -14,68 +31,17 @@ import { env } from "../utils/env.js";
 export const authenticate: RequestHandler = catchAsync(
   async (req, _res, next) => {
     // * 1) Getting token and check if it's there
-    const { authorization, cookie } = req.headers;
-    let token;
-    if (authorization?.startsWith("Bearer")) {
-      token = authorization.replace("Bearer ", "");
-    } else if (req.cookies?.jwt) {
-      token = req.cookies.jwt;
-    } else if (cookie) {
-      const cookies = Object.fromEntries(
-        cookie.split("; ").map((c) => {
-          const [key, value] = c.split("=");
-          return [key, value];
-        })
-      );
-      token = cookies["jwt"];
-    }
-    if (!token) {
-      return next(
-        new AppError(
-          "You ar not logged in! Please log in to again access",
-          ErrorCode.UNAUTHORIZED
-        )
-      );
-    }
+    const token = getTokenFromRequest(req);
 
-    //* 2) Validate Token
-    const decoded = jwt.verify(token, env.JWT_SECRET);
-    if (!decoded || typeof decoded === "string") {
-      return next(new AppError("Invalid token", ErrorCode.INVALID_TOKEN));
-    }
-    // //* 3) check if user still exists
-    const currentUser = await prisma.user.findUnique({
-      where: { id: decoded.id },
-    });
-    if (!currentUser) {
-      return next(
-        new AppError(
-          "The user belonging to this token does no longer exists",
-          ErrorCode.UNAUTHORIZED
-        )
-      );
-    }
-    // //* 4) check if user changed password after the token was issued
-    if (currentUser.passwordChangedAt) {
-      const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
-        decoded.iat!,
-        currentUser.passwordChangedAt
-      );
-      if (hasPasswordChanged) {
-        return next(
-          new AppError(
-            "User recently changed password! Please log in to again",
-            ErrorCode.UNAUTHORIZED
-          )
-        );
-      }
-    }
+    const currentUser = await authService.validateTokenAndGetUser(token);
 
     req.user = currentUser;
 
     return next();
   }
 );
+
+// TODO move to auth service
 
 /**
  * Middleware factory to authorize users based on roles.
