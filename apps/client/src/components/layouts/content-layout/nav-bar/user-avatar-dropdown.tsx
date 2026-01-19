@@ -99,7 +99,6 @@ export function UserDropdown() {
       <Activity mode={!user.id ? "visible" : "hidden"}>
         <AnonymousUserDropdown />
       </Activity>
-      ;
     </>
   );
 }
