@@ -5,6 +5,8 @@ import {
   TMutationHandler,
 } from "@/types/api";
 import {
+  AuthCheckStatusResponse,
+  AuthCheckStatusResponseSchema,
   AuthLoginRequest,
   AuthLogoutResponse,
   AuthLogoutResponseSchema,
@@ -22,9 +24,34 @@ import {
 } from "@tanstack/react-query";
 
 export const USER_QUERY_KEY = "authenticated-user";
+export const AUTH_QUERY_KEY = "auth-status";
 
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
+// ** Get Auth Status
+
+type TGetAuthStatus = TBaseHandler<AuthCheckStatusResponse>;
+
+const getAuthStatus: TGetAuthStatus = async ({ signal }) => {
+  const api = getApi();
+  const response = await api.get("/auth/status", { signal });
+  const result = AuthCheckStatusResponseSchema.safeParse(response.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
+};
+
+export const getAuthStatusQueryOptions = () =>
+  queryOptions({
+    queryKey: [AUTH_QUERY_KEY],
+    queryFn: ({ signal }: TBaseRequestParams) => getAuthStatus({ signal }),
+    // TODO refetchOnWindowFocus,stake time, reconsider
+    refetchOnMount: true, // Prevent refetch when component remounts during navigation
+    staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
+    select: (data) => data?.data, // Return only the user DTO
+  });
 
 // ** Get User (Me)
 
@@ -47,11 +74,10 @@ export const getUserQueryOptions = () =>
   queryOptions({
     queryKey: [USER_QUERY_KEY],
     queryFn: ({ signal }: TBaseRequestParams) => getUser({ signal }),
-    // TODO refetchOnWindowFocus ,reconsider
+    // TODO refetchOnWindowFocus,stake time, reconsider
     refetchOnMount: true, // Prevent refetch when component remounts during navigation
-    // staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
+    staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
     select: (data) => data?.data, // Return only the user DTO
-    // initialData: null,
   });
 
 // ** Logout User

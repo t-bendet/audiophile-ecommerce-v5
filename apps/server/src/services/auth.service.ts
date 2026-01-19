@@ -190,15 +190,73 @@ export class AuthService {
    * @param token - JWT token string
    * @returns Decoded token payload
    */
-  verifyToken(token: string): any {
+  private verifyToken(token: string): jwt.JwtPayload {
+    const decoded = jwt.verify(token, env.JWT_SECRET);
+    if (!decoded || typeof decoded === "string") {
+      throw new AppError("Invalid token", ErrorCode.INVALID_TOKEN);
+    }
+    return decoded;
+  }
+
+  async checkIsAuthenticated(token: string | null): Promise<boolean> {
+    const tokenValidationErrors = [
+      ErrorCode.UNAUTHORIZED,
+      ErrorCode.INVALID_TOKEN,
+    ];
     try {
-      return jwt.verify(token, env.JWT_SECRET);
+      await this.validateTokenAndGetUser(token);
+      return true;
     } catch (error) {
+      if (
+        error instanceof AppError &&
+        tokenValidationErrors.includes(error.code)
+      ) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Resolve a user from a JWT token without throwing. Returns null on any failure.
+   */
+  async validateTokenAndGetUser(token: string | null): Promise<UserPublicInfo> {
+    //* 1) Validate Token
+    if (token === null) {
       throw new AppError(
-        "Invalid or expired token",
-        ErrorCode.INVALID_CREDENTIALS
+        "You ar not logged in! Please log in to gain access",
+        ErrorCode.UNAUTHORIZED
       );
     }
+    const decoded = this.verifyToken(token);
+
+    // //* 2) check if user still exists
+    const currentUser = await prisma.user.findUnique({
+      where: { id: decoded.id },
+    });
+
+    if (!currentUser) {
+      throw new AppError(
+        "The user belonging to this token does no longer exists",
+        ErrorCode.UNAUTHORIZED
+      );
+    }
+
+    // //* 3) check if user changed password after the token was issued
+    if (currentUser.passwordChangedAt) {
+      const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
+        decoded.iat!,
+        currentUser.passwordChangedAt
+      );
+      if (hasPasswordChanged) {
+        throw new AppError(
+          "User recently changed password! Please log in to again",
+          ErrorCode.UNAUTHORIZED
+        );
+      }
+    }
+
+    return currentUser;
   }
 }
 
