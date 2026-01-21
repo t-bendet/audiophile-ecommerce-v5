@@ -44,7 +44,7 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
     },
     onSubmit: async ({ value }) => {
       signup(value, {
-        onSuccess: ({ data }) => {
+        onSuccess: () => {
           // Check for redirectTo param (from protected route redirect)
           const redirectTo = searchParams.get("redirectTo");
 
@@ -53,7 +53,7 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
             navigate(redirectTo);
           } else {
             // Default redirect to account page
-            navigate(paths.account.root.getHref(data.id));
+            navigate(paths.account.root.getHref());
           }
         },
         onError(error) {

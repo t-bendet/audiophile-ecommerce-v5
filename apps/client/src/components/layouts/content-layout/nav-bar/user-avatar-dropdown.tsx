@@ -10,12 +10,45 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { paths } from "@/config/paths";
+import { useToast } from "@/hooks/use-toast";
+import { getApi } from "@/lib/api-client";
+import { USER_QUERY_KEY } from "@/lib/auth";
 import { UserDTO } from "@repo/domain";
+import { useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, IdCardLanyard, LogInIcon, LogOut } from "lucide-react";
 import { Activity } from "react";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 
 function LoggedInUserDropdown({ user }: { user: UserDTO }) {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handleLogout = async () => {
+    try {
+      const api = getApi();
+      await api.get("/auth/logout");
+
+      // Clear user from cache
+      queryClient.setQueryData([USER_QUERY_KEY], null);
+
+      // Redirect to home
+      navigate(paths.home.getHref());
+
+      toast({
+        title: "Logged out successfully",
+        description: "See you soon!",
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "Please try again",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,8 +68,7 @@ function LoggedInUserDropdown({ user }: { user: UserDTO }) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
 
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>
           Log out
           <LogOut className="text-primary-700 ml-auto size-4" />
         </DropdownMenuItem>
@@ -80,7 +112,7 @@ function AnonymousUserDropdown() {
 }
 
 export function UserDropdown() {
-  // TODO demo purpose only,replace with actual user data
+  // TODO demo purpose only,replace with actual user data,add user call
   const user = {
     id: "693a9c77b06139c25ec24112",
     name: "admin",
