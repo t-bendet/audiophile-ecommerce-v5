@@ -28,10 +28,7 @@ const createAppRouter = (queryClient: QueryClient) =>
       errorElement: <MainErrorFallback />,
       middleware: [performanceMiddleware],
       loader: async () => {
-        const data = await queryClient.ensureQueryData(
-          getAuthStatusQueryOptions(),
-        );
-        console.log(data, " Root Layout Loader Running");
+        await queryClient.ensureQueryData(getAuthStatusQueryOptions());
         await queryClient.prefetchQuery(getCategoriesQueryOptions());
         return null;
       },

@@ -16,7 +16,6 @@ export default AuthLayout;
 
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    const data = await queryClient.ensureQueryData(getAuthStatusQueryOptions());
-    console.log(data, "Auth Layout Loader Running");
+    await queryClient.ensureQueryData(getAuthStatusQueryOptions());
     return null;
   };
