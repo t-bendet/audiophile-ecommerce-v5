@@ -76,7 +76,7 @@ export type AuthLogoutResponse = EmptyResponse;
 export const AuthCheckStatusResponseSchema = SingleItemResponseSchema(
   z.object({
     isAuthenticated: z.boolean(),
-  })
+  }),
 );
 
 export type AuthCheckStatusResponse = SingleItemResponse<{
