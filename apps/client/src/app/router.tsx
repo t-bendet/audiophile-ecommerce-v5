@@ -6,6 +6,7 @@ import { MainErrorFallback } from "@/components/errors/main";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import { paths } from "@/config/paths";
 import { performanceMiddleware } from "@/app/middleware/performance";
+import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 
 // import { ProtectedRoute } from "@/lib/auth";
 
@@ -25,6 +26,10 @@ const createAppRouter = (queryClient: QueryClient) =>
       element: <RootLayout />,
       errorElement: <MainErrorFallback />,
       middleware: [performanceMiddleware],
+      loader: async () => {
+        await queryClient.prefetchQuery(getCategoriesQueryOptions());
+        return null;
+      },
       children: [
         {
           lazy: () =>
@@ -68,6 +73,19 @@ const createAppRouter = (queryClient: QueryClient) =>
               ],
             },
             {
+              path: "*",
+              lazy: () =>
+                import("./routes/not-found").then(convert(queryClient)),
+            },
+          ],
+        },
+        {
+          lazy: () =>
+            import("@/components/layouts/auth-layout").then(
+              convert(queryClient),
+            ),
+          children: [
+            {
               lazy: () =>
                 import("./routes/auth/login").then(convert(queryClient)),
               path: paths.auth.login.path,
@@ -76,11 +94,6 @@ const createAppRouter = (queryClient: QueryClient) =>
               lazy: () =>
                 import("./routes/auth/signup").then(convert(queryClient)),
               path: paths.auth.signup.path,
-            },
-            {
-              path: "*",
-              lazy: () =>
-                import("./routes/not-found").then(convert(queryClient)),
             },
           ],
         },
