@@ -19,25 +19,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useLogin, USER_QUERY_KEY } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { normalizeError } from "@/lib/errors/errors";
+import { AuthLoginRequestSchema } from "@repo/domain";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router";
-import z from "zod";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
-const loginSchema = z.object({
-  email: z.email("Please provide a valid email!"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(20, "Password must be at most 20 characters"),
-});
+// TODO unify similar code with signup form,maybe in layout component
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+export function LoginForm({ className }: React.ComponentProps<"div">) {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const queryClient = useQueryClient();
   const { mutate: login, isPending } = useLogin(queryClient);
@@ -47,14 +39,21 @@ export function LoginForm({
       password: "",
     },
     validators: {
-      onSubmit: loginSchema,
+      onSubmit: AuthLoginRequestSchema.shape.body,
     },
 
     onSubmit: async ({ value }) => {
       login(value, {
         onSuccess: ({ data }) => {
-          // TODO add redirect logic if came from a protected route
-          navigate(paths.account.root.getHref(data.id));
+          const redirectTo = searchParams.get("redirectTo");
+
+          if (redirectTo) {
+            // Redirect back to original destination
+            navigate(redirectTo);
+          } else {
+            // Default redirect to account page
+            navigate(paths.account.root.getHref(data.id));
+          }
         },
         onError(error) {
           const normalizedError = normalizeError(error);
@@ -70,7 +69,7 @@ export function LoginForm({
     },
   });
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6", className)}>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl capitalize">welcome back</CardTitle>
