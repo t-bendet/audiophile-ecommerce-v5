@@ -8,5 +8,3 @@ export default function LoginPage() {
     </Section>
   );
 }
-
-// tracking-200 flex w-full max-w-sm flex-col gap-6
