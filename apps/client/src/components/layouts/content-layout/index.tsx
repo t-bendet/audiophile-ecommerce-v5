@@ -1,6 +1,5 @@
 import { Footer } from "@/components/layouts/content-layout/footer";
 import { Navbar } from "@/components/layouts/content-layout/nav-bar";
-import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 import { USER_QUERY_KEY } from "@/lib/auth";
 import {
   QueryClient,
@@ -17,6 +16,7 @@ const ContentLayout = () => {
 
   // console.log({ isLoading, isFetching, isMutating });
   // TODO add auth loader state handling here(or globally), e.g. show a top loading bar when user auth state is being checked/refetched
+  // TODO move to root layout later
   return (
     <>
       {isLoading && (
@@ -30,9 +30,8 @@ const ContentLayout = () => {
 };
 
 export const clientLoader =
-  (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    await queryClient.prefetchQuery(getCategoriesQueryOptions());
-    return null;
+  (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
+    console.log("client loader for content layout");
   };
 
 export default ContentLayout;
