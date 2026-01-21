@@ -44,6 +44,7 @@ const getAuthStatus: TGetAuthStatus = async ({ signal }) => {
     throw result.error;
   }
 };
+// TODO check if select is working properly here
 
 export const getAuthStatusQueryOptions = () =>
   queryOptions({
@@ -52,6 +53,7 @@ export const getAuthStatusQueryOptions = () =>
     // TODO refetchOnWindowFocus,stake time, reconsider
     refetchOnMount: false, // Prevent refetch when component remounts during navigation
     staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
+    select: (data) => data?.data, // Return only the user DTO
   });
 
 // ** Get User (Me)
