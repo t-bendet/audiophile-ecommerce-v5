@@ -44,7 +44,7 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
 
     onSubmit: async ({ value }) => {
       login(value, {
-        onSuccess: ({ data }) => {
+        onSuccess: () => {
           const redirectTo = searchParams.get("redirectTo");
 
           if (redirectTo) {
@@ -52,7 +52,7 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
             navigate(redirectTo);
           } else {
             // Default redirect to account page
-            navigate(paths.account.root.getHref(data.id));
+            navigate(paths.account.root.getHref());
           }
         },
         onError(error) {

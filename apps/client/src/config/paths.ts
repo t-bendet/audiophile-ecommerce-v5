@@ -35,8 +35,8 @@ export const paths = {
   },
   account: {
     root: {
-      path: "/account/:id",
-      getHref: (id: string) => `/account/${id}`,
+      path: "/account",
+      getHref: () => "/account",
     },
     profile: {
       path: "/account/profile",
