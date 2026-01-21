@@ -5,6 +5,8 @@ import { Container } from "@/components/ui/container";
 // import { ProfileForm } from "@/components/account/profile-form";
 // import { SecurityForm } from "@/components/account/security-form";
 
+// TODO implement actual forms and logic for profile and security
+
 export default function ProfilePage() {
   return (
     <Container>
