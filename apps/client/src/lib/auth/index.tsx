@@ -24,7 +24,7 @@ import {
 } from "@tanstack/react-query";
 
 export const USER_QUERY_KEY = "authenticated-user";
-export const AUTH_QUERY_KEY = "auth-status";
+export const AUTH_STATUS_QUERY_KEY = "auth-status";
 
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
@@ -47,12 +47,11 @@ const getAuthStatus: TGetAuthStatus = async ({ signal }) => {
 
 export const getAuthStatusQueryOptions = () =>
   queryOptions({
-    queryKey: [AUTH_QUERY_KEY],
+    queryKey: [AUTH_STATUS_QUERY_KEY] as const,
     queryFn: ({ signal }: TBaseRequestParams) => getAuthStatus({ signal }),
     // TODO refetchOnWindowFocus,stake time, reconsider
-    refetchOnMount: true, // Prevent refetch when component remounts during navigation
+    refetchOnMount: false, // Prevent refetch when component remounts during navigation
     staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
-    select: (data) => data?.data, // Return only the user DTO
   });
 
 // ** Get User (Me)

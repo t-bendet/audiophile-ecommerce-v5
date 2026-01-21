@@ -1,3 +1,4 @@
+import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { QueryClient } from "@tanstack/react-query";
 import { LoaderFunctionArgs, Outlet } from "react-router";
 
@@ -14,6 +15,8 @@ const AuthLayout = () => {
 export default AuthLayout;
 
 export const clientLoader =
-  (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
-    console.log({ context });
+  (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
+    const data = await queryClient.ensureQueryData(getAuthStatusQueryOptions());
+    console.log(data, "Auth Layout Loader Running");
+    return null;
   };

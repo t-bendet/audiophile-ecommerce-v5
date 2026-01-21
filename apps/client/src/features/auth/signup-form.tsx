@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { paths } from "@/config/paths";
 import { useToast } from "@/hooks/use-toast";
-import { USER_QUERY_KEY, useSignup } from "@/lib/auth";
+import { AUTH_STATUS_QUERY_KEY, USER_QUERY_KEY, useSignup } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { normalizeError } from "@/lib/errors/errors";
 import { AuthSignUpRequestSchema } from "@repo/domain";
@@ -45,10 +45,16 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
     },
     onSubmit: async ({ value }) => {
       signup(value, {
-        onSuccess: () => {
+        onSuccess: async () => {
           // Check for redirectTo param (from protected route redirect)
           const redirectTo = searchParams.get("redirectTo");
-
+          await queryClient.invalidateQueries({
+            queryKey: [AUTH_STATUS_QUERY_KEY],
+          });
+          // TODO remove after using the hook?
+          await queryClient.refetchQueries({
+            queryKey: [AUTH_STATUS_QUERY_KEY],
+          });
           if (redirectTo) {
             // Redirect back to original destination
             navigate(redirectTo);
@@ -66,6 +72,7 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
             duration: 3000,
           });
           queryClient.setQueryData([USER_QUERY_KEY], null);
+          queryClient.invalidateQueries({ queryKey: [AUTH_STATUS_QUERY_KEY] });
         },
       });
     },
