@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { paths } from "@/config/paths";
 import { useToast } from "@/hooks/use-toast";
-import { useLogin, USER_QUERY_KEY } from "@/lib/auth";
+import { AUTH_STATUS_QUERY_KEY, useLogin, USER_QUERY_KEY } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { normalizeError } from "@/lib/errors/errors";
 import { AuthLoginRequestSchema } from "@repo/domain";
@@ -43,9 +43,15 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
 
     onSubmit: async ({ value }) => {
       login(value, {
-        onSuccess: () => {
+        onSuccess: async () => {
           const redirectTo = searchParams.get("redirectTo");
-
+          await queryClient.invalidateQueries({
+            queryKey: [AUTH_STATUS_QUERY_KEY],
+          });
+          // TODO remove after using the hook?
+          await queryClient.refetchQueries({
+            queryKey: [AUTH_STATUS_QUERY_KEY],
+          });
           if (redirectTo) {
             // Redirect back to original destination
             navigate(redirectTo);
@@ -54,7 +60,7 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
             navigate(paths.account.root.getHref());
           }
         },
-        onError(error) {
+        onError: async (error) => {
           const normalizedError = normalizeError(error);
           toast({
             title: "Login Failed",
@@ -63,6 +69,7 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
             duration: 3000,
           });
           queryClient.setQueryData([USER_QUERY_KEY], null);
+          queryClient.invalidateQueries({ queryKey: [AUTH_STATUS_QUERY_KEY] });
         },
       });
     },

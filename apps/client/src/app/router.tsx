@@ -1,12 +1,13 @@
+import { performanceMiddleware } from "@/app/middleware/performance";
+import { MainErrorFallback } from "@/components/errors/main";
+import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import { RootLayout } from "@/components/layouts/root-layout";
+import { paths } from "@/config/paths";
+import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
+import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
-import { MainErrorFallback } from "@/components/errors/main";
-import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
-import { paths } from "@/config/paths";
-import { performanceMiddleware } from "@/app/middleware/performance";
-import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
 
 // import { ProtectedRoute } from "@/lib/auth";
 
@@ -27,6 +28,10 @@ const createAppRouter = (queryClient: QueryClient) =>
       errorElement: <MainErrorFallback />,
       middleware: [performanceMiddleware],
       loader: async () => {
+        const data = await queryClient.ensureQueryData(
+          getAuthStatusQueryOptions(),
+        );
+        console.log(data, " Root Layout Loader Running");
         await queryClient.prefetchQuery(getCategoriesQueryOptions());
         return null;
       },
