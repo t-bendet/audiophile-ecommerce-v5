@@ -30,6 +30,8 @@ export const AUTH_QUERY_KEY = "auth-status";
 // these are not part of features as this is a module shared across features
 // ** Get Auth Status
 
+// TODO add enable/disable for logout and get user based on use case
+
 type TGetAuthStatus = TBaseHandler<AuthCheckStatusResponse>;
 
 const getAuthStatus: TGetAuthStatus = async ({ signal }) => {
@@ -99,8 +101,8 @@ export const useLogoutUser = () => {
   return useQuery({
     queryKey: [USER_QUERY_KEY],
     queryFn: logoutUser,
-    staleTime: Infinity, // User data usually doesn't go stale quickly
-    select: (data) => data.data, // Return only the user DTO
+    staleTime: Infinity,
+    select: (data) => data.data,
   });
 };
 
