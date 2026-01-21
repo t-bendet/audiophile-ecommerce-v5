@@ -5,9 +5,9 @@ import { LoaderFunctionArgs, Outlet } from "react-router";
 
 export default function UserAreaLayout() {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <main className="flex min-h-dvh flex-col">
       <Outlet />
-    </div>
+    </main>
   );
 }
 
