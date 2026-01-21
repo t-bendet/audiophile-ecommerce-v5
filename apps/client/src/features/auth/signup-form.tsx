@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Container } from "@/components/ui/container";
 import {
   Field,
   FieldDescription,
@@ -71,7 +72,7 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
   });
 
   return (
-    <div className={cn("flex flex-col gap-6", className)}>
+    <Container classes={cn("flex flex-col gap-6", className)}>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Create your account</CardTitle>
@@ -149,7 +150,10 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
                     const isInvalid =
                       field.state.meta.isTouched && !field.state.meta.isValid;
                     return (
-                      <Field data-invalid={isInvalid}>
+                      <Field
+                        data-invalid={isInvalid}
+                        className="justify-between"
+                      >
                         <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                         <Input
                           id={field.name}
@@ -219,6 +223,6 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </FieldDescription>
-    </div>
+    </Container>
   );
 }

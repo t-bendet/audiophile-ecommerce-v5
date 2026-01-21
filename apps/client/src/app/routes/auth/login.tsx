@@ -1,9 +1,12 @@
+import { Section } from "@/components/ui/section";
 import { LoginForm } from "@/features/auth/login-form";
 
 export default function LoginPage() {
   return (
-    <section className="tracking-200 flex w-full max-w-sm flex-col gap-6">
+    <Section classes="tracking-200 max-w-md min-w-xs">
       <LoginForm />
-    </section>
+    </Section>
   );
 }
+
+// tracking-200 flex w-full max-w-sm flex-col gap-6

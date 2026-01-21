@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Container } from "@/components/ui/container";
 import {
   Field,
   FieldDescription,
@@ -24,8 +25,6 @@ import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
-// TODO unify similar code with signup form,maybe in layout component
-// TODO add container and section if needed
 export function LoginForm({ className }: React.ComponentProps<"div">) {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -69,7 +68,7 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
     },
   });
   return (
-    <div className={cn("flex flex-col gap-6", className)}>
+    <Container classes={cn("flex flex-col gap-6", className)}>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl capitalize">welcome back</CardTitle>
@@ -118,12 +117,12 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
                     field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
-                      <div className="flex items-center">
+                      <div className="flex flex-wrap justify-between">
                         <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                         {/* TODO implement forgot password functionality */}
                         <a
                           href="#"
-                          className="ml-auto text-sm underline-offset-4 hover:underline"
+                          className="text-sm underline-offset-4 hover:underline"
                         >
                           Forgot your password?
                         </a>
@@ -164,6 +163,6 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </FieldDescription>
-    </div>
+    </Container>
   );
 }
