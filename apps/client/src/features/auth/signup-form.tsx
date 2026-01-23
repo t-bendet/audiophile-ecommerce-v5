@@ -45,25 +45,19 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
     },
     onSubmit: async ({ value }) => {
       signup(value, {
-        onSuccess: async () => {
+        onSuccess: async ({ data }) => {
           // Check for redirectTo param (from protected route redirect)
           const redirectTo = searchParams.get("redirectTo");
-          await queryClient.invalidateQueries({
-            queryKey: [AUTH_STATUS_QUERY_KEY],
-          });
-          // TODO remove after using the hook?
           await queryClient.refetchQueries({
             queryKey: [AUTH_STATUS_QUERY_KEY],
           });
-          if (redirectTo) {
-            // Redirect back to original destination
-            navigate(redirectTo);
-          } else {
-            // Default redirect to account page
-            navigate(paths.account.root.getHref());
-          }
+          await queryClient.setQueryData([USER_QUERY_KEY], data);
+
+          redirectTo
+            ? navigate(redirectTo)
+            : navigate(paths.account.root.getHref());
         },
-        onError(error) {
+        async onError(error) {
           const normalizedError = normalizeError(error);
           toast({
             title: "Signup Failed",
@@ -71,8 +65,10 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
             variant: "destructive",
             duration: 3000,
           });
-          queryClient.setQueryData([USER_QUERY_KEY], null);
-          queryClient.invalidateQueries({ queryKey: [AUTH_STATUS_QUERY_KEY] });
+          await queryClient.setQueryData([USER_QUERY_KEY], null);
+          await queryClient.invalidateQueries({
+            queryKey: [AUTH_STATUS_QUERY_KEY],
+          });
         },
       });
     },

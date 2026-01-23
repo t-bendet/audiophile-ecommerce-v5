@@ -3,12 +3,10 @@ import { MainErrorFallback } from "@/components/errors/main";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import { RootLayout } from "@/components/layouts/root-layout";
 import { paths } from "@/config/paths";
-import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
-import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
-
+import { clientLoader as rootLoader } from "@/components/layouts/root-layout";
 // import { ProtectedRoute } from "@/lib/auth";
 
 const convert = (queryClient: QueryClient) => (m: any) => {
@@ -27,11 +25,7 @@ const createAppRouter = (queryClient: QueryClient) =>
       element: <RootLayout />,
       errorElement: <MainErrorFallback />,
       middleware: [performanceMiddleware],
-      loader: async () => {
-        await queryClient.ensureQueryData(getAuthStatusQueryOptions());
-        await queryClient.prefetchQuery(getCategoriesQueryOptions());
-        return null;
-      },
+      loader: rootLoader(queryClient),
       children: [
         {
           lazy: () =>
@@ -63,7 +57,9 @@ const createAppRouter = (queryClient: QueryClient) =>
                 import("@/components/layouts/user-area-layout").then(
                   convert(queryClient),
                 ),
+              id: "account",
               path: paths.account.root.path,
+
               children: [
                 {
                   lazy: () =>
