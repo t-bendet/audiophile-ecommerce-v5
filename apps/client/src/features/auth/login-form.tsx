@@ -43,22 +43,16 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
 
     onSubmit: async ({ value }) => {
       login(value, {
-        onSuccess: async () => {
+        onSuccess: async ({ data }) => {
           const redirectTo = searchParams.get("redirectTo");
-          await queryClient.invalidateQueries({
-            queryKey: [AUTH_STATUS_QUERY_KEY],
-          });
-          // TODO remove after using the hook?
           await queryClient.refetchQueries({
             queryKey: [AUTH_STATUS_QUERY_KEY],
           });
-          if (redirectTo) {
-            // Redirect back to original destination
-            navigate(redirectTo);
-          } else {
-            // Default redirect to account page
-            navigate(paths.account.root.getHref());
-          }
+          console.log(data, "login submission");
+          await queryClient.setQueryData([USER_QUERY_KEY], data);
+          redirectTo
+            ? navigate(redirectTo)
+            : navigate(paths.account.root.getHref());
         },
         onError: async (error) => {
           const normalizedError = normalizeError(error);
@@ -68,8 +62,10 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
             variant: "destructive",
             duration: 3000,
           });
-          queryClient.setQueryData([USER_QUERY_KEY], null);
-          queryClient.invalidateQueries({ queryKey: [AUTH_STATUS_QUERY_KEY] });
+          await queryClient.setQueryData([USER_QUERY_KEY], null);
+          await queryClient.invalidateQueries({
+            queryKey: [AUTH_STATUS_QUERY_KEY],
+          });
         },
       });
     },
