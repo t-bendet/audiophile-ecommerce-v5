@@ -45,14 +45,9 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
     },
     onSubmit: async ({ value }) => {
       signup(value, {
-        onSuccess: async ({ data }) => {
+        onSuccess: async () => {
           // Check for redirectTo param (from protected route redirect)
           const redirectTo = searchParams.get("redirectTo");
-          await queryClient.refetchQueries({
-            queryKey: [AUTH_STATUS_QUERY_KEY],
-          });
-          await queryClient.setQueryData([USER_QUERY_KEY], data);
-
           redirectTo
             ? navigate(redirectTo)
             : navigate(paths.account.root.getHref());
@@ -66,9 +61,6 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
             duration: 3000,
           });
           await queryClient.setQueryData([USER_QUERY_KEY], null);
-          await queryClient.invalidateQueries({
-            queryKey: [AUTH_STATUS_QUERY_KEY],
-          });
         },
       });
     },

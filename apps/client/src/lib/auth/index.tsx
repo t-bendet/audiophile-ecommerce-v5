@@ -10,18 +10,11 @@ import {
   AuthLoginRequest,
   AuthLogoutResponse,
   AuthLogoutResponseSchema,
-  AuthResponse,
-  AuthResponseSchema,
   AuthSignUpRequest,
   UserDTOResponse,
   UserDTOResponseSchema,
 } from "@repo/domain";
-import {
-  QueryClient,
-  queryOptions,
-  useMutation,
-  useQuery,
-} from "@tanstack/react-query";
+import { QueryClient, queryOptions, useMutation } from "@tanstack/react-query";
 
 export const USER_QUERY_KEY = "authenticated-user";
 export const AUTH_STATUS_QUERY_KEY = "auth-status";
@@ -29,8 +22,6 @@ export const AUTH_STATUS_QUERY_KEY = "auth-status";
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
 // ** Get Auth Status
-
-// TODO add enable/disable for logout and get user based on use case
 
 type TGetAuthStatus = TBaseHandler<AuthCheckStatusResponse>;
 
@@ -44,13 +35,11 @@ const getAuthStatus: TGetAuthStatus = async ({ signal }) => {
     throw result.error;
   }
 };
-// TODO check if select is working properly here
 
 export const getAuthStatusQueryOptions = () =>
   queryOptions({
     queryKey: [AUTH_STATUS_QUERY_KEY] as const,
     queryFn: ({ signal }: TBaseRequestParams) => getAuthStatus({ signal }),
-    // TODO refetchOnWindowFocus,stake time, reconsider
     refetchOnMount: false, // Prevent refetch when component remounts during navigation
     staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
     select: (data) => data?.data, // Return only the user DTO
@@ -75,21 +64,22 @@ const getUser: TGetUser = async ({ signal }) => {
 
 export const getUserQueryOptions = () =>
   queryOptions({
-    queryKey: [USER_QUERY_KEY],
+    queryKey: [USER_QUERY_KEY] as const,
     queryFn: ({ signal }: TBaseRequestParams) => getUser({ signal }),
-    // TODO refetchOnWindowFocus,stake time, reconsider
-    refetchOnMount: true, // Prevent refetch when component remounts during navigation
+    refetchOnMount: false, // Prevent refetch when component remounts during navigation
     staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
-    select: (data) => data?.data, // Return only the user DTO
+    select: (data) => {
+      return data?.data;
+    },
   });
 
 // ** Logout User
 
-type TGetLogoutUser = TBaseHandler<AuthLogoutResponse>;
+type TPostLogoutUser = TMutationHandler<AuthLogoutResponse, {}>;
 
-const logoutUser: TGetLogoutUser = async ({ signal }) => {
+const logoutUser: TPostLogoutUser = async () => {
   const api = getApi();
-  const response = await api.get("/auth/logout", { signal });
+  const response = await api.post("/auth/logout");
   const result = AuthLogoutResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
@@ -98,18 +88,23 @@ const logoutUser: TGetLogoutUser = async ({ signal }) => {
   }
 };
 
-export const useLogoutUser = () => {
-  return useQuery({
-    queryKey: [USER_QUERY_KEY],
-    queryFn: logoutUser,
-    staleTime: Infinity,
-    select: (data) => data.data,
+export const useLogoutUser = (queryClient: QueryClient) => {
+  return useMutation({
+    mutationKey: ["auth-logout"],
+    mutationFn: logoutUser,
+    onSuccess: () => {
+      // Manually set the user data in the cache after a successful logout
+      queryClient.setQueryData([USER_QUERY_KEY], null);
+      return queryClient.invalidateQueries({
+        queryKey: [AUTH_STATUS_QUERY_KEY],
+      });
+    },
   });
 };
 
 // ** Login User
 
-type TPostLoginUser = TMutationHandler<AuthResponse, AuthLoginRequest>;
+type TPostLoginUser = TMutationHandler<UserDTOResponse, AuthLoginRequest>;
 
 const postLoginUser: TPostLoginUser = async ({ email, password }) => {
   const api = getApi();
@@ -117,7 +112,7 @@ const postLoginUser: TPostLoginUser = async ({ email, password }) => {
     email,
     password,
   });
-  const result = AuthResponseSchema.safeParse(response.data);
+  const result = UserDTOResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {
@@ -128,17 +123,19 @@ const postLoginUser: TPostLoginUser = async ({ email, password }) => {
 export const useLogin = (queryClient: QueryClient) => {
   return useMutation({
     mutationFn: postLoginUser,
-    mutationKey: [USER_QUERY_KEY],
-    onSuccess: (user) => {
+    mutationKey: ["auth-login"],
+    onSuccess: async () => {
       // Manually set the user data in the cache after a successful login
-      queryClient.setQueryData([USER_QUERY_KEY], user.data);
+      await queryClient.invalidateQueries({
+        queryKey: [AUTH_STATUS_QUERY_KEY],
+      });
     },
   });
 };
 
 // ** Signup User
 
-type TPostSignupUser = TMutationHandler<AuthResponse, AuthSignUpRequest>;
+type TPostSignupUser = TMutationHandler<UserDTOResponse, AuthSignUpRequest>;
 
 const postSignupUser: TPostSignupUser = async ({
   name,
@@ -154,7 +151,7 @@ const postSignupUser: TPostSignupUser = async ({
     passwordConfirm,
   });
 
-  const result = AuthResponseSchema.safeParse(response.data);
+  const result = UserDTOResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {
@@ -165,10 +162,13 @@ const postSignupUser: TPostSignupUser = async ({
 export const useSignup = (queryClient: QueryClient) => {
   return useMutation({
     mutationFn: postSignupUser,
-    mutationKey: [USER_QUERY_KEY],
+    mutationKey: ["auth-signup"],
     onSuccess: (user) => {
       // Manually set the user data in the cache after a successful login
       queryClient.setQueryData([USER_QUERY_KEY], user.data);
+      return queryClient.invalidateQueries({
+        queryKey: [AUTH_STATUS_QUERY_KEY],
+      });
     },
   });
 };
