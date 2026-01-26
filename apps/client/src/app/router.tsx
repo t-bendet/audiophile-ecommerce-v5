@@ -57,7 +57,6 @@ const createAppRouter = (queryClient: QueryClient) =>
                 import("@/components/layouts/user-area-layout").then(
                   convert(queryClient),
                 ),
-              id: "account",
               path: paths.account.root.path,
 
               children: [

@@ -1,8 +1,14 @@
-import { USER_QUERY_KEY } from "@/lib/auth";
-import { useIsFetching, useIsMutating } from "@tanstack/react-query";
-import { Outlet, ScrollRestoration } from "react-router";
+import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
+import { getAuthStatusQueryOptions, USER_QUERY_KEY } from "@/lib/auth";
+import {
+  QueryClient,
+  useIsFetching,
+  useIsMutating,
+} from "@tanstack/react-query";
+import { LoaderFunctionArgs, Outlet, ScrollRestoration } from "react-router";
 
 // TODO add AUTH_STATUS_QUERY_KEY based loading bar here to cover all pages
+// TODO add auth loader state handling here(or globally), e.g. show a top loading bar when user auth state is being checked/refetched
 
 export function RootLayout() {
   const isFetching = useIsFetching({ queryKey: [USER_QUERY_KEY] });
@@ -10,8 +16,6 @@ export function RootLayout() {
 
   const isLoading = isFetching + isMutating > 0;
 
-  // console.log({ isLoading, isFetching, isMutating });
-  // TODO add auth loader state handling here(or globally), e.g. show a top loading bar when user auth state is being checked/refetched
   return (
     <div className="flex min-h-dvh flex-col">
       {isLoading && (
@@ -22,3 +26,10 @@ export function RootLayout() {
     </div>
   );
 }
+
+export const clientLoader =
+  (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
+    await queryClient.ensureQueryData(getAuthStatusQueryOptions());
+    await queryClient.prefetchQuery(getCategoriesQueryOptions());
+    return null;
+  };

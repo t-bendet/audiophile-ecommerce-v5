@@ -11,29 +11,42 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { paths } from "@/config/paths";
 import { useToast } from "@/hooks/use-toast";
-import { getApi } from "@/lib/api-client";
-import { USER_QUERY_KEY } from "@/lib/auth";
-import { UserDTO } from "@repo/domain";
-import { useQueryClient } from "@tanstack/react-query";
+import {
+  getAuthStatusQueryOptions,
+  getUserQueryOptions,
+  useLogoutUser,
+} from "@/lib/auth";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, IdCardLanyard, LogInIcon, LogOut } from "lucide-react";
-import { Activity } from "react";
 import { NavLink, useNavigate } from "react-router";
 
-function LoggedInUserDropdown({ user }: { user: UserDTO }) {
+function LoggedInUserDropdown() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { mutate: logout } = useLogoutUser(queryClient);
+  const { data: user, isLoading, isError } = useQuery(getUserQueryOptions());
+  // TODO usesuspense with a fallback loader
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (isError) {
+    return <div>Error loading user data</div>;
+  }
+  if (!user) {
+    return <div className="bg-black">No user data available</div>;
+  }
 
   const handleLogout = async () => {
     try {
-      const api = getApi();
-      await api.get("/auth/logout");
-
-      // Clear user from cache
-      queryClient.setQueryData([USER_QUERY_KEY], null);
-
-      // Redirect to home
-      navigate(paths.home.getHref());
+      logout(
+        {},
+        {
+          onSuccess: () => {
+            navigate(paths.home.getHref(), { replace: true });
+          },
+        },
+      );
 
       toast({
         title: "Logged out successfully",
@@ -112,25 +125,20 @@ function AnonymousUserDropdown() {
 }
 
 export function UserDropdown() {
-  // TODO demo purpose only,replace with actual user data,add user call
-  const user = {
-    id: "693a9c77b06139c25ec24112",
-    name: "admin",
-    email: "admin@example.com",
-    role: "ADMIN" as const,
-    emailVerified: false,
-    createdAt: new Date("2023-10-11T10:20:30Z"),
-    v: 0,
-  };
+  const { data, isLoading, isError } = useQuery(getAuthStatusQueryOptions());
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (isError) {
+    return <div>Error loading user data</div>;
+  }
+  if (!data) {
+    return <div className="bg-black">No user data available</div>;
+  }
 
-  return (
-    <>
-      <Activity mode={user.id ? "visible" : "hidden"}>
-        <LoggedInUserDropdown user={user} />
-      </Activity>
-      <Activity mode={!user.id ? "visible" : "hidden"}>
-        <AnonymousUserDropdown />
-      </Activity>
-    </>
+  return data.isAuthenticated ? (
+    <LoggedInUserDropdown />
+  ) : (
+    <AnonymousUserDropdown />
   );
 }
