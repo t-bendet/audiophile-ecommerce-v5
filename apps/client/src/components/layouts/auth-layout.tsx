@@ -3,9 +3,6 @@ import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import { LoaderFunctionArgs, Outlet, redirect } from "react-router";
 
-// TODO add go home link if user lands here by mistake
-// TODO add refresh token handling here if needed
-
 const AuthLayout = () => {
   useQuery(getAuthStatusQueryOptions());
   return (
