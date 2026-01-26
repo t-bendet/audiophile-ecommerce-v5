@@ -35,19 +35,13 @@ export const paths = {
   },
   account: {
     root: {
-      path: "/account/:id",
-      getHref: (id: string) => `/account/${id}`,
+      path: "/account",
+      getHref: () => "/account",
     },
     profile: {
       path: "/account/profile",
       getHref: () => "/account/profile",
     },
-    orders: {},
-    addresses: {},
-    paymentMethods: {},
-    settings: {},
-    wishlist: {},
-    reviews: {},
     loginAndSecurity: {
       resetPassword: {},
       verifyEmail: {},
@@ -56,6 +50,12 @@ export const paths = {
       refreshToken: {},
       forgotPassword: {},
     },
+    orders: {},
+    addresses: {},
+    paymentMethods: {},
+    settings: {},
+    wishlist: {},
+    reviews: {},
   },
   admin: {
     root: {},

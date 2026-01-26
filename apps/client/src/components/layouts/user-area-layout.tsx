@@ -1,30 +1,26 @@
-import { getUserQueryOptions } from "@/lib/auth";
-import { normalizeError } from "@/lib/errors/errors";
+import { paths } from "@/config/paths";
+import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { QueryClient } from "@tanstack/react-query";
-import { LoaderFunctionArgs, Outlet } from "react-router";
+import { LoaderFunctionArgs, Outlet, redirect } from "react-router";
 
 export default function UserAreaLayout() {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <main className="flex min-h-dvh flex-col">
       <Outlet />
-    </div>
+    </main>
   );
 }
 
 export const clientLoader =
   (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
-    console.log({ context });
-    console.log("User Area Loader Running");
-    // TODO find a better approach then just calling  getUser to check auth status,will do for now
-    try {
-      await queryClient.ensureQueryData(getUserQueryOptions());
-    } catch (error) {
-      const normalizedError = normalizeError(error);
-      if (normalizedError.code === "UNAUTHORIZED") {
-        // silently fail, user is not logged in
-      } else {
-        throw normalizedError;
-      }
+    const authResponse = await queryClient.ensureQueryData(
+      getAuthStatusQueryOptions(),
+    );
+    if (!authResponse.data.isAuthenticated) {
+      // User is not logged in, redirect to login page
+      const url = new URL(context.request.url);
+      const redirectTo = url.pathname + url.search;
+      throw redirect(paths.auth.login.getHref(redirectTo));
     }
     return null;
   };

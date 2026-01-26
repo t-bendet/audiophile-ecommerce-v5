@@ -1,12 +1,12 @@
+import { performanceMiddleware } from "@/app/middleware/performance";
+import { MainErrorFallback } from "@/components/errors/main";
+import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import { RootLayout } from "@/components/layouts/root-layout";
+import { paths } from "@/config/paths";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
-import { MainErrorFallback } from "@/components/errors/main";
-import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
-import { paths } from "@/config/paths";
-import { performanceMiddleware } from "@/app/middleware/performance";
-
+import { clientLoader as rootLoader } from "@/components/layouts/root-layout";
 // import { ProtectedRoute } from "@/lib/auth";
 
 const convert = (queryClient: QueryClient) => (m: any) => {
@@ -25,6 +25,7 @@ const createAppRouter = (queryClient: QueryClient) =>
       element: <RootLayout />,
       errorElement: <MainErrorFallback />,
       middleware: [performanceMiddleware],
+      loader: rootLoader(queryClient),
       children: [
         {
           lazy: () =>
@@ -57,6 +58,7 @@ const createAppRouter = (queryClient: QueryClient) =>
                   convert(queryClient),
                 ),
               path: paths.account.root.path,
+
               children: [
                 {
                   lazy: () =>
@@ -68,6 +70,19 @@ const createAppRouter = (queryClient: QueryClient) =>
               ],
             },
             {
+              path: "*",
+              lazy: () =>
+                import("./routes/not-found").then(convert(queryClient)),
+            },
+          ],
+        },
+        {
+          lazy: () =>
+            import("@/components/layouts/auth-layout").then(
+              convert(queryClient),
+            ),
+          children: [
+            {
               lazy: () =>
                 import("./routes/auth/login").then(convert(queryClient)),
               path: paths.auth.login.path,
@@ -76,11 +91,6 @@ const createAppRouter = (queryClient: QueryClient) =>
               lazy: () =>
                 import("./routes/auth/signup").then(convert(queryClient)),
               path: paths.auth.signup.path,
-            },
-            {
-              path: "*",
-              lazy: () =>
-                import("./routes/not-found").then(convert(queryClient)),
             },
           ],
         },
