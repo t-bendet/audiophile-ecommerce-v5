@@ -39,14 +39,8 @@ function LoggedInUserDropdown() {
 
   const handleLogout = async () => {
     try {
-      logout(
-        {},
-        {
-          onSuccess: () => {
-            navigate(paths.home.getHref(), { replace: true });
-          },
-        },
-      );
+      navigate(paths.home.getHref(), { replace: true });
+      logout({});
 
       toast({
         title: "Logged out successfully",

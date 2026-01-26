@@ -1,11 +1,18 @@
 import { paths } from "@/config/paths";
-import { getAuthStatusQueryOptions } from "@/lib/auth";
+import { getAuthStatusQueryOptions, getUserQueryOptions } from "@/lib/auth";
 import { QueryClient } from "@tanstack/react-query";
 import { LoaderFunctionArgs, Outlet, redirect } from "react-router";
+import { SafeRenderWithErrorBlock } from "../errors/safe-render-with-error-block";
 
 export default function UserAreaLayout() {
   return (
     <main className="flex min-h-dvh flex-col">
+      <SafeRenderWithErrorBlock
+        title="Error loading User details"
+        containerClasses="mb-40"
+      >
+        <div>test</div>
+      </SafeRenderWithErrorBlock>
       <Outlet />
     </main>
   );
@@ -22,5 +29,6 @@ export const clientLoader =
       const redirectTo = url.pathname + url.search;
       throw redirect(paths.auth.login.getHref(redirectTo));
     }
+    await queryClient.prefetchQuery(getUserQueryOptions());
     return null;
   };

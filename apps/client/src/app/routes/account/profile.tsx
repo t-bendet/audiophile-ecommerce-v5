@@ -2,7 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { getUserQueryOptions } from "@/lib/auth";
 // import { ProfileForm } from "@/components/account/profile-form";
 // import { SecurityForm } from "@/components/account/security-form";
@@ -11,17 +11,8 @@ import { getUserQueryOptions } from "@/lib/auth";
 
 export default function ProfilePage() {
   // TODO usesuspense with a fallback loader
-  const { data, isLoading, isError } = useQuery(getUserQueryOptions());
+  const { data } = useSuspenseQuery(getUserQueryOptions());
   console.log({ data }, "profile page");
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-  if (isError) {
-    return <div>Error loading user data</div>;
-  }
-  if (!data) {
-    return <div className="bg-black">No user data available</div>;
-  }
 
   return (
     <Container>
