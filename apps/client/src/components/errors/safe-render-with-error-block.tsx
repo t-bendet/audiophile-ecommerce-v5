@@ -28,7 +28,7 @@ export const SafeRenderWithErrorBlock = ({
             const normalizedError = normalizeError(error);
             // DEFENSIVE CHECK: Critical errors should be thrown from loaders using ensureQueryData()
             // and caught by RouteErrorBoundary. If a critical error reaches here, it means
-            // we forgot to fail in the loader—rethrow it to prevent silent failures.
+            // we forgot to fail in the loader,rethrow it to prevent silent failures.
             if (isCriticalError(normalizedError)) {
               throw normalizeError(error);
             }
