@@ -24,8 +24,8 @@ export const PasswordValidator = (identifier: string = "Password") => {
     .string({
       message: `${identifier} is required`,
     })
-    .min(8)
-    .max(20);
+    .min(8, "Password must be at least 8 characters")
+    .max(20, "Password must be at most 20 characters");
 };
 
 export const SlugValidator = (identifier: string = "Document") =>
