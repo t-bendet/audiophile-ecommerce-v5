@@ -1,14 +1,11 @@
 // ** General / Infrastructure
 
-// TODO refactor to use bulletproof-react auth patterns
-// TODO Provider check bulletproof react patterns for react-query setup
-// TODO decide on category strategy - const or dynamic from api(navlinks.ts and navbar.tsx behave differently)
 // TODO React 19’s Document Metadata
 
 // ** Authentication / Authorization
-// TODO Lib - auth and authorization files
+// TODO Lib - authorization files
 // TODO Provider -  add AuthLoader
-// TODO add signup and login pages,and buttons to navbar
+// TODO add refresh token handling here if needed
 
 // ** Components
 // TODO add skeleton loaders where needed
