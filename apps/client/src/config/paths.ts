@@ -56,11 +56,11 @@ export const paths = {
       path: "/account/orders",
       getHref: () => "/account/orders",
     },
-    addresses: {},
-    paymentMethods: {},
-    settings: {},
-    wishlist: {},
-    reviews: {},
+    // addresses: {},
+    // paymentMethods: {},
+    // settings: {},
+    // wishlist: {},
+    // reviews: {},
   },
   admin: {
     root: {},
@@ -73,3 +73,9 @@ export const paths = {
     analytics: {},
   },
 } as const;
+
+type TAccountPaths = keyof (typeof paths)["account"];
+
+export type TAccountPathKeys = {
+  [K in TAccountPaths]: K extends "root" ? never : K;
+}[TAccountPaths];

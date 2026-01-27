@@ -1,20 +1,30 @@
 import { Container } from "@/components/ui/container";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { paths } from "@/config/paths";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { paths, TAccountPathKeys } from "@/config/paths";
 import { getAuthStatusQueryOptions, getUserQueryOptions } from "@/lib/auth";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   LoaderFunctionArgs,
   Outlet,
   redirect,
+  useLocation,
   useNavigate,
 } from "react-router";
 import { SafeRenderWithErrorBlock } from "../errors/safe-render-with-error-block";
 
 export default function UserAreaLayout() {
   const { data } = useSuspenseQuery(getUserQueryOptions());
+  const { pathname } = useLocation();
+  const [tab, setTab] = useState<TAccountPathKeys>(
+    pathname.replace("/account/", "") as TAccountPathKeys,
+  );
   const navigate = useNavigate();
-  console.log(data);
+  const handleTabChange = (value: string) => {
+    setTab(value as TAccountPathKeys);
+    navigate(paths.account[value as TAccountPathKeys].getHref());
+  };
+
   return (
     <main className="flex min-h-dvh flex-col">
       <SafeRenderWithErrorBlock
@@ -26,28 +36,15 @@ export default function UserAreaLayout() {
           <p className="text-muted-foreground mb-4">
             Logged in as: {data.email}
           </p>
-          <Tabs defaultValue="profile" className="w-full">
+          <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
             <TabsList>
-              <TabsTrigger
-                value="profile"
-                onClick={() => navigate(paths.account.profile.getHref())}
-              >
-                Profile
-              </TabsTrigger>
-              <TabsTrigger
-                value="security"
-                onClick={() => navigate(paths.account.security.getHref())}
-              >
-                Security
-              </TabsTrigger>
-              <TabsTrigger
-                value="orders"
-                onClick={() => navigate(paths.account.orders.getHref())}
-              >
-                Orders
-              </TabsTrigger>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsTrigger value="orders">Orders</TabsTrigger>
             </TabsList>
-            <Outlet />
+            <TabsContent value={tab} defaultValue={tab} className="mt-4">
+              <Outlet />
+            </TabsContent>
           </Tabs>
         </Container>
       </SafeRenderWithErrorBlock>
