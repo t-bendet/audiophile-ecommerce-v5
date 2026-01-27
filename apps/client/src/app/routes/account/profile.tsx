@@ -1,9 +1,9 @@
 // app/account/page.tsx (or similar route)
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getUserQueryOptions } from "@/lib/auth";
+import { useSuspenseQuery } from "@tanstack/react-query";
 // import { ProfileForm } from "@/components/account/profile-form";
 // import { SecurityForm } from "@/components/account/security-form";
 

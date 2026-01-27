@@ -1,12 +1,14 @@
 import { performanceMiddleware } from "@/app/middleware/performance";
 import { MainErrorFallback } from "@/components/errors/main";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
-import { RootLayout } from "@/components/layouts/root-layout";
+import {
+  RootLayout,
+  clientLoader as rootLoader,
+} from "@/components/layouts/root-layout";
 import { paths } from "@/config/paths";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
-import { clientLoader as rootLoader } from "@/components/layouts/root-layout";
 // import { ProtectedRoute } from "@/lib/auth";
 
 const convert = (queryClient: QueryClient) => (m: any) => {
