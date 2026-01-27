@@ -1,21 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
-import { getUserQueryOptions } from "@/lib/auth";
-import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { LoaderFunctionArgs } from "react-router";
 
-export default function ProfilePage() {
-  // TODO usesuspense with a fallback loader
-  const { data } = useSuspenseQuery(getUserQueryOptions());
-
+export default function SecurityPage() {
   return (
-    <TabsContent value="profile" className="mt-4">
+    <TabsContent value="security" className="mt-4">
       <Card>
         <CardHeader>
           <CardTitle>Profile Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <h1>{data.name}</h1>
+          <h1>Profile Information</h1>
         </CardContent>
       </Card>
     </TabsContent>
@@ -24,8 +20,5 @@ export default function ProfilePage() {
 
 export const clientLoader =
   (_queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    // const userResponse = await queryClient.ensureQueryData(
-    //   getUserQueryOptions(),
-    // );
     return null;
   };

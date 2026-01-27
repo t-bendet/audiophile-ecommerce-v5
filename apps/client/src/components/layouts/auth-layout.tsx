@@ -21,7 +21,7 @@ export const clientLoader =
     );
     if (response.data.isAuthenticated) {
       // User is logged in, redirect to home page or dashboard
-      throw redirect(paths.account.root.path);
+      throw redirect(paths.account.profile.path);
     }
     return null;
   };

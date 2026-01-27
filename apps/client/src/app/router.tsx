@@ -72,6 +72,20 @@ const createAppRouter = (queryClient: QueryClient) =>
                       convert(queryClient),
                     ),
                 },
+                {
+                  path: paths.account.security.path,
+                  lazy: () =>
+                    import("./routes/account/security").then(
+                      convert(queryClient),
+                    ),
+                },
+                {
+                  path: paths.account.orders.path,
+                  lazy: () =>
+                    import("./routes/account/orders").then(
+                      convert(queryClient),
+                    ),
+                },
               ],
             },
             {
