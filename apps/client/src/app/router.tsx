@@ -8,7 +8,7 @@ import {
 import { paths } from "@/config/paths";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 // import { ProtectedRoute } from "@/lib/auth";
 
 const convert = (queryClient: QueryClient) => (m: any) => {
@@ -60,14 +60,17 @@ const createAppRouter = (queryClient: QueryClient) =>
                   convert(queryClient),
                 ),
               path: paths.account.root.path,
-
               children: [
                 {
+                  element: <Navigate to={paths.account.profile.path} replace />,
+                  index: true,
+                },
+                {
+                  path: paths.account.profile.path,
                   lazy: () =>
                     import("./routes/account/profile").then(
                       convert(queryClient),
                     ),
-                  index: true,
                 },
               ],
             },

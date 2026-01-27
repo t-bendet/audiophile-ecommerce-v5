@@ -12,7 +12,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 export default function ProfilePage() {
   // TODO usesuspense with a fallback loader
   const { data } = useSuspenseQuery(getUserQueryOptions());
-  console.log({ data }, "profile page");
 
   return (
     <Container>
@@ -22,7 +21,7 @@ export default function ProfilePage() {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
         </TabsList>
         <TabsContent value="profile" className="mt-4">
           <Card>
@@ -41,6 +40,16 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent>
               <h1>Security</h1>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="orders" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Orders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <h1>Orders</h1>
             </CardContent>
           </Card>
         </TabsContent>

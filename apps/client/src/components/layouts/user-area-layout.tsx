@@ -11,9 +11,8 @@ export default function UserAreaLayout() {
         title="Error loading User details"
         containerClasses="mb-40"
       >
-        <div>test</div>
+        <Outlet />
       </SafeRenderWithErrorBlock>
-      <Outlet />
     </main>
   );
 }
