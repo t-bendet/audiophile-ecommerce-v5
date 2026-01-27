@@ -69,7 +69,7 @@ export const getUserQueryOptions = () =>
     queryKey: [USER_QUERY_KEY] as const,
     queryFn: ({ signal }: TBaseRequestParams) => getUser({ signal }),
     refetchOnMount: false, // Prevent refetch when component remounts during navigation
-    // staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
+    staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
     select: (data) => {
       return data?.data;
     },

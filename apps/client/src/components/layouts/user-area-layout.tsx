@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { paths, TAccountPathKeys } from "@/config/paths";
 import { getAuthStatusQueryOptions, getUserQueryOptions } from "@/lib/auth";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LoaderFunctionArgs,
   Outlet,
@@ -24,7 +24,10 @@ export default function UserAreaLayout() {
     setTab(value as TAccountPathKeys);
     navigate(paths.account[value as TAccountPathKeys].getHref());
   };
-
+  useEffect(() => {
+    const currentTab = pathname.replace("/account/", "") as TAccountPathKeys;
+    setTab(currentTab);
+  }, [pathname]);
   return (
     <main className="flex min-h-dvh flex-col">
       <SafeRenderWithErrorBlock
