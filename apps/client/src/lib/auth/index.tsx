@@ -69,7 +69,7 @@ export const getUserQueryOptions = () =>
     queryKey: [USER_QUERY_KEY] as const,
     queryFn: ({ signal }: TBaseRequestParams) => getUser({ signal }),
     refetchOnMount: false, // Prevent refetch when component remounts during navigation
-    staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
+    // staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
     select: (data) => {
       return data?.data;
     },
@@ -94,9 +94,9 @@ export const useLogoutUser = (queryClient: QueryClient) => {
   return useMutation({
     mutationKey: ["auth-logout"],
     mutationFn: logoutUser,
-    onSuccess: () => {
+    onSuccess: (result) => {
       // Manually set the user data in the cache after a successful logout
-      queryClient.setQueryData([USER_QUERY_KEY], null);
+      queryClient.setQueryData([USER_QUERY_KEY], result);
       return queryClient.invalidateQueries({
         queryKey: [AUTH_STATUS_QUERY_KEY],
       });

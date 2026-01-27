@@ -42,7 +42,9 @@ export const paths = {
       path: "/account/profile",
       getHref: () => "/account/profile",
     },
-    loginAndSecurity: {
+    security: {
+      path: "/account/security",
+      getHref: () => "/account/security",
       resetPassword: {},
       verifyEmail: {},
       verifyPhone: {},
@@ -50,7 +52,10 @@ export const paths = {
       refreshToken: {},
       forgotPassword: {},
     },
-    orders: {},
+    orders: {
+      path: "/account/orders",
+      getHref: () => "/account/orders",
+    },
     addresses: {},
     paymentMethods: {},
     settings: {},
