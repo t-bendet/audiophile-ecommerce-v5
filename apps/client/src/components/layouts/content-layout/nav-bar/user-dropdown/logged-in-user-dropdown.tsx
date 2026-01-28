@@ -22,7 +22,7 @@ export default function LoggedInUserDropdown() {
   const queryClient = useQueryClient();
   const { mutate: logout } = useLogoutUser(queryClient);
   const { data: user, isLoading, isError } = useQuery(getUserQueryOptions());
-  // TODO usesuspense with a fallback loader
+  // TODO usesuspense with a fallback loader,redo after middleware refactor
   if (isLoading) {
     return <div>Loading...</div>;
   }
