@@ -116,7 +116,7 @@ function AnonymousUserDropdown() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-white text-black" align="center">
-        <DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer">
           <NavLink
             to={paths.auth.login.path}
             className={({ isActive }) => (isActive ? "text-primary-500" : "")}
