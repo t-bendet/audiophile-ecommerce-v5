@@ -8,7 +8,7 @@ import useMedia from "@/hooks/useMedia";
 import { HomeIcon } from "lucide-react";
 import { Link } from "react-router";
 import { NavLinks } from "./nav-links";
-import { UserDropdown } from "./user-avatar-dropdown";
+import { UserDropdown } from "./user-dropdown";
 
 export const Navbar = () => {
   const isLarge = useMedia("lg");
