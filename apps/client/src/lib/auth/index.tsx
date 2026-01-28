@@ -94,9 +94,9 @@ export const useLogoutUser = (queryClient: QueryClient) => {
   return useMutation({
     mutationKey: ["auth-logout"],
     mutationFn: logoutUser,
-    onSuccess: () => {
+    onSuccess: (result) => {
       // Manually set the user data in the cache after a successful logout
-      queryClient.setQueryData([USER_QUERY_KEY], null);
+      queryClient.setQueryData([USER_QUERY_KEY], result);
       return queryClient.invalidateQueries({
         queryKey: [AUTH_STATUS_QUERY_KEY],
       });

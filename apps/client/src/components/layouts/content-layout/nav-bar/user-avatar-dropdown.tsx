@@ -69,9 +69,30 @@ function LoggedInUserDropdown() {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <Separator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem>
+            <NavLink
+              to={paths.account.profile.path}
+              className={({ isActive }) => (isActive ? "text-primary-500" : "")}
+            >
+              Profile
+            </NavLink>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <NavLink
+              to={paths.account.security.path}
+              className={({ isActive }) => (isActive ? "text-primary-500" : "")}
+            >
+              Security
+            </NavLink>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <NavLink
+              to={paths.account.orders.path}
+              className={({ isActive }) => (isActive ? "text-primary-500" : "")}
+            >
+              Orders
+            </NavLink>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
 

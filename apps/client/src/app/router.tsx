@@ -1,12 +1,14 @@
 import { performanceMiddleware } from "@/app/middleware/performance";
 import { MainErrorFallback } from "@/components/errors/main";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
-import { RootLayout } from "@/components/layouts/root-layout";
+import {
+  RootLayout,
+  clientLoader as rootLoader,
+} from "@/components/layouts/root-layout";
 import { paths } from "@/config/paths";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router";
-import { clientLoader as rootLoader } from "@/components/layouts/root-layout";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 // import { ProtectedRoute } from "@/lib/auth";
 
 const convert = (queryClient: QueryClient) => (m: any) => {
@@ -58,14 +60,31 @@ const createAppRouter = (queryClient: QueryClient) =>
                   convert(queryClient),
                 ),
               path: paths.account.root.path,
-
               children: [
                 {
+                  element: <Navigate to={paths.account.profile.path} replace />,
+                  index: true,
+                },
+                {
+                  path: paths.account.profile.path,
                   lazy: () =>
                     import("./routes/account/profile").then(
                       convert(queryClient),
                     ),
-                  index: true,
+                },
+                {
+                  path: paths.account.security.path,
+                  lazy: () =>
+                    import("./routes/account/security").then(
+                      convert(queryClient),
+                    ),
+                },
+                {
+                  path: paths.account.orders.path,
+                  lazy: () =>
+                    import("./routes/account/orders").then(
+                      convert(queryClient),
+                    ),
                 },
               ],
             },
