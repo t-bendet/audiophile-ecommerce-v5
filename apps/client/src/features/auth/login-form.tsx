@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { paths } from "@/config/paths";
 import { useToast } from "@/hooks/use-toast";
-import { AUTH_STATUS_QUERY_KEY, useLogin, USER_QUERY_KEY } from "@/lib/auth";
+import { useLogin, USER_QUERY_KEY } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { normalizeError } from "@/lib/errors/errors";
 import { AuthLoginRequestSchema } from "@repo/domain";

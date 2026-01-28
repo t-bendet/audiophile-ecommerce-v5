@@ -6,6 +6,7 @@
 // TODO Lib - authorization files
 // TODO Provider -  add AuthLoader
 // TODO add refresh token handling here if needed
+// TODO improve react query usage for auth and user data (caching,stale time,refetching...)
 
 // ** Components
 // TODO add skeleton loaders where needed
