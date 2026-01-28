@@ -46,7 +46,6 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
     },
     validators: {
       onSubmit: AuthSignUpRequestSchema.shape.body,
-      onChange: AuthSignUpRequestSchema.shape.body,
     },
     onSubmit: async ({ value }) => {
       signup(value, {
