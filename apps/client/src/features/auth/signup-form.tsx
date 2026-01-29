@@ -25,6 +25,10 @@ import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
+// TODO add password strength meter
+// TODO add show/hide password toggle
+// TODO add password confirmation match error message
+
 export function SignupForm({ className }: React.ComponentProps<"div">) {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -80,6 +84,15 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
             id="signup-form"
             onSubmit={(e) => {
               e.preventDefault();
+              // Reset the form with current values to retrigger zod costume validation
+              form.reset({
+                // New custom values
+                name: form.getFieldValue("name"),
+                email: form.getFieldValue("email"),
+                password: form.getFieldValue("password"),
+                passwordConfirm: form.getFieldValue("passwordConfirm"),
+              });
+
               form.handleSubmit();
             }}
           >

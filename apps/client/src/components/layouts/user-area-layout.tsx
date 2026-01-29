@@ -60,7 +60,6 @@ export const clientLoader =
     const authResponse = await queryClient.ensureQueryData(
       getAuthStatusQueryOptions(),
     );
-    console.log({ authResponse });
     if (!authResponse.data.isAuthenticated) {
       // User is not logged in, redirect to login page
       const url = new URL(context.request.url);
