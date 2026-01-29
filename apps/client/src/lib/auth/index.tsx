@@ -165,9 +165,8 @@ export const useSignup = (queryClient: QueryClient) => {
   return useMutation({
     mutationFn: postSignupUser,
     mutationKey: ["auth-signup"],
-    onSuccess: (user) => {
+    onSuccess: () => {
       // Manually set the user data in the cache after a successful login
-      queryClient.setQueryData([USER_QUERY_KEY], user.data);
       return queryClient.invalidateQueries({
         queryKey: [AUTH_STATUS_QUERY_KEY],
       });

@@ -45,7 +45,7 @@ export const SafeRenderWithErrorBlock = ({
         >
           <Suspense
             fallback={
-              fallback ?? <LoadingSpinner classes={cn(spinnerClasses)} />
+              fallback ?? <LoadingSpinner className={cn(spinnerClasses)} />
             }
           >
             {children}

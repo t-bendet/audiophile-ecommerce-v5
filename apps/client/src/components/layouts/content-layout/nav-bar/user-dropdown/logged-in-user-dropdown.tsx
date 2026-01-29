@@ -11,22 +11,18 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { paths } from "@/config/paths";
 import { useToast } from "@/hooks/use-toast";
-import {
-  getAuthStatusQueryOptions,
-  getUserQueryOptions,
-  useLogoutUser,
-} from "@/lib/auth";
+import { getUserQueryOptions, useLogoutUser } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, IdCardLanyard, LogInIcon, LogOut } from "lucide-react";
+import { ChevronsUpDown, LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router";
 
-function LoggedInUserDropdown() {
+export default function LoggedInUserDropdown() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutate: logout } = useLogoutUser(queryClient);
   const { data: user, isLoading, isError } = useQuery(getUserQueryOptions());
-  // TODO usesuspense with a fallback loader
+  // TODO usesuspense with a fallback loader,redo after middleware refactor
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -102,58 +98,5 @@ function LoggedInUserDropdown() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-function AnonymousUserDropdown() {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button>
-          <span className="sr-only">Open anonymous menu</span>
-          <p className="capitalize">hello visitor!</p>
-          <ChevronsUpDown className="ml-auto size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-white text-black" align="center">
-        <DropdownMenuItem>
-          <NavLink
-            to={paths.auth.login.path}
-            className={({ isActive }) => (isActive ? "text-primary-500" : "")}
-          >
-            Log in
-          </NavLink>
-          <LogInIcon className="text-primary-500 ml-auto size-4" />
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <NavLink
-            to={paths.auth.signup.path}
-            className={({ isActive }) => (isActive ? "text-primary-500" : "")}
-          >
-            Sign up
-          </NavLink>
-          <IdCardLanyard className="text-primary-500 ml-auto size-4" />
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-export function UserDropdown() {
-  const { data, isLoading, isError } = useQuery(getAuthStatusQueryOptions());
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-  if (isError) {
-    return <div>Error loading user data</div>;
-  }
-  if (!data) {
-    return <div className="bg-black">No user data available</div>;
-  }
-
-  return data.isAuthenticated ? (
-    <LoggedInUserDropdown />
-  ) : (
-    <AnonymousUserDropdown />
   );
 }
