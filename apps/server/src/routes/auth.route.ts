@@ -1,12 +1,12 @@
+import {
+  AuthLoginRequestSchema,
+  AuthSignUpRequestSchema,
+  AuthUpdatePasswordRequestSchema,
+} from "@repo/domain";
 import express from "express";
 import * as authController from "../controllers/auth.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
-import {
-  AuthSignUpRequestSchema,
-  AuthLoginRequestSchema,
-  AuthUpdatePasswordRequestSchema,
-} from "@repo/domain";
 
 const authRouter: express.Router = express.Router();
 
@@ -15,14 +15,16 @@ const authRouter: express.Router = express.Router();
 authRouter.post(
   "/signup",
   validateSchema(AuthSignUpRequestSchema),
-  authController.signup
+  authController.signup,
 );
 
 authRouter.post(
   "/login",
   validateSchema(AuthLoginRequestSchema),
-  authController.login
+  authController.login,
 );
+
+authRouter.get("/status", authController.getUserAuthStatus);
 
 // authRouter.post('/forgotPassword', forgotPassword);
 // authRouter.patch('/resetPassword/:token', resetPassword);
@@ -31,12 +33,12 @@ authRouter.post(
 
 authRouter.use(authenticate);
 
-authRouter.get("/logout", authController.logout);
+authRouter.post("/logout", authController.logout);
 
 authRouter.patch(
   "/updateMyPassword",
   validateSchema(AuthUpdatePasswordRequestSchema),
-  authController.updatePassword
+  authController.updatePassword,
 );
 
 export default authRouter;

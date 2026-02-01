@@ -1,13 +1,17 @@
 import { cn } from "@/lib/cn";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner, type SpinnerProps } from "@/components/ui/spinner";
 
-export default function LoadingSpinner(props: { classes?: string }) {
+export default function LoadingSpinner({
+  className,
+  variant = "primary",
+  size = "xl",
+}: SpinnerProps) {
   return (
-    <div className={cn("flex items-center justify-center", props.classes)}>
+    <div className={cn("flex items-center justify-center", className)}>
       <Spinner
         aria-label="Loading featured product section"
-        variant="primary"
-        size="xl"
+        variant={variant}
+        size={size}
         className="text-primary-500"
       />
       <p className="sr-only">Loading section...</p>

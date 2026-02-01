@@ -35,20 +35,16 @@ export const paths = {
   },
   account: {
     root: {
-      path: "/account/:id",
-      getHref: (id: string) => `/account/${id}`,
+      path: "/account",
+      getHref: () => "/account",
     },
     profile: {
       path: "/account/profile",
       getHref: () => "/account/profile",
     },
-    orders: {},
-    addresses: {},
-    paymentMethods: {},
-    settings: {},
-    wishlist: {},
-    reviews: {},
-    loginAndSecurity: {
+    security: {
+      path: "/account/security",
+      getHref: () => "/account/security",
       resetPassword: {},
       verifyEmail: {},
       verifyPhone: {},
@@ -56,6 +52,15 @@ export const paths = {
       refreshToken: {},
       forgotPassword: {},
     },
+    orders: {
+      path: "/account/orders",
+      getHref: () => "/account/orders",
+    },
+    // addresses: {},
+    // paymentMethods: {},
+    // settings: {},
+    // wishlist: {},
+    // reviews: {},
   },
   admin: {
     root: {},
@@ -68,3 +73,9 @@ export const paths = {
     analytics: {},
   },
 } as const;
+
+type TAccountPaths = keyof (typeof paths)["account"];
+
+export type TAccountPathKeys = {
+  [K in TAccountPaths]: K extends "root" ? never : K;
+}[TAccountPaths];

@@ -21,8 +21,7 @@ export const AuthSignUpRequestSchema = z.object({
     .strict()
     .refine((data) => data.password === data.passwordConfirm, {
       message: "Password and PasswordConfirm must match!",
-      params: { passwordConfirm: "passwordConfirm" },
-      path: ["password match"],
+      path: ["passwordConfirm"],
     })
     .strict(),
 });
@@ -72,3 +71,15 @@ export type AuthResponse = SingleItemResponse<UserDTO>;
 export const AuthLogoutResponseSchema = EmptyResponseSchema;
 
 export type AuthLogoutResponse = EmptyResponse;
+
+export const AuthCheckStatusResponseSchema = SingleItemResponseSchema(
+  z
+    .object({
+      isAuthenticated: z.boolean(),
+    })
+    .strict(),
+);
+
+export type AuthCheckStatusResponse = SingleItemResponse<{
+  isAuthenticated: boolean;
+}>;
