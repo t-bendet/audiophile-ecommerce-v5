@@ -25,10 +25,6 @@ import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
-// TODO add password strength meter
-// TODO add show/hide password toggle
-// TODO add password confirmation match error message
-
 export function SignupForm({ className }: React.ComponentProps<"div">) {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -151,7 +147,7 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
                 }}
               />
 
-              <Field className="grid grid-cols-2 gap-4">
+              <Field className="grid gap-4">
                 <form.Field
                   name="password"
                   children={(field) => {
