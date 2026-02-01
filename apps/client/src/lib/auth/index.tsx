@@ -18,7 +18,7 @@ import { QueryClient, queryOptions, useMutation } from "@tanstack/react-query";
 
 export const USER_QUERY_KEY = "authenticated-user";
 export const AUTH_STATUS_QUERY_KEY = "auth-status";
-
+// testing
 // TODO rethink keys and types for auth and user ,select only what is needed
 
 // api call definitions for auth (types, schemas, requests):
