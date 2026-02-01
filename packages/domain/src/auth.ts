@@ -21,8 +21,7 @@ export const AuthSignUpRequestSchema = z.object({
     .strict()
     .refine((data) => data.password === data.passwordConfirm, {
       message: "Password and PasswordConfirm must match!",
-      params: { passwordConfirm: "passwordConfirm" },
-      path: ["password match"],
+      path: ["passwordConfirm"],
     })
     .strict(),
 });

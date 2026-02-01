@@ -9,6 +9,11 @@
 // TODO refactor auth to use react router middleware,refactor getauthstatus to use as enabled in get user query
 // TODO improve react query usage for auth and user data (caching,stale time,refetching...)
 
+// signup form
+// TODO add password strength meter
+// TODO add show/hide password toggle
+// TODO add password confirmation match error message
+
 // ** Components
 // TODO add skeleton loaders where needed
 // TODO work on responsive design (ErrorBlock.tsx)
