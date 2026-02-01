@@ -1,4 +1,3 @@
-import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,67 +6,217 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Container } from "@/components/ui/container";
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { paths } from "@/config/paths";
-import { Link } from "react-router";
+import { useToast } from "@/hooks/use-toast";
+import { USER_QUERY_KEY, useSignup } from "@/lib/auth";
+import { cn } from "@/lib/cn";
+import { normalizeError } from "@/lib/errors/errors";
+import { AuthSignUpRequestSchema } from "@repo/domain";
+import { useForm } from "@tanstack/react-form";
+import { useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
-export function SignupForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+export function SignupForm({ className }: React.ComponentProps<"div">) {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const queryClient = useQueryClient();
+  const { mutate: signup, isPending } = useSignup(queryClient);
+
+  const form = useForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      passwordConfirm: "",
+    },
+    validators: {
+      onSubmit: AuthSignUpRequestSchema.shape.body,
+    },
+    onSubmit: async ({ value }) => {
+      signup(value, {
+        onSuccess: async () => {
+          // Check for redirectTo param (from protected route redirect)
+          const redirectTo = searchParams.get("redirectTo");
+          redirectTo
+            ? navigate(redirectTo)
+            : navigate(paths.account.root.getHref());
+        },
+        async onError(error) {
+          const normalizedError = normalizeError(error);
+          toast({
+            title: "Signup Failed",
+            description: normalizedError.message,
+            variant: "destructive",
+            duration: 3000,
+          });
+          await queryClient.setQueryData([USER_QUERY_KEY], null);
+        },
+      });
+    },
+  });
+
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <Container classes={cn("flex flex-col gap-6", className)}>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Create your account</CardTitle>
           <CardDescription>
-            Enter your email below to create your account
+            Enter your information to create your account
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form
+            id="signup-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              // Reset the form with current values to retrigger zod costume validation
+              form.reset({
+                // New custom values
+                name: form.getFieldValue("name"),
+                email: form.getFieldValue("email"),
+                password: form.getFieldValue("password"),
+                passwordConfirm: form.getFieldValue("passwordConfirm"),
+              });
+
+              form.handleSubmit();
+            }}
+          >
             <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="name">Full Name</FieldLabel>
-                <Input id="name" type="text" placeholder="John Doe" required />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
+              <form.Field
+                name="name"
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={field.name}>Full Name</FieldLabel>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        aria-invalid={isInvalid}
+                        type="text"
+                        placeholder="John Doe"
+                        required
+                      />
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </Field>
+                  );
+                }}
+              />
+
+              <form.Field
+                name="email"
+                children={(field) => {
+                  const isInvalid =
+                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        aria-invalid={isInvalid}
+                        type="email"
+                        placeholder="m@example.com"
+                        required
+                      />
+                      {isInvalid && (
+                        <FieldError errors={field.state.meta.errors} />
+                      )}
+                    </Field>
+                  );
+                }}
+              />
+
+              <Field className="grid gap-4">
+                <form.Field
+                  name="password"
+                  children={(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field
+                        data-invalid={isInvalid}
+                        className="justify-between"
+                      >
+                        <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          aria-invalid={isInvalid}
+                          type="password"
+                          required
+                        />
+                        {isInvalid && (
+                          <FieldError errors={field.state.meta.errors} />
+                        )}
+                      </Field>
+                    );
+                  }}
+                />
+
+                <form.Field
+                  name="passwordConfirm"
+                  children={(field) => {
+                    const isInvalid =
+                      field.state.meta.isTouched && !field.state.meta.isValid;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={field.name}>
+                          Confirm Password
+                        </FieldLabel>
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          aria-invalid={isInvalid}
+                          type="password"
+                          required
+                        />
+                        {isInvalid && (
+                          <FieldError errors={field.state.meta.errors} />
+                        )}
+                      </Field>
+                    );
+                  }}
                 />
               </Field>
+
+              <FieldDescription>
+                Must be at least 8 characters long.
+              </FieldDescription>
+
               <Field>
-                <Field className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input id="password" type="password" required />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="confirm-password">
-                      Confirm Password
-                    </FieldLabel>
-                    <Input id="confirm-password" type="password" required />
-                  </Field>
-                </Field>
-                <FieldDescription>
-                  Must be at least 8 characters long.
-                </FieldDescription>
-              </Field>
-              <Field>
-                <Button type="submit">Create Account</Button>
+                <Button type="submit" form="signup-form" disabled={isPending}>
+                  Create Account
+                </Button>
                 <FieldDescription className="text-primary-500 text-center">
                   Already have an account?{" "}
-                  <Link to={paths.auth.login.path}>Sign in</Link>
+                  <Link to={paths.auth.login.path}>Login</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>
@@ -78,6 +227,6 @@ export function SignupForm({
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </FieldDescription>
-    </div>
+    </Container>
   );
 }

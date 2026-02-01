@@ -40,16 +40,6 @@ export function getApi(): AxiosInstance {
           return Promise.reject(error);
         }
 
-        const status = error.response?.status;
-        // TODO centralize redirect logic?
-        // Handle auth errors (let auth layer handle redirect)
-        if (status === 401) {
-          const searchParams = new URLSearchParams();
-          const redirectTo =
-            searchParams.get("redirectTo") || window.location.pathname;
-          error.redirectTo = redirectTo;
-        }
-
         // Throw raw error; let React Query/components handle classification and UI decisions
         return Promise.reject(error);
       },

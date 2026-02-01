@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Container } from "@/components/ui/container";
 import {
   Field,
   FieldDescription,
@@ -19,25 +20,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useLogin, USER_QUERY_KEY } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { normalizeError } from "@/lib/errors/errors";
+import { AuthLoginRequestSchema } from "@repo/domain";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router";
-import z from "zod";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
-const loginSchema = z.object({
-  email: z.email("Please provide a valid email!"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(20, "Password must be at most 20 characters"),
-});
-
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+export function LoginForm({ className }: React.ComponentProps<"div">) {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const queryClient = useQueryClient();
   const { mutate: login, isPending } = useLogin(queryClient);
@@ -47,16 +38,18 @@ export function LoginForm({
       password: "",
     },
     validators: {
-      onSubmit: loginSchema,
+      onSubmit: AuthLoginRequestSchema.shape.body,
     },
 
     onSubmit: async ({ value }) => {
       login(value, {
-        onSuccess: ({ data }) => {
-          // TODO add redirect logic if came from a protected route
-          navigate(paths.account.root.getHref(data.id));
+        onSuccess: async () => {
+          const redirectTo = searchParams.get("redirectTo");
+          redirectTo
+            ? navigate(redirectTo)
+            : navigate(paths.account.root.getHref());
         },
-        onError(error) {
+        onError: async (error) => {
           const normalizedError = normalizeError(error);
           toast({
             title: "Login Failed",
@@ -64,13 +57,13 @@ export function LoginForm({
             variant: "destructive",
             duration: 3000,
           });
-          queryClient.setQueryData([USER_QUERY_KEY], null);
+          await queryClient.setQueryData([USER_QUERY_KEY], null);
         },
       });
     },
   });
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <Container classes={cn("flex flex-col gap-6", className)}>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl capitalize">welcome back</CardTitle>
@@ -119,12 +112,12 @@ export function LoginForm({
                     field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
-                      <div className="flex items-center">
+                      <div className="flex flex-wrap justify-between">
                         <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                         {/* TODO implement forgot password functionality */}
                         <a
                           href="#"
-                          className="ml-auto text-sm underline-offset-4 hover:underline"
+                          className="text-sm underline-offset-4 hover:underline"
                         >
                           Forgot your password?
                         </a>
@@ -165,6 +158,6 @@ export function LoginForm({
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </FieldDescription>
-    </div>
+    </Container>
   );
 }

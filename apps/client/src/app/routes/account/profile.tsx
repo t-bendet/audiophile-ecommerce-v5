@@ -1,8 +1,26 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getUserQueryOptions } from "@/lib/auth";
+import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { LoaderFunctionArgs } from "react-router";
+
 export default function ProfilePage() {
+  const { data } = useSuspenseQuery(getUserQueryOptions());
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center bg-black p-6 md:p-10">
-      <h1 className="text-3xl font-bold">Profile Page</h1>
-      <p className="mt-4 text-lg">This is the user profile page.</p>
-    </main>
+    <Card>
+      <CardHeader>
+        <CardTitle>Profile Information</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <h1>{data.name}</h1>
+      </CardContent>
+    </Card>
   );
 }
+
+export const clientLoader =
+  (_queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
+    // const userResponse = await queryClient.ensureQueryData(
+    //   getUserQueryOptions(),
+    // );
+    return null;
+  };
