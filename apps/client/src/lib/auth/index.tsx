@@ -18,8 +18,9 @@ import { QueryClient, queryOptions, useMutation } from "@tanstack/react-query";
 
 export const USER_QUERY_KEY = "authenticated-user";
 export const AUTH_STATUS_QUERY_KEY = "auth-status";
-// testing
-// TODO rethink keys and types for auth and user ,select only what is needed
+export const AUTH_LOGOUT_MUTATION_KEY = "auth-logout";
+export const AUTH_LOGIN_MUTATION_KEY = "auth-login";
+export const AUTH_SIGNUP_MUTATION_KEY = "auth-signup";
 
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
@@ -48,8 +49,6 @@ export const getAuthStatusQueryOptions = () =>
   });
 
 // ** Get User (Me)
-
-// TODO check how zod errors propagate here
 
 type TGetUser = TBaseHandler<UserDTOResponse>;
 
@@ -92,7 +91,7 @@ const logoutUser: TPostLogoutUser = async () => {
 
 export const useLogoutUser = (queryClient: QueryClient) => {
   return useMutation({
-    mutationKey: ["auth-logout"],
+    mutationKey: [AUTH_LOGOUT_MUTATION_KEY],
     mutationFn: logoutUser,
     onSuccess: (result) => {
       // Manually set the user data in the cache after a successful logout
@@ -125,7 +124,7 @@ const postLoginUser: TPostLoginUser = async ({ email, password }) => {
 export const useLogin = (queryClient: QueryClient) => {
   return useMutation({
     mutationFn: postLoginUser,
-    mutationKey: ["auth-login"],
+    mutationKey: [AUTH_LOGIN_MUTATION_KEY],
     onSuccess: async () => {
       // Manually set the user data in the cache after a successful login
       await queryClient.invalidateQueries({
@@ -164,7 +163,7 @@ const postSignupUser: TPostSignupUser = async ({
 export const useSignup = (queryClient: QueryClient) => {
   return useMutation({
     mutationFn: postSignupUser,
-    mutationKey: ["auth-signup"],
+    mutationKey: [AUTH_SIGNUP_MUTATION_KEY],
     onSuccess: () => {
       // Manually set the user data in the cache after a successful login
       return queryClient.invalidateQueries({
