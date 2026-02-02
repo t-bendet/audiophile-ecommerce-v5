@@ -411,9 +411,9 @@ const earphonesProductData: ProductCreateWithoutCategoryInput[] = [
           "YX1 Wireless Earphones displayed prominently on a clean surface, highlighting their sleek and modern design.",
       },
       relatedProductImage: {
-        mobileSrc: "update this",
-        tabletSrc: "update this",
-        desktopSrc: "update this",
+        mobileSrc: "https://i.ibb.co/bgytMWC6/suggestion-earphones-yx1.jpg",
+        tabletSrc: "https://i.ibb.co/yn0Bk7QK/suggestion-earphones-yx1.jpg",
+        desktopSrc: "https://i.ibb.co/7dFt2Cnr/suggestion-earphones-yx1.jpg",
         ariaLabel: "YX1 Earphones related product image",
         altText: "test",
       },
@@ -638,7 +638,7 @@ const speakersProductData: ProductCreateWithoutCategoryInput[] = [
 const seedProductsData = async (
   productsData: ProductCreateWithoutCategoryInput[],
   createdCategoriesMap: Record<CategoryName, string>,
-  categoryName: CategoryName
+  categoryName: CategoryName,
 ) => {
   console.log(`***********${categoryName}***********`);
 
@@ -670,30 +670,30 @@ const seedProducts = async (createdCategories: ReadOutput[]) => {
       acc[category.name] = category.id;
       return acc;
     },
-    {} as Record<CategoryName, string>
+    {} as Record<CategoryName, string>,
   );
 
   const createdHeadphones = await seedProductsData(
     headphonesProductData,
     createdCategoriesMap,
-    "Headphones"
+    "Headphones",
   );
 
   const createdEarphones = await seedProductsData(
     earphonesProductData,
     createdCategoriesMap,
-    "Earphones"
+    "Earphones",
   );
   const createdSpeakers = await seedProductsData(
     speakersProductData,
     createdCategoriesMap,
-    "Speakers"
+    "Speakers",
   );
 
   createdProducts.push(
     ...createdHeadphones,
     ...createdEarphones,
-    ...createdSpeakers
+    ...createdSpeakers,
   );
 
   console.log(`Finished seeding products...`);
