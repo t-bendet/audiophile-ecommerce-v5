@@ -29,11 +29,6 @@
 // Context: aggregate to reduce queries
 // TODO: aggregate to reduce queries
 
-// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/routes/product.route.ts
-// Line: 41
-// Context: should be in category route
-// TODO: should be in category route
-
 // File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/controllers/config.controller.ts
 // Line: 10
 // Context: consider adding config id to env variables for easy access
@@ -108,7 +103,6 @@
 // DATA & SEEDING
 // ============================================================================
 
-// TODO yx1 wireless earphones does not have related product image
 // TODO isNew as a virtual property - less than a year since arrival
 
 // ============================================================================
