@@ -9,8 +9,6 @@
 // TODO add skeleton loaders where needed
 // TODO work on responsive design (ErrorBlock.tsx)
 // TODO Dialog - create variants for cart,thank you and nav ,refactor
-// TODO Navbar handle dialog and avatar
-// TODO create global loading spinner component
 // ** Products Feature
 // TODO needs more work,also for the return type of the products (get-products.ts)
 // TODO redo or delete this file (refactor-attampt.ts)
