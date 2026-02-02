@@ -4,15 +4,6 @@
 
 // ** Authentication / Authorization
 // TODO Lib - authorization files
-// TODO Provider -  add AuthLoader
-// TODO add refresh token handling here if needed
-// TODO refactor auth to use react router middleware,refactor getauthstatus to use as enabled in get user query
-// TODO improve react query usage for auth and user data (caching,stale time,refetching...)
-
-// signup form
-// TODO add password strength meter
-// TODO add show/hide password toggle
-// TODO add password confirmation match error message
 
 // ** Components
 // TODO add skeleton loaders where needed
@@ -43,3 +34,8 @@
 // TODO add min size for site
 // TODO add severity levels to errors
 // TODO switch toast to sonner
+// TODO add refresh token handling here if needed
+// TODO refactor auth to use react router middleware,refactor getauthstatus to use as enabled in get user query
+// TODO improve react query usage for auth and user data (caching,stale time,refetching...)
+// TODO add password strength meter
+// TODO add show/hide password toggle
