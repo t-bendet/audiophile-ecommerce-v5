@@ -12,6 +12,8 @@ model User {
   createdAt            DateTime  @default(now()) @db.Date
   active               Boolean   @default(true)
   v                    Int       @default(0) @map("__v")
+  cart                 Cart?
+  orders               Order[]
 }
 
 enum ROLE {
