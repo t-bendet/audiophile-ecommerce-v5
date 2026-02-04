@@ -73,12 +73,7 @@ const Product = () => {
               <ProductCard.Title classes="md:mb-8" />
               <ProductCard.Description classes="opacity-50 md:mb-8 md:max-w-[50ch] lg:max-w-[90ch]" />
               <ProductCard.Price classes="lg:mb-12" />
-              <ProductCard.Actions
-                cartActions={{
-                  increaseCartItemQuantity: () => {},
-                  decreaseCartItemQuantity: () => {},
-                }}
-              />
+              <ProductCard.Actions />
             </ProductCard>
           </Container>
         </Section>
