@@ -1,5 +1,6 @@
 import { getApi } from "@/lib/api-client";
-import { clearLocalCart, getLocalCart } from "@/lib/cart-storage";
+import { clearLocalCart } from "@/lib/cart-storage";
+import { syncLocalCartToServer } from "@/lib/cart-sync";
 import {
   TBaseHandler,
   TBaseRequestParams,
@@ -12,9 +13,6 @@ import {
   AuthLogoutResponse,
   AuthLogoutResponseSchema,
   AuthSignUpRequest,
-  SyncCartInput,
-  SyncCartResponse,
-  SyncCartResponseSchema,
   UserDTOResponse,
   UserDTOResponseSchema,
 } from "@repo/domain";
@@ -130,49 +128,13 @@ const postLoginUser: TPostLoginUser = async ({ email, password }) => {
   }
 };
 
-// ** Sync Cart - syncs local cart to server after login
-
-type TSyncCart = TMutationHandler<SyncCartResponse, SyncCartInput>;
-
-const syncCart: TSyncCart = async (input, _params) => {
-  const api = getApi();
-  const response = await api.post("/cart/sync", input);
-  const result = SyncCartResponseSchema.safeParse(response.data);
-  if (result.success) {
-    return result.data;
-  } else {
-    throw result.error;
-  }
-};
-
 export const useLogin = (queryClient: QueryClient) => {
   return useMutation({
     mutationFn: postLoginUser,
     mutationKey: [AUTH_LOGIN_MUTATION_KEY],
     onSuccess: async () => {
       // After successful login, sync local cart to server
-      const localCart = getLocalCart();
-      if (localCart.items.length > 0) {
-        try {
-          // Sync local cart items to server cart
-          await syncCart(
-            {
-              items: localCart.items.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-              })),
-            },
-            {} // empty params object
-          );
-          // Clear local cart after successful sync
-          clearLocalCart();
-        } catch (error) {
-          // Log error but don't block login - cart sync is not critical
-          console.error("Failed to sync cart:", error);
-        }
-      }
-      // Invalidate cart queries to fetch the merged server cart
-      await queryClient.invalidateQueries({ queryKey: cartKeys.all });
+      await syncLocalCartToServer(queryClient);
       // Invalidate auth status
       await queryClient.invalidateQueries({
         queryKey: [AUTH_STATUS_QUERY_KEY],

@@ -3,16 +3,14 @@ import { Container } from "@/components/ui/container";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Section } from "@/components/ui/section";
 import { paths } from "@/config/paths";
-import cartKeys from "@/features/cart/api/cart-keys";
 import {
   useCart,
   useRemoveFromCart,
   useUpdateCartItem,
 } from "@/features/cart/api/get-cart";
 import { CartItem } from "@/features/cart/components/cart-item";
-import { getApi } from "@/lib/api-client";
 import { getAuthStatusQueryOptions } from "@/lib/auth";
-import { clearLocalCart, getLocalCart } from "@/lib/cart-storage";
+import { syncLocalCartToServer } from "@/lib/cart-sync";
 import { QueryClient } from "@tanstack/react-query";
 import { Link, LoaderFunctionArgs, redirect } from "react-router";
 
@@ -30,25 +28,7 @@ export const clientLoader =
     }
 
     // Sync local cart with server cart if user has local items
-    const localCart = getLocalCart();
-    if (localCart.items.length > 0) {
-      try {
-        const api = getApi();
-        await api.post("/cart/sync", {
-          items: localCart.items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-          })),
-        });
-        // Clear local cart after successful sync
-        clearLocalCart();
-        // Invalidate cart queries to fetch the merged server cart
-        await queryClient.invalidateQueries({ queryKey: cartKeys.all });
-      } catch (error) {
-        // Log error but don't block checkout - cart sync is not critical
-        console.error("Failed to sync cart:", error);
-      }
-    }
+    await syncLocalCartToServer(queryClient);
 
     return null;
   };
