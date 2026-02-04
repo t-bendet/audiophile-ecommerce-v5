@@ -26,7 +26,7 @@ export function CartItem({
   };
 
   return (
-    <div className="flex items-center gap-4 py-4">
+    <div className="flex items-center gap-4 py-4 text-neutral-900">
       {/* Product Image */}
       <img
         src={item.productImage}
@@ -35,46 +35,43 @@ export function CartItem({
       />
 
       {/* Product Details */}
-      <div className="flex-1">
-        <h3 className="text-sm font-bold">{item.productName}</h3>
+      <div className="flex h-full flex-1 flex-col gap-1">
+        <h3 className="text-sm font-bold uppercase">{item.productName}</h3>
         <p className="text-sm text-neutral-500">
-          ${(item.productPrice / 100).toFixed(2)}
+          $ {(item.productPrice / 100).toFixed(2)}
         </p>
       </div>
 
       {/* Quantity Controls */}
       <div className="flex items-center gap-2">
+        <div className="flex h-12 w-30 items-center justify-around bg-neutral-200 text-xs font-bold">
+          <button
+            className="cursor-pointer px-3 opacity-25 hover:opacity-50"
+            onClick={handleDecrease}
+            disabled={isUpdating || item.quantity === 1}
+          >
+            -
+          </button>
+          <p>{item.quantity}</p>
+          <button
+            className="cursor-pointer px-3 opacity-25 hover:opacity-50"
+            onClick={handleIncrease}
+            disabled={isUpdating}
+          >
+            +
+          </button>
+        </div>
+        {/* Remove Button */}
         <Button
           variant="outline"
           size="sm"
-          onClick={handleDecrease}
-          disabled={isUpdating || item.quantity === 1}
-          className="h-8 w-8 p-0"
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-        <span className="w-8 text-center font-bold">{item.quantity}</span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleIncrease}
+          onClick={() => onRemove(item.productId)}
           disabled={isUpdating}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 text-neutral-500 hover:text-red-600"
         >
-          <Plus className="h-4 w-4" />
+          <X className="h-2 w-2" />
         </Button>
       </div>
-
-      {/* Remove Button */}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onRemove(item.productId)}
-        disabled={isUpdating}
-        className="h-8 w-8 p-0 text-neutral-500 hover:text-red-600"
-      >
-        <X className="h-4 w-4" />
-      </Button>
     </div>
   );
 }
