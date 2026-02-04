@@ -21,6 +21,8 @@ model Product {
   configShowCaseCover Config?              @relation("showCaseCover")
   configShowCaseGrid Config?               @relation("showCaseGrid")
   configShowCaseWide Config?               @relation("showCaseWide")
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
 }
 
 type ProductIncludedItems {
