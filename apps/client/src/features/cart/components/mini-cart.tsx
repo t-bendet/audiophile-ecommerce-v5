@@ -40,11 +40,12 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[90vh]">
+      <DrawerContent className="max-h-[90vh] p-2 text-neutral-900">
         <DrawerHeader>
           <DrawerTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Cart ({cart?.data.itemCount || 0})
+            <p className="tracking-600 font-bold uppercase">
+              cart ({cart?.data.itemCount || 0})
+            </p>
           </DrawerTitle>
         </DrawerHeader>
 
