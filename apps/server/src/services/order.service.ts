@@ -7,9 +7,11 @@ import {
   OrderCreateInput,
   OrderDTO,
   OrderItemDTO,
-  OrderStatus,
+  type OrderStatus,
+  ORDER_STATUS,
   OrderUpdateInput,
-  PaymentStatus,
+  type PaymentStatus,
+  PAYMENT_STATUS,
 } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 import { cartService } from "./cart.service.js";
@@ -49,8 +51,8 @@ export class OrderService extends AbstractCrudService<
       billingAddress: entity.billingAddress,
       paymentMethod: entity.paymentMethod,
       paymentStatus: entity.paymentStatus,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
     };
   }
 
@@ -59,14 +61,17 @@ export class OrderService extends AbstractCrudService<
    */
   async createOrder(
     userId: string,
-    orderInput: CreateOrderInput
+    orderInput: CreateOrderInput,
   ): Promise<OrderDTO> {
     // Get user's cart
     const cart = await cartService.getOrCreateCart(userId);
 
     // Validate cart has items
     if (!cart.items || cart.items.length === 0) {
-      throw new AppError("Cannot create order from empty cart", ErrorCode.CART_EMPTY);
+      throw new AppError(
+        "Cannot create order from empty cart",
+        ErrorCode.CART_EMPTY,
+      );
     }
 
     // Calculate order totals
@@ -89,8 +94,8 @@ export class OrderService extends AbstractCrudService<
           shippingAddress: orderInput.shippingAddress,
           billingAddress: orderInput.billingAddress,
           paymentMethod: orderInput.paymentMethod,
-          paymentStatus: PaymentStatus.PENDING,
-          status: OrderStatus.PENDING,
+          paymentStatus: PAYMENT_STATUS.PENDING,
+          status: ORDER_STATUS.PENDING,
         },
       });
 
@@ -104,8 +109,8 @@ export class OrderService extends AbstractCrudService<
               quantity: cartItem.quantity,
               price: cartItem.productPrice, // Capture current price
             },
-          })
-        )
+          }),
+        ),
       );
 
       // Clear cart after successful order creation
@@ -134,10 +139,7 @@ export class OrderService extends AbstractCrudService<
     });
 
     if (!order) {
-      throw new AppError(
-        "Failed to create order",
-        ErrorCode.OPERATION_FAILED
-      );
+      throw new AppError("Failed to create order", ErrorCode.OPERATION_FAILED);
     }
 
     return this.toDTO(order as any);
@@ -187,7 +189,7 @@ export class OrderService extends AbstractCrudService<
       limit?: number;
       status?: OrderStatus;
       paymentStatus?: PaymentStatus;
-    }
+    },
   ): Promise<{ data: OrderDTO[]; meta: any }> {
     const { page = 1, limit = 10, status, paymentStatus } = query;
     const skip = (page - 1) * limit;
@@ -236,7 +238,7 @@ export class OrderService extends AbstractCrudService<
    */
   async updateOrderStatus(
     orderId: string,
-    status: OrderStatus
+    status: OrderStatus,
   ): Promise<OrderDTO> {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
@@ -247,17 +249,20 @@ export class OrderService extends AbstractCrudService<
     }
 
     // Validate status transition
-    if (order.status === OrderStatus.CANCELLED) {
+    if (order.status === ORDER_STATUS.CANCELLED) {
       throw new AppError(
         "Cannot update cancelled order",
-        ErrorCode.ORDER_ALREADY_PROCESSED
+        ErrorCode.ORDER_ALREADY_PROCESSED,
       );
     }
 
-    if (order.status === OrderStatus.DELIVERED && status !== OrderStatus.CANCELLED) {
+    if (
+      order.status === ORDER_STATUS.DELIVERED &&
+      status !== ORDER_STATUS.CANCELLED
+    ) {
       throw new AppError(
         "Cannot update delivered order",
-        ErrorCode.ORDER_ALREADY_PROCESSED
+        ErrorCode.ORDER_ALREADY_PROCESSED,
       );
     }
 
@@ -371,7 +376,7 @@ export class OrderService extends AbstractCrudService<
 
   protected async persistUpdate(
     id: string,
-    data: OrderUpdateInput
+    data: OrderUpdateInput,
   ): Promise<Order | null> {
     const order = await prisma.order.update({
       where: { id },

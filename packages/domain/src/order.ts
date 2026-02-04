@@ -1,18 +1,13 @@
 import type {
+  BillingAddress,
   Prisma,
   Order as PrismaOrder,
   OrderItem as PrismaOrderItem,
-  OrderStatus,
-  PaymentStatus,
   ShippingAddress,
-  BillingAddress,
 } from "@repo/database";
 import { z } from "zod";
 import {
   createRequestSchema,
-  EmptyResponse,
-  EmptyResponseSchema,
-  ExtendedQueryParams,
   ListResponse,
   ListResponseSchema,
   SingleItemResponse,
@@ -22,8 +17,8 @@ import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics) =====
 
-export type Order = PrismaOrder;
 export type OrderItem = PrismaOrderItem;
+export type Order = PrismaOrder & { items: OrderItem[] };
 export type OrderCreateInput = Prisma.OrderCreateInput;
 export type OrderUpdateInput = Prisma.OrderUpdateInput;
 export type OrderWhereInput = Prisma.OrderWhereInput;
@@ -31,8 +26,26 @@ export type OrderSelect = Prisma.OrderSelect;
 
 // * ===== Re-export enums and types =====
 
-export { OrderStatus, PaymentStatus };
-export type { ShippingAddress, BillingAddress };
+const ORDER_STATUS = {
+  PENDING: "PENDING",
+  PROCESSING: "PROCESSING",
+  SHIPPED: "SHIPPED",
+  DELIVERED: "DELIVERED",
+  CANCELLED: "CANCELLED",
+} as const;
+
+const PAYMENT_STATUS = {
+  PENDING: "PENDING",
+  PAID: "PAID",
+  FAILED: "FAILED",
+  REFUNDED: "REFUNDED",
+} as const;
+
+type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
+type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
+
+export { ORDER_STATUS, PAYMENT_STATUS };
+export type { BillingAddress, ShippingAddress, OrderStatus, PaymentStatus };
 
 // * ===== Common Schemas =====
 
@@ -54,7 +67,7 @@ export const PaymentStatusSchema = z.enum([
 export const ShippingAddressSchema = z
   .object({
     fullName: z.string().min(1, "Full name is required"),
-    email: z.string().email("Valid email is required"),
+    email: z.email("Valid email is required"),
     phone: z.string().min(1, "Phone is required"),
     address: z.string().min(1, "Address is required"),
     city: z.string().min(1, "City is required"),
@@ -81,11 +94,11 @@ export const BillingAddressSchema = z
  * OrderItem DTO - Simplified order item for client
  */
 export const OrderItemDTOSchema = z.object({
-  id: IdValidator,
-  productId: IdValidator,
+  id: IdValidator(),
+  productId: IdValidator(),
   productName: z.string(),
   productSlug: z.string(),
-  productImage: z.string().url(),
+  productImage: z.url(),
   quantity: z.number().int().positive(),
   price: z.number().int().positive(),
   subtotal: z.number().int().nonnegative(),
@@ -97,8 +110,8 @@ export type OrderItemDTO = z.infer<typeof OrderItemDTOSchema>;
  * Order DTO - Simplified order for client
  */
 export const OrderDTOSchema = z.object({
-  id: IdValidator,
-  userId: IdValidator,
+  id: IdValidator(),
+  userId: IdValidator(),
   items: z.array(OrderItemDTOSchema),
   status: OrderStatusSchema,
   subtotal: z.number().int().nonnegative(),
@@ -109,8 +122,8 @@ export const OrderDTOSchema = z.object({
   billingAddress: BillingAddressSchema,
   paymentMethod: z.string(),
   paymentStatus: PaymentStatusSchema,
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
 export type OrderDTO = z.infer<typeof OrderDTOSchema>;

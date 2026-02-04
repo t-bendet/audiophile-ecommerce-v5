@@ -42,8 +42,8 @@ export class CartService extends AbstractCrudService<
       items,
       itemCount,
       subtotal,
-      createdAt: entity.createdAt.toISOString(),
-      updatedAt: entity.updatedAt.toISOString(),
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
     };
   }
 
@@ -101,7 +101,7 @@ export class CartService extends AbstractCrudService<
   async addToCart(
     userId: string,
     productId: string,
-    quantity: number
+    quantity: number,
   ): Promise<CartDTO> {
     // Verify product exists
     const product = await prisma.product.findUnique({
@@ -163,10 +163,13 @@ export class CartService extends AbstractCrudService<
   async updateCartItem(
     userId: string,
     cartItemId: string,
-    quantity: number
+    quantity: number,
   ): Promise<CartDTO> {
     if (quantity < 1) {
-      throw new AppError("Quantity must be at least 1", ErrorCode.INVALID_QUANTITY);
+      throw new AppError(
+        "Quantity must be at least 1",
+        ErrorCode.INVALID_QUANTITY,
+      );
     }
 
     // Find cart item and verify ownership
@@ -322,7 +325,7 @@ export class CartService extends AbstractCrudService<
 
   protected async persistUpdate(
     id: string,
-    data: CartUpdateInput
+    data: CartUpdateInput,
   ): Promise<Cart | null> {
     const cart = await prisma.cart.update({
       where: { id },

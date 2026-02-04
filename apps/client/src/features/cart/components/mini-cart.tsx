@@ -33,7 +33,7 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
   };
 
   const handleRemove = (cartItemId: string) => {
-    removeFromCart.mutate(cartItemId);
+    removeFromCart.mutate({ cartItemId });
   };
 
   const isUpdating = updateCartItem.isPending || removeFromCart.isPending;
@@ -55,9 +55,9 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
             </div>
           ) : !cart?.data.items || cart.data.items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <ShoppingCart className="h-16 w-16 text-neutral-300 mb-4" />
-              <p className="text-neutral-600 font-medium">Your cart is empty</p>
-              <p className="text-sm text-neutral-500 mt-2">
+              <ShoppingCart className="mb-4 h-16 w-16 text-neutral-300" />
+              <p className="font-medium text-neutral-600">Your cart is empty</p>
+              <p className="mt-2 text-sm text-neutral-500">
                 Add items to get started
               </p>
             </div>
@@ -78,9 +78,9 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
 
         {cart?.data.items && cart.data.items.length > 0 && (
           <DrawerFooter className="border-t">
-            <div className="flex justify-between items-center mb-4">
-              <span className="font-bold text-lg">Subtotal</span>
-              <span className="font-bold text-lg">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-lg font-bold">Subtotal</span>
+              <span className="text-lg font-bold">
                 ${((cart.data.subtotal || 0) / 100).toFixed(2)}
               </span>
             </div>
