@@ -182,7 +182,7 @@ export class CartService extends AbstractCrudService<
       });
     }
 
-    // Verify all products exist
+    // Verify all products exist in a single batch query
     const productIds = input.items.map((item) => item.productId);
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
@@ -191,40 +191,55 @@ export class CartService extends AbstractCrudService<
 
     const validProductIds = new Set(products.map((p) => p.id));
 
-    // Process each item from local cart
+    // Fetch all existing cart items in a single batch query
+    const existingCartItems = await prisma.cartItem.findMany({
+      where: {
+        cartId: cart.id,
+        productId: { in: productIds },
+      },
+      select: { id: true, productId: true, quantity: true },
+    });
+
+    // Create a map for quick lookup
+    const existingItemMap = new Map(
+      existingCartItems.map((item) => [item.productId, item])
+    );
+
+    // Process items in parallel using Promise.all
+    const operations: Promise<unknown>[] = [];
+
     for (const localItem of input.items) {
       // Skip items with invalid products
       if (!validProductIds.has(localItem.productId)) {
         continue;
       }
 
-      // Check if item already exists in server cart
-      const existingItem = await prisma.cartItem.findUnique({
-        where: {
-          cartId_productId: {
-            cartId: cart.id,
-            productId: localItem.productId,
-          },
-        },
-      });
+      const existingItem = existingItemMap.get(localItem.productId);
 
       if (existingItem) {
         // Update existing item quantity (add local quantity to server quantity)
-        await prisma.cartItem.update({
-          where: { id: existingItem.id },
-          data: { quantity: existingItem.quantity + localItem.quantity },
-        });
+        operations.push(
+          prisma.cartItem.update({
+            where: { id: existingItem.id },
+            data: { quantity: existingItem.quantity + localItem.quantity },
+          })
+        );
       } else {
         // Add new item to cart
-        await prisma.cartItem.create({
-          data: {
-            cartId: cart.id,
-            productId: localItem.productId,
-            quantity: localItem.quantity,
-          },
-        });
+        operations.push(
+          prisma.cartItem.create({
+            data: {
+              cartId: cart.id,
+              productId: localItem.productId,
+              quantity: localItem.quantity,
+            },
+          })
+        );
       }
     }
+
+    // Execute all operations in parallel
+    await Promise.all(operations);
 
     // Return updated cart
     return this.getOrCreateCart(userId);
