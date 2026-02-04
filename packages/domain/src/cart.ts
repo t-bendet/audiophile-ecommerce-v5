@@ -74,6 +74,29 @@ export const AddToCartInputSchema = z
 export type AddToCartInput = z.infer<typeof AddToCartInputSchema>;
 
 /**
+ * Sync cart item input - for syncing local cart items to server
+ */
+export const SyncCartItemInputSchema = z
+  .object({
+    productId: IdValidator(),
+    quantity: z.number().int().positive(),
+  })
+  .strict();
+
+export type SyncCartItemInput = z.infer<typeof SyncCartItemInputSchema>;
+
+/**
+ * Sync cart input - for syncing local cart to server cart
+ */
+export const SyncCartInputSchema = z
+  .object({
+    items: z.array(SyncCartItemInputSchema),
+  })
+  .strict();
+
+export type SyncCartInput = z.infer<typeof SyncCartInputSchema>;
+
+/**
  * Update cart item input
  */
 export const UpdateCartItemInputSchema = z
@@ -112,6 +135,15 @@ export const AddToCartRequestSchema = createRequestSchema({
 export type AddToCartRequest = z.infer<typeof AddToCartRequestSchema>;
 
 /**
+ * Sync cart request - for syncing local cart to server cart
+ */
+export const SyncCartRequestSchema = createRequestSchema({
+  body: SyncCartInputSchema,
+});
+
+export type SyncCartRequest = z.infer<typeof SyncCartRequestSchema>;
+
+/**
  * Update cart item request
  */
 export const UpdateCartItemRequestSchema = createRequestSchema({
@@ -144,6 +176,9 @@ export const GetCartResponseSchema = SingleItemResponseSchema(CartDTOSchema);
 
 export type AddToCartResponse = SingleItemResponse<CartDTO>;
 export const AddToCartResponseSchema = SingleItemResponseSchema(CartDTOSchema);
+
+export type SyncCartResponse = SingleItemResponse<CartDTO>;
+export const SyncCartResponseSchema = SingleItemResponseSchema(CartDTOSchema);
 
 export type UpdateCartItemResponse = SingleItemResponse<CartDTO>;
 export const UpdateCartItemResponseSchema =
