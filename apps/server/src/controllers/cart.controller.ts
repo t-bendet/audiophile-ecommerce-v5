@@ -27,6 +27,17 @@ export const addToCart: RequestHandler = catchAsync(async (req, res) => {
 });
 
 /**
+ * Sync local cart with server cart
+ */
+export const syncCart: RequestHandler = catchAsync(async (req, res) => {
+  const userId = req.user!.id;
+  const { items } = req.verified?.body;
+  
+  const dto = await cartService.syncCart(userId, { items });
+  res.status(200).json(createSingleItemResponse(dto));
+});
+
+/**
  * Update cart item quantity
  */
 export const updateCartItem: RequestHandler = catchAsync(async (req, res) => {

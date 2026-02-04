@@ -3,6 +3,7 @@ import {
   ClearCartRequestSchema,
   GetCartRequestSchema,
   RemoveFromCartRequestSchema,
+  SyncCartRequestSchema,
   UpdateCartItemRequestSchema,
 } from "@repo/domain";
 import express from "express";
@@ -27,6 +28,13 @@ cartRouter.post(
   "/",
   validateSchema(AddToCartRequestSchema),
   cartController.addToCart
+);
+
+// Sync local cart with server cart
+cartRouter.post(
+  "/sync",
+  validateSchema(SyncCartRequestSchema),
+  cartController.syncCart
 );
 
 // Update cart item quantity
