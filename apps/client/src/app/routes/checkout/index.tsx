@@ -16,12 +16,12 @@ export default function CheckoutPage() {
   const updateCartItem = useUpdateCartItem();
   const removeFromCart = useRemoveFromCart();
 
-  const handleUpdateQuantity = (cartItemId: string, quantity: number) => {
-    updateCartItem.mutate({ cartItemId, quantity });
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
+    updateCartItem.mutate({ productId, quantity });
   };
 
-  const handleRemove = (cartItemId: string) => {
-    removeFromCart.mutate({ cartItemId });
+  const handleRemove = (productId: string) => {
+    removeFromCart.mutate({ productId });
   };
 
   const isUpdating = updateCartItem.isPending || removeFromCart.isPending;

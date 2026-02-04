@@ -4,8 +4,8 @@ import { Minus, Plus, X } from "lucide-react";
 
 interface CartItemProps {
   item: CartItemDTO;
-  onUpdateQuantity: (cartItemId: string, quantity: number) => void;
-  onRemove: (cartItemId: string) => void;
+  onUpdateQuantity: (productId: string, quantity: number) => void;
+  onRemove: (productId: string) => void;
   isUpdating?: boolean;
 }
 
@@ -17,12 +17,12 @@ export function CartItem({
 }: CartItemProps) {
   const handleDecrease = () => {
     if (item.quantity > 1) {
-      onUpdateQuantity(item.id, item.quantity - 1);
+      onUpdateQuantity(item.productId, item.quantity - 1);
     }
   };
 
   const handleIncrease = () => {
-    onUpdateQuantity(item.id, item.quantity + 1);
+    onUpdateQuantity(item.productId, item.quantity + 1);
   };
 
   return (
@@ -69,7 +69,7 @@ export function CartItem({
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onRemove(item.id)}
+        onClick={() => onRemove(item.productId)}
         disabled={isUpdating}
         className="h-8 w-8 p-0 text-neutral-500 hover:text-red-600"
       >

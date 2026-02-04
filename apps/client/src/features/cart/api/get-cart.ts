@@ -1,4 +1,10 @@
-import { getApi } from "@/lib/api-client";
+import {
+  addToLocalCart,
+  clearLocalCart,
+  getLocalCart,
+  removeFromLocalCart,
+  updateLocalCartItem,
+} from "@/lib/cart-storage";
 import {
   TBaseHandler,
   TBaseRequestParams,
@@ -7,14 +13,11 @@ import {
 import {
   AddToCartInput,
   AddToCartResponse,
-  AddToCartResponseSchema,
+  CartDTO,
   GetCartResponse,
-  GetCartResponseSchema,
   RemoveFromCartResponse,
-  RemoveFromCartResponseSchema,
   UpdateCartItemInput,
   UpdateCartItemResponse,
-  UpdateCartItemResponseSchema,
 } from "@repo/domain";
 import {
   queryOptions,
@@ -24,19 +27,34 @@ import {
 } from "@tanstack/react-query";
 import cartKeys from "./cart-keys";
 
-// ** GetCart
+// ** GetCart - Now returns local cart data
 
 type TGetCart = TBaseHandler<GetCartResponse>;
 
-const getCart: TGetCart = async ({ signal }) => {
-  const api = getApi();
-  const response = await api.get("/cart", { signal });
-  const result = GetCartResponseSchema.safeParse(response.data);
-  if (result.success) {
-    return result.data;
-  } else {
-    throw result.error;
-  }
+const getCart: TGetCart = async () => {
+  // Get cart from localStorage instead of API
+  const localCart = getLocalCart();
+
+  // Convert local cart to API response format
+  const cartDTO: CartDTO = {
+    id: "local-cart", // Dummy ID for local cart
+    userId: "anonymous", // Anonymous user
+    items: localCart.items.map((item, index) => ({
+      ...item,
+      id: item.id || `local-${index}`, // Generate ID if not present
+    })),
+    itemCount: localCart.itemCount,
+    subtotal: localCart.subtotal,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  return {
+    success: true,
+    message: "Cart retrieved successfully",
+    timestamp: new Date().toISOString(),
+    data: cartDTO,
+  };
 };
 
 export const getCartQueryOptions = () =>
@@ -49,19 +67,56 @@ export const useCart = () => {
   return useQuery(getCartQueryOptions());
 };
 
-// ** AddToCart
+// ** AddToCart - Now uses local storage
 
-type TAddToCart = TMutationHandler<AddToCartResponse, AddToCartInput>;
-
-const addToCart: TAddToCart = async ({ productId, quantity }) => {
-  const api = getApi();
-  const response = await api.post("/cart", { productId, quantity });
-  const result = AddToCartResponseSchema.safeParse(response.data);
-  if (result.success) {
-    return result.data;
-  } else {
-    throw result.error;
+type TAddToCart = TMutationHandler<
+  AddToCartResponse,
+  AddToCartInput & {
+    productName: string;
+    productSlug: string;
+    productPrice: number;
+    productImage: string;
   }
+>;
+
+const addToCart: TAddToCart = async ({
+  productId,
+  quantity,
+  productName,
+  productSlug,
+  productPrice,
+  productImage,
+}) => {
+  // Add to local storage
+  const localCart = addToLocalCart(
+    productId,
+    productName,
+    productSlug,
+    productPrice,
+    productImage,
+    quantity
+  );
+
+  // Convert to API response format
+  const cartDTO: CartDTO = {
+    id: "local-cart",
+    userId: "anonymous",
+    items: localCart.items.map((item, index) => ({
+      ...item,
+      id: item.id || `local-${index}`,
+    })),
+    itemCount: localCart.itemCount,
+    subtotal: localCart.subtotal,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  return {
+    success: true,
+    message: "Item added to cart",
+    timestamp: new Date().toISOString(),
+    data: cartDTO,
+  };
 };
 
 export const useAddToCart = () => {
@@ -76,22 +131,37 @@ export const useAddToCart = () => {
   });
 };
 
-// ** UpdateCartItem
+// ** UpdateCartItem - Now uses local storage
 
 type TUpdateCartItem = TMutationHandler<
   UpdateCartItemResponse,
-  { cartItemId: string } & UpdateCartItemInput
+  { productId: string } & UpdateCartItemInput
 >;
 
-const updateCartItem: TUpdateCartItem = async ({ cartItemId, quantity }) => {
-  const api = getApi();
-  const response = await api.patch(`/cart/items/${cartItemId}`, { quantity });
-  const result = UpdateCartItemResponseSchema.safeParse(response.data);
-  if (result.success) {
-    return result.data;
-  } else {
-    throw result.error;
-  }
+const updateCartItem: TUpdateCartItem = async ({ productId, quantity }) => {
+  // Update in local storage
+  const localCart = updateLocalCartItem(productId, quantity);
+
+  // Convert to API response format
+  const cartDTO: CartDTO = {
+    id: "local-cart",
+    userId: "anonymous",
+    items: localCart.items.map((item, index) => ({
+      ...item,
+      id: item.id || `local-${index}`,
+    })),
+    itemCount: localCart.itemCount,
+    subtotal: localCart.subtotal,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  return {
+    success: true,
+    message: "Cart item updated",
+    timestamp: new Date().toISOString(),
+    data: cartDTO,
+  };
 };
 
 export const useUpdateCartItem = () => {
@@ -106,22 +176,37 @@ export const useUpdateCartItem = () => {
   });
 };
 
-// ** RemoveFromCart
+// ** RemoveFromCart - Now uses local storage
 
 type TRemoveFromCart = TMutationHandler<
   RemoveFromCartResponse,
-  { cartItemId: string }
+  { productId: string }
 >;
 
-const removeFromCart: TRemoveFromCart = async ({ cartItemId }) => {
-  const api = getApi();
-  const response = await api.delete(`/cart/items/${cartItemId}`);
-  const result = RemoveFromCartResponseSchema.safeParse(response.data);
-  if (result.success) {
-    return result.data;
-  } else {
-    throw result.error;
-  }
+const removeFromCart: TRemoveFromCart = async ({ productId }) => {
+  // Remove from local storage
+  const localCart = removeFromLocalCart(productId);
+
+  // Convert to API response format
+  const cartDTO: CartDTO = {
+    id: "local-cart",
+    userId: "anonymous",
+    items: localCart.items.map((item, index) => ({
+      ...item,
+      id: item.id || `local-${index}`,
+    })),
+    itemCount: localCart.itemCount,
+    subtotal: localCart.subtotal,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  return {
+    success: true,
+    message: "Item removed from cart",
+    timestamp: new Date().toISOString(),
+    data: cartDTO,
+  };
 };
 
 export const useRemoveFromCart = () => {
@@ -136,13 +221,13 @@ export const useRemoveFromCart = () => {
   });
 };
 
-// ** ClearCart
+// ** ClearCart - Now uses local storage
 
 type TClearCart = TBaseHandler<void>;
 
-const clearCart: TClearCart = async ({ signal }) => {
-  const api = getApi();
-  await api.delete("/cart", { signal });
+const clearCart: TClearCart = async () => {
+  // Clear local storage
+  clearLocalCart();
 };
 
 export const useClearCart = () => {

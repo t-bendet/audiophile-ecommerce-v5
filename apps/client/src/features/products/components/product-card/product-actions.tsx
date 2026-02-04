@@ -28,11 +28,34 @@ export default function ProductActions(props: {
     );
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!id) return;
 
+    // Fetch product details from cache or server
+    const productData = await queryClient.ensureQueryData(
+      getProductBySlugQueryOptions(slug)
+    );
+
+    if (!productData?.data) {
+      toast({
+        title: "Error",
+        description: "Failed to get product details",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const product = productData.data;
+
     addToCart.mutate(
-      { productId: id, quantity },
+      {
+        productId: id,
+        quantity,
+        productName: product.name,
+        productSlug: product.slug,
+        productPrice: product.price,
+        productImage: product.images.thumbnail.src,
+      },
       {
         onSuccess: () => {
           toast({
