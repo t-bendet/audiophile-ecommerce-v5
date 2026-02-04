@@ -14,6 +14,7 @@ export default function ProductActions(props: {
   classes?: string;
   children?: React.ReactNode;
   hasNavigateAction?: boolean;
+  hasCartAction?: boolean;
 }) {
   const { slug, id } = useProductCardContext();
   const queryClient = useQueryClient();
@@ -21,10 +22,15 @@ export default function ProductActions(props: {
   const addToCart = useAddToCart();
   const { toast } = useToast();
 
-  if (!props.children && !props.hasNavigateAction && !id) {
+  if (
+    !props.children &&
+    !props.hasNavigateAction &&
+    !props.hasCartAction &&
+    !id
+  ) {
     throw new AppError(
       "ProductActions components must have at least one action in context, or a child component.",
-      ErrorCode.COMPONENT_COMPOSITION_ERROR
+      ErrorCode.COMPONENT_COMPOSITION_ERROR,
     );
   }
 
@@ -33,7 +39,7 @@ export default function ProductActions(props: {
 
     // Fetch product details from cache or server
     const productData = await queryClient.ensureQueryData(
-      getProductBySlugQueryOptions(slug)
+      getProductBySlugQueryOptions(slug),
     );
 
     if (!productData?.data) {
@@ -71,7 +77,7 @@ export default function ProductActions(props: {
             variant: "destructive",
           });
         },
-      }
+      },
     );
   };
 
@@ -100,19 +106,19 @@ export default function ProductActions(props: {
           <Button variant="accent">see product</Button>
         </Link>
       ) : null}
-      {id ? (
+      {props.hasCartAction ? (
         <>
           <div className="flex h-12 w-30 items-center justify-around bg-neutral-200 text-xs font-bold">
-            <button 
-              className="cursor-pointer opacity-25 hover:opacity-50 px-3"
+            <button
+              className="cursor-pointer px-3 opacity-25 hover:opacity-50"
               onClick={handleDecrease}
               disabled={quantity === 1 || addToCart.isPending}
             >
               -
             </button>
             <p>{quantity}</p>
-            <button 
-              className="cursor-pointer opacity-25 hover:opacity-50 px-3"
+            <button
+              className="cursor-pointer px-3 opacity-25 hover:opacity-50"
               onClick={handleIncrease}
               disabled={addToCart.isPending}
             >
