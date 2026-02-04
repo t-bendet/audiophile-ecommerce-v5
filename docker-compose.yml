@@ -5,15 +5,14 @@ volumes:
     driver: local
 
 services:
-  mysql:
+  mongodb:
     platform: linux/amd64
-    image: mysql:8.0.32
-    container_name: turborepo_mysql
+    image: mongo:7.0
+    container_name: turborepo_mongodb
     restart: always
     ports:
-      - 3306:3306
+      - 27017:27017
     environment:
-      MYSQL_DATABASE: turborepo
-      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MONGO_INITDB_DATABASE: turborepo
     volumes:
-      - database:/var/lib/mysql
+      - database:/data/db
