@@ -11,6 +11,8 @@ import {
 import { CartItem } from "@/features/cart/components/cart-item";
 import { Link } from "react-router";
 
+// TODO order summary component refactor
+
 export default function CheckoutPage() {
   const { data: cart, isLoading } = useCart();
   const updateCartItem = useUpdateCartItem();
@@ -92,7 +94,7 @@ export default function CheckoutPage() {
               <h2 className="mb-6 text-2xl font-bold">Order Summary</h2>
 
               {/* Cart Items */}
-              <div className="mb-6 divide-y">
+              <div className="mb-6 divide-y text-neutral-900">
                 {cart.data.items.map((item) => (
                   <CartItem
                     key={item.id}
@@ -105,7 +107,7 @@ export default function CheckoutPage() {
               </div>
 
               {/* Price Breakdown */}
-              <div className="space-y-3 border-t pt-4">
+              <div className="space-y-3 border-t pt-4 text-neutral-600">
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Subtotal</span>
                   <span className="font-medium">
