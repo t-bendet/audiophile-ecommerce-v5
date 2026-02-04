@@ -56,6 +56,12 @@ const createAppRouter = (queryClient: QueryClient) =>
             },
             {
               lazy: () =>
+                import("./routes/checkout").then(convert(queryClient)),
+              path: paths.checkout.checkout.path,
+              errorElement: <RouteErrorBoundary />,
+            },
+            {
+              lazy: () =>
                 import("@/components/layouts/user-area-layout").then(
                   convert(queryClient),
                 ),
