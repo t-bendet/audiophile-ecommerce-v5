@@ -1,4 +1,6 @@
 import { getApi } from "@/lib/api-client";
+import { clearLocalCart } from "@/lib/cart-storage";
+import { syncLocalCartToServer } from "@/lib/cart-sync";
 import {
   TBaseHandler,
   TBaseRequestParams,
@@ -15,6 +17,7 @@ import {
   UserDTOResponseSchema,
 } from "@repo/domain";
 import { QueryClient, queryOptions, useMutation } from "@tanstack/react-query";
+import cartKeys from "@/features/cart/api/cart-keys";
 
 export const USER_QUERY_KEY = "authenticated-user";
 export const AUTH_STATUS_QUERY_KEY = "auth-status";
@@ -94,6 +97,10 @@ export const useLogoutUser = (queryClient: QueryClient) => {
     mutationKey: [AUTH_LOGOUT_MUTATION_KEY],
     mutationFn: logoutUser,
     onSuccess: (result) => {
+      // Clear local cart on logout
+      clearLocalCart();
+      // Invalidate cart queries
+      queryClient.invalidateQueries({ queryKey: cartKeys.all });
       // Manually set the user data in the cache after a successful logout
       queryClient.setQueryData([USER_QUERY_KEY], result);
       return queryClient.invalidateQueries({
@@ -126,7 +133,9 @@ export const useLogin = (queryClient: QueryClient) => {
     mutationFn: postLoginUser,
     mutationKey: [AUTH_LOGIN_MUTATION_KEY],
     onSuccess: async () => {
-      // Manually set the user data in the cache after a successful login
+      // After successful login, sync local cart to server
+      await syncLocalCartToServer(queryClient);
+      // Invalidate auth status
       await queryClient.invalidateQueries({
         queryKey: [AUTH_STATUS_QUERY_KEY],
       });

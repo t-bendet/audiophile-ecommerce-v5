@@ -9,7 +9,29 @@ import {
   useUpdateCartItem,
 } from "@/features/cart/api/get-cart";
 import { CartItem } from "@/features/cart/components/cart-item";
-import { Link } from "react-router";
+import { getAuthStatusQueryOptions } from "@/lib/auth";
+import { syncLocalCartToServer } from "@/lib/cart-sync";
+import { QueryClient } from "@tanstack/react-query";
+import { Link, LoaderFunctionArgs, redirect } from "react-router";
+
+export const clientLoader =
+  (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
+    // Check if user is authenticated
+    const authResponse = await queryClient.ensureQueryData(
+      getAuthStatusQueryOptions()
+    );
+    if (!authResponse.data.isAuthenticated) {
+      // User is not logged in, redirect to login page with redirectTo parameter
+      const url = new URL(context.request.url);
+      const redirectTo = url.pathname + url.search;
+      throw redirect(paths.auth.login.getHref(redirectTo));
+    }
+
+    // Sync local cart with server cart if user has local items
+    await syncLocalCartToServer(queryClient);
+
+    return null;
+  };
 
 // TODO order summary component refactor
 
