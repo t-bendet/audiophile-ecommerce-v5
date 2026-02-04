@@ -2,7 +2,7 @@ import { getApi } from "@/lib/api-client";
 import {
   TBaseHandler,
   TBaseRequestParams,
-  TExtendsRequestParams,
+  TMutationHandler,
 } from "@/types/api";
 import {
   AddToCartInput,
@@ -51,18 +51,11 @@ export const useCart = () => {
 
 // ** AddToCart
 
-type TAddToCart = TBaseHandler<
-  AddToCartResponse,
-  TExtendsRequestParams<AddToCartInput>
->;
+type TAddToCart = TMutationHandler<AddToCartResponse, AddToCartInput>;
 
-const addToCart: TAddToCart = async ({ productId, quantity, signal }) => {
+const addToCart: TAddToCart = async ({ productId, quantity }) => {
   const api = getApi();
-  const response = await api.post(
-    "/cart",
-    { productId, quantity },
-    { signal }
-  );
+  const response = await api.post("/cart", { productId, quantity });
   const result = AddToCartResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
@@ -75,7 +68,7 @@ export const useAddToCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: AddToCartInput) => addToCart({ ...input }),
+    mutationFn: addToCart,
     onSuccess: () => {
       // Invalidate cart query to refetch updated cart
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
@@ -85,22 +78,14 @@ export const useAddToCart = () => {
 
 // ** UpdateCartItem
 
-type TUpdateCartItem = TBaseHandler<
+type TUpdateCartItem = TMutationHandler<
   UpdateCartItemResponse,
-  TExtendsRequestParams<{ cartItemId: string } & UpdateCartItemInput>
+  { cartItemId: string } & UpdateCartItemInput
 >;
 
-const updateCartItem: TUpdateCartItem = async ({
-  cartItemId,
-  quantity,
-  signal,
-}) => {
+const updateCartItem: TUpdateCartItem = async ({ cartItemId, quantity }) => {
   const api = getApi();
-  const response = await api.patch(
-    `/cart/items/${cartItemId}`,
-    { quantity },
-    { signal }
-  );
+  const response = await api.patch(`/cart/items/${cartItemId}`, { quantity });
   const result = UpdateCartItemResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
@@ -113,8 +98,7 @@ export const useUpdateCartItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { cartItemId: string; quantity: number }) =>
-      updateCartItem(input),
+    mutationFn: updateCartItem,
     onSuccess: () => {
       // Invalidate cart query to refetch updated cart
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
@@ -124,14 +108,14 @@ export const useUpdateCartItem = () => {
 
 // ** RemoveFromCart
 
-type TRemoveFromCart = TBaseHandler<
+type TRemoveFromCart = TMutationHandler<
   RemoveFromCartResponse,
-  TExtendsRequestParams<{ cartItemId: string }>
+  { cartItemId: string }
 >;
 
-const removeFromCart: TRemoveFromCart = async ({ cartItemId, signal }) => {
+const removeFromCart: TRemoveFromCart = async ({ cartItemId }) => {
   const api = getApi();
-  const response = await api.delete(`/cart/items/${cartItemId}`, { signal });
+  const response = await api.delete(`/cart/items/${cartItemId}`);
   const result = RemoveFromCartResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
@@ -144,7 +128,7 @@ export const useRemoveFromCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (cartItemId: string) => removeFromCart({ cartItemId }),
+    mutationFn: removeFromCart,
     onSuccess: () => {
       // Invalidate cart query to refetch updated cart
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
@@ -165,7 +149,7 @@ export const useClearCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => clearCart({}),
+    mutationFn: clearCart,
     onSuccess: () => {
       // Invalidate cart query to refetch empty cart
       queryClient.invalidateQueries({ queryKey: cartKeys.all });

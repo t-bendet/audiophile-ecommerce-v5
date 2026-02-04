@@ -36,7 +36,7 @@ export function CartItem({
 
       {/* Product Details */}
       <div className="flex-1">
-        <h3 className="font-bold text-sm">{item.productName}</h3>
+        <h3 className="text-sm font-bold">{item.productName}</h3>
         <p className="text-sm text-neutral-500">
           ${(item.productPrice / 100).toFixed(2)}
         </p>
@@ -67,7 +67,7 @@ export function CartItem({
 
       {/* Remove Button */}
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={() => onRemove(item.id)}
         disabled={isUpdating}

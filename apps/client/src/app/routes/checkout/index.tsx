@@ -1,12 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Section } from "@/components/ui/section";
 import { paths } from "@/config/paths";
-import { useCart } from "@/features/cart/api/get-cart";
-import LoadingSpinner from "@/components/ui/loading-spinner";
-import { Link } from "react-router";
+import {
+  useCart,
+  useRemoveFromCart,
+  useUpdateCartItem,
+} from "@/features/cart/api/get-cart";
 import { CartItem } from "@/features/cart/components/cart-item";
-import { useRemoveFromCart, useUpdateCartItem } from "@/features/cart/api/get-cart";
+import { Link } from "react-router";
 
 export default function CheckoutPage() {
   const { data: cart, isLoading } = useCart();
@@ -18,7 +21,7 @@ export default function CheckoutPage() {
   };
 
   const handleRemove = (cartItemId: string) => {
-    removeFromCart.mutate(cartItemId);
+    removeFromCart.mutate({ cartItemId });
   };
 
   const isUpdating = updateCartItem.isPending || removeFromCart.isPending;
@@ -43,8 +46,8 @@ export default function CheckoutPage() {
     return (
       <Container>
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <h1 className="text-3xl font-bold mb-4">Your cart is empty</h1>
-          <p className="text-neutral-600 mb-8">
+          <h1 className="mb-4 text-3xl font-bold">Your cart is empty</h1>
+          <p className="mb-8 text-neutral-600">
             Add items to your cart to continue to checkout
           </p>
           <Link to={paths.home.path}>
@@ -65,30 +68,31 @@ export default function CheckoutPage() {
 
       <Section>
         <Container>
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid gap-8 lg:grid-cols-3">
             {/* Left Column - Form Placeholder */}
-            <div className="lg:col-span-2 bg-white rounded-lg p-6 shadow">
-              <h2 className="text-2xl font-bold mb-6">Billing Details</h2>
-              <p className="text-neutral-600 mb-4">
+            <div className="rounded-lg bg-white p-6 shadow lg:col-span-2">
+              <h2 className="mb-6 text-2xl font-bold">Billing Details</h2>
+              <p className="mb-4 text-neutral-600">
                 ⚠️ Checkout form coming soon! This page will include:
               </p>
-              <ul className="list-disc list-inside space-y-2 text-neutral-600 mb-8">
+              <ul className="mb-8 list-inside list-disc space-y-2 text-neutral-600">
                 <li>Billing information form (name, email, address)</li>
                 <li>Shipping information section</li>
                 <li>Payment method selection</li>
                 <li>Form validation</li>
               </ul>
               <p className="text-sm text-neutral-500">
-                For now, the checkout page shows your cart summary and price calculations.
+                For now, the checkout page shows your cart summary and price
+                calculations.
               </p>
             </div>
 
             {/* Right Column - Order Summary */}
-            <div className="bg-white rounded-lg p-6 shadow">
-              <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+            <div className="rounded-lg bg-white p-6 shadow">
+              <h2 className="mb-6 text-2xl font-bold">Order Summary</h2>
 
               {/* Cart Items */}
-              <div className="divide-y mb-6">
+              <div className="mb-6 divide-y">
                 {cart.data.items.map((item) => (
                   <CartItem
                     key={item.id}
@@ -104,29 +108,37 @@ export default function CheckoutPage() {
               <div className="space-y-3 border-t pt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Subtotal</span>
-                  <span className="font-medium">${(subtotal / 100).toFixed(2)}</span>
+                  <span className="font-medium">
+                    ${(subtotal / 100).toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Shipping</span>
-                  <span className="font-medium">${(shipping / 100).toFixed(2)}</span>
+                  <span className="font-medium">
+                    ${(shipping / 100).toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Tax (20%)</span>
                   <span className="font-medium">${(tax / 100).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold border-t pt-3">
+                <div className="flex justify-between border-t pt-3 text-lg font-bold">
                   <span>Total</span>
-                  <span className="text-primary-500">${(total / 100).toFixed(2)}</span>
+                  <span className="text-primary-500">
+                    ${(total / 100).toFixed(2)}
+                  </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="mt-6 space-y-3">
-                <Button 
-                  variant="accent" 
+                <Button
+                  variant="accent"
                   className="w-full"
                   onClick={() => {
-                    alert("Checkout form and payment integration coming in next phase!");
+                    alert(
+                      "Checkout form and payment integration coming in next phase!",
+                    );
                   }}
                 >
                   Continue to Payment

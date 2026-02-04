@@ -3,6 +3,7 @@ import {
   TBaseHandler,
   TBaseRequestParams,
   TExtendsRequestParams,
+  TMutationHandler,
 } from "@/types/api";
 import {
   CreateOrderInput,
@@ -25,23 +26,19 @@ import orderKeys from "./order-keys";
 
 // ** CreateOrder
 
-type TCreateOrder = TBaseHandler<
-  CreateOrderResponse,
-  TExtendsRequestParams<CreateOrderInput>
->;
+type TCreateOrder = TMutationHandler<CreateOrderResponse, CreateOrderInput>;
 
 const createOrder: TCreateOrder = async ({
   shippingAddress,
   billingAddress,
   paymentMethod,
-  signal,
 }) => {
   const api = getApi();
-  const response = await api.post(
-    "/orders",
-    { shippingAddress, billingAddress, paymentMethod },
-    { signal }
-  );
+  const response = await api.post("/orders", {
+    shippingAddress,
+    billingAddress,
+    paymentMethod,
+  });
   const result = CreateOrderResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
@@ -54,7 +51,7 @@ export const useCreateOrder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: CreateOrderInput) => createOrder({ ...input }),
+    mutationFn: createOrder,
     onSuccess: () => {
       // Invalidate both order and cart queries
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
@@ -121,13 +118,17 @@ const listOrders: TListOrders = async ({
   }
 };
 
-export const listOrdersQueryOptions = (filters: OrderQueryParams = {}) =>
+export const listOrdersQueryOptions = (
+  filters: OrderQueryParams = { page: 1, limit: 10 },
+) =>
   queryOptions({
     queryKey: orderKeys.list(filters),
     queryFn: ({ signal }: TBaseRequestParams) =>
       listOrders({ ...filters, signal }),
   });
 
-export const useOrders = (filters: OrderQueryParams = {}) => {
+export const useOrders = (
+  filters: OrderQueryParams = { page: 1, limit: 10 },
+) => {
   return useQuery(listOrdersQueryOptions(filters));
 };

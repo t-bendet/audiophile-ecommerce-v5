@@ -8,8 +8,6 @@ import {
   createRequestSchema,
   EmptyResponse,
   EmptyResponseSchema,
-  ListResponse,
-  ListResponseSchema,
   SingleItemResponse,
   SingleItemResponseSchema,
 } from "./common.js";
@@ -17,8 +15,10 @@ import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics) =====
 
-export type Cart = PrismaCart;
 export type CartItem = PrismaCartItem;
+export type Cart = PrismaCart & {
+  items?: CartItem[];
+};
 export type CartCreateInput = Prisma.CartCreateInput;
 export type CartUpdateInput = Prisma.CartUpdateInput;
 export type CartWhereInput = Prisma.CartWhereInput;
@@ -32,12 +32,12 @@ export type CartItemUpdateInput = Prisma.CartItemUpdateInput;
  * CartItem DTO - Simplified cart item for client
  */
 export const CartItemDTOSchema = z.object({
-  id: IdValidator,
-  productId: IdValidator,
+  id: IdValidator(),
+  productId: IdValidator(),
   productName: z.string(),
   productSlug: z.string(),
   productPrice: z.number().int().positive(),
-  productImage: z.string().url(),
+  productImage: z.url(),
   quantity: z.number().int().positive(),
   subtotal: z.number().int().nonnegative(),
 });
@@ -48,13 +48,13 @@ export type CartItemDTO = z.infer<typeof CartItemDTOSchema>;
  * Cart DTO - Simplified cart for client
  */
 export const CartDTOSchema = z.object({
-  id: IdValidator,
-  userId: IdValidator,
+  id: IdValidator(),
+  userId: IdValidator(),
   items: z.array(CartItemDTOSchema),
   itemCount: z.number().int().nonnegative(),
   subtotal: z.number().int().nonnegative(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
 export type CartDTO = z.infer<typeof CartDTOSchema>;
@@ -66,7 +66,7 @@ export type CartDTO = z.infer<typeof CartDTOSchema>;
  */
 export const AddToCartInputSchema = z
   .object({
-    productId: IdValidator,
+    productId: IdValidator(),
     quantity: z.number().int().positive().default(1),
   })
   .strict();
@@ -88,7 +88,7 @@ export type UpdateCartItemInput = z.infer<typeof UpdateCartItemInputSchema>;
  * Remove item from cart - only needs cartItemId in params
  */
 export const RemoveFromCartParamsSchema = z.object({
-  cartItemId: IdValidator,
+  cartItemId: IdValidator(),
 });
 
 export type RemoveFromCartParams = z.infer<typeof RemoveFromCartParamsSchema>;
@@ -115,13 +115,11 @@ export type AddToCartRequest = z.infer<typeof AddToCartRequestSchema>;
  * Update cart item request
  */
 export const UpdateCartItemRequestSchema = createRequestSchema({
-  params: z.object({ cartItemId: IdValidator }),
+  params: z.object({ cartItemId: IdValidator() }),
   body: UpdateCartItemInputSchema,
 });
 
-export type UpdateCartItemRequest = z.infer<
-  typeof UpdateCartItemRequestSchema
->;
+export type UpdateCartItemRequest = z.infer<typeof UpdateCartItemRequestSchema>;
 
 /**
  * Remove from cart request
@@ -130,9 +128,7 @@ export const RemoveFromCartRequestSchema = createRequestSchema({
   params: RemoveFromCartParamsSchema,
 });
 
-export type RemoveFromCartRequest = z.infer<
-  typeof RemoveFromCartRequestSchema
->;
+export type RemoveFromCartRequest = z.infer<typeof RemoveFromCartRequestSchema>;
 
 /**
  * Clear cart request
@@ -147,8 +143,7 @@ export type GetCartResponse = SingleItemResponse<CartDTO>;
 export const GetCartResponseSchema = SingleItemResponseSchema(CartDTOSchema);
 
 export type AddToCartResponse = SingleItemResponse<CartDTO>;
-export const AddToCartResponseSchema =
-  SingleItemResponseSchema(CartDTOSchema);
+export const AddToCartResponseSchema = SingleItemResponseSchema(CartDTOSchema);
 
 export type UpdateCartItemResponse = SingleItemResponse<CartDTO>;
 export const UpdateCartItemResponseSchema =
