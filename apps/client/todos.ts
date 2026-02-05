@@ -37,3 +37,10 @@
 // TODO improve react query usage for auth and user data (caching,stale time,refetching...)
 // TODO add password strength meter
 // TODO add show/hide password toggle
+
+// ** next steps
+
+// TODO checkout layout and components
+// TODO remove items from cart
+// TODO change cart product name
+// TODO add errors for cart.service and order.service
