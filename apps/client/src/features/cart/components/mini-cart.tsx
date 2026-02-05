@@ -28,12 +28,16 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
   const updateCartItem = useUpdateCartItem();
   const removeFromCart = useRemoveFromCart();
 
-  const handleUpdateQuantity = (productId: string, quantity: number) => {
-    updateCartItem.mutate({ productId, quantity });
+  const handleUpdateQuantity = (
+    productId: string,
+    cartItemId: string,
+    quantity: number,
+  ) => {
+    updateCartItem.mutate({ productId, cartItemId, quantity });
   };
 
-  const handleRemove = (productId: string) => {
-    removeFromCart.mutate({ productId });
+  const handleRemove = (productId: string, cartItemId: string) => {
+    removeFromCart.mutate({ productId, cartItemId });
   };
 
   const isUpdating = updateCartItem.isPending || removeFromCart.isPending;
