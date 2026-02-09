@@ -34,13 +34,13 @@ export function CartItem({
       {/* Product Image */}
       <img
         src={item.productImage}
-        alt={item.productName}
+        alt={item.cartLabel}
         className="h-16 w-16 rounded object-cover"
       />
 
       {/* Product Details */}
       <div className="flex h-full flex-1 flex-col gap-1">
-        <h3 className="text-sm font-bold uppercase">{item.productName}</h3>
+        <h3 className="text-sm font-bold uppercase">{item.cartLabel}</h3>
         <p className="text-sm text-neutral-500">
           $ {(item.productPrice / 100).toFixed(2)}
         </p>

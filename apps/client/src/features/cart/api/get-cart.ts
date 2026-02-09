@@ -97,7 +97,7 @@ export const useCart = () => {
 // ===== AddToCart =====
 
 type TAddToCartInput = AddToCartInput & {
-  productName: string;
+  cartLabel: string;
   productSlug: string;
   productPrice: number;
   productImage: string;
@@ -106,14 +106,14 @@ type TAddToCartInput = AddToCartInput & {
 const addToLocalCartFn = async ({
   productId,
   quantity,
-  productName,
+  cartLabel,
   productSlug,
   productPrice,
   productImage,
 }: TAddToCartInput): Promise<AddToCartResponse> => {
   const localCart = addToLocalCart(
     productId,
-    productName,
+    cartLabel,
     productSlug,
     productPrice,
     productImage,

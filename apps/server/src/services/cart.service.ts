@@ -48,7 +48,7 @@ export class CartService extends AbstractCrudService<
     const items: CartItemDTO[] = (entity.items || []).map((item) => ({
       id: item.id,
       productId: item.productId,
-      productName: item.product.cartLabel,
+      cartLabel: item.product.cartLabel,
       productSlug: item.product.slug,
       productPrice: item.product.price,
       productImage: item.product.images.thumbnail.src,
