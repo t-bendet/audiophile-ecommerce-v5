@@ -1,7 +1,6 @@
-import { prisma } from "@repo/database";
+import { prisma, Prisma } from "@repo/database";
 import {
   AppError,
-  Cart,
   CartCreateInput,
   CartDTO,
   CartItemDTO,
@@ -11,8 +10,32 @@ import {
 } from "@repo/domain";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
+const cartWithProductsInclude = {
+  items: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          cartLabel: true,
+          slug: true,
+          price: true,
+          images: {
+            select: {
+              thumbnail: true,
+            },
+          },
+        },
+      },
+    },
+  },
+} satisfies Prisma.CartInclude;
+
+type CartWithProducts = Prisma.CartGetPayload<{
+  include: typeof cartWithProductsInclude;
+}>;
+
 export class CartService extends AbstractCrudService<
-  Cart,
+  CartWithProducts,
   CartCreateInput,
   CartUpdateInput,
   CartDTO
@@ -20,12 +43,12 @@ export class CartService extends AbstractCrudService<
   /**
    * Transform Cart entity to CartDTO
    */
-  protected toDTO(entity: Cart): CartDTO {
+  protected toDTO(entity: CartWithProducts): CartDTO {
     // Calculate cart items with product details and subtotals
-    const items: CartItemDTO[] = (entity.items || []).map((item: any) => ({
+    const items: CartItemDTO[] = (entity.items || []).map((item) => ({
       id: item.id,
       productId: item.productId,
-      productName: item.product.cartLabel,
+      cartLabel: item.product.cartLabel,
       productSlug: item.product.slug,
       productPrice: item.product.price,
       productImage: item.product.images.thumbnail.src,
@@ -54,46 +77,18 @@ export class CartService extends AbstractCrudService<
   async getOrCreateCart(userId: string): Promise<CartDTO> {
     let cart = await prisma.cart.findUnique({
       where: { userId },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                price: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: cartWithProductsInclude,
     });
 
     // Create cart if it doesn't exist
     if (!cart) {
       cart = await prisma.cart.create({
         data: { userId },
-        include: {
-          items: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  cartLabel: true,
-                  slug: true,
-                  price: true,
-                  images: true,
-                },
-              },
-            },
-          },
-        },
+        include: cartWithProductsInclude,
       });
     }
 
-    return this.toDTO(cart as any);
+    return this.toDTO(cart);
   }
 
   /**
@@ -202,7 +197,7 @@ export class CartService extends AbstractCrudService<
 
     // Create a map for quick lookup
     const existingItemMap = new Map(
-      existingCartItems.map((item) => [item.productId, item])
+      existingCartItems.map((item) => [item.productId, item]),
     );
 
     // Process items in parallel using Promise.all
@@ -222,7 +217,7 @@ export class CartService extends AbstractCrudService<
           prisma.cartItem.update({
             where: { id: existingItem.id },
             data: { quantity: existingItem.quantity + localItem.quantity },
-          })
+          }),
         );
       } else {
         // Add new item to cart
@@ -233,7 +228,7 @@ export class CartService extends AbstractCrudService<
               productId: localItem.productId,
               quantity: localItem.quantity,
             },
-          })
+          }),
         );
       }
     }
@@ -335,7 +330,7 @@ export class CartService extends AbstractCrudService<
   protected async persistFindMany(params: {
     page?: number;
     limit?: number;
-  }): Promise<{ data: Cart[]; total: number }> {
+  }): Promise<{ data: CartWithProducts[]; total: number }> {
     const { page = 1, limit = 20 } = params;
     const skip = (page - 1) * limit;
 
@@ -343,99 +338,47 @@ export class CartService extends AbstractCrudService<
       prisma.cart.findMany({
         skip,
         take: limit,
-        include: {
-          items: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  cartLabel: true,
-                  slug: true,
-                  price: true,
-                  images: true,
-                },
-              },
-            },
-          },
-        },
+        include: cartWithProductsInclude,
       }),
       prisma.cart.count(),
     ]);
 
-    return { data: data as any[], total };
+    return { data: data, total };
   }
 
-  protected async persistFindById(id: string): Promise<Cart | null> {
+  protected async persistFindById(
+    id: string,
+  ): Promise<CartWithProducts | null> {
     const cart = await prisma.cart.findUnique({
       where: { id },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                price: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: cartWithProductsInclude,
     });
 
-    return cart as any;
+    return cart;
   }
 
-  protected async persistCreate(data: CartCreateInput): Promise<Cart> {
+  protected async persistCreate(
+    data: CartCreateInput,
+  ): Promise<CartWithProducts> {
     const cart = await prisma.cart.create({
       data,
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                price: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: cartWithProductsInclude,
     });
 
-    return cart as any;
+    return cart;
   }
 
   protected async persistUpdate(
     id: string,
     data: CartUpdateInput,
-  ): Promise<Cart | null> {
+  ): Promise<CartWithProducts | null> {
     const cart = await prisma.cart.update({
       where: { id },
       data,
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                price: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: cartWithProductsInclude,
     });
 
-    return cart as any;
+    return cart;
   }
 
   protected async persistDelete(id: string): Promise<boolean> {
