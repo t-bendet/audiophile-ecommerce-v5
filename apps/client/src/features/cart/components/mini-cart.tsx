@@ -15,6 +15,7 @@ import {
   useUpdateCartItem,
 } from "@/features/cart/api/get-cart";
 import { CartItem } from "@/features/cart/components/cart-item";
+import currencyFormatter from "@/utils/formatters";
 import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router";
 
@@ -86,7 +87,7 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
             <div className="mb-4 flex items-center justify-between">
               <span className="text-lg font-bold">Subtotal</span>
               <span className="text-lg font-bold">
-                ${((cart.data.subtotal || 0) / 100).toFixed(2)}
+                {currencyFormatter(cart.data.subtotal || 0)}
               </span>
             </div>
             <Link
