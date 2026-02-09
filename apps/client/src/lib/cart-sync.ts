@@ -11,7 +11,7 @@ import { QueryClient } from "@tanstack/react-query";
  * @returns Promise that resolves when sync is complete
  */
 export async function syncLocalCartToServer(
-  queryClient: QueryClient
+  queryClient: QueryClient,
 ): Promise<void> {
   const localCart = getLocalCart();
 
@@ -21,6 +21,9 @@ export async function syncLocalCartToServer(
   }
 
   try {
+    // TODO optimize by sending only changed items instead of full cart, but this is simpler for now and cart sizes are expected to be small
+    // TODO handle potential merge conflicts (e.g. same product in both carts) - for now we just let the server handle merging logic and assume it will sum quantities, but we might want to add client-side logic later to provide better UX
+    // TODO mutation to sync cart on the server and return the merged cart, so we can update local cache immediately without waiting for next fetch - this would require changes to our API and cart hooks, so we can consider it as a future enhancement
     const api = getApi();
     await api.post("/cart/sync", {
       items: localCart.items.map((item) => ({

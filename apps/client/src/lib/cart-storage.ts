@@ -68,13 +68,13 @@ export function addToLocalCart(
   productSlug: string,
   productPrice: number,
   productImage: string,
-  quantity: number
+  quantity: number,
 ): LocalCart {
   const cart = getLocalCart();
 
   // Check if item already exists
   const existingItemIndex = cart.items.findIndex(
-    (item) => item.productId === productId
+    (item) => item.productId === productId,
   );
 
   if (existingItemIndex !== -1) {
@@ -109,12 +109,12 @@ export function addToLocalCart(
  */
 export function updateLocalCartItem(
   productId: string,
-  quantity: number
+  quantity: number,
 ): LocalCart {
   const cart = getLocalCart();
 
   const itemIndex = cart.items.findIndex(
-    (item) => item.productId === productId
+    (item) => item.productId === productId,
   );
 
   if (itemIndex !== -1) {

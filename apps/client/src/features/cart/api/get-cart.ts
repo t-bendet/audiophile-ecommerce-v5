@@ -33,6 +33,8 @@ import cartKeys from "./cart-keys";
 
 // ===== Helper to check auth status =====
 
+// TODO remove this to central auth
+
 function getIsAuthenticated(queryClient: ReturnType<typeof useQueryClient>) {
   const authStatus = queryClient.getQueryData(
     getAuthStatusQueryOptions().queryKey,
