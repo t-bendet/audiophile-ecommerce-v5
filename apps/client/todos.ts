@@ -40,7 +40,10 @@
 
 // ** next steps
 
+// TODO cart price formatting
+// TODO handleUpdateQuantity and handleRemove in mini cart and checkout page
 // TODO checkout layout and components
 // TODO remove items from cart
-// TODO change cart product name
-// TODO add errors for cart.service and order.service
+// TODO order summary component refactor
+// TODO centralize cart state management and sync logic, consider using Zustand or similar for local cart state and syncing with server on login/checkout
+// TODO centralize queryclient usage and auth status checking, consider creating a custom hook that wraps useQueryClient and provides helper functions for auth checks and cart syncing to avoid repeating this logic in multiple places

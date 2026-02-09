@@ -33,6 +33,8 @@ import cartKeys from "./cart-keys";
 
 // ===== Helper to check auth status =====
 
+// TODO remove this to central auth
+
 function getIsAuthenticated(queryClient: ReturnType<typeof useQueryClient>) {
   const authStatus = queryClient.getQueryData(
     getAuthStatusQueryOptions().queryKey,
@@ -95,7 +97,7 @@ export const useCart = () => {
 // ===== AddToCart =====
 
 type TAddToCartInput = AddToCartInput & {
-  productName: string;
+  cartLabel: string;
   productSlug: string;
   productPrice: number;
   productImage: string;
@@ -104,14 +106,14 @@ type TAddToCartInput = AddToCartInput & {
 const addToLocalCartFn = async ({
   productId,
   quantity,
-  productName,
+  cartLabel,
   productSlug,
   productPrice,
   productImage,
 }: TAddToCartInput): Promise<AddToCartResponse> => {
   const localCart = addToLocalCart(
     productId,
-    productName,
+    cartLabel,
     productSlug,
     productPrice,
     productImage,

@@ -57,7 +57,7 @@ export default function ProductActions(props: {
       {
         productId: id,
         quantity,
-        productName: product.name,
+        cartLabel: product.cartLabel,
         productSlug: product.slug,
         productPrice: product.price,
         productImage: product.images.thumbnail.src,
