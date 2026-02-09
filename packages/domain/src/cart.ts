@@ -1,8 +1,4 @@
-import type {
-  Prisma,
-  Cart as PrismaCart,
-  CartItem as PrismaCartItem,
-} from "@repo/database";
+import type { Prisma } from "@repo/database";
 import { z } from "zod";
 import {
   createRequestSchema,
@@ -15,10 +11,6 @@ import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics) =====
 
-export type CartItem = PrismaCartItem;
-export type Cart = PrismaCart & {
-  items?: CartItem[];
-};
 export type CartCreateInput = Prisma.CartCreateInput;
 export type CartUpdateInput = Prisma.CartUpdateInput;
 export type CartWhereInput = Prisma.CartWhereInput;
