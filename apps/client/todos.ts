@@ -40,10 +40,8 @@
 
 // ** next steps
 
-// TODO handleUpdateQuantity and handleRemove in mini cart and checkout page
 // TODO checkout layout and components
 // TODO remove items from cart
-// TODO order summary component refactor
 // TODO centralize cart state management and sync logic, consider using Zustand or similar for local cart state and syncing with server on login/checkout
 // TODO centralize queryclient usage and auth status checking, consider creating a custom hook that wraps useQueryClient and provides helper functions for auth checks and cart syncing to avoid repeating this logic in multiple places
 // TODO price and shipping in checkout page - for now we are using fixed shipping and calculating tax on the client, but we might want to move this logic to the server in the future for better accuracy and to handle edge cases (e.g. different tax rates for different products or locations)
