@@ -40,7 +40,7 @@
 
 // ** next steps
 
+// TODO change cart product name
 // TODO checkout layout and components
 // TODO remove items from cart
-// TODO change cart product name
-// TODO add errors for cart.service and order.service
+// TODO order summary component refactor

@@ -33,8 +33,6 @@ export const clientLoader =
     return null;
   };
 
-// TODO order summary component refactor
-
 export default function CheckoutPage() {
   const { data: cart, isLoading } = useCart();
   const updateCartItem = useUpdateCartItem();
