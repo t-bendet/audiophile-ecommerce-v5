@@ -40,7 +40,6 @@
 
 // ** next steps
 
-// TODO cart price formatting
 // TODO handleUpdateQuantity and handleRemove in mini cart and checkout page
 // TODO checkout layout and components
 // TODO remove items from cart

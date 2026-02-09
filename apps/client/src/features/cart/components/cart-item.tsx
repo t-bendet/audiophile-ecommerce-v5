@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import currencyFormatter from "@/utils/formatters";
 import { CartItemDTO } from "@repo/domain";
 import { X } from "lucide-react";
 
@@ -42,7 +43,7 @@ export function CartItem({
       <div className="flex h-full flex-1 flex-col gap-1">
         <h3 className="text-sm font-bold uppercase">{item.cartLabel}</h3>
         <p className="text-sm text-neutral-500">
-          $ {(item.productPrice / 100).toFixed(2)}
+          {currencyFormatter(item.productPrice)}
         </p>
       </div>
 
