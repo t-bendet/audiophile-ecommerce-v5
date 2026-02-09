@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { QuantitySelector } from "@/components/ui/quantity-selector";
 import currencyFormatter from "@/utils/formatters";
 import { CartItemDTO } from "@repo/domain";
 import { X } from "lucide-react";
@@ -20,16 +21,6 @@ export function CartItem({
   onRemove,
   isUpdating = false,
 }: CartItemProps) {
-  const handleDecrease = () => {
-    if (item.quantity > 1) {
-      onUpdateQuantity(item.productId, item.id, item.quantity - 1);
-    }
-  };
-
-  const handleIncrease = () => {
-    onUpdateQuantity(item.productId, item.id, item.quantity + 1);
-  };
-
   return (
     <div className="flex items-center gap-4 py-4 text-neutral-900">
       {/* Product Image */}
@@ -49,23 +40,13 @@ export function CartItem({
 
       {/* Quantity Controls */}
       <div className="flex items-center gap-2">
-        <div className="flex h-12 w-30 items-center justify-around bg-neutral-200 text-xs font-bold">
-          <button
-            className="cursor-pointer px-3 opacity-25 hover:opacity-50"
-            onClick={handleDecrease}
-            disabled={isUpdating || item.quantity === 1}
-          >
-            -
-          </button>
-          <p>{item.quantity}</p>
-          <button
-            className="cursor-pointer px-3 opacity-25 hover:opacity-50"
-            onClick={handleIncrease}
-            disabled={isUpdating}
-          >
-            +
-          </button>
-        </div>
+        <QuantitySelector
+          value={item.quantity}
+          onChange={(newQuantity) =>
+            onUpdateQuantity(item.productId, item.id, newQuantity)
+          }
+          disabled={isUpdating}
+        />
         {/* Remove Button */}
         <Button
           variant="outline"
