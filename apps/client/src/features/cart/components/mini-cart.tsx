@@ -68,7 +68,7 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
               </p>
             </div>
           ) : (
-            <div className="divide-y">
+            <div>
               {cart.data.items.map((item) => (
                 <CartItem
                   key={item.id}
