@@ -70,7 +70,7 @@ function calculateCartTotals(items: LocalCartItem[]): {
  */
 export function addToLocalCart(
   productId: string,
-  productName: string,
+  cartLabel: string,
   productSlug: string,
   productPrice: number,
   productImage: string,
@@ -93,7 +93,7 @@ export function addToLocalCart(
     // Add new item
     cart.items.push({
       productId,
-      productName,
+      cartLabel,
       productSlug,
       productPrice,
       productImage,

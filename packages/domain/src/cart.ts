@@ -26,7 +26,7 @@ export type CartItemUpdateInput = Prisma.CartItemUpdateInput;
 export const CartItemDTOSchema = z.object({
   id: IdValidator(),
   productId: IdValidator(),
-  productName: z.string(),
+  cartLabel: z.string(),
   productSlug: z.string(),
   productPrice: z.number().int().positive(),
   productImage: z.url(),
