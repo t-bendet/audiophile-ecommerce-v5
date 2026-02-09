@@ -13,6 +13,7 @@ interface CartItemProps {
   ) => void;
   onRemove: (productId: string, cartItemId: string) => void;
   isUpdating?: boolean;
+  withActions?: boolean;
 }
 
 export function CartItem({
@@ -20,9 +21,10 @@ export function CartItem({
   onUpdateQuantity,
   onRemove,
   isUpdating = false,
+  withActions = true,
 }: CartItemProps) {
   return (
-    <div className="flex items-center gap-4 py-4 text-neutral-900">
+    <div className="flex items-center gap-6 py-4 text-neutral-900">
       {/* Product Image */}
       <img
         src={item.productImage}
@@ -39,25 +41,31 @@ export function CartItem({
       </div>
 
       {/* Quantity Controls */}
-      <div className="flex items-center gap-2">
-        <QuantitySelector
-          value={item.quantity}
-          onChange={(newQuantity) =>
-            onUpdateQuantity(item.productId, item.id, newQuantity)
-          }
-          disabled={isUpdating}
-        />
-        {/* Remove Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onRemove(item.productId, item.id)}
-          disabled={isUpdating}
-          className="h-6 w-6 p-0 text-neutral-500 hover:text-red-600 sm:h-8 sm:w-8"
-        >
-          <X className="h-2 w-2" />
-        </Button>
-      </div>
+      {withActions ? (
+        <div className="flex items-center gap-2">
+          <QuantitySelector
+            value={item.quantity}
+            onChange={(newQuantity) =>
+              onUpdateQuantity(item.productId, item.id, newQuantity)
+            }
+            disabled={isUpdating}
+          />
+          {/* Remove Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onRemove(item.productId, item.id)}
+            disabled={isUpdating}
+            className="h-6 w-6 p-0 text-neutral-500 hover:text-red-600 sm:h-8 sm:w-8"
+          >
+            <X className="h-2 w-2" />
+          </Button>
+        </div>
+      ) : (
+        <span className="text-[15px] font-bold text-neutral-500 opacity-50">
+          x{item.quantity}
+        </span>
+      )}
     </div>
   );
 }

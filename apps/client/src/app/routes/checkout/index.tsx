@@ -115,11 +115,13 @@ export default function CheckoutPage() {
             </div>
 
             {/* Right Column - Order Summary */}
-            <div className="rounded-lg bg-white p-6 shadow">
-              <h2 className="mb-6 text-2xl font-bold">Order Summary</h2>
+            <div className="rounded-lg bg-white p-6 text-neutral-900 shadow">
+              <h2 className="tracking-300 mb-6 text-xl font-bold uppercase">
+                summary
+              </h2>
 
               {/* Cart Items */}
-              <div className="mb-6 divide-y text-neutral-900">
+              <div className="mb-6 text-neutral-900">
                 {cart.data.items.map((item) => (
                   <CartItem
                     key={item.id}
@@ -127,6 +129,7 @@ export default function CheckoutPage() {
                     onUpdateQuantity={handleUpdateQuantity}
                     onRemove={handleRemove}
                     isUpdating={isUpdating}
+                    withActions={false}
                   />
                 ))}
               </div>
