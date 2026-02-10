@@ -6,9 +6,9 @@ import svgr from "vite-plugin-svgr";
 import tsconfigPaths from "vite-tsconfig-paths";
 dotenv.config();
 
-const API_PROXY_PORT = process.env.VITE_APP_API_PROXY_PORT || "8000";
 const CLIENT_PORT = parseInt(process.env.VITE_APP_PORT || "5173");
-const COMBINED_API_URL = `${process.env.VITE_APP_API_BASE_URL}${API_PROXY_PORT}`;
+const API_PROXY_TARGET =
+  process.env.VITE_APP_API_PROXY_TARGET || "http://localhost:8000";
 
 export default defineConfig({
   plugins: [react(), tsconfigPaths(), svgr(), tailwindcss()],
@@ -39,7 +39,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: COMBINED_API_URL,
+        target: API_PROXY_TARGET,
         changeOrigin: true,
       },
     },
@@ -53,7 +53,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       "/api": {
-        target: COMBINED_API_URL,
+        target: API_PROXY_TARGET,
         changeOrigin: true,
       },
     },
