@@ -6,6 +6,7 @@ import indexRoute from "./routes/index.js";
 import { env } from "./utils/env.js";
 import helmet from "helmet";
 import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 
 declare global {
   namespace Express {
@@ -50,6 +51,15 @@ app.use(helmet());
 if (env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
+
+// Limit requests from same API
+const limiter = rateLimit({
+  limit: 100,
+  windowMs: 15 * 60 * 1000,
+  message: "Too many requests from this IP, please try again in 15 minutes!",
+});
+
+app.use("/api", limiter);
 
 app.use("/api/v1", indexRoute);
 
