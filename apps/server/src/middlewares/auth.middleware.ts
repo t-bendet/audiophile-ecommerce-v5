@@ -15,7 +15,7 @@ export const getTokenFromRequest = (req: Request): string | null => {
       cookie.split("; ").map((c) => {
         const [key, value] = c.split("=");
         return [key, value];
-      })
+      }),
     );
     token = cookies["jwt"];
   }
@@ -38,10 +38,8 @@ export const authenticate: RequestHandler = catchAsync(
     req.user = currentUser;
 
     return next();
-  }
+  },
 );
-
-// TODO move to auth service
 
 /**
  * Middleware factory to authorize users based on roles.
@@ -59,8 +57,8 @@ export const authorize = (...roles: UserPublicInfo["role"][]) => {
       return next(
         new AppError(
           "Authentication required before authorization",
-          ErrorCode.UNAUTHORIZED
-        )
+          ErrorCode.UNAUTHORIZED,
+        ),
       );
     }
 
@@ -68,8 +66,8 @@ export const authorize = (...roles: UserPublicInfo["role"][]) => {
       return next(
         new AppError(
           "You do not have permission to perform this action",
-          ErrorCode.FORBIDDEN
-        )
+          ErrorCode.FORBIDDEN,
+        ),
       );
     }
 
