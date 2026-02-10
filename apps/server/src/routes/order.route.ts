@@ -8,6 +8,7 @@ import express from "express";
 import * as orderController from "../controllers/order.controller.js";
 import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
+import { createOrderLimiter } from "../utils/rateLimiters.js";
 
 const orderRouter: express.Router = express.Router();
 
@@ -17,22 +18,23 @@ orderRouter.use(authenticate);
 // Create order from cart
 orderRouter.post(
   "/",
+  createOrderLimiter,
   validateSchema(CreateOrderRequestSchema),
-  orderController.createOrder
+  orderController.createOrder,
 );
 
 // List user's orders
 orderRouter.get(
   "/",
   validateSchema(ListOrdersRequestSchema),
-  orderController.listOrders
+  orderController.listOrders,
 );
 
 // Get specific order
 orderRouter.get(
   "/:orderId",
   validateSchema(GetOrderRequestSchema),
-  orderController.getOrder
+  orderController.getOrder,
 );
 
 // * ADMIN ROUTES (restricted to admin roles)
@@ -43,7 +45,7 @@ orderRouter.use(authorize("ADMIN"));
 orderRouter.patch(
   "/:orderId/status",
   validateSchema(UpdateOrderStatusRequestSchema),
-  orderController.updateOrderStatus
+  orderController.updateOrderStatus,
 );
 
 export default orderRouter;
