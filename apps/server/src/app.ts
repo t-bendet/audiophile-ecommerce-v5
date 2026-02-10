@@ -5,6 +5,7 @@ import globalErrorHandler from "./middlewares/error.middleware.js";
 import indexRoute from "./routes/index.js";
 import { env } from "./utils/env.js";
 import helmet from "helmet";
+import morgan from "morgan";
 
 declare global {
   namespace Express {
@@ -44,6 +45,11 @@ app.use(
 );
 
 app.use(helmet());
+
+// Development logging
+if (env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
 
 app.use("/api/v1", indexRoute);
 
