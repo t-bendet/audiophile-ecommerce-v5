@@ -10,7 +10,6 @@ import { authService } from "../services/auth.service.js";
 import catchAsync from "../utils/catchAsync.js";
 import { env } from "../utils/env.js";
 import { getTokenFromRequest } from "../middlewares/auth.middleware.js";
-import { is } from "zod/locales";
 
 /**
  * Auth Controller handles HTTP layer only
@@ -32,17 +31,25 @@ const createAndSendAuthCookie = (
   token: string,
   statusCode: number,
   req: Request,
-  res: Response
+  res: Response,
 ) => {
-  const cookieOptions = {
-    //* milliseconds (*1000)=> seconds (*60)=>
-    //* minuets (*60)=> hours (*24)=> days
-    //* JWT_COOKIE_EXPIRES_IN: days
+  const isProduction = env.NODE_ENV === "production";
+  const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
+
+  const cookieOptions: {
+    expires: Date;
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: "strict" | "lax" | "none";
+  } = {
     expires: new Date(
-      Date.now() + Number(env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000
+      Date.now() + Number(env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     ),
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
     httpOnly: true,
+    secure: isSecure,
+    // Cross-origin cookies require sameSite: 'none' and secure: true
+    // In development, use 'lax' to avoid issues with localhost
+    sameSite: isProduction ? "none" : "lax",
   };
 
   res.cookie("jwt", token, cookieOptions);
@@ -75,13 +82,13 @@ export const login: RequestHandler = catchAsync(async (req, res, next) => {
  * Clears JWT cookie
  */
 export const logout = (req: Request, res: Response) => {
-  // res.cookie("jwt", "loggedout", {
-  //   expires: new Date(Date.now() + 10 * 1000),
-  //   httpOnly: true,
-  // });
+  const isProduction = env.NODE_ENV === "production";
+  const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
+
   res.clearCookie("jwt", {
     httpOnly: true,
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+    secure: isSecure,
+    sameSite: isProduction ? "none" : "lax",
   });
   res.status(200).json(createEmptyResponse());
 };
@@ -98,18 +105,18 @@ export const updatePassword: RequestHandler = catchAsync(
 
     if (!userId) {
       return next(
-        new AppError("User ID not found in request", ErrorCode.UNAUTHORIZED)
+        new AppError("User ID not found in request", ErrorCode.UNAUTHORIZED),
       );
     }
 
     const userData = await authService.updatePassword(
       userId,
       currentPassword,
-      password
+      password,
     );
     const { token, user } = userData;
     createAndSendAuthCookie(user, token, 200, req, res);
-  }
+  },
 );
 
 export const getUserAuthStatus: RequestHandler = catchAsync(
@@ -120,5 +127,5 @@ export const getUserAuthStatus: RequestHandler = catchAsync(
     const user = await authService.checkIsAuthenticated(token);
 
     res.status(200).json(createSingleItemResponse({ isAuthenticated: user }));
-  }
+  },
 );
