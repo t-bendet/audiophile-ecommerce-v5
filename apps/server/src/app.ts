@@ -21,12 +21,7 @@ declare global {
 const app: Express = express();
 app.set("query parser", "extended");
 
-// Body parser - reading data from body into req.body, with 10kb limit to prevent DoS attacks(might need to adjust based on expected payload size)
-app.use(express.json({ limit: "10kb" }));
-app.use(express.urlencoded({ extended: true, limit: "10kb" }));
-app.use(cookieParser());
-
-// CORS configuration - supports both dev and production
+// 1. CORS - handle preflight immediately, reject disallowed origins early
 const allowedOrigins: string[] = env.ALLOWED_ORIGINS?.split(",") || [];
 if (env.NODE_ENV === "development") {
   allowedOrigins.push(`http://localhost:${env.VITE_APP_PORT || 5173}`);
@@ -49,22 +44,30 @@ app.use(
   }),
 );
 
-app.use(helmet());
-
-// Development logging
-if (env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-}
-
-// Limit requests from same API
+// 2. Rate limiting - reject abusive requests before parsing body
 const limiter = rateLimit({
   limit: 100,
   windowMs: 15 * 60 * 1000,
   message: "Too many requests from this IP, please try again in 15 minutes!",
 });
-
 app.use("/api", limiter);
 
+// 3. Security headers
+app.use(helmet());
+
+// 4. Logging - log all requests including rejected ones
+if (env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+
+// 5. Body parsers - parse only legitimate requests
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+
+// 6. Cookie parser
+app.use(cookieParser());
+
+// 7. Routes
 app.use("/api/v1", indexRoute);
 
 app.all(/.*/, (req, res, next) => {
