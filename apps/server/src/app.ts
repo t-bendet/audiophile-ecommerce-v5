@@ -21,6 +21,9 @@ declare global {
 const app: Express = express();
 app.set("query parser", "extended");
 
+// Trust reverse proxy (Render, Railway, etc.) - required for secure cookies
+app.set("trust proxy", 1);
+
 // 1. CORS - handle preflight immediately, reject disallowed origins early
 const allowedOrigins: string[] = env.ALLOWED_ORIGINS?.split(",") || [];
 if (env.NODE_ENV === "development") {
