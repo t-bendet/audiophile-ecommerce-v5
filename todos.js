@@ -2,7 +2,6 @@
 // BUILD & CONFIGURATION
 // ============================================================================
 
-// TODO prod script for database -  add prisma push, needed if there is no database
 // TODO add back button to login and signup pages
 // ============================================================================
 // SERVER & API
