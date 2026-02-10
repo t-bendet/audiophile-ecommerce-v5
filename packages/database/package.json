@@ -13,9 +13,12 @@
   },
   "scripts": {
     "dev": "pnpm db:generate",
+    "db:generate": "prisma generate && node ./scripts/fix-prisma-imports-robust.cjs",
     "db:push": "prisma db push",
     "db:seed": "tsx src/seed/index.ts",
-    "db:generate": "prisma generate && node ./scripts/fix-prisma-imports-robust.cjs",
+    "db:deploy": "pnpm db:push && pnpm db:generate",
+    "db:setup": "pnpm db:push && pnpm db:generate && pnpm db:seed",
+    "db:reset": "pnpm db:push --force-reset && pnpm db:generate && pnpm db:seed",
     "studio": "prisma studio",
     "format": "prisma format",
     "lint": "eslint . --max-warnings 0",
