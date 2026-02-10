@@ -114,7 +114,6 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
                     <Field data-invalid={isInvalid}>
                       <div className="flex flex-wrap justify-between">
                         <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                        {/* TODO implement forgot password functionality */}
                         <a
                           href="#"
                           className="text-sm underline-offset-4 hover:underline"

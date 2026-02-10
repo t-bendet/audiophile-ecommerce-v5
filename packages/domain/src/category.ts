@@ -61,9 +61,7 @@ export const CategoryGetByIdRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("Category") }).strict(),
 });
 
-// CREATE - Create new category
-// TODO can't really create  new category now as NAME is enum
-// TODO add CategoryProductsCreateManyInput if needed
+// CREATE - Create new category without products (products can be added later)
 export const CategoryCreateRequestSchema = createRequestSchema({
   body: z.object({
     name: z.enum(NAME),
