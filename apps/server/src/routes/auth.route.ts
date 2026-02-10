@@ -7,6 +7,7 @@ import express from "express";
 import * as authController from "../controllers/auth.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { validateSchema } from "../middlewares/validation.middleware.js";
+import { loginLimiter, signupLimiter } from "../utils/rateLimiters.js";
 
 const authRouter: express.Router = express.Router();
 
@@ -14,12 +15,14 @@ const authRouter: express.Router = express.Router();
 
 authRouter.post(
   "/signup",
+  signupLimiter,
   validateSchema(AuthSignUpRequestSchema),
   authController.signup,
 );
 
 authRouter.post(
   "/login",
+  loginLimiter,
   validateSchema(AuthLoginRequestSchema),
   authController.login,
 );
