@@ -10,6 +10,12 @@ export interface LocalCart {
   subtotal: number;
 }
 
+const EmptyLocalCart: LocalCart = {
+  items: [],
+  itemCount: 0,
+  subtotal: 0,
+};
+
 const CART_STORAGE_KEY = "audiophile_cart";
 
 /**
@@ -17,20 +23,20 @@ const CART_STORAGE_KEY = "audiophile_cart";
  */
 export function getLocalCart(): LocalCart {
   if (typeof window === "undefined") {
-    return { items: [], itemCount: 0, subtotal: 0 };
+    return { ...EmptyLocalCart };
   }
 
   try {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
     if (!stored) {
-      return { items: [], itemCount: 0, subtotal: 0 };
+      return { ...EmptyLocalCart };
     }
 
     const parsed = JSON.parse(stored);
     return parsed as LocalCart;
   } catch (error) {
     console.error("Error reading cart from localStorage:", error);
-    return { items: [], itemCount: 0, subtotal: 0 };
+    return { ...EmptyLocalCart };
   }
 }
 
@@ -64,17 +70,17 @@ function calculateCartTotals(items: LocalCartItem[]): {
  */
 export function addToLocalCart(
   productId: string,
-  productName: string,
+  cartLabel: string,
   productSlug: string,
   productPrice: number,
   productImage: string,
-  quantity: number
+  quantity: number,
 ): LocalCart {
   const cart = getLocalCart();
 
   // Check if item already exists
   const existingItemIndex = cart.items.findIndex(
-    (item) => item.productId === productId
+    (item) => item.productId === productId,
   );
 
   if (existingItemIndex !== -1) {
@@ -87,7 +93,7 @@ export function addToLocalCart(
     // Add new item
     cart.items.push({
       productId,
-      productName,
+      cartLabel,
       productSlug,
       productPrice,
       productImage,
@@ -109,12 +115,12 @@ export function addToLocalCart(
  */
 export function updateLocalCartItem(
   productId: string,
-  quantity: number
+  quantity: number,
 ): LocalCart {
   const cart = getLocalCart();
 
   const itemIndex = cart.items.findIndex(
-    (item) => item.productId === productId
+    (item) => item.productId === productId,
   );
 
   if (itemIndex !== -1) {
@@ -151,7 +157,6 @@ export function removeFromLocalCart(productId: string): LocalCart {
  * Clear local cart
  */
 export function clearLocalCart(): LocalCart {
-  const emptyCart = { items: [], itemCount: 0, subtotal: 0 };
-  saveLocalCart(emptyCart);
-  return emptyCart;
+  saveLocalCart({ ...EmptyLocalCart });
+  return { ...EmptyLocalCart };
 }

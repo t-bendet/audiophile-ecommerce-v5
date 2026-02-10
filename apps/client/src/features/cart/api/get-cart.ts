@@ -1,3 +1,5 @@
+import { getApi } from "@/lib/api-client";
+import { getAuthStatusQueryOptions } from "@/lib/auth";
 import {
   addToLocalCart,
   clearLocalCart,
@@ -5,19 +7,21 @@ import {
   removeFromLocalCart,
   updateLocalCartItem,
 } from "@/lib/cart-storage";
-import {
-  TBaseHandler,
-  TBaseRequestParams,
-  TMutationHandler,
-} from "@/types/api";
+import { TBaseHandler, TBaseRequestParams } from "@/types/api";
 import {
   AddToCartInput,
   AddToCartResponse,
+  AddToCartResponseSchema,
   CartDTO,
+  ClearCartResponse,
+  ClearCartResponseSchema,
   GetCartResponse,
+  GetCartResponseSchema,
   RemoveFromCartResponse,
+  RemoveFromCartResponseSchema,
   UpdateCartItemInput,
   UpdateCartItemResponse,
+  UpdateCartItemResponseSchema,
 } from "@repo/domain";
 import {
   queryOptions,
@@ -27,77 +31,24 @@ import {
 } from "@tanstack/react-query";
 import cartKeys from "./cart-keys";
 
-// ** GetCart - Now returns local cart data
+// ===== Helper to check auth status =====
+
+// TODO remove this to central auth
+
+function getIsAuthenticated(queryClient: ReturnType<typeof useQueryClient>) {
+  const authStatus = queryClient.getQueryData(
+    getAuthStatusQueryOptions().queryKey,
+  );
+  return authStatus?.data?.isAuthenticated ?? false;
+}
+
+// ===== GetCart =====
 
 type TGetCart = TBaseHandler<GetCartResponse>;
 
-const getCart: TGetCart = async () => {
-  // Get cart from localStorage instead of API
+const getLocalCartResponse = (): GetCartResponse => {
   const localCart = getLocalCart();
 
-  // Convert local cart to API response format
-  const cartDTO: CartDTO = {
-    id: "local-cart", // Dummy ID for local cart
-    userId: "anonymous", // Anonymous user
-    items: localCart.items.map((item, index) => ({
-      ...item,
-      id: item.id || `local-${index}`, // Generate ID if not present
-    })),
-    itemCount: localCart.itemCount,
-    subtotal: localCart.subtotal,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  return {
-    success: true,
-    message: "Cart retrieved successfully",
-    timestamp: new Date().toISOString(),
-    data: cartDTO,
-  };
-};
-
-export const getCartQueryOptions = () =>
-  queryOptions({
-    queryKey: cartKeys.detail(),
-    queryFn: ({ signal }: TBaseRequestParams) => getCart({ signal }),
-  });
-
-export const useCart = () => {
-  return useQuery(getCartQueryOptions());
-};
-
-// ** AddToCart - Now uses local storage
-
-type TAddToCart = TMutationHandler<
-  AddToCartResponse,
-  AddToCartInput & {
-    productName: string;
-    productSlug: string;
-    productPrice: number;
-    productImage: string;
-  }
->;
-
-const addToCart: TAddToCart = async ({
-  productId,
-  quantity,
-  productName,
-  productSlug,
-  productPrice,
-  productImage,
-}) => {
-  // Add to local storage
-  const localCart = addToLocalCart(
-    productId,
-    productName,
-    productSlug,
-    productPrice,
-    productImage,
-    quantity
-  );
-
-  // Convert to API response format
   const cartDTO: CartDTO = {
     id: "local-cart",
     userId: "anonymous",
@@ -113,36 +64,124 @@ const addToCart: TAddToCart = async ({
 
   return {
     success: true,
-    message: "Item added to cart",
     timestamp: new Date().toISOString(),
     data: cartDTO,
   };
+};
+
+const getServerCart: TGetCart = async ({ signal }) => {
+  const api = getApi();
+  const response = await api.get("/cart", { signal });
+  const result = GetCartResponseSchema.safeParse(response.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
+};
+
+export const getCartQueryOptions = (isAuthenticated: boolean) =>
+  queryOptions({
+    queryKey: [...cartKeys.detail(), isAuthenticated] as const,
+    queryFn: ({ signal }: TBaseRequestParams) =>
+      isAuthenticated ? getServerCart({ signal }) : getLocalCartResponse(),
+  });
+
+export const useCart = () => {
+  const queryClient = useQueryClient();
+  const isAuthenticated = getIsAuthenticated(queryClient);
+
+  return useQuery(getCartQueryOptions(isAuthenticated));
+};
+
+// ===== AddToCart =====
+
+type TAddToCartInput = AddToCartInput & {
+  cartLabel: string;
+  productSlug: string;
+  productPrice: number;
+  productImage: string;
+};
+
+const addToLocalCartFn = async ({
+  productId,
+  quantity,
+  cartLabel,
+  productSlug,
+  productPrice,
+  productImage,
+}: TAddToCartInput): Promise<AddToCartResponse> => {
+  const localCart = addToLocalCart(
+    productId,
+    cartLabel,
+    productSlug,
+    productPrice,
+    productImage,
+    quantity,
+  );
+
+  const cartDTO: CartDTO = {
+    id: "local-cart",
+    userId: "anonymous",
+    items: localCart.items.map((item, index) => ({
+      ...item,
+      id: item.id || `local-${index}`,
+    })),
+    itemCount: localCart.itemCount,
+    subtotal: localCart.subtotal,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  return {
+    success: true,
+    timestamp: new Date().toISOString(),
+    data: cartDTO,
+  };
+};
+
+const addToServerCart = async ({
+  productId,
+  quantity,
+}: AddToCartInput): Promise<AddToCartResponse> => {
+  const api = getApi();
+  const response = await api.post("/cart", { productId, quantity });
+  const result = AddToCartResponseSchema.safeParse(response.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
 };
 
 export const useAddToCart = () => {
   const queryClient = useQueryClient();
+  const isAuthenticated = getIsAuthenticated(queryClient);
 
   return useMutation({
-    mutationFn: addToCart,
+    mutationFn: (input: TAddToCartInput) =>
+      isAuthenticated ? addToServerCart(input) : addToLocalCartFn(input),
     onSuccess: () => {
-      // Invalidate cart query to refetch updated cart
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
     },
   });
 };
 
-// ** UpdateCartItem - Now uses local storage
+// ===== UpdateCartItem =====
+// For local cart: uses productId
+// For server cart: uses cartItemId (the id field in CartItemDTO)
 
-type TUpdateCartItem = TMutationHandler<
-  UpdateCartItemResponse,
-  { productId: string } & UpdateCartItemInput
->;
+type TUpdateCartItemInput = {
+  productId: string; // Used for local cart
+  cartItemId?: string; // Used for server cart (optional - can derive from productId in some cases)
+} & UpdateCartItemInput;
 
-const updateCartItem: TUpdateCartItem = async ({ productId, quantity }) => {
-  // Update in local storage
+const updateLocalCartItemFn = async ({
+  productId,
+  quantity,
+}: TUpdateCartItemInput): Promise<UpdateCartItemResponse> => {
   const localCart = updateLocalCartItem(productId, quantity);
 
-  // Convert to API response format
   const cartDTO: CartDTO = {
     id: "local-cart",
     userId: "anonymous",
@@ -158,36 +197,65 @@ const updateCartItem: TUpdateCartItem = async ({ productId, quantity }) => {
 
   return {
     success: true,
-    message: "Cart item updated",
     timestamp: new Date().toISOString(),
     data: cartDTO,
   };
+};
+
+const updateServerCartItem = async ({
+  cartItemId,
+  quantity,
+}: {
+  cartItemId: string;
+  quantity: number;
+}): Promise<UpdateCartItemResponse> => {
+  const api = getApi();
+  const response = await api.patch(`/cart/items/${cartItemId}`, { quantity });
+  const result = UpdateCartItemResponseSchema.safeParse(response.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
 };
 
 export const useUpdateCartItem = () => {
   const queryClient = useQueryClient();
+  const isAuthenticated = getIsAuthenticated(queryClient);
 
   return useMutation({
-    mutationFn: updateCartItem,
+    mutationFn: (input: TUpdateCartItemInput) => {
+      if (isAuthenticated) {
+        if (!input.cartItemId) {
+          throw new Error("cartItemId is required for authenticated users");
+        }
+        return updateServerCartItem({
+          cartItemId: input.cartItemId,
+          quantity: input.quantity,
+        });
+      }
+      return updateLocalCartItemFn(input);
+    },
     onSuccess: () => {
-      // Invalidate cart query to refetch updated cart
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
     },
   });
 };
 
-// ** RemoveFromCart - Now uses local storage
+// ===== RemoveFromCart =====
+// For local cart: uses productId
+// For server cart: uses cartItemId
 
-type TRemoveFromCart = TMutationHandler<
-  RemoveFromCartResponse,
-  { productId: string }
->;
+type TRemoveFromCartInput = {
+  productId: string; // Used for local cart
+  cartItemId?: string; // Used for server cart
+};
 
-const removeFromCart: TRemoveFromCart = async ({ productId }) => {
-  // Remove from local storage
+const removeFromLocalCartFn = async ({
+  productId,
+}: TRemoveFromCartInput): Promise<RemoveFromCartResponse> => {
   const localCart = removeFromLocalCart(productId);
 
-  // Convert to API response format
   const cartDTO: CartDTO = {
     id: "local-cart",
     userId: "anonymous",
@@ -203,40 +271,76 @@ const removeFromCart: TRemoveFromCart = async ({ productId }) => {
 
   return {
     success: true,
-    message: "Item removed from cart",
     timestamp: new Date().toISOString(),
     data: cartDTO,
   };
 };
 
+const removeFromServerCart = async ({
+  cartItemId,
+}: {
+  cartItemId: string;
+}): Promise<RemoveFromCartResponse> => {
+  const api = getApi();
+  const response = await api.delete(`/cart/items/${cartItemId}`);
+  const result = RemoveFromCartResponseSchema.safeParse(response.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
+};
+
 export const useRemoveFromCart = () => {
   const queryClient = useQueryClient();
+  const isAuthenticated = getIsAuthenticated(queryClient);
 
   return useMutation({
-    mutationFn: removeFromCart,
+    mutationFn: (input: TRemoveFromCartInput) => {
+      if (isAuthenticated) {
+        if (!input.cartItemId) {
+          throw new Error("cartItemId is required for authenticated users");
+        }
+        return removeFromServerCart({ cartItemId: input.cartItemId });
+      }
+      return removeFromLocalCartFn(input);
+    },
     onSuccess: () => {
-      // Invalidate cart query to refetch updated cart
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
     },
   });
 };
 
-// ** ClearCart - Now uses local storage
+// ===== ClearCart =====
 
-type TClearCart = TBaseHandler<void>;
-
-const clearCart: TClearCart = async () => {
-  // Clear local storage
+const clearLocalCartFn = async (): Promise<ClearCartResponse> => {
   clearLocalCart();
+  return {
+    success: true,
+    timestamp: new Date().toISOString(),
+    data: null,
+  };
+};
+
+const clearServerCart = async (): Promise<ClearCartResponse> => {
+  const api = getApi();
+  const response = await api.delete("/cart");
+  const result = ClearCartResponseSchema.safeParse(response.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
 };
 
 export const useClearCart = () => {
   const queryClient = useQueryClient();
+  const isAuthenticated = getIsAuthenticated(queryClient);
 
   return useMutation({
-    mutationFn: clearCart,
+    mutationFn: () =>
+      isAuthenticated ? clearServerCart() : clearLocalCartFn(),
     onSuccess: () => {
-      // Invalidate cart query to refetch empty cart
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
     },
   });

@@ -11,6 +11,7 @@ import {
 import { CartItem } from "@/features/cart/components/cart-item";
 import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { syncLocalCartToServer } from "@/lib/cart-sync";
+import currencyFormatter from "@/utils/formatters";
 import { QueryClient } from "@tanstack/react-query";
 import { Link, LoaderFunctionArgs, redirect } from "react-router";
 
@@ -18,7 +19,7 @@ export const clientLoader =
   (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
     // Check if user is authenticated
     const authResponse = await queryClient.ensureQueryData(
-      getAuthStatusQueryOptions()
+      getAuthStatusQueryOptions(),
     );
     if (!authResponse.data.isAuthenticated) {
       // User is not logged in, redirect to login page with redirectTo parameter
@@ -33,19 +34,21 @@ export const clientLoader =
     return null;
   };
 
-// TODO order summary component refactor
-
 export default function CheckoutPage() {
   const { data: cart, isLoading } = useCart();
   const updateCartItem = useUpdateCartItem();
   const removeFromCart = useRemoveFromCart();
 
-  const handleUpdateQuantity = (productId: string, quantity: number) => {
-    updateCartItem.mutate({ productId, quantity });
+  const handleUpdateQuantity = (
+    productId: string,
+    cartItemId: string,
+    quantity: number,
+  ) => {
+    updateCartItem.mutate({ productId, cartItemId, quantity });
   };
 
-  const handleRemove = (productId: string) => {
-    removeFromCart.mutate({ productId });
+  const handleRemove = (productId: string, cartItemId: string) => {
+    removeFromCart.mutate({ productId, cartItemId });
   };
 
   const isUpdating = updateCartItem.isPending || removeFromCart.isPending;
@@ -112,11 +115,13 @@ export default function CheckoutPage() {
             </div>
 
             {/* Right Column - Order Summary */}
-            <div className="rounded-lg bg-white p-6 shadow">
-              <h2 className="mb-6 text-2xl font-bold">Order Summary</h2>
+            <div className="rounded-lg bg-white p-6 text-neutral-900 shadow">
+              <h2 className="tracking-300 mb-6 text-xl font-bold uppercase">
+                summary
+              </h2>
 
               {/* Cart Items */}
-              <div className="mb-6 divide-y text-neutral-900">
+              <div className="mb-6 text-neutral-900">
                 {cart.data.items.map((item) => (
                   <CartItem
                     key={item.id}
@@ -124,6 +129,7 @@ export default function CheckoutPage() {
                     onUpdateQuantity={handleUpdateQuantity}
                     onRemove={handleRemove}
                     isUpdating={isUpdating}
+                    withActions={false}
                   />
                 ))}
               </div>
@@ -133,23 +139,23 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Subtotal</span>
                   <span className="font-medium">
-                    ${(subtotal / 100).toFixed(2)}
+                    {currencyFormatter(subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Shipping</span>
                   <span className="font-medium">
-                    ${(shipping / 100).toFixed(2)}
+                    {currencyFormatter(shipping)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Tax (20%)</span>
-                  <span className="font-medium">${(tax / 100).toFixed(2)}</span>
+                  <span className="font-medium">{currencyFormatter(tax)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-3 text-lg font-bold">
                   <span>Total</span>
                   <span className="text-primary-500">
-                    ${(total / 100).toFixed(2)}
+                    {currencyFormatter(total)}
                   </span>
                 </div>
               </div>

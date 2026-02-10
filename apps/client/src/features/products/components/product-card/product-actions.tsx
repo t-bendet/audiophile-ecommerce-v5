@@ -1,14 +1,15 @@
 import { Button } from "@/components/ui/button";
+import { QuantitySelector } from "@/components/ui/quantity-selector";
 import { paths } from "@/config/paths";
 import { useAddToCart } from "@/features/cart/api/get-cart";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import { useProductCardContext } from "@/features/products/components/product-card/index";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/cn";
 import { AppError, ErrorCode } from "@repo/domain";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
-import { useToast } from "@/hooks/use-toast";
 
 export default function ProductActions(props: {
   classes?: string;
@@ -57,7 +58,7 @@ export default function ProductActions(props: {
       {
         productId: id,
         quantity,
-        productName: product.name,
+        cartLabel: product.cartLabel,
         productSlug: product.slug,
         productPrice: product.price,
         productImage: product.images.thumbnail.src,
@@ -81,16 +82,6 @@ export default function ProductActions(props: {
     );
   };
 
-  const handleDecrease = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
-
-  const handleIncrease = () => {
-    setQuantity(quantity + 1);
-  };
-
   return (
     <div className={cn("flex gap-4", props.classes)}>
       {props.hasNavigateAction ? (
@@ -108,23 +99,11 @@ export default function ProductActions(props: {
       ) : null}
       {props.hasCartAction ? (
         <>
-          <div className="flex h-12 w-30 items-center justify-around bg-neutral-200 text-xs font-bold">
-            <button
-              className="cursor-pointer px-3 opacity-25 hover:opacity-50"
-              onClick={handleDecrease}
-              disabled={quantity === 1 || addToCart.isPending}
-            >
-              -
-            </button>
-            <p>{quantity}</p>
-            <button
-              className="cursor-pointer px-3 opacity-25 hover:opacity-50"
-              onClick={handleIncrease}
-              disabled={addToCart.isPending}
-            >
-              +
-            </button>
-          </div>
+          <QuantitySelector
+            value={quantity}
+            onChange={setQuantity}
+            disabled={addToCart.isPending}
+          />
           <Button
             variant="accent"
             onClick={handleAddToCart}
