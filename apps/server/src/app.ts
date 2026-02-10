@@ -1,12 +1,13 @@
 import { AppError, ErrorCode, UserPublicInfo } from "@repo/domain";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Express } from "express";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import morgan from "morgan";
 import globalErrorHandler from "./middlewares/error.middleware.js";
 import indexRoute from "./routes/index.js";
 import { env } from "./utils/env.js";
-import helmet from "helmet";
-import morgan from "morgan";
-import rateLimit from "express-rate-limit";
 
 declare global {
   namespace Express {
@@ -20,7 +21,10 @@ declare global {
 const app: Express = express();
 app.set("query parser", "extended");
 
-app.use(express.json());
+// Body parser - reading data from body into req.body, with 10kb limit to prevent DoS attacks(might need to adjust based on expected payload size)
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(cookieParser());
 
 // CORS configuration - supports both dev and production
 const allowedOrigins: string[] = env.ALLOWED_ORIGINS?.split(",") || [];
