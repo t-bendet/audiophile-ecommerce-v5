@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import ms from "ms";
 import * as z from "zod";
 
-dotenv.config({ override: true });
+dotenv.config();
 
 const msDurationStringCheck = z.custom<ms.StringValue>((val) => {
   return ms(val as ms.StringValue) && typeof val === "string";
@@ -17,13 +17,17 @@ const connectionStringRegex =
 const createEnv = () => {
   const EnvSchema = z.object({
     NODE_ENV: z.enum(["development", "production"]),
-    PORT: z.string().min(4).max(4),
+    PORT: z.coerce.number().int().min(1000).max(65535),
     DATABASE_URL: z.custom<ConnectionString>((val) =>
-      connectionStringRegex.test(val as string)
+      connectionStringRegex.test(val as string),
     ),
-    JWT_SECRET: z.string().min(10),
+    JWT_SECRET: z
+      .string()
+      .min(32, "JWT_SECRET must be at least 32 characters for security"),
     JWT_EXPIRES_IN: msDurationStringCheck,
-    JWT_COOKIE_EXPIRES_IN: z.string(),
+    JWT_COOKIE_EXPIRES_IN: z.coerce.number().positive(),
+    ALLOWED_ORIGINS: z.string().optional(),
+    VITE_APP_PORT: z.coerce.number().int().min(1000).max(65535).optional(),
   });
 
   const parsedEnv = EnvSchema.safeParse(process.env);
@@ -32,7 +36,7 @@ const createEnv = () => {
     throw new Error(
       `Invalid env provided.
       The following variables are missing or invalid:
-    ${z.prettifyError(parsedEnv.error)}`
+    ${z.prettifyError(parsedEnv.error)}`,
     );
   }
   return parsedEnv.data;
