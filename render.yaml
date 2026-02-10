@@ -60,5 +60,5 @@ services:
         source: "/*"
         destination: /index.html
     envVars:
-      - key: VITE_API_URL
+      - key: VITE_APP_API_URL
         sync: false
