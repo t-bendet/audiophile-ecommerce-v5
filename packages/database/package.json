@@ -12,15 +12,15 @@
     }
   },
   "scripts": {
+    "dev": "pnpm db:generate",
     "db:push": "prisma db push",
     "db:seed": "tsx src/seed/index.ts",
-    "format": "prisma format",
     "db:generate": "prisma generate && node ./scripts/fix-prisma-imports-robust.cjs",
+    "studio": "prisma studio",
+    "format": "prisma format",
     "lint": "eslint . --max-warnings 0",
     "build": "pnpm db:generate && tsc -p tsconfig.build.json",
-    "build:watch": "tsc -p tsconfig.build.json -w",
-    "dev": "pnpm db:generate",
-    "studio": "prisma studio"
+    "build:watch": "tsc -p tsconfig.build.json -w"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
