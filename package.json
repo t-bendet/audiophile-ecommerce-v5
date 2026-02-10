@@ -21,7 +21,7 @@
     "typescript": "5.9.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": "20.x"
   },
   "name": "audiophile-ecommerce-v5",
   "packageManager": "pnpm@10.26.2"
