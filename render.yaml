@@ -1,0 +1,64 @@
+# Render Blueprint - Monorepo Configuration
+# https://render.com/docs/blueprint-spec
+#
+# Deploy: Connect this repo to Render and it will auto-detect this file
+# Or manually: render blueprint apply
+
+services:
+  # ==============================================
+  # Express API Server
+  # ==============================================
+  - type: web
+    name: audiophile-server
+    runtime: node
+    region: oregon # or frankfurt, singapore, ohio
+    plan: free # free tier (spins down after 15min idle)
+    branch: main
+    buildCommand: pnpm install && pnpm turbo run build --filter=server...
+    startCommand: node apps/server/dist/index.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
+      - key: DATABASE_URL
+        sync: false # Prompt to enter manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true # Render generates a random value
+      - key: JWT_EXPIRES_IN
+        value: 90d
+      - key: JWT_COOKIE_EXPIRES_IN
+        value: 7776000000
+
+  # ==============================================
+  # Vite React Client (Static Site - FREE)
+  # ==============================================
+  - type: web
+    name: audiophile-client
+    runtime: static
+    branch: main
+    buildCommand: pnpm install && pnpm turbo run build --filter=client...
+    staticPublishPath: apps/client/dist
+    pullRequestPreviewsEnabled: true # Preview deployments for PRs
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-XSS-Protection
+        value: "1; mode=block"
+    routes:
+      # SPA fallback - all routes serve index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: audiophile-server
+          property: host # Automatically uses the server's URL

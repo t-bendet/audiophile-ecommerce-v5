@@ -34,6 +34,8 @@ export async function syncLocalCartToServer(
     await queryClient.invalidateQueries({ queryKey: cartKeys.all });
   } catch (error) {
     // Log error but don't throw - cart sync is not critical
-    console.error("Failed to sync cart:", error);
+    if (import.meta.env.DEV) {
+      console.error("Failed to sync cart:", error);
+    }
   }
 }

@@ -1,3 +1,14 @@
+/**
+ * WORKAROUND: Prisma 6.x doesn't add .js extensions to generated ESM imports.
+ * Required because this package uses "type": "module" (ESM).
+ *
+ * This script runs after `prisma generate` and patches all relative imports
+ * in the generated client to include .js extensions, which Node.js ESM requires.
+ *
+ * Remove this script when Prisma adds native ESM import resolution support.
+ * Track: https://github.com/prisma/prisma/issues/15640
+ */
+
 const fs = require("fs");
 const path = require("path");
 
@@ -47,7 +58,7 @@ for (const file of candidateFiles) {
     (m, prefix, quote, rel) => {
       if (shouldAddExtension(rel)) return `${prefix}${quote}${rel}.js${quote}`;
       return m;
-    }
+    },
   );
 
   // Replace dynamic import("relpath")
@@ -57,7 +68,7 @@ for (const file of candidateFiles) {
       if (shouldAddExtension(rel))
         return `${pre}${quote}${rel}.js${quote}${post}`;
       return m;
-    }
+    },
   );
 
   // Replace require('relpath') if any
@@ -67,7 +78,7 @@ for (const file of candidateFiles) {
       if (shouldAddExtension(rel))
         return `${pre}${quote}${rel}.js${quote}${post}`;
       return m;
-    }
+    },
   );
 
   if (content !== original) {

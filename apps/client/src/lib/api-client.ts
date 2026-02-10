@@ -25,7 +25,7 @@ export function getApi(): AxiosInstance {
     const env = getEnv();
 
     apiInstance = Axios.create({
-      baseURL: `${env.API_BASE_URL}${env.PORT}${env.API_POSTFIX}`,
+      baseURL: env.API_URL,
     });
 
     apiInstance.interceptors.request.use(authRequestInterceptor);

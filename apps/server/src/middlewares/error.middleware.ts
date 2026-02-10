@@ -48,12 +48,12 @@ const handleJWTError = () =>
 const handleJWTExpiredError = () =>
   new AppError(
     "Your token has expired! Please log in again.",
-    ErrorCode.TOKEN_EXPIRED
+    ErrorCode.TOKEN_EXPIRED,
   );
 
 // ------------------ Type guards ------------------
 const isPrismaKnownRequestError = (
-  err: unknown
+  err: unknown,
 ): err is Prisma.PrismaClientKnownRequestError => {
   return (
     typeof err === "object" &&
@@ -63,7 +63,7 @@ const isPrismaKnownRequestError = (
 };
 
 const isPrismaValidationError = (
-  err: unknown
+  err: unknown,
 ): err is Prisma.PrismaClientValidationError => {
   return (
     typeof err === "object" &&
@@ -154,7 +154,7 @@ const sendErrorDev = (err: unknown, req: Request, res: Response) => {
       stack,
       details,
       statusCode,
-    })
+    }),
   );
 };
 
@@ -176,18 +176,20 @@ const sendErrorProd = (err: unknown, req: Request, res: Response) => {
         code: err.code,
         details: err.details,
         statusCode: err.statusCode,
-      })
+      }),
     );
   }
 
   // Programming or other unknown error: don't leak error details
-  console.error("ERROR 💥", err);
+  if (process.env.NODE_ENV === "development") {
+    console.error("ERROR 💥", err);
+  }
   return res.status(500).json(
     createErrorResponse({
       message: "Something went very wrong!",
       code: ErrorCode.INTERNAL_ERROR,
       statusCode: 500,
-    })
+    }),
   );
 };
 
@@ -195,7 +197,7 @@ export default (
   err: unknown,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   // Convert known error types to AppError
   const normalizedError = normalizeError(err);

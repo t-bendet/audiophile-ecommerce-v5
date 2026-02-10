@@ -35,7 +35,9 @@ export function getLocalCart(): LocalCart {
     const parsed = JSON.parse(stored);
     return parsed as LocalCart;
   } catch (error) {
-    console.error("Error reading cart from localStorage:", error);
+    if (import.meta.env.DEV) {
+      console.error("Error reading cart from localStorage:", error);
+    }
     return { ...EmptyLocalCart };
   }
 }
@@ -49,7 +51,9 @@ export function saveLocalCart(cart: LocalCart): void {
   try {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
   } catch (error) {
-    console.error("Error saving cart to localStorage:", error);
+    if (import.meta.env.DEV) {
+      console.error("Error saving cart to localStorage:", error);
+    }
   }
 }
 
