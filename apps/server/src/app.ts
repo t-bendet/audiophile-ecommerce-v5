@@ -82,7 +82,3 @@ app.all(/.*/, (req, res, next) => {
 app.use(globalErrorHandler);
 
 export default app;
-
-// TODO add mongoSanitize to prevent NoSQL injection
-// TODO add xss-clean to prevent XSS attacks
-// TODO add hpp to prevent HTTP parameter pollution
