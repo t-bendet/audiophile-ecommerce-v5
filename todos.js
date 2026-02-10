@@ -1,19 +1,8 @@
 // ============================================================================
-// WORKSPACE & ARCHITECTURE
-// ============================================================================
-// TODO OpenAPI + zod-to-openapi: Generate OpenAPI from your zod schemas; use a client generator (or orval) to produce typed clients for frontend.
-// TODO what happens when i delete a category with products? cascade or restrict?
-
-// ============================================================================
 // BUILD & CONFIGURATION
 // ============================================================================
 
-// TODO prod script for database -  add prisma push, needed if there is no database
-
-// TODO standardize tsconfig files across packages and apps for monorepo
-//     "composite": true,
-// "declarationMap": true'
-
+// TODO add back button to login and signup pages
 // ============================================================================
 // SERVER & API
 // ============================================================================
@@ -45,19 +34,10 @@
 // Context: aggregate to reduce queries
 // TODO: aggregate to reduce queries
 
-// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/routes/product.route.ts
-// Line: 41
-// Context: should be in category route
-// TODO: should be in category route
-
-// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/controllers/config.controller.ts
-// Line: 10
-// Context: consider adding config id to env variables for easy access
-// TODO: consider adding config id to env variables for easy access
 // TODO implement forgot password and reset password
 // TODO switch to cloudinary upload images and products from dashboard? url or image upload
 // TODO add errors for update same value
-// TODO checkout prices return from backend
+// TODO checkout prices should return from backend
 // TODO handle slugs ,where is generated create update, user provide??
 // TODO add rate limiting middleware to server
 // TODO add helmet middleware to server
@@ -83,6 +63,7 @@
 // ============================================================================
 
 // TODO Consider removing NAME enum from Category schema
+// TODO refactor category prisma with products relation ,add cascade delete
 //      Current: name is NAME enum (Headphones|Earphones|Speakers)
 //      Problem: Can't create new categories at runtime without schema migration + deploy
 //      Recommendation: Change to name: String, slug: String @unique
@@ -119,21 +100,4 @@
 // LEARNING & DOCUMENTATION
 // ============================================================================
 
-// TODO go over prisma basic principles
-// TODO go over prisma relations (one to many, one to one, many to many)
-// TODO go over prisma data types
-// TODO go over express basic principles
-// TODO go over turborepo core-concepts,https://turborepo.com/docs/core-concepts
-// TODO go over monorepo best practices
 // TODO jsdoc comments for all service methods
-
-// TODO export const test: RequestHandler< better typing example
-//   { name: string },
-//   { username: string; password: string; remember: boolean; title: string },
-//   { username: string; password: string; remember: boolean; title: string }
-// > = async (_req, res) => {
-//   const { name } = _req.params;
-//   const body = _req.body;
-//   const dto = await productService.getFeaturedProduct();
-//   res.status(200).json(createSingleItemResponse(dto));
-// };
