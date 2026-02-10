@@ -15,6 +15,7 @@ import {
   useUpdateCartItem,
 } from "@/features/cart/api/get-cart";
 import { CartItem } from "@/features/cart/components/cart-item";
+import currencyFormatter from "@/utils/formatters";
 import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router";
 
@@ -28,12 +29,16 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
   const updateCartItem = useUpdateCartItem();
   const removeFromCart = useRemoveFromCart();
 
-  const handleUpdateQuantity = (productId: string, quantity: number) => {
-    updateCartItem.mutate({ productId, quantity });
+  const handleUpdateQuantity = (
+    productId: string,
+    cartItemId: string,
+    quantity: number,
+  ) => {
+    updateCartItem.mutate({ productId, cartItemId, quantity });
   };
 
-  const handleRemove = (productId: string) => {
-    removeFromCart.mutate({ productId });
+  const handleRemove = (productId: string, cartItemId: string) => {
+    removeFromCart.mutate({ productId, cartItemId });
   };
 
   const isUpdating = updateCartItem.isPending || removeFromCart.isPending;
@@ -63,7 +68,7 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
               </p>
             </div>
           ) : (
-            <div className="divide-y">
+            <div>
               {cart.data.items.map((item) => (
                 <CartItem
                   key={item.id}
@@ -82,7 +87,7 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
             <div className="mb-4 flex items-center justify-between">
               <span className="text-lg font-bold">Subtotal</span>
               <span className="text-lg font-bold">
-                ${((cart.data.subtotal || 0) / 100).toFixed(2)}
+                {currencyFormatter(cart.data.subtotal || 0)}
               </span>
             </div>
             <Link
