@@ -46,9 +46,11 @@ app.use(
 
 // 2. Rate limiting - reject abusive requests before parsing body
 const limiter = rateLimit({
-  limit: 100,
-  windowMs: 15 * 60 * 1000,
+  limit: 500, // 500 requests per window (SPAs make many calls per page)
+  windowMs: 15 * 60 * 1000, // 15 minutes
   message: "Too many requests from this IP, please try again in 15 minutes!",
+  standardHeaders: true, // Return rate limit info in headers
+  legacyHeaders: false, // Disable X-RateLimit-* headers
 });
 app.use("/api", limiter);
 
