@@ -1,7 +1,10 @@
 import { AppError, ErrorCode, UserPublicInfo } from "@repo/domain";
+import cors from "cors";
 import express, { Express } from "express";
 import globalErrorHandler from "./middlewares/error.middleware.js";
 import indexRoute from "./routes/index.js";
+import { env } from "./utils/env.js";
+import helmet from "helmet";
 
 declare global {
   namespace Express {
@@ -17,28 +20,30 @@ app.set("query parser", "extended");
 
 app.use(express.json());
 
-// Minimal CORS for dev when calling API directly from Vite (5173)
-if (process.env.NODE_ENV === "development") {
-  const devOrigin = `http://localhost:${process.env.VITE_APP_PORT || 5173}`;
-  app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", devOrigin);
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-    );
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-    );
-    // Respond immediately to CORS preflight requests without processing further    if (req.method === "OPTIONS")
-
-    if (req.method === "OPTIONS") {
-      return res.sendStatus(204);
-    }
-    next();
-  });
+// CORS configuration - supports both dev and production
+const allowedOrigins: string[] = env.ALLOWED_ORIGINS?.split(",") || [];
+if (env.NODE_ENV === "development") {
+  allowedOrigins.push(`http://localhost:${env.VITE_APP_PORT || 5173}`);
 }
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, Postman, etc.)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    maxAge: 86400, // Cache preflight for 24 hours
+  }),
+);
+
+app.use(helmet());
 
 app.use("/api/v1", indexRoute);
 
