@@ -12,6 +12,8 @@ const AuthLayout = () => {
   );
 };
 
+// TODO add back button to login and signup pages
+
 export default AuthLayout;
 
 export const clientLoader =
