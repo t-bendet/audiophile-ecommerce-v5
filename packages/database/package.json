@@ -22,7 +22,7 @@
     "studio": "prisma studio",
     "format": "prisma format",
     "lint": "eslint . --max-warnings 0",
-    "build": "pnpm db:generate && tsc -p tsconfig.build.json && cp -r generated dist/",
+    "build": "pnpm db:generate && tsc -p tsconfig.build.json && node ./scripts/fix-prisma-imports-robust.cjs",
     "build:watch": "tsc -p tsconfig.build.json -w"
   },
   "dependencies": {
