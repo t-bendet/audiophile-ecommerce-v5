@@ -2,10 +2,7 @@ import { AppError, ErrorCode } from "@repo/domain";
 import * as z from "zod";
 
 const EnvSchema = z.object({
-  API_PROXY_PORT: z.string(),
-  PORT: z.string(),
-  API_BASE_URL: z.url(),
-  API_POSTFIX: z.string(),
+  API_URL: z.string().min(1, "API_URL is required"),
   MODE: z.enum(["development", "production"]),
 });
 
