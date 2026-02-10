@@ -22,8 +22,6 @@ const isAppError = (err: unknown): err is AppError => {
 const handleZodError = (err: ZodError) => {
   const message = `Validation failed: ${err.issues.length} error(s)`;
   // Parse Zod issues into structured details
-  // TODO consider using treeifyError for better error paths
-  // TODO consider which error messages to expose to client(on route level and feature level and form level)
   const details = err.issues.map((issue) => ({
     code: issue.code,
     message: issue.message,
@@ -106,10 +104,6 @@ export function normalizeError(error: unknown): AppError {
     // either network error or HTTP error response
     // if we have a response with data, try to extract AppError from it
     // otherwise classify as network error and create generic AppError
-    // TODO if it is a post/create/update request, and we have error.response.data.error.details as zod error details,
-    // TODO it means server side validation failed, and something was wrong with the request payload or params(usually payload on this kind of requests)
-    // TODO we can reconstruct a zod error from the details and provide more specific validation error to client
-
     return processAxiosError(error);
   }
 

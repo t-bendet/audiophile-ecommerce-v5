@@ -84,7 +84,7 @@ const ProductPropertiesSchema = z
           item: z.string().min(1, "Item name is required"),
           quantity: z.number().int().positive("Quantity must be positive"),
         })
-        .strict()
+        .strict(),
     ),
     images: ProductImagesObjectSchema,
     v: z.number().int().nonnegative(),
@@ -96,7 +96,6 @@ const ProductPropertiesSchema = z
 
 // * ===== RequestSchemas =====
 
-// TODO choose which scalar fields are allowed for filtering, sorting, selecting
 // LIST - Get all Products (pagination + filtering)
 export const ProductGetAllRequestSchema = createRequestSchema({
   query: z
@@ -205,7 +204,7 @@ export const ProductShowCaseProductsSchema = z.record(
       }),
     })
     .strict()
-    .nullable()
+    .nullable(),
 );
 
 export const ProductFeaturedProductsSchema = ProductPropertiesSchema.pick({
@@ -263,27 +262,27 @@ export type ProductGetBySlugResponse = SingleItemResponse<ProductDTO>;
 
 // GetRelatedProducts - Get related products (list)
 export const ProductGetRelatedResponseSchema = ListResponseSchema(
-  ProductRelatedProductsDTOSchema
+  ProductRelatedProductsDTOSchema,
 );
 export type ProductGetRelatedResponse = ListResponse<ProductRelatedProductsDTO>;
 
 // GetProductsByCategoryName - Get products by category (list)
 export const ProductGetByCategoryResponseSchema = ListResponseSchema(
-  ProductsByCategoryNameSchema
+  ProductsByCategoryNameSchema,
 );
 export type ProductGetByCategoryResponse =
   ListResponse<ProductsByCategoryNameDTO>;
 
 // GetShowCaseProducts - Get showcase products (single object with cover/wide/grid)
 export const ProductGetShowCaseResponseSchema = SingleItemResponseSchema(
-  ProductShowCaseProductsSchema
+  ProductShowCaseProductsSchema,
 );
 export type ProductGetShowCaseResponse =
   SingleItemResponse<ProductShowCaseProductsDTO>;
 
 // GetFeaturedProduct - Get featured product
 export const ProductGetFeaturedResponseSchema = SingleItemResponseSchema(
-  ProductFeaturedProductsSchema
+  ProductFeaturedProductsSchema,
 );
 export type ProductGetFeaturedResponse =
   SingleItemResponse<ProductFeaturedProductsDTO>;

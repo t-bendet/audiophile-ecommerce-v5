@@ -74,6 +74,10 @@
 //        - Use mapped types or conditional types to derive Where, Select from Entity
 //        - Ensure compatibility with Prisma's filtering and selection capabilities
 //      Benefits: Improved type safety, better developer experience with autocompletion and error checking
+
+// location: packages/domain/src/error-codes.ts
+// TODO add validation error codes for different scenarios (e.g. invalid input, missing fields, etc.) 400 422
+
 // ============================================================================
 // DATABASE & MODELS
 // ============================================================================
