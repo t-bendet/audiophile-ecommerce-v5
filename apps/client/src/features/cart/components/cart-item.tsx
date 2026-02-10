@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { QuantitySelector } from "@/components/ui/quantity-selector";
+import currencyFormatter from "@/utils/formatters";
 import { CartItemDTO } from "@repo/domain";
 import { X } from "lucide-react";
 
@@ -11,6 +13,7 @@ interface CartItemProps {
   ) => void;
   onRemove: (productId: string, cartItemId: string) => void;
   isUpdating?: boolean;
+  withActions?: boolean;
 }
 
 export function CartItem({
@@ -18,19 +21,10 @@ export function CartItem({
   onUpdateQuantity,
   onRemove,
   isUpdating = false,
+  withActions = true,
 }: CartItemProps) {
-  const handleDecrease = () => {
-    if (item.quantity > 1) {
-      onUpdateQuantity(item.productId, item.id, item.quantity - 1);
-    }
-  };
-
-  const handleIncrease = () => {
-    onUpdateQuantity(item.productId, item.id, item.quantity + 1);
-  };
-
   return (
-    <div className="flex items-center gap-4 py-4 text-neutral-900">
+    <div className="flex items-center gap-6 py-4 text-neutral-900">
       {/* Product Image */}
       <img
         src={item.productImage}
@@ -42,40 +36,36 @@ export function CartItem({
       <div className="flex h-full flex-1 flex-col gap-1">
         <h3 className="text-sm font-bold uppercase">{item.cartLabel}</h3>
         <p className="text-sm text-neutral-500">
-          $ {(item.productPrice / 100).toFixed(2)}
+          {currencyFormatter(item.productPrice)}
         </p>
       </div>
 
       {/* Quantity Controls */}
-      <div className="flex items-center gap-2">
-        <div className="flex h-12 w-30 items-center justify-around bg-neutral-200 text-xs font-bold">
-          <button
-            className="cursor-pointer px-3 opacity-25 hover:opacity-50"
-            onClick={handleDecrease}
-            disabled={isUpdating || item.quantity === 1}
-          >
-            -
-          </button>
-          <p>{item.quantity}</p>
-          <button
-            className="cursor-pointer px-3 opacity-25 hover:opacity-50"
-            onClick={handleIncrease}
+      {withActions ? (
+        <div className="flex items-center gap-2">
+          <QuantitySelector
+            value={item.quantity}
+            onChange={(newQuantity) =>
+              onUpdateQuantity(item.productId, item.id, newQuantity)
+            }
             disabled={isUpdating}
+          />
+          {/* Remove Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onRemove(item.productId, item.id)}
+            disabled={isUpdating}
+            className="h-6 w-6 p-0 text-neutral-500 hover:text-red-600 sm:h-8 sm:w-8"
           >
-            +
-          </button>
+            <X className="h-2 w-2" />
+          </Button>
         </div>
-        {/* Remove Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onRemove(item.productId, item.id)}
-          disabled={isUpdating}
-          className="h-8 w-8 p-0 text-neutral-500 hover:text-red-600"
-        >
-          <X className="h-2 w-2" />
-        </Button>
-      </div>
+      ) : (
+        <span className="text-[15px] font-bold text-neutral-500 opacity-50">
+          x{item.quantity}
+        </span>
+      )}
     </div>
   );
 }

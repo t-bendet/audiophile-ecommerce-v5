@@ -11,6 +11,7 @@ import {
 import { CartItem } from "@/features/cart/components/cart-item";
 import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { syncLocalCartToServer } from "@/lib/cart-sync";
+import currencyFormatter from "@/utils/formatters";
 import { QueryClient } from "@tanstack/react-query";
 import { Link, LoaderFunctionArgs, redirect } from "react-router";
 
@@ -114,11 +115,13 @@ export default function CheckoutPage() {
             </div>
 
             {/* Right Column - Order Summary */}
-            <div className="rounded-lg bg-white p-6 shadow">
-              <h2 className="mb-6 text-2xl font-bold">Order Summary</h2>
+            <div className="rounded-lg bg-white p-6 text-neutral-900 shadow">
+              <h2 className="tracking-300 mb-6 text-xl font-bold uppercase">
+                summary
+              </h2>
 
               {/* Cart Items */}
-              <div className="mb-6 divide-y text-neutral-900">
+              <div className="mb-6 text-neutral-900">
                 {cart.data.items.map((item) => (
                   <CartItem
                     key={item.id}
@@ -126,6 +129,7 @@ export default function CheckoutPage() {
                     onUpdateQuantity={handleUpdateQuantity}
                     onRemove={handleRemove}
                     isUpdating={isUpdating}
+                    withActions={false}
                   />
                 ))}
               </div>
@@ -135,23 +139,23 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Subtotal</span>
                   <span className="font-medium">
-                    ${(subtotal / 100).toFixed(2)}
+                    {currencyFormatter(subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Shipping</span>
                   <span className="font-medium">
-                    ${(shipping / 100).toFixed(2)}
+                    {currencyFormatter(shipping)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-600">Tax (20%)</span>
-                  <span className="font-medium">${(tax / 100).toFixed(2)}</span>
+                  <span className="font-medium">{currencyFormatter(tax)}</span>
                 </div>
                 <div className="flex justify-between border-t pt-3 text-lg font-bold">
                   <span>Total</span>
                   <span className="text-primary-500">
-                    ${(total / 100).toFixed(2)}
+                    {currencyFormatter(total)}
                   </span>
                 </div>
               </div>
