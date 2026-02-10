@@ -11,25 +11,29 @@ services:
   - type: web
     name: audiophile-server
     runtime: node
-    region: oregon # or frankfurt, singapore, ohio
-    plan: free # free tier (spins down after 15min idle)
+    region: oregon
+    plan: free
     branch: main
-    buildCommand: pnpm install && pnpm turbo run build --filter=server...
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=server...
     startCommand: node apps/server/dist/index.js
-    healthCheckPath: /api/health
+    healthCheckPath: /api/v1/health
     envVars:
+      - key: NODE_VERSION
+        value: "20.11.0"
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 8000
+        value: "8000"
       - key: DATABASE_URL
-        sync: false # Prompt to enter manually in Render dashboard
+        sync: false
       - key: JWT_SECRET
-        generateValue: true # Render generates a random value
+        generateValue: true
       - key: JWT_EXPIRES_IN
-        value: 90d
+        value: "7d"
       - key: JWT_COOKIE_EXPIRES_IN
-        value: 7776000000
+        value: "7"
+      - key: ALLOWED_ORIGINS
+        sync: false
 
   # ==============================================
   # Vite React Client (Static Site - FREE)
@@ -38,27 +42,23 @@ services:
     name: audiophile-client
     runtime: static
     branch: main
-    buildCommand: pnpm install && pnpm turbo run build --filter=client...
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=client...
     staticPublishPath: apps/client/dist
-    pullRequestPreviewsEnabled: true # Preview deployments for PRs
+    pullRequestPreviewsEnabled: true
     headers:
-      - path: /*
+      - path: "/*"
         name: X-Content-Type-Options
-        value: nosniff
-      - path: /*
+        value: "nosniff"
+      - path: "/*"
         name: X-Frame-Options
-        value: DENY
-      - path: /*
+        value: "DENY"
+      - path: "/*"
         name: X-XSS-Protection
         value: "1; mode=block"
     routes:
-      # SPA fallback - all routes serve index.html
       - type: rewrite
-        source: /*
+        source: "/*"
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: audiophile-server
-          property: host # Automatically uses the server's URL
+        sync: false
