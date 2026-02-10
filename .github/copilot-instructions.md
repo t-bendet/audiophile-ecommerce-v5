@@ -122,35 +122,39 @@ The [fix-prisma-imports-robust.cjs](packages/database/scripts/fix-prisma-imports
 ### packages/database/.env
 
 ```
-DATABASE_URL=mysql://user:password@localhost:3306/turborepo
+DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
 ```
 
-Required for Prisma migrations, seeding, and client generation. Format: `mysql://[user]:[password]@[host]:[port]/[database]`
+Required for Prisma migrations, seeding, and client generation. Uses **MongoDB Atlas** connection string format.
 
 ### apps/server/.env
 
 ```
-DATABASE_URL=mysql://user:password@localhost:3306/turborepo
+DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
 NODE_ENV=development
-JWT_SECRET=your-secret-key-for-signing-tokens
-JWT_EXPIRE=7d
-PORT=5000
+JWT_SECRET=your-secret-key-for-signing-tokens-min-32-chars
+JWT_EXPIRES_IN=90d
+JWT_COOKIE_EXPIRES_IN=20000
+PORT=8000
 ```
 
 **Key variables:**
 
-- `DATABASE_URL`: Must match database/.env (Prisma client connection)
+- `DATABASE_URL`: MongoDB Atlas connection string; must match database/.env
 - `NODE_ENV`: `development` or `production` (affects error responses, logging)
-- `JWT_SECRET`: Used to sign/verify JWT tokens; must be strong and kept secret
-- `JWT_EXPIRE`: Token expiration (e.g., `7d`, `24h`); parsed by `ms` package
-- `PORT`: Server listening port (defaults to 5000)
+- `JWT_SECRET`: Used to sign/verify JWT tokens; must be at least 32 characters for production security
+- `JWT_EXPIRES_IN`: Token expiration (e.g., `90d`, `7d`, `24h`); parsed by `ms` package
+- `JWT_COOKIE_EXPIRES_IN`: Cookie expiration in milliseconds
+- `PORT`: Server listening port (default: 8000)
 
-### Docker Compose
+### MongoDB Atlas Setup
 
-Database credentials in [docker-compose.yml](docker-compose.yml) must match `DATABASE_URL` in `.env` files:
+This project uses **MongoDB Atlas** (cloud-hosted MongoDB):
 
-- Default: `MYSQL_USER=root`, `MYSQL_PASSWORD=root`, `MYSQL_DATABASE=turborepo`
-- Update both docker-compose.yml and .env files together
+1. Create a cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas)
+2. Create a database user with read/write access
+3. Whitelist your IP address (or use `0.0.0.0/0` for development)
+4. Copy the connection string and update both `.env` files
 
 ---
 
@@ -202,7 +206,7 @@ async function loggingMiddleware({ request }, next) {
   const start = performance.now();
   const response = await next();
   console.log(
-    `${request.method} ${request.url} - ${performance.now() - start}ms`
+    `${request.method} ${request.url} - ${performance.now() - start}ms`,
   );
   return response;
 }
@@ -329,3 +333,5 @@ See [todos.js](todos.js) for tracked tasks, including:
 - Aggregate queries to reduce database roundtrips in `getRelatedProducts`
 - Move product route endpoint to category route
 - Consider adding config ID to environment variables
+
+**Last Updated:** February 10, 2026
