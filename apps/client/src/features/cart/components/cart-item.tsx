@@ -30,6 +30,8 @@ export function CartItem({
         src={item.productImage}
         alt={item.cartLabel}
         className="h-16 w-16 rounded object-cover"
+        width={64}
+        height={64}
       />
 
       {/* Product Details */}

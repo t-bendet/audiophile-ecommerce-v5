@@ -13,5 +13,15 @@
     "**/dist/**": true,
     "**/.turbo/**": true,
     "**/*.tsbuildinfo": true
+  },
+  "chat.tools.terminal.autoApprove": {
+    "/^python3 - <<'PY'\ntry:\n    from PIL import Image  # noqa: F401\n    print\\('pillow: ok'\\)\nexcept Exception as exc:\n    print\\('pillow: missing', exc\\)\nPY$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^python3 - <<'PY'\nimport re\nfrom collections import defaultdict\nimport subprocess, tempfile, os\n\npath='packages/database/src/seed/products\\.seed\\.ts'\ntext=open\\(path\\)\\.read\\(\\)\\.splitlines\\(\\)\n\nimage_keys=\\{'introImage','featuredImage','relatedProductImage','showCaseImage','thumbnail'\\}\ncurrent=None\nurls=defaultdict\\(set\\)\n\nfor line in text:\n    m=re\\.search\\(r'\\^\\\\s\\*\\(\\\\w\\+\\)\\\\s\\*:\\\\s\\*\\\\\\{\\\\s\\*\\$', line\\)\n    if m and m\\.group\\(1\\) in image_keys:\n        current=m\\.group\\(1\\)\n        continue\n    if current:\n        msrc=re\\.search\\(r'\\\\bdesktopSrc:\\\\s\\*\"\\(\\[\\^\"\\]\\+\\)\"', line\\)\n        if msrc:\n            urls\\[current\\]\\.add\\(msrc\\.group\\(1\\)\\)\n        mthumb=re\\.search\\(r'\\\\bsrc:\\\\s\\*\"\\(\\[\\^\"\\]\\+\\)\"', line\\)\n        if current=='thumbnail' and mthumb:\n            urls\\[current\\]\\.add\\(mthumb\\.group\\(1\\)\\)\n    if current and re\\.search\\(r'\\^\\\\s\\*\\\\\\}\\\\s\\*,\\?\\\\s\\*\\$', line\\):\n        current=None\n\nsizes=defaultdict\\(dict\\)\n\nfor key, ulist in urls\\.items\\(\\):\n    for url in sorted\\(ulist\\):\n        tmp=os\\.path\\.join\\('/tmp', os\\.path\\.basename\\(url\\)\\)\n        subprocess\\.run\\(\\['curl','-Ls',url,'-o',tmp\\], check=True\\)\n        out=subprocess\\.check_output\\(\\['sips','-g','pixelWidth','-g','pixelHeight',tmp\\], text=True\\)\n        width=int\\(re\\.search\\(r'pixelWidth: \\(\\\\d\\+\\)', out\\)\\.group\\(1\\)\\)\n        height=int\\(re\\.search\\(r'pixelHeight: \\(\\\\d\\+\\)', out\\)\\.group\\(1\\)\\)\n        sizes\\[key\\]\\[url\\]=\\(width,height\\)\n\nfor key in sorted\\(sizes\\):\n    dims=set\\(sizes\\[key\\]\\.values\\(\\)\\)\n    print\\(key, 'unique dims:', len\\(dims\\)\\)\n    for dim in sorted\\(dims\\):\n        print\\(' ',dim\\)\nPY$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   }
 }

@@ -23,6 +23,10 @@ export default function ProductsList({ products }: TProductListProps) {
               altText={product.images.introImage.altText}
               ariaLabel={product.images.introImage.ariaLabel}
               pictureClasses="rounded-sm"
+              width={1080}
+              height={1120}
+              loading={i === 0 ? "eager" : "lazy"}
+              fetchPriority={i === 0 ? "high" : "auto"}
             />
             <ProductCard
               product={{

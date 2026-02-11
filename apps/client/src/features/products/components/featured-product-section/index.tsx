@@ -25,6 +25,10 @@ const FeaturedProductSection = () => {
         }
         pictureClasses="col-span-full row-span-full"
         classes="h-full w-full object-cover object-bottom mix-blend-difference"
+        width={2880}
+        height={1458}
+        loading="eager"
+        fetchPriority="high"
       />
       <section className="z-10 col-span-full row-span-full grid items-center justify-center lg:justify-start lg:pl-4">
         <ProductCard

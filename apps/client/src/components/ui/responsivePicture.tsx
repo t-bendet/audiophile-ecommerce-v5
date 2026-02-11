@@ -10,6 +10,10 @@ type TResponsivePicture = {
   pictureClasses?: string;
   mobileCustomMediaQuery?: string;
   tabletCustomMediaQuery?: string;
+  width?: number;
+  height?: number;
+  loading?: "eager" | "lazy";
+  fetchPriority?: "high" | "low" | "auto";
 };
 
 export const ResponsivePicture = (props: TResponsivePicture) => {
@@ -18,19 +22,21 @@ export const ResponsivePicture = (props: TResponsivePicture) => {
       <source
         media={props.mobileCustomMediaQuery || "(max-width: 767px)"}
         srcSet={props.mobileSrc}
-        aria-label={props.ariaLabel}
       />
       <source
         media={props.tabletCustomMediaQuery || "(max-width: 1023px)"}
         srcSet={props.tabletSrc}
-        aria-label={props.ariaLabel}
       />
-      <source srcSet={props.desktopSrc} aria-label={props.ariaLabel} />
+      <source srcSet={props.desktopSrc} />
       <img
         src={props.mobileSrc}
         aria-label={props.ariaLabel}
         alt={props.altText}
         className={cn("overflow-hidden", props.classes)}
+        width={props.width}
+        height={props.height}
+        loading={props.loading}
+        fetchPriority={props.fetchPriority}
       />
     </picture>
   );
