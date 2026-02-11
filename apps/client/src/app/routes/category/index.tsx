@@ -1,5 +1,6 @@
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import { BestGearSection } from "@/components/page-sections";
+import { Metadata } from "@/components/seo/metadata";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import CategoryNavList from "@/features/categories/components/category-nav-list";
@@ -24,6 +25,10 @@ const Category = () => {
   );
   return (
     <>
+      <Metadata
+        title={`${activeCategory} Audio`}
+        description={`Shop ${activeCategory} from Audiophile.`}
+      />
       <header className="bg-neutral-900 py-8 md:py-24">
         <h1 className="tracking-500 text-center text-2xl font-bold uppercase md:text-4xl">
           {activeCategory}

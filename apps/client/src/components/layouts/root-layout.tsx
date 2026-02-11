@@ -12,6 +12,7 @@ import {
   useIsMutating,
 } from "@tanstack/react-query";
 import { LoaderFunctionArgs, Outlet, ScrollRestoration } from "react-router";
+import { Metadata } from "@/components/seo/metadata";
 import LoadingSpinner from "../ui/loading-spinner";
 
 export function RootLayout() {
@@ -28,6 +29,7 @@ export function RootLayout() {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      <Metadata />
       {isLoading && (
         <div className="absolute top-0 left-0 z-50 w-full bg-black/10">
           <div className="flex h-screen w-full items-center justify-center">

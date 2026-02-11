@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Section } from "@/components/ui/section";
+import { Metadata } from "@/components/seo/metadata";
 import { paths } from "@/config/paths";
 import {
   useCart,
@@ -62,6 +63,7 @@ export default function CheckoutPage() {
   if (isLoading) {
     return (
       <Container>
+        <Metadata title="Checkout" noIndex />
         <div className="flex items-center justify-center py-20">
           <LoadingSpinner size="lg" />
         </div>
@@ -72,6 +74,7 @@ export default function CheckoutPage() {
   if (!cart?.data.items || cart.data.items.length === 0) {
     return (
       <Container>
+        <Metadata title="Checkout" noIndex />
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <h1 className="mb-4 text-3xl font-bold">Your cart is empty</h1>
           <p className="mb-8 text-neutral-600">
@@ -87,6 +90,7 @@ export default function CheckoutPage() {
 
   return (
     <main>
+      <Metadata title="Checkout" noIndex />
       <div className="bg-neutral-900 py-8">
         <Container>
           <h1 className="text-3xl font-bold text-white">Checkout</h1>
