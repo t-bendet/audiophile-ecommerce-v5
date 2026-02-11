@@ -1,5 +1,6 @@
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import { BestGearSection } from "@/components/page-sections";
+import { Metadata } from "@/components/seo/metadata";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
@@ -32,9 +33,16 @@ const Product = () => {
     getProductBySlugQueryOptions(activeSlug),
   );
   const navigate = useNavigate();
+  const product = productResponse.data;
 
   return (
     <>
+      <Metadata
+        title={product.fullLabel.join(" ")}
+        description={product.description}
+        image={product.images.primaryImage.desktopSrc}
+        type="product"
+      />
       <Container classes="mt-4 mb-6 md:mt-8 md:mb-8 lg:mt-19 lg:mb-14">
         <Button
           onClick={() => navigate(-1)}
@@ -51,11 +59,11 @@ const Product = () => {
         <Section classes="max-sm:mb-22">
           <Container classes="flex flex-col gap-y-8 md:flex-row md:gap-x-17 lg:gap-x-31">
             <ResponsivePicture
-              mobileSrc={productResponse.data.images.primaryImage.mobileSrc}
-              tabletSrc={productResponse.data.images.primaryImage.tabletSrc}
-              desktopSrc={productResponse.data.images.primaryImage.desktopSrc}
-              altText={productResponse.data.images.primaryImage.altText}
-              ariaLabel={productResponse.data.images.primaryImage.ariaLabel}
+              mobileSrc={product.images.primaryImage.mobileSrc}
+              tabletSrc={product.images.primaryImage.tabletSrc}
+              desktopSrc={product.images.primaryImage.desktopSrc}
+              altText={product.images.primaryImage.altText}
+              ariaLabel={product.images.primaryImage.ariaLabel}
               pictureClasses="rounded-sm"
               width={1080}
               height={1120}
@@ -65,11 +73,11 @@ const Product = () => {
             <ProductCard
               product={{
                 id: productResponse.data.id,
-                fullLabel: productResponse.data.fullLabel,
-                isNewProduct: productResponse.data.isNewProduct,
-                slug: productResponse.data.slug,
-                description: productResponse.data.description,
-                price: productResponse.data.price,
+                fullLabel: product.fullLabel,
+                isNewProduct: product.isNewProduct,
+                slug: product.slug,
+                description: product.description,
+                price: product.price,
               }}
               classes="items-start text-left"
             >
@@ -89,7 +97,7 @@ const Product = () => {
                 features
               </h2>
               <div className="space-y-6 text-neutral-600 md:space-y-10">
-                {productResponse.data.featuresText.map((line, index) => (
+                {product.featuresText.map((line, index) => (
                   <p key={index}>{line}</p>
                 ))}
               </div>
@@ -100,7 +108,7 @@ const Product = () => {
                 in the box
               </h2>
               <ul className="w-full min-w-max">
-                {productResponse.data.includedItems.map((inc, index) => (
+                {product.includedItems.map((inc, index) => (
                   <li key={index}>
                     <span className="text-primary-700 mr-5 font-bold md:mr-6">
                       {inc.quantity}x
@@ -118,39 +126,33 @@ const Product = () => {
         <Section>
           <Container classes="grid grid-cols-1 grid-rows-2 gap-5 md:grid-cols-[40%__60%] lg:gap-8">
             <ResponsivePicture
-              mobileSrc={productResponse.data.images.galleryImages[0].mobileSrc}
-              tabletSrc={productResponse.data.images.galleryImages[0].tabletSrc}
-              desktopSrc={
-                productResponse.data.images.galleryImages[0].desktopSrc
-              }
-              altText={productResponse.data.images.galleryImages[0].altText}
-              ariaLabel={productResponse.data.images.galleryImages[0].ariaLabel}
+              mobileSrc={product.images.galleryImages[0].mobileSrc}
+              tabletSrc={product.images.galleryImages[0].tabletSrc}
+              desktopSrc={product.images.galleryImages[0].desktopSrc}
+              altText={product.images.galleryImages[0].altText}
+              ariaLabel={product.images.galleryImages[0].ariaLabel}
               pictureClasses="rounded-sm md:col-span-1 md:row-span-1"
               classes="h-full rounded-sm"
               width={654}
               height={348}
             />
             <ResponsivePicture
-              mobileSrc={productResponse.data.images.galleryImages[1].mobileSrc}
-              tabletSrc={productResponse.data.images.galleryImages[1].tabletSrc}
-              desktopSrc={
-                productResponse.data.images.galleryImages[1].desktopSrc
-              }
-              altText={productResponse.data.images.galleryImages[1].altText}
-              ariaLabel={productResponse.data.images.galleryImages[1].ariaLabel}
+              mobileSrc={product.images.galleryImages[1].mobileSrc}
+              tabletSrc={product.images.galleryImages[1].tabletSrc}
+              desktopSrc={product.images.galleryImages[1].desktopSrc}
+              altText={product.images.galleryImages[1].altText}
+              ariaLabel={product.images.galleryImages[1].ariaLabel}
               pictureClasses="rounded-sm md:col-start-1 md:row-start-2"
               classes="h-full rounded-sm"
               width={654}
               height={348}
             />
             <ResponsivePicture
-              mobileSrc={productResponse.data.images.galleryImages[2].mobileSrc}
-              tabletSrc={productResponse.data.images.galleryImages[2].tabletSrc}
-              desktopSrc={
-                productResponse.data.images.galleryImages[2].desktopSrc
-              }
-              altText={productResponse.data.images.galleryImages[2].altText}
-              ariaLabel={productResponse.data.images.galleryImages[2].ariaLabel}
+              mobileSrc={product.images.galleryImages[2].mobileSrc}
+              tabletSrc={product.images.galleryImages[2].tabletSrc}
+              desktopSrc={product.images.galleryImages[2].desktopSrc}
+              altText={product.images.galleryImages[2].altText}
+              ariaLabel={product.images.galleryImages[2].ariaLabel}
               pictureClasses="rounded-sm md:col-start-2 md:row-span-2 "
               classes="h-full rounded-sm"
               width={635}
@@ -167,7 +169,7 @@ const Product = () => {
               title="Error loading related products"
               containerClasses="mb-30"
             >
-              <RelatedProducts id={productResponse.data.id} />
+              <RelatedProducts id={product.id} />
             </SafeRenderWithErrorBlock>
           </Container>
         </aside>
