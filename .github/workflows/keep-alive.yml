@@ -1,0 +1,16 @@
+name: Keep Alive
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Send keep-alive request
+        run: |
+          curl -f -s -o /dev/null -w "Status: %{http_code}\n" https://audiophile-client-i8rq.onrender.com/ || echo "Request completed"
