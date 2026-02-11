@@ -37,6 +37,9 @@ const ShowCaseProductsSection = () => {
               tabletSrc={showCaseCover?.images.showCaseImage?.tabletSrc || ""}
               desktopSrc={showCaseCover?.images.showCaseImage?.desktopSrc || ""}
               classes="mx-auto"
+              width={756}
+              height={918}
+              loading="lazy"
             />
           </section>
           <section className="max-w-[30ch] text-center md:max-w-[35ch] lg:max-w-[40ch] lg:p-6 lg:text-left">
@@ -89,6 +92,9 @@ const ShowCaseProductsSection = () => {
             desktopSrc={showCaseWide?.images.showCaseImage?.desktopSrc || ""}
             classes="w-full"
             pictureClasses="col-span-full row-span-full"
+            width={1110}
+            height={320}
+            loading="lazy"
           />
           <div className="z-10 col-span-full row-span-full ml-6 self-center md:ml-16 lg:ml-24">
             <header>
@@ -132,6 +138,9 @@ const ShowCaseProductsSection = () => {
               mobileSrc={showCaseGrid?.images.showCaseImage?.mobileSrc || ""}
               tabletSrc={showCaseGrid?.images.showCaseImage?.tabletSrc || ""}
               desktopSrc={showCaseGrid?.images.showCaseImage?.desktopSrc || ""}
+              width={540}
+              height={320}
+              loading="lazy"
             />
           </section>
           <section className="flex items-center overflow-hidden rounded-sm bg-neutral-200">
