@@ -41,7 +41,7 @@ const Product = () => {
           aria-label="Go back to previous page"
           aria-describedby="go-back-button"
           variant={"link"}
-          className="p-0"
+          className="p-0 text-neutral-700 hover:text-neutral-900"
         >
           Go back
         </Button>
@@ -57,6 +57,10 @@ const Product = () => {
               altText={productResponse.data.images.primaryImage.altText}
               ariaLabel={productResponse.data.images.primaryImage.ariaLabel}
               pictureClasses="rounded-sm"
+              width={1080}
+              height={1120}
+              loading="eager"
+              fetchPriority="high"
             />
             <ProductCard
               product={{
@@ -71,7 +75,7 @@ const Product = () => {
             >
               <ProductCard.NewIndicator classes="mb-6 md:mb-4 md:text-[12px] lg:text-sm" />
               <ProductCard.Title classes="md:mb-8" />
-              <ProductCard.Description classes="opacity-50 md:mb-8 md:max-w-[50ch] lg:max-w-[90ch]" />
+              <ProductCard.Description classes="text-neutral-600 md:mb-8 md:max-w-[50ch] lg:max-w-[90ch]" />
               <ProductCard.Price classes="lg:mb-12" />
               <ProductCard.Actions hasCartAction />
             </ProductCard>
@@ -84,7 +88,7 @@ const Product = () => {
               <h2 className="tracking-300 mb-6 text-xl font-bold uppercase md:mb-8 md:text-[32px]">
                 features
               </h2>
-              <div className="space-y-6 opacity-50 md:space-y-10">
+              <div className="space-y-6 text-neutral-600 md:space-y-10">
                 {productResponse.data.featuresText.map((line, index) => (
                   <p key={index}>{line}</p>
                 ))}
@@ -98,10 +102,12 @@ const Product = () => {
               <ul className="w-full min-w-max">
                 {productResponse.data.includedItems.map((inc, index) => (
                   <li key={index}>
-                    <span className="text-primary-500 mr-5 font-bold md:mr-6">
+                    <span className="text-primary-700 mr-5 font-bold md:mr-6">
                       {inc.quantity}x
                     </span>
-                    <span className="capitalize opacity-50">{inc.item}</span>
+                    <span className="text-neutral-600 capitalize">
+                      {inc.item}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -121,6 +127,8 @@ const Product = () => {
               ariaLabel={productResponse.data.images.galleryImages[0].ariaLabel}
               pictureClasses="rounded-sm md:col-span-1 md:row-span-1"
               classes="h-full rounded-sm"
+              width={654}
+              height={348}
             />
             <ResponsivePicture
               mobileSrc={productResponse.data.images.galleryImages[1].mobileSrc}
@@ -132,6 +140,8 @@ const Product = () => {
               ariaLabel={productResponse.data.images.galleryImages[1].ariaLabel}
               pictureClasses="rounded-sm md:col-start-1 md:row-start-2"
               classes="h-full rounded-sm"
+              width={654}
+              height={348}
             />
             <ResponsivePicture
               mobileSrc={productResponse.data.images.galleryImages[2].mobileSrc}
@@ -143,6 +153,8 @@ const Product = () => {
               ariaLabel={productResponse.data.images.galleryImages[2].ariaLabel}
               pictureClasses="rounded-sm md:col-start-2 md:row-span-2 "
               classes="h-full rounded-sm"
+              width={635}
+              height={592}
             />
           </Container>
         </Section>
