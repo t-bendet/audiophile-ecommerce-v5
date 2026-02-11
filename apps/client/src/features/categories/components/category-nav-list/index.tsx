@@ -10,6 +10,11 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
   const { data: categoriesResponse } = useSuspenseQuery(
     getCategoriesQueryOptions(),
   );
+  const categorySizes = {
+    Headphones: { width: 438, height: 422 },
+    Earphones: { width: 438, height: 380 },
+    Speakers: { width: 438, height: 408 },
+  } as const;
   return (
     <nav onClick={clickHandler}>
       <ul className="flex flex-col gap-4 text-neutral-900 md:flex-row md:justify-around lg:gap-8">
@@ -19,6 +24,8 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
             key={category.id}
           >
             <img
+              width={categorySizes[category.name].width}
+              height={categorySizes[category.name].height}
               src={category.thumbnail.src}
               alt={category.thumbnail.altText}
               aria-label={category.thumbnail.ariaLabel}

@@ -14,6 +14,8 @@ export const BestGearSection = () => {
         ariaLabel="Best Gear"
         altText="Best Gear"
         classes="rounded-xl"
+        width={540}
+        height={588}
       />
       <div className="text-center text-neutral-900 md:max-w-xl lg:max-w-md lg:text-left">
         <h3 className="tracking-300 mb-8 text-2xl font-bold uppercase md:text-4xl">

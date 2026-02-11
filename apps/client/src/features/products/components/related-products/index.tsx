@@ -23,6 +23,9 @@ const RelatedProducts = ({ id }: { id: string }) => {
             altText={product.images.relatedProductImage.altText}
             classes="h-auto w-full md:mb-10"
             ariaLabel={product.images.relatedProductImage.ariaLabel}
+            width={700}
+            height={636}
+            loading="lazy"
           />
           <h3 className="tracking-300 text-center text-xl font-bold uppercase">
             {product.shortLabel}
