@@ -1,9 +1,4 @@
 // ============================================================================
-// GENERAL / INFRASTRUCTURE
-// ============================================================================
-// TODO React 19's Document Metadata
-
-// ============================================================================
 // TYPES & API
 // ============================================================================
 // File: src/types/api.ts
@@ -73,8 +68,6 @@
 // ============================================================================
 // TODO add skeleton loaders where needed
 // TODO work on responsive design (ErrorBlock.tsx)
-// TODO Dialog - create variants for cart, thank you and nav, refactor
-// TODO switch toast to sonner
 
 // File: src/components/layouts/content-layout/nav-bar/user-dropdown/logged-in-user-dropdown.tsx
 // Line: 25
