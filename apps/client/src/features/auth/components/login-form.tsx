@@ -23,12 +23,15 @@ import { normalizeError } from "@/lib/errors/errors";
 import { AuthLoginRequestSchema } from "@repo/domain";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { PasswordVisibilityToggle } from "./password-visibility-toggle";
 
 export function LoginForm({ className }: React.ComponentProps<"div">) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const queryClient = useQueryClient();
   const { mutate: login, isPending } = useLogin(queryClient);
@@ -121,17 +124,24 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
                           Forgot your password?
                         </a>
                       </div>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        aria-invalid={isInvalid}
-                        placeholder="Enter your password"
-                        required
-                        type="password"
-                      />
+                      <div className="relative">
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          aria-invalid={isInvalid}
+                          className="pr-16"
+                          placeholder="Enter your password"
+                          required
+                          type={isPasswordVisible ? "text" : "password"}
+                        />
+                        <PasswordVisibilityToggle
+                          isVisible={isPasswordVisible}
+                          onToggle={() => setIsPasswordVisible((prev) => !prev)}
+                        />
+                      </div>
                       {isInvalid && (
                         <FieldError errors={field.state.meta.errors} />
                       )}

@@ -11,7 +11,7 @@ import { NavLink } from "react-router";
 
 export default function AnonymousUserDropdown() {
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button>
           <span className="sr-only">Open anonymous menu</span>

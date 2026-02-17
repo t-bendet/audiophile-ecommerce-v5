@@ -12,7 +12,6 @@
 // TODO refactor auth to use react router middleware, refactor getauthstatus to use as enabled in get user query
 // TODO improve react query usage for auth and user data (caching, stale time, refetching...)
 // TODO add password strength meter
-// TODO add show/hide password toggle
 // TODO add refresh token handling here if needed
 
 // File: src/features/auth/login-form.tsx
@@ -95,3 +94,4 @@
 // TODO https://react.dev/reference/react-dom/preload
 // TODO webP image format
 // TODO add min size for site
+// TODO all links should be clickable areas, not just text or buttons (e.g. product cards, nav links...)

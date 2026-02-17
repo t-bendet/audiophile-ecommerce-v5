@@ -1,5 +1,5 @@
 import { Section } from "@/components/ui/section";
-import { SignupForm } from "@/features/auth/signup-form";
+import { SignupForm } from "@/features/auth/components/signup-form";
 import { Metadata } from "@/components/seo/metadata";
 
 export default function SignupPage() {
