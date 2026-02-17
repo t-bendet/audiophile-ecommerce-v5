@@ -23,12 +23,17 @@ import { normalizeError } from "@/lib/errors/errors";
 import { AuthSignUpRequestSchema } from "@repo/domain";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { PasswordVisibilityToggle } from "./password-visibility-toggle";
 
 export function SignupForm({ className }: React.ComponentProps<"div">) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isPasswordConfirmVisible, setIsPasswordConfirmVisible] =
+    useState(false);
 
   const queryClient = useQueryClient();
   const { mutate: signup, isPending } = useSignup(queryClient);
@@ -159,16 +164,25 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
                         className="justify-between"
                       >
                         <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                        <Input
-                          id={field.name}
-                          name={field.name}
-                          value={field.state.value}
-                          onBlur={field.handleBlur}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          aria-invalid={isInvalid}
-                          type="password"
-                          required
-                        />
+                        <div className="relative">
+                          <Input
+                            id={field.name}
+                            name={field.name}
+                            value={field.state.value}
+                            onBlur={field.handleBlur}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            aria-invalid={isInvalid}
+                            className="pr-16"
+                            type={isPasswordVisible ? "text" : "password"}
+                            required
+                          />
+                          <PasswordVisibilityToggle
+                            isVisible={isPasswordVisible}
+                            onToggle={() =>
+                              setIsPasswordVisible((prev) => !prev)
+                            }
+                          />
+                        </div>
                         {isInvalid && (
                           <FieldError errors={field.state.meta.errors} />
                         )}
@@ -187,16 +201,27 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
                         <FieldLabel htmlFor={field.name}>
                           Confirm Password
                         </FieldLabel>
-                        <Input
-                          id={field.name}
-                          name={field.name}
-                          value={field.state.value}
-                          onBlur={field.handleBlur}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          aria-invalid={isInvalid}
-                          type="password"
-                          required
-                        />
+                        <div className="relative">
+                          <Input
+                            id={field.name}
+                            name={field.name}
+                            value={field.state.value}
+                            onBlur={field.handleBlur}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            aria-invalid={isInvalid}
+                            className="pr-16"
+                            type={
+                              isPasswordConfirmVisible ? "text" : "password"
+                            }
+                            required
+                          />
+                          <PasswordVisibilityToggle
+                            isVisible={isPasswordConfirmVisible}
+                            onToggle={() =>
+                              setIsPasswordConfirmVisible((prev) => !prev)
+                            }
+                          />
+                        </div>
                         {isInvalid && (
                           <FieldError errors={field.state.meta.errors} />
                         )}

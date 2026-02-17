@@ -12,7 +12,6 @@
 // TODO refactor auth to use react router middleware, refactor getauthstatus to use as enabled in get user query
 // TODO improve react query usage for auth and user data (caching, stale time, refetching...)
 // TODO add password strength meter
-// TODO add show/hide password toggle
 // TODO add refresh token handling here if needed
 
 // File: src/features/auth/login-form.tsx
