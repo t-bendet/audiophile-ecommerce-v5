@@ -94,3 +94,4 @@
 // TODO https://react.dev/reference/react-dom/preload
 // TODO webP image format
 // TODO add min size for site
+// TODO all links should be clickable areas, not just text or buttons (e.g. product cards, nav links...)
