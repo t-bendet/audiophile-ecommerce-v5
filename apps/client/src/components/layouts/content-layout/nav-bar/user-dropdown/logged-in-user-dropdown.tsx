@@ -53,7 +53,7 @@ export default function LoggedInUserDropdown() {
     }
   };
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button>
           <span className="sr-only">Open user menu</span>
