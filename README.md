@@ -92,45 +92,45 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 
 ### Frontend
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| **React** | 19.1 | UI library with latest improvements |
-| **React Router** | v7.11 | File-based routing with middleware support |
-| **TypeScript** | 5.8 | Type safety throughout the application |
-| **Vite** | 7.0 | Lightning-fast build tool and dev server |
-| **TailwindCSS** | 4.1 | Utility-first styling framework |
-| **TanStack Query** | v5.83 | Server state management with caching |
-| **TanStack Form** | v1.27 | Type-safe form handling |
-| **Axios** | 1.11 | HTTP client with interceptors |
-| **Zod** | 4.0 | Runtime validation and type inference |
-| **Radix UI** | Latest | Accessible, unstyled component primitives |
-| **Lucide React** | 0.533 | Beautiful icon library |
+| Technology         | Version | Purpose                                    |
+| ------------------ | ------- | ------------------------------------------ |
+| **React**          | 19.1    | UI library with latest improvements        |
+| **React Router**   | v7.11   | File-based routing with middleware support |
+| **TypeScript**     | 5.8     | Type safety throughout the application     |
+| **Vite**           | 7.0     | Lightning-fast build tool and dev server   |
+| **TailwindCSS**    | 4.1     | Utility-first styling framework            |
+| **TanStack Query** | v5.83   | Server state management with caching       |
+| **TanStack Form**  | v1.27   | Type-safe form handling                    |
+| **Axios**          | 1.11    | HTTP client with interceptors              |
+| **Zod**            | 4.0     | Runtime validation and type inference      |
+| **Radix UI**       | Latest  | Accessible, unstyled component primitives  |
+| **Lucide React**   | 0.533   | Beautiful icon library                     |
 
 ### Backend
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| **Node.js** | 20.x | JavaScript runtime |
-| **Express** | 5.1 | Web framework for REST API |
-| **TypeScript** | 5.9 | Type-safe backend code |
-| **Prisma** | Latest | Type-safe ORM with MongoDB support |
-| **MongoDB Atlas** | Cloud | Managed cloud database |
-| **JWT** | 9.0 | Stateless authentication tokens |
-| **Zod** | 4.0 | Request/response validation |
-| **Helmet** | 8.1 | Security headers middleware |
-| **Express Rate Limit** | 8.2 | API rate limiting protection |
-| **CORS** | 2.8 | Cross-origin resource sharing |
-| **Morgan** | 1.10 | HTTP request logging |
+| Technology             | Version | Purpose                            |
+| ---------------------- | ------- | ---------------------------------- |
+| **Node.js**            | 20.x    | JavaScript runtime                 |
+| **Express**            | 5.1     | Web framework for REST API         |
+| **TypeScript**         | 5.9     | Type-safe backend code             |
+| **Prisma**             | Latest  | Type-safe ORM with MongoDB support |
+| **MongoDB Atlas**      | Cloud   | Managed cloud database             |
+| **JWT**                | 9.0     | Stateless authentication tokens    |
+| **Zod**                | 4.0     | Request/response validation        |
+| **Helmet**             | 8.1     | Security headers middleware        |
+| **Express Rate Limit** | 8.2     | API rate limiting protection       |
+| **CORS**               | 2.8     | Cross-origin resource sharing      |
+| **Morgan**             | 1.10    | HTTP request logging               |
 
 ### Shared Infrastructure
 
-| Technology | Purpose |
-|-----------|---------|
-| **Turborepo** | Monorepo build orchestration with distributed caching |
-| **pnpm** | Fast, efficient package manager with workspace support |
-| **ESLint** | Code quality and consistency |
-| **Prettier** | Code formatting |
-| **Render** | Cloud hosting platform (free tier) |
+| Technology    | Purpose                                                |
+| ------------- | ------------------------------------------------------ |
+| **Turborepo** | Monorepo build orchestration with distributed caching  |
+| **pnpm**      | Fast, efficient package manager with workspace support |
+| **ESLint**    | Code quality and consistency                           |
+| **Prettier**  | Code formatting                                        |
+| **Render**    | Cloud hosting platform (free tier)                     |
 
 ### Monorepo Packages
 
@@ -204,12 +204,14 @@ Route → Middleware (validation) → Controller → Service → Prisma
 - **Prisma**: Type-safe database access
 
 **Benefits**:
+
 - Easy to test (mock each layer independently)
 - Clear error handling flow
 - Reusable business logic
 - Maintainable and scalable
 
 **Example Flow**:
+
 ```typescript
 // Route definition
 router.post('/products',
@@ -241,22 +243,27 @@ export abstract class AbstractCrudService<
   Entity,
   CreateInput,
   UpdateInput,
-  DTO
+  DTO,
 > {
   // Template methods (implementing class must define)
   protected abstract toDTO(entity: Entity): DTO;
-  protected abstract persistFindMany(params: ExtendedQueryParams): Promise<Entity[]>;
+  protected abstract persistFindMany(
+    params: ExtendedQueryParams,
+  ): Promise<Entity[]>;
   protected abstract persistFindById(id: string): Promise<Entity | null>;
   protected abstract persistCreate(data: CreateInput): Promise<Entity>;
-  protected abstract persistUpdate(id: string, data: UpdateInput): Promise<Entity>;
+  protected abstract persistUpdate(
+    id: string,
+    data: UpdateInput,
+  ): Promise<Entity>;
   protected abstract persistDelete(id: string): Promise<Entity>;
 
   // Public interface (consistent across all services)
-  async findMany(params: ExtendedQueryParams): Promise<DTO[]>
-  async findById(id: string): Promise<DTO>
-  async create(data: CreateInput): Promise<DTO>
-  async update(id: string, data: UpdateInput): Promise<DTO>
-  async delete(id: string): Promise<DTO>
+  async findMany(params: ExtendedQueryParams): Promise<DTO[]>;
+  async findById(id: string): Promise<DTO>;
+  async create(data: CreateInput): Promise<DTO>;
+  async update(id: string, data: UpdateInput): Promise<DTO>;
+  async delete(id: string): Promise<DTO>;
 }
 ```
 
@@ -269,6 +276,7 @@ export abstract class AbstractCrudService<
 - Easy to extend with custom methods
 
 **Benefits**:
+
 - Write once, use everywhere pattern
 - Enforces consistent data access patterns
 - Automatic DTO mapping prevents data leaks (passwords, internal IDs)
@@ -310,6 +318,7 @@ The project uses ES Modules with a custom script that fixes Prisma imports:
 **Why**: Node.js ESM requires explicit file extensions, but Prisma doesn't add them.
 
 **How it works**:
+
 1. Run `pnpm db:generate`
 2. Prisma generates client code
 3. Custom script patches imports with `.js` extensions
@@ -323,10 +332,10 @@ All shared code lives in `@repo/domain`:
 
 ```typescript
 // Shared across frontend and backend
-export { ProductDTO, ProductCreateInput, ProductUpdateInput } from './product';
-export { UserDTO, UserPublicInfo } from './user';
-export { ErrorCode } from './error-codes';
-export { productCreateSchema, productUpdateSchema } from './validation';
+export { ProductDTO, ProductCreateInput, ProductUpdateInput } from "./product";
+export { UserDTO, UserPublicInfo } from "./user";
+export { ErrorCode } from "./error-codes";
+export { productCreateSchema, productUpdateSchema } from "./validation";
 ```
 
 **Why**: Prevents drift and ensures consistency.
@@ -338,6 +347,7 @@ export { productCreateSchema, productUpdateSchema } from './validation';
 - Compile-time errors if types don't match
 
 **Benefits**:
+
 - Impossible to have mismatched types
 - Refactoring is safer
 - API changes automatically show errors in frontend
@@ -369,19 +379,22 @@ Defense-in-depth approach to data validation:
 **Why**: Each layer catches different types of errors.
 
 **Layer 1 - Route Middleware**:
+
 ```typescript
 // Validates structure, types, formats
 router.post('/products', validateSchema(productCreateSchema), ...)
 ```
 
 **Layer 2 - Controller Logic**:
+
 ```typescript
 // Validates business rules
-if (product.price < 0) throw new AppError('Price must be positive', 400);
-if (!user.isAdmin) throw new AppError('Unauthorized', 403);
+if (product.price < 0) throw new AppError("Price must be positive", 400);
+if (!user.isAdmin) throw new AppError("Unauthorized", 403);
 ```
 
 **Layer 3 - Prisma Extensions**:
+
 ```typescript
 // Data transformations
 prisma.$extends({
@@ -390,13 +403,14 @@ prisma.$extends({
       async create({ args, query }) {
         args.data.password = await hash(args.data.password);
         return query(args);
-      }
-    }
-  }
+      },
+    },
+  },
 });
 ```
 
 **Layer 4 - Database Constraints**:
+
 ```prisma
 model User {
   id    String @id @default(auto())
@@ -406,6 +420,7 @@ model User {
 ```
 
 **Layer 5 - Response Mapping**:
+
 ```typescript
 // Remove sensitive data before sending to client
 protected toDTO(user: User): UserDTO {
@@ -422,8 +437,8 @@ All server data managed through React Query:
 // Define query options
 export const getProductsQueryOptions = () =>
   queryOptions({
-    queryKey: ['products'],
-    queryFn: () => api.get('/products'),
+    queryKey: ["products"],
+    queryFn: () => api.get("/products"),
     staleTime: 60000, // Consider fresh for 1 minute
   });
 
@@ -432,7 +447,8 @@ const { data, isPending } = useQuery(getProductsQueryOptions());
 
 // Prefetch in loader
 export async function loader({ context }) {
-  await context.get(queryClientContext)
+  await context
+    .get(queryClientContext)
     .prefetchQuery(getProductsQueryOptions());
 }
 ```
@@ -440,6 +456,7 @@ export async function loader({ context }) {
 **Why**: Better UX with smart caching and retry strategies.
 
 **Features**:
+
 - Automatic caching and deduplication
 - No retry on 4xx errors (client errors are final)
 - Retry up to 2 times on 5xx errors (exponential backoff)
@@ -447,6 +464,7 @@ export async function loader({ context }) {
 - Optimistic updates for instant feedback
 
 **Benefits**:
+
 - Less loading states shown to users
 - Faster navigation (cached data)
 - No duplicate requests
@@ -462,7 +480,7 @@ Authentication and logging at the route level:
 export const middleware: Route.MiddlewareFunction[] = [
   async ({ request, context }) => {
     const user = await getUserFromSession(request);
-    if (!user) throw redirect('/login');
+    if (!user) throw redirect("/login");
     context.set(userContext, user);
   },
 ];
@@ -471,7 +489,9 @@ export const middleware: Route.MiddlewareFunction[] = [
 async function loggingMiddleware({ request }, next) {
   const start = performance.now();
   const response = await next();
-  console.log(`${request.method} ${request.url} - ${performance.now() - start}ms`);
+  console.log(
+    `${request.method} ${request.url} - ${performance.now() - start}ms`,
+  );
   return response;
 }
 ```
@@ -504,7 +524,7 @@ export enum ErrorCode {
 }
 
 // Throw errors with context
-throw new AppError('Product not found', ErrorCode.NOT_FOUND);
+throw new AppError("Product not found", ErrorCode.NOT_FOUND);
 
 // Automatic error handling in middleware
 app.use(globalErrorHandler);
@@ -513,6 +533,7 @@ app.use(globalErrorHandler);
 **Why**: Consistent error handling across the application.
 
 **Benefits**:
+
 - Clear error messages for users
 - Better debugging with error codes
 - Automatic error logging in production
@@ -520,6 +541,7 @@ app.use(globalErrorHandler);
 - Structured validation errors
 
 **Error Flow**:
+
 ```
 Controller throws AppError
     ↓
@@ -540,6 +562,7 @@ UI shows appropriate error message
 Using MongoDB Atlas with Prisma for type-safe database access:
 
 **Why MongoDB**:
+
 - Flexible schema for product images and metadata
 - Embedded documents for related data (product images, cart items)
 - Fast reads for product catalogs
@@ -547,6 +570,7 @@ Using MongoDB Atlas with Prisma for type-safe database access:
 - Cloud-native with Atlas
 
 **Why Prisma**:
+
 - Type-safe queries generated from schema
 - Migration management
 - Excellent TypeScript integration
@@ -554,6 +578,7 @@ Using MongoDB Atlas with Prisma for type-safe database access:
 - Great developer experience
 
 **Schema Design**:
+
 ```prisma
 model Product {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -573,6 +598,7 @@ type ProductImages {
 ```
 
 Benefits of embedded images:
+
 - Single query to fetch product + all images
 - No N+1 query problems
 - Type-safe image access
@@ -583,23 +609,28 @@ Benefits of embedded images:
 Multiple layers of security implemented:
 
 **Rate Limiting**:
+
 ```typescript
 // Global rate limit
-app.use('/api', rateLimit({
-  limit: 500,
-  windowMs: 15 * 60 * 1000, // 15 minutes
-}));
+app.use(
+  "/api",
+  rateLimit({
+    limit: 500,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+  }),
+);
 
 // Strict rate limiting for sensitive endpoints
 const authLimiter = rateLimit({
   limit: 5,
   windowMs: 15 * 60 * 1000,
 });
-router.post('/auth/login', authLimiter, loginHandler);
-router.post('/auth/signup', authLimiter, signupHandler);
+router.post("/auth/login", authLimiter, loginHandler);
+router.post("/auth/signup", authLimiter, signupHandler);
 ```
 
 **Security Headers** (Helmet):
+
 ```typescript
 app.use(helmet()); // Adds security headers
 // X-Content-Type-Options: nosniff
@@ -609,36 +640,42 @@ app.use(helmet()); // Adds security headers
 ```
 
 **CORS Protection**:
+
 ```typescript
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // Allow cookies
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // Allow cookies
+  }),
+);
 ```
 
 **JWT Authentication**:
+
 ```typescript
 // Secure cookies
-res.cookie('jwt', token, {
-  httpOnly: true,      // No JavaScript access
-  secure: true,        // HTTPS only in production
-  sameSite: 'strict',  // CSRF protection
+res.cookie("jwt", token, {
+  httpOnly: true, // No JavaScript access
+  secure: true, // HTTPS only in production
+  sameSite: "strict", // CSRF protection
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 });
 ```
 
 **Input Validation**:
+
 ```typescript
 // All inputs validated with Zod
-router.post('/products',
+router.post(
+  "/products",
   validateSchema(productCreateSchema.strict()), // Reject extra fields
-  createHandler
+  createHandler,
 );
 ```
 
@@ -647,6 +684,7 @@ router.post('/products',
 Based on recent commits and the current branch (`fix/lighthouse-a11y-bp-seo`):
 
 **Security Improvements** (February 2026):
+
 - ✅ Implemented rate limiting for authentication endpoints
 - ✅ Added rate limiting for order creation
 - ✅ Refactored cookie options for secure handling in production
@@ -655,6 +693,7 @@ Based on recent commits and the current branch (`fix/lighthouse-a11y-bp-seo`):
 - ✅ Proper middleware ordering (CORS → Rate Limit → Security → Body Parsing)
 
 **Lighthouse Optimizations** (In Progress):
+
 - 🚧 Accessibility improvements
 - 🚧 Best practices enhancements
 - 🚧 SEO optimizations
@@ -676,12 +715,14 @@ Ensure you have the following installed:
 ### Installation
 
 1. **Clone the repository**:
+
 ```bash
 git clone https://github.com/t-bendet/audiophile-ecommerce-v5.git
 cd audiophile-ecommerce-v5
 ```
 
 2. **Install dependencies**:
+
 ```bash
 pnpm install
 ```
@@ -691,11 +732,13 @@ pnpm install
 Create `.env` files in the following locations:
 
 **`packages/database/.env`**:
+
 ```env
 DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
 ```
 
 **`apps/server/.env`**:
+
 ```env
 DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
 NODE_ENV=development
@@ -708,6 +751,7 @@ VITE_APP_PORT=5173
 ```
 
 **`apps/client/.env`**:
+
 ```env
 VITE_APP_API_URL=http://localhost:8000
 ```
@@ -715,6 +759,7 @@ VITE_APP_API_URL=http://localhost:8000
 > **🔒 Security Note**: Never commit `.env` files to version control. Use strong, unique secrets in production.
 
 4. **Generate Prisma client**:
+
 ```bash
 pnpm db:generate
 ```
@@ -722,16 +767,19 @@ pnpm db:generate
 This runs Prisma generation + our custom post-processing script to fix ESM imports.
 
 5. **Seed the database**:
+
 ```bash
 pnpm db:seed
 ```
 
 Seeds the database with:
+
 - Product categories (Headphones, Earphones, Speakers)
 - Sample products with images and metadata
 - Application configuration
 
 6. **Start development servers**:
+
 ```bash
 # Start both client and server
 pnpm dev
@@ -742,6 +790,7 @@ pnpm dev:server  # Server: http://localhost:8000
 ```
 
 7. **Access the application**:
+
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000/api/v1
 - Health Check: http://localhost:8000/api/v1/health
@@ -944,6 +993,7 @@ pnpm start            # Start production server
 ### High Priority
 
 #### Security & Authentication
+
 - [ ] **Forgot Password & Reset Flow**
   - Implement password reset token generation
   - Email service integration for reset links
@@ -955,11 +1005,12 @@ pnpm start            # Start production server
   - Visual indicator on signup form
   - Location: `apps/client/src/features/auth/signup-form.tsx`
 
-- [ ] **Show/Hide Password Toggle**
+- [x] **Show/Hide Password Toggle**
   - Toggle visibility for password inputs
   - Location: `apps/client/src/features/auth/login-form.tsx`
 
 #### Checkout & Orders
+
 - [ ] **Server-Side Price Calculation**
   - Move pricing logic from client to server
   - Prevent price tampering
@@ -972,6 +1023,7 @@ pnpm start            # Start production server
   - Include order details and tracking info
 
 #### Admin Features
+
 - [ ] **Admin Dashboard**
   - Product management (CRUD operations)
   - Order management and fulfillment
@@ -985,6 +1037,7 @@ pnpm start            # Start production server
   - Context: `todos.js:34`
 
 #### Performance Optimizations
+
 - [ ] **WebP Image Format**
   - Convert all images to WebP for better compression
   - Fallback to PNG/JPEG for unsupported browsers
@@ -1007,6 +1060,7 @@ pnpm start            # Start production server
 ### Medium Priority
 
 #### Product Features
+
 - [ ] **Advanced Product Filtering**
   - Filter by price range
   - Filter by features and specifications
@@ -1029,6 +1083,7 @@ pnpm start            # Start production server
   - Share wishlist
 
 #### Cart & Checkout
+
 - [ ] **Cart Optimization**
   - Send only changed items instead of full cart
   - Better merge conflict handling
@@ -1040,6 +1095,7 @@ pnpm start            # Start production server
   - Guest checkout option
 
 #### User Experience
+
 - [ ] **Order Tracking**
   - Real-time order status updates
   - Email notifications for status changes
@@ -1065,6 +1121,7 @@ pnpm start            # Start production server
 ### Low Priority
 
 #### Features
+
 - [ ] **Dark Mode**
   - Theme switching
   - Persistent theme preference
@@ -1098,6 +1155,7 @@ pnpm start            # Start production server
 ### Technical Debt & Refactoring
 
 #### Backend
+
 - [ ] **Improve AbstractCrudService Typing**
   - Constrain Where, Select to match Entity structure
   - Better type safety with mapped types
@@ -1141,6 +1199,7 @@ pnpm start            # Start production server
   - Context: `todos.js:37`
 
 #### Frontend
+
 - [ ] **Refactor Auth with Router Middleware**
   - Use React Router v7 middleware for auth checks
   - Remove component-level auth logic
@@ -1174,6 +1233,7 @@ pnpm start            # Start production server
   - Context: `apps/client/todos.ts:55`
 
 #### Database & Data
+
 - [ ] **Standardize Prisma Optional Fields**
   - Decide between `field? Type` vs `field Type?`
   - Apply consistently across schema
