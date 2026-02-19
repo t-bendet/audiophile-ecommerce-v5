@@ -19,7 +19,7 @@ services:
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_VERSION
-        value: "20.11.0"
+        value: "24.13.1"
       - key: NODE_ENV
         value: production
       - key: PORT
