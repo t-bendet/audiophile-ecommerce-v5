@@ -13,7 +13,8 @@
     "db:seed": "turbo run db:seed",
     "db:generate": "turbo run db:generate",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "smoke": "node smoke-test.mjs"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

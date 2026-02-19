@@ -13,7 +13,6 @@ model User {
   active               Boolean   @default(true)
   v                    Int       @default(0) @map("__v")
   cart                 Cart?
-  orders               Order[]
 }
 
 enum ROLE {
