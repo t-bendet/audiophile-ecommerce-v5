@@ -1,0 +1,22 @@
+model User {
+  id                   String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String    @unique(map: "name_1")
+  email                String    @unique(map: "email_1")
+  role                 ROLE      @default(USER)
+  password             String
+  passwordConfirm      String
+  passwordChangedAt    DateTime?
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+  emailVerified        Boolean   @default(false)
+  createdAt            DateTime  @default(now()) @db.Date
+  active               Boolean   @default(true)
+  v                    Int       @default(0) @map("__v")
+  cart                 Cart?
+  orders               Order[]
+}
+
+enum ROLE {
+  ADMIN
+  USER
+}

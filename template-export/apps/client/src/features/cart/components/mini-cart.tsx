@@ -1,0 +1,111 @@
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import { paths } from "@/config/paths";
+import {
+  useCart,
+  useRemoveFromCart,
+  useUpdateCartItem,
+} from "@/features/cart/api/get-cart";
+import { CartItem } from "@/features/cart/components/cart-item";
+import currencyFormatter from "@/utils/formatters";
+import { ShoppingCart } from "lucide-react";
+import { Link } from "react-router";
+
+interface MiniCartProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function MiniCart({ open, onOpenChange }: MiniCartProps) {
+  const { data: cart, isLoading } = useCart();
+  const updateCartItem = useUpdateCartItem();
+  const removeFromCart = useRemoveFromCart();
+
+  const handleUpdateQuantity = (
+    productId: string,
+    cartItemId: string,
+    quantity: number,
+  ) => {
+    updateCartItem.mutate({ productId, cartItemId, quantity });
+  };
+
+  const handleRemove = (productId: string, cartItemId: string) => {
+    removeFromCart.mutate({ productId, cartItemId });
+  };
+
+  const isUpdating = updateCartItem.isPending || removeFromCart.isPending;
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[90vh] p-2 text-neutral-900">
+        <DrawerHeader>
+          <DrawerTitle className="flex items-center gap-2">
+            <p className="tracking-600 font-bold uppercase">
+              cart ({cart?.data.itemCount || 0})
+            </p>
+          </DrawerTitle>
+        </DrawerHeader>
+
+        <div className="flex-1 overflow-y-auto px-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : !cart?.data.items || cart.data.items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <ShoppingCart className="mb-4 h-16 w-16 text-neutral-300" />
+              <p className="font-medium text-neutral-600">Your cart is empty</p>
+              <p className="mt-2 text-sm text-neutral-500">
+                Add items to get started
+              </p>
+            </div>
+          ) : (
+            <div>
+              {cart.data.items.map((item) => (
+                <CartItem
+                  key={item.id}
+                  item={item}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemove={handleRemove}
+                  isUpdating={isUpdating}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {cart?.data.items && cart.data.items.length > 0 && (
+          <DrawerFooter className="border-t">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-lg font-bold">Subtotal</span>
+              <span className="text-lg font-bold">
+                {currencyFormatter(cart.data.subtotal || 0)}
+              </span>
+            </div>
+            <Link
+              to={paths.checkout.checkout.path}
+              onClick={() => onOpenChange(false)}
+            >
+              <Button variant="accent" className="w-full" size="lg">
+                Go to Checkout
+              </Button>
+            </Link>
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full">
+                Continue Shopping
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        )}
+      </DrawerContent>
+    </Drawer>
+  );
+}

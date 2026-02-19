@@ -1,0 +1,45 @@
+{
+  "name": "@repo/database",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/src/index.js",
+      "default": "./dist/src/index.js",
+      "types": "./dist/src/index.d.ts"
+    }
+  },
+  "scripts": {
+    "dev": "pnpm db:generate",
+    "db:generate": "prisma generate && node ./scripts/fix-prisma-imports-robust.cjs",
+    "db:push": "prisma db push",
+    "db:seed": "tsx src/seed/index.ts",
+    "db:deploy": "pnpm db:push && pnpm db:generate",
+    "db:setup": "pnpm db:push && pnpm db:generate && pnpm db:seed",
+    "db:reset": "pnpm db:push --force-reset && pnpm db:generate && pnpm db:seed",
+    "studio": "prisma studio",
+    "format": "prisma format",
+    "lint": "eslint . --max-warnings 0",
+    "build": "pnpm db:generate && tsc -p tsconfig.build.json && node ./scripts/fix-prisma-imports-robust.cjs",
+    "build:watch": "tsc -p tsconfig.build.json -w"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "slugify": "^1.6.6"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^24.1.0",
+    "eslint": "^9.0.0",
+    "prisma": "^6.19.0",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.20.6",
+    "typescript": "5.9.3"
+  }
+}

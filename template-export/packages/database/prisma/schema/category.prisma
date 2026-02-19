@@ -1,0 +1,20 @@
+model Category {
+  id        String              @id @default(auto()) @map("_id") @db.ObjectId
+  name      NAME                @unique(map: "name_1")
+  thumbnail CategoriesThumbnail
+  products  Product[]
+  createdAt DateTime            @default(now()) @db.Date
+  v         Int                 @default(0) @map("__v")
+}
+
+type CategoriesThumbnail {
+  altText   String
+  ariaLabel String
+  src       String
+}
+
+enum NAME {
+  Headphones
+  Earphones
+  Speakers
+}

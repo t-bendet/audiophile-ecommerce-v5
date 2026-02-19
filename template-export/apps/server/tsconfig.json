@@ -1,0 +1,23 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "composite": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "src/seed/**",
+    "../../**/node_modules",
+    "../../**/dist",
+    "../../packages/database/generated"
+  ],
+  "references": [
+    { "path": "../../packages/database" },
+    { "path": "../../packages/domain" }
+  ]
+}

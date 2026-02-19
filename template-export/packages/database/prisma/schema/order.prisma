@@ -1,0 +1,67 @@
+model Order {
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String      @db.ObjectId
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
+  status          OrderStatus @default(PENDING)
+  subtotal        Int
+  shippingCost    Int
+  tax             Int
+  total           Int
+  shippingAddress ShippingAddress
+  billingAddress  BillingAddress
+  paymentMethod   String
+  paymentStatus   PaymentStatus @default(PENDING)
+  createdAt       DateTime    @default(now()) @db.Date
+  updatedAt       DateTime    @updatedAt @db.Date
+  v               Int         @default(0) @map("__v")
+}
+
+model OrderItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String   @db.ObjectId
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String   @db.ObjectId
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int      // Price at time of order
+  createdAt DateTime @default(now()) @db.Date
+  v         Int      @default(0) @map("__v")
+
+  @@unique([orderId, productId])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+type ShippingAddress {
+  fullName    String
+  email       String
+  phone       String
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  country     String
+}
+
+type BillingAddress {
+  fullName String
+  address  String
+  city     String
+  state    String
+  zipCode  String
+  country  String
+}

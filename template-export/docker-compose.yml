@@ -1,0 +1,18 @@
+version: "3"
+
+volumes:
+  database:
+    driver: local
+
+services:
+  mongodb:
+    platform: linux/amd64
+    image: mongo:7.0
+    container_name: turborepo_mongodb
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_DATABASE: turborepo
+    volumes:
+      - database:/data/db
