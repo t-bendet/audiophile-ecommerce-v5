@@ -8,7 +8,7 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
 [![React Router](https://img.shields.io/badge/React_Router-v7-CA4245?style=flat&logo=react-router&logoColor=white)](https://reactrouter.com/)
 [![TanStack Query](https://img.shields.io/badge/TanStack_Query-v5-FF4154?style=flat&logo=react-query&logoColor=white)](https://tanstack.com/query)
-[![Node.js](https://img.shields.io/badge/Node.js-24.13.1-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-24.5.0-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5-000000?style=flat&logo=express&logoColor=white)](https://expressjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
@@ -110,7 +110,7 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 
 | Technology             | Version | Purpose                            |
 | ---------------------- | ------- | ---------------------------------- |
-| **Node.js**            | 24.13.1 | JavaScript runtime                 |
+| **Node.js**            | 24.5.0  | JavaScript runtime                 |
 | **Express**            | 5.1     | Web framework for REST API         |
 | **TypeScript**         | 5.9     | Type-safe backend code             |
 | **Prisma**             | Latest  | Type-safe ORM with MongoDB support |
@@ -708,7 +708,7 @@ Based on recent commits and the current branch (`fix/lighthouse-a11y-bp-seo`):
 
 Ensure you have the following installed:
 
-- **Node.js** 24.13.1 or higher ([Download](https://nodejs.org/))
+- **Node.js** 24.5.0 or higher ([Download](https://nodejs.org/))
 - **pnpm** 10.26.2 or higher (`npm install -g pnpm`)
 - **MongoDB** Atlas account or local instance ([Sign Up](https://www.mongodb.com/atlas))
 
