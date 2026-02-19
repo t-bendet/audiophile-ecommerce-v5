@@ -24,6 +24,6 @@
   "engines": {
     "node": ">=24.5.0"
   },
-  "name": "audiophile-ecommerce-v5",
+  "name": "monorepo-template",
   "packageManager": "pnpm@10.30.0"
 }
