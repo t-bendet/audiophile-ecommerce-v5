@@ -14,7 +14,7 @@ services:
     region: oregon
     plan: free
     branch: main
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=server...
+    buildCommand: pnpm install --frozen-lockfile && pnpm turbo run build --filter=server...
     startCommand: node apps/server/dist/index.js
     healthCheckPath: /api/v1/health
     envVars:
@@ -42,7 +42,7 @@ services:
     name: audiophile-client
     runtime: static
     branch: main
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=client...
+    buildCommand: pnpm install --frozen-lockfile && pnpm turbo run build --filter=client...
     staticPublishPath: apps/client/dist
     pullRequestPreviewsEnabled: true
     headers:
