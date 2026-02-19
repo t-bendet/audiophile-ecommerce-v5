@@ -8,8 +8,7 @@ import {
 import { paths } from "@/config/paths";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
-// import { ProtectedRoute } from "@/lib/auth";
+import { createBrowserRouter, RouterProvider } from "react-router";
 
 const convert = (queryClient: QueryClient) => (m: any) => {
   const { clientLoader, clientAction, default: Component, ...rest } = m;
@@ -42,57 +41,6 @@ const createAppRouter = (queryClient: QueryClient) =>
               path: paths.home.path,
               index: true,
               errorElement: <RouteErrorBoundary />,
-            },
-            {
-              lazy: () => import("./routes/product").then(convert(queryClient)),
-              path: paths.product.path,
-              errorElement: <RouteErrorBoundary />,
-            },
-            {
-              lazy: () =>
-                import("./routes/category").then(convert(queryClient)),
-              path: paths.category.path,
-              errorElement: <RouteErrorBoundary />,
-            },
-            {
-              lazy: () =>
-                import("./routes/checkout").then(convert(queryClient)),
-              path: paths.checkout.checkout.path,
-              errorElement: <RouteErrorBoundary />,
-            },
-            {
-              lazy: () =>
-                import("@/components/layouts/user-area-layout").then(
-                  convert(queryClient),
-                ),
-              path: paths.account.root.path,
-              children: [
-                {
-                  element: <Navigate to={paths.account.profile.path} replace />,
-                  index: true,
-                },
-                {
-                  path: paths.account.profile.path,
-                  lazy: () =>
-                    import("./routes/account/profile").then(
-                      convert(queryClient),
-                    ),
-                },
-                {
-                  path: paths.account.security.path,
-                  lazy: () =>
-                    import("./routes/account/security").then(
-                      convert(queryClient),
-                    ),
-                },
-                {
-                  path: paths.account.orders.path,
-                  lazy: () =>
-                    import("./routes/account/orders").then(
-                      convert(queryClient),
-                    ),
-                },
-              ],
             },
             {
               path: "*",
@@ -130,11 +78,3 @@ export const AppRouter = () => {
 
   return <RouterProvider router={router} />;
 };
-
-// const onError: ClientOnErrorFunction = (
-//   error,
-//   { location, params, unstable_pattern, errorInfo },
-// ) => {
-//   // make sure to still log the error so you can see it
-//   console.log({ location, params, unstable_pattern, errorInfo, error });
-// };

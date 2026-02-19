@@ -1,64 +1,38 @@
-import Icon from "@/assets/icon-arrow-right.svg?react";
-import { paths } from "@/config/paths";
+import ArrowRight from "@/assets/icon-arrow-right.svg?react";
+import { Card } from "@/components/ui/card";
 import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
-import { getProductsByCategoryQueryOptions } from "@/features/products/api/get-products";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
-  const queryClient = useQueryClient();
+export const CategoryNavList = () => {
   const { data: categoriesResponse } = useSuspenseQuery(
     getCategoriesQueryOptions(),
   );
-  const categorySizes = {
-    Headphones: { width: 438, height: 422 },
-    Earphones: { width: 438, height: 380 },
-    Speakers: { width: 438, height: 408 },
-  } as const;
   return (
-    <nav onClick={clickHandler}>
-      <ul className="flex flex-col gap-4 text-neutral-900 md:flex-row md:justify-around lg:gap-8">
-        {categoriesResponse.data.map((category) => (
-          <li
-            className="col-auto grid grid-cols-1 grid-rows-[25%_1fr_80px] justify-items-center rounded-md"
-            key={category.id}
-          >
-            <img
-              width={categorySizes[category.name].width}
-              height={categorySizes[category.name].height}
-              src={category.thumbnail.src}
-              alt={category.thumbnail.altText}
-              aria-label={category.thumbnail.ariaLabel}
-              className="z-10 col-start-1 col-end-2 row-start-1 row-end-3 max-w-1/3 md:max-w-2/3 lg:max-w-5/6"
-            />
-            <div className="col-start-1 col-end-2 row-start-2 row-end-4 w-full rounded-md bg-neutral-200"></div>
-            <div className="col-start-1 col-end-2 row-start-3 row-end-4 w-full text-center">
-              <span className="tracking-500 mb-4 block font-bold uppercase">
-                {category.name}
+    <ul className="my-24 flex flex-col items-center gap-17 md:my-24 md:flex-row md:gap-3">
+      {categoriesResponse.data.map(({ name, thumbnail }) => {
+        return (
+          <li key={name} className="contents">
+            <Card className="flex h-42 w-full flex-col items-center justify-end gap-4 bg-neutral-100 px-5 py-6 dark:bg-neutral-800">
+              <img
+                src={thumbnail.src}
+                alt={thumbnail.altText}
+                aria-label={thumbnail.ariaLabel}
+                className="mb-auto h-auto w-40 object-contain"
+              />
+              <h3 className="text-lg font-bold uppercase tracking-wider">
+                {name}
+              </h3>
+              <span className="flex items-center gap-3 text-sm font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                View Category
+                <ArrowRight
+                  aria-label="arrow right icon"
+                  className="fill-primary-500"
+                />
               </span>
-              <Link
-                to={paths.category.getHref(category.name)}
-                className="tracking-600 inline-flex items-center gap-2 text-xs font-bold uppercase opacity-50 hover:underline"
-                onMouseEnter={() => {
-                  queryClient.prefetchQuery(
-                    getProductsByCategoryQueryOptions(category.name),
-                  );
-                }}
-                onFocus={() => {
-                  queryClient.prefetchQuery(
-                    getProductsByCategoryQueryOptions(category.name),
-                  );
-                }}
-              >
-                shop
-                <Icon />
-              </Link>
-            </div>
+            </Card>
           </li>
-        ))}
-      </ul>
-    </nav>
+        );
+      })}
+    </ul>
   );
 };
-
-export default CategoryNavList;

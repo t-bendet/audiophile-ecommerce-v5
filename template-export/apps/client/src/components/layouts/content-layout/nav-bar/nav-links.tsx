@@ -1,15 +1,9 @@
 import { paths } from "@/config/paths";
 import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
-import { getFeaturedProductQueryOptions } from "@/features/products/api/get-product";
-import {
-  getProductsByCategoryQueryOptions,
-  getShowCaseProductsQueryOptions,
-} from "@/features/products/api/get-products";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { NavLink } from "react-router";
 
 export const NavLinks = () => {
-  const queryClient = useQueryClient();
   const { data: categoriesResponse } = useSuspenseQuery(
     getCategoriesQueryOptions(),
   );
@@ -21,15 +15,6 @@ export const NavLinks = () => {
             `link hover:text-primary-500 focus-visible:text-primary-500 ${isActive ? "text-primary-500" : ""}`
           }
           to={paths.home.path}
-          onMouseEnter={() => {
-            // Pre-fetch the category data when hovering over the link
-            queryClient.prefetchQuery(getFeaturedProductQueryOptions());
-            queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
-          }}
-          onFocus={() => {
-            queryClient.prefetchQuery(getFeaturedProductQueryOptions());
-            queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
-          }}
         >
           {"home"}
         </NavLink>
@@ -37,25 +22,9 @@ export const NavLinks = () => {
       {categoriesResponse.data.map(({ name }) => {
         return (
           <li key={name}>
-            <NavLink
-              className={({ isActive }) =>
-                `link hover:text-primary-500 focus-visible:text-primary-500 ${isActive ? "text-primary-500" : ""}`
-              }
-              to={paths.category.getHref(name)}
-              onMouseEnter={() => {
-                // Pre-fetch the category data when hovering over the link
-                queryClient.prefetchQuery(
-                  getProductsByCategoryQueryOptions(name),
-                );
-              }}
-              onFocus={() => {
-                queryClient.prefetchQuery(
-                  getProductsByCategoryQueryOptions(name),
-                );
-              }}
-            >
+            <span className="text-neutral-100 cursor-default">
               {name}
-            </NavLink>
+            </span>
           </li>
         );
       })}

@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import CategoryNavList from "@/features/categories/components/category-nav-list";
+import { CategoryNavList } from "@/features/categories/components/category-nav-list";
 import { useState } from "react";
 
 export default function NavBarDialog() {
@@ -36,7 +36,7 @@ export default function NavBarDialog() {
           title="Error loading categories"
           containerClasses="mb-30"
         >
-          <CategoryNavList clickHandler={() => setOpen(false)} />
+          <CategoryNavList />
         </SafeRenderWithErrorBlock>
       </DialogContent>
     </Dialog>
