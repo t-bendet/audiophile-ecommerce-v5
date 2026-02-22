@@ -1,8 +1,3 @@
-// ============================================================================
-// SERVER & API
-// ============================================================================
-// TODO and prod url to postman collection
-
 // TODOs collected from server app
 // File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
 // Line: 20
