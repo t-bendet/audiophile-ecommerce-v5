@@ -3,11 +3,7 @@
 // Line: 20
 // Context: tune DTO and filter types as needed
 // TODO: tune DTO and filter types as needed
-
-// File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/services/product.service.ts
-// Line: 224
-// Context: aggregate to reduce queries
-// TODO: aggregate to reduce queries
+x;
 
 // File: /Users/talbendet/Projects/monorepo/audiophile-ecommerce-v5/apps/server/src/controllers/config.controller.ts
 // Line: 10
