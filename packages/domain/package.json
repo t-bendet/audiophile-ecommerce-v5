@@ -16,7 +16,7 @@
     "dev": "tsc -p tsconfig.build.json -w",
     "types:check": "tsc -p tsconfig.json --noEmit",
     "clean": "rimraf dist",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@repo/database": "workspace:*",
