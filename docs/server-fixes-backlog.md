@@ -412,15 +412,12 @@ Starting point worth writing first: a regression test for fix #1, since that bug
 
 ---
 
-## Not applicable to this repo
+## Done
 
-### 16. `fix-prisma-imports-robust.cjs` — keep it
+### 16. `fix-prisma-imports-robust.cjs` — removed
 
-The blueprint drops the patch script because Postgres project uses the `prisma-client` generator
-with `importFileExtension = "js"`, which emits NodeNext-valid imports natively.
-
-**This repo still needs the script** as configured today. If you want to remove it here, the change
-is in `packages/database/prisma/schema/schema.prisma`:
+The `prisma-client` generator in `packages/database/prisma/schema/schema.prisma` now emits
+NodeNext-valid imports natively:
 
 ```prisma
 generator client {
@@ -431,9 +428,13 @@ generator client {
   importFileExtension = "js"      // ← replaces the post-generate patch
 }
 ```
-Then drop `node ./scripts/fix-prisma-imports-robust.cjs` from `db:generate` and `build`, and delete
-`scripts/`. Regenerate and confirm `generated/prisma/*.js` imports carry `.js`. Optional — it's a
-build-hygiene win, not a bug fix.
+
+`node ./scripts/fix-prisma-imports-robust.cjs` was dropped from `db:generate` and `build`, and
+`packages/database/scripts/` was deleted.
+
+---
+
+## Not applicable to this repo
 
 ### 17. `prisma migrate` instead of `db push` — N/A
 
@@ -461,7 +462,7 @@ is the only option and `pnpm db:push` is correct here. Nothing to change.
 | 13 | pino structured logging | P3 | 6 |
 | 14 | ESLint flat config | P3 | ~6 |
 | 15 | Tests | P3 | new |
-| 16 | Prisma import patch script | N/A (optional cleanup) | — |
+| 16 | Prisma import patch script | P3 (done) | 7 |
 | 17 | Migrations | N/A (Mongo) | — |
 
 P0+P1 is roughly an afternoon and fixes two real production bugs. P2 is a weekend. P3 is ongoing.

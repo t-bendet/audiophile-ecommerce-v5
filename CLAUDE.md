@@ -14,7 +14,7 @@ pnpm dev:server        # server only
 pnpm build             # all packages + apps (Turbo, respects dependency order)
 
 # Database
-pnpm db:generate       # ALWAYS use this, not `prisma generate` directly (runs ESM patch script)
+pnpm db:generate       # regenerate the Prisma client after any schema change
 pnpm db:push           # push schema to MongoDB Atlas
 pnpm db:seed           # seed database
 
@@ -114,7 +114,7 @@ Used for cross-cutting concerns (auth, logging, timing). Middleware chain runs p
 
 ## Critical Pitfalls
 
-1. **Always `pnpm db:generate`, never bare `prisma generate`** — the post-processing script (`fix-prisma-imports-robust.cjs`) patches `.js` extensions into generated Prisma imports for ESM compatibility.
+1. **Regenerate with `pnpm db:generate` after any schema change** — the `prisma-client` generator is configured with `importFileExtension = "js"` (plus `runtime = "nodejs"`, `moduleFormat = "esm"`), so generated imports carry `.js` natively. No post-processing step is involved any more.
 2. **Every async route handler must use `catchAsync`** — uncaught promise rejections won't reach the centralized error middleware otherwise.
 3. **Every route accepting input must use `validateSchema`** — never skip it.
 4. **Build order matters**: if types are missing, ensure `packages/database` and `packages/domain` are built before `apps/server`.

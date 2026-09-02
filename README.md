@@ -172,8 +172,7 @@ audiophile-ecommerce-v5/
 ├── packages/
 │   ├── database/            # Prisma schema and client
 │   │   ├── prisma/schema/   # Multi-file domain schemas
-│   │   ├── src/seed/        # Database seed scripts
-│   │   └── scripts/         # Custom Prisma post-processing
+│   │   └── src/seed/        # Database seed scripts
 │   ├── domain/              # Shared types, DTOs, validation
 │   ├── config-eslint/       # Shared linting configs
 │   └── config-typescript/   # Shared TS configs
@@ -305,26 +304,31 @@ prisma/schema/
 - Reduces merge conflicts
 - Better for code reviews
 
-### 4. **ESM + Custom Prisma Post-Processing**
+### 4. **Native ESM Prisma Output**
 
-The project uses ES Modules with a custom script that fixes Prisma imports:
+The project uses ES Modules, and the `prisma-client` generator is configured to emit
+ESM-valid imports directly:
 
-```javascript
-// fix-prisma-imports-robust.cjs
-// Adds .js extensions to imports in generated Prisma client
-// from './models' → from './models.js'
+```prisma
+generator client {
+  provider            = "prisma-client"
+  output              = "../../generated/prisma"
+  runtime             = "nodejs"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
 ```
 
-**Why**: Node.js ESM requires explicit file extensions, but Prisma doesn't add them.
+**Why**: Node.js ESM requires explicit file extensions, and `importFileExtension` makes Prisma
+emit them (`from './models.js'`) instead of relying on a post-generate patch script.
 
 **How it works**:
 
 1. Run `pnpm db:generate`
-2. Prisma generates client code
-3. Custom script patches imports with `.js` extensions
-4. Code works correctly with Node.js ESM
+2. Prisma generates client code with `.js` extensions already in place
+3. Code works correctly with Node.js ESM
 
-**Important**: Always use `pnpm db:generate` (not just `prisma generate`)
+**Important**: Rerun `pnpm db:generate` after every schema change.
 
 ### 5. **Domain Package - Single Source of Truth**
 
@@ -764,7 +768,7 @@ VITE_APP_API_URL=http://localhost:8000
 pnpm db:generate
 ```
 
-This runs Prisma generation + our custom post-processing script to fix ESM imports.
+The generator emits ESM-ready imports (`.js` extensions) natively.
 
 5. **Seed the database**:
 
@@ -908,8 +912,6 @@ packages/
 │   │       └── config.prisma
 │   ├── src/
 │   │   └── seed/          # Database seed scripts
-│   ├── scripts/
-│   │   └── fix-prisma-imports-robust.cjs  # ESM fix
 │   └── generated/         # Prisma client (generated)
 │
 ├── domain/
