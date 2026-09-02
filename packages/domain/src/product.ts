@@ -149,7 +149,7 @@ export const ProductCreateRequestSchema = createRequestSchema({
 
 // UPDATE - Update existing Product (partial)
 export const ProductUpdateByIdRequestSchema = createRequestSchema({
-  params: z.object({ id: IdValidator("Product ") }).strict(),
+  params: z.object({ id: IdValidator("Product") }).strict(),
   body: ProductPropertiesSchema.partial() satisfies z.ZodType<ProductUpdateInput>,
 });
 

@@ -184,7 +184,7 @@ export type CreateOrderRequest = z.infer<typeof CreateOrderRequestSchema>;
  * Get order by ID request
  */
 export const GetOrderRequestSchema = createRequestSchema({
-  params: z.object({ orderId: IdValidator }),
+  params: z.object({ orderId: IdValidator("Order") }).strict(),
 });
 
 export type GetOrderRequest = z.infer<typeof GetOrderRequestSchema>;
@@ -202,7 +202,7 @@ export type ListOrdersRequest = z.infer<typeof ListOrdersRequestSchema>;
  * Update order status request (admin only)
  */
 export const UpdateOrderStatusRequestSchema = createRequestSchema({
-  params: z.object({ orderId: IdValidator }),
+  params: z.object({ orderId: IdValidator("Order") }).strict(),
   body: UpdateOrderStatusInputSchema,
 });
 
