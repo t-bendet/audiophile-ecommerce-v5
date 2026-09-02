@@ -14,7 +14,7 @@ This is a **Turborepo + pnpm workspace** monorepo with:
 
 - **Dev**: `pnpm dev` (all apps) | `pnpm dev:server` (server only)
 - **Build**: `pnpm build` (Turbo builds all packages + apps)
-- **Database**: `pnpm db:generate` → runs `prisma generate` + **custom post-processing script** ([fix-prisma-imports-robust.cjs](packages/database/scripts/fix-prisma-imports-robust.cjs)) to add `.js` extensions to generated Prisma imports (required for ESM)
+- **Database**: `pnpm db:generate` → runs `prisma generate`; the generator's `importFileExtension = "js"` emits `.js` extensions on generated imports (required for ESM)
 - **Seed**: `pnpm db:seed` (located at `packages/database/src/seed/`)
 - **Type-check**: `pnpm types:watch` (watch mode for all TS projects)
 
@@ -105,15 +105,14 @@ Route → Middleware (validation) → Controller → Service → Prisma
 - **Multi-file schema**: Organized by domain in `packages/database/prisma/schema/` (user.prisma, product.prisma, category.prisma, config.prisma)
 - **Main schema**: [schema.prisma](packages/database/prisma/schema/schema.prisma) contains datasource, generator, and imports
 
-### Post-Generation Processing
+### ESM Output Configuration
 
-The [fix-prisma-imports-robust.cjs](packages/database/scripts/fix-prisma-imports-robust.cjs) script patches generated Prisma client files to add `.js` extensions to relative imports (e.g., `from './models'` → `from './models.js'`). This is **required** because:
+The generator block sets `runtime = "nodejs"`, `moduleFormat = "esm"` and `importFileExtension = "js"`, so generated relative imports already carry `.js` (e.g., `from './models.js'`). This is **required** because:
 
 - Project uses `"type": "module"` (ESM)
 - Node.js ESM requires explicit `.js` extensions
-- Prisma codegen doesn't add them by default
 
-**Always** run `pnpm db:generate` after schema changes to trigger this post-processing.
+**Always** run `pnpm db:generate` after schema changes to regenerate the client.
 
 ---
 

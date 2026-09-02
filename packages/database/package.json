@@ -13,7 +13,7 @@
   },
   "scripts": {
     "dev": "pnpm db:generate",
-    "db:generate": "prisma generate && node ./scripts/fix-prisma-imports-robust.cjs",
+    "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx src/seed/index.ts",
     "db:deploy": "pnpm db:push && pnpm db:generate",
@@ -22,7 +22,7 @@
     "studio": "prisma studio",
     "format": "prisma format",
     "lint": "eslint . --max-warnings 0",
-    "build": "pnpm db:generate && tsc -p tsconfig.build.json && node ./scripts/fix-prisma-imports-robust.cjs",
+    "build": "pnpm db:generate && tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json -w"
   },
   "dependencies": {

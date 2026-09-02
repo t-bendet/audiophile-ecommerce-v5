@@ -53,15 +53,14 @@ prisma/schema/
 └── config.prisma   # App config model
 ```
 
-## ESM Import Fix
+## ESM Imports
 
-This package includes a post-generation script (`scripts/fix-prisma-imports-robust.cjs`) that patches Prisma's generated client to add `.js` extensions to imports. This is required because:
+The `prisma-client` generator is configured with `importFileExtension = "js"` (alongside `runtime = "nodejs"` and `moduleFormat = "esm"`), so the generated client's relative imports already carry `.js` extensions. This is required because:
 
 - The package uses `"type": "module"` (ESM)
 - Node.js ESM requires explicit file extensions
-- Prisma doesn't add them by default
 
-The script runs automatically after `prisma generate`. See the script file for more details.
+No post-generation patching is needed — see `prisma/schema/schema.prisma` for the generator block.
 
 ## Usage in Other Packages
 
