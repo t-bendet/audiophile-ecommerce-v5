@@ -22,8 +22,7 @@ userRouter.use(authenticate);
 userRouter.get(
   "/me",
   validateSchema(UserGetMeRequestSchema),
-  userController.getMe,
-  userController.getUser
+  userController.getMe
 );
 
 userRouter.patch(

@@ -1,26 +1,21 @@
 import {
-  AppError,
   createEmptyResponse,
   createListResponse,
   createSingleItemResponse,
-  ErrorCode,
 } from "@repo/domain";
-import { NextFunction, Request, RequestHandler, Response } from "express";
+import { RequestHandler } from "express";
 import { userService } from "../services/user.service.js";
 import catchAsync from "../utils/catchAsync.js";
 
-export const getMe = (req: Request, _res: Response, next: NextFunction) => {
-  if (!req.user || !req.user.id) {
-    throw new AppError("User ID not found in request", ErrorCode.UNAUTHORIZED);
-  } else {
-    req.params.id = req.user?.id!;
-    next();
-  }
-};
+// Get the authenticated user's own record
+export const getMe: RequestHandler = catchAsync(async (req, res, _next) => {
+  const dto = await userService.get(req.user!.id);
+  res.status(200).json(createSingleItemResponse(dto));
+});
 
 // Get a single user
 export const getUser: RequestHandler = catchAsync(async (req, res, _next) => {
-  const dto = await userService.get(req.verified?.params.id ?? req.params.id);
+  const dto = await userService.get(req.verified?.params.id);
   res.status(200).json(createSingleItemResponse(dto));
 });
 
