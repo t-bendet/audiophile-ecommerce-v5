@@ -1,3 +1,3 @@
 import { base } from "./base.js";
 
-export default base;
+export default [...base];

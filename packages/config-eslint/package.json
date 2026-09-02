@@ -3,14 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "files": [
-    "base.js"
-  ],
   "exports": {
     "./base": "./base.js"
   },
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
     "@eslint/js": "^9.39.2",

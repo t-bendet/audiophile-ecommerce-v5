@@ -6,17 +6,28 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 /**
+ * Env vars that are ambient in every runtime here rather than turbo-tracked
+ * build inputs. Packages with extras of their own spread this rather than
+ * restating it — see `apps/client`, which adds Vite's `import.meta.env` names.
+ */
+export const turboEnvAllowList = ["NODE_ENV"];
+
+/**
  * Shared flat ESLint config for every workspace in the monorepo.
  *
  * Consumers spread this into their own `eslint.config.js` and layer
- * package-specific ignores and rules on top.
+ * package-specific ignores, globals and rules on top.
+ *
+ * The `only-warn` plugin downgrades every rule to a warning, so severities
+ * below are nominal; enforcement comes from each package's
+ * `--max-warnings <n>` budget instead. See the README.
  */
 export const base = tseslint.config(
   {
     ignores: ["dist/**", "generated/**"],
   },
   {
-    files: ["**/*.{js,mjs,cjs,ts,tsx}"],
+    files: ["**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}"],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -34,10 +45,10 @@ export const base = tseslint.config(
       "only-warn": onlyWarn,
     },
     rules: {
-      // NODE_ENV is ambient in every runtime here, not a turbo-tracked input.
-      "turbo/no-undeclared-env-vars": ["error", { allowList: ["NODE_ENV"] }],
+      "turbo/no-undeclared-env-vars": [
+        "error",
+        { allowList: turboEnvAllowList },
+      ],
     },
   },
 );
-
-export default base;

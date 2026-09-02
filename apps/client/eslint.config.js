@@ -1,4 +1,4 @@
-import { base } from "@repo/eslint-config/base";
+import { base, turboEnvAllowList } from "@repo/eslint-config/base";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
@@ -20,11 +20,11 @@ export default [
         "warn",
         { allowConstantExport: true },
       ],
-      // DEV/MODE are Vite's build-time `import.meta.env` constants, not
-      // process env, so turbo has nothing to track for them.
       "turbo/no-undeclared-env-vars": [
         "error",
-        { allowList: ["NODE_ENV", "DEV", "MODE"] },
+        // DEV/MODE are Vite's build-time `import.meta.env` constants rather
+        // than process env, so turbo has nothing to track for them.
+        { allowList: [...turboEnvAllowList, "DEV", "MODE"] },
       ],
     },
   },
