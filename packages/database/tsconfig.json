@@ -2,8 +2,8 @@
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
     "rootDir": ".",
-    "skipLibCheck": true,
     "types": ["node"],
+    "skipLibCheck": true,
     "composite": true,
     "declaration": true,
     "declarationMap": true,

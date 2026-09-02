@@ -3,17 +3,11 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "target": "ES2022",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "composite": false,
     "sourceMap": true,
-    "skipLibCheck": true,
     "noEmitOnError": false,
     "declaration": false,
     "declarationMap": false,
-    "resolveJsonModule": true,
     "incremental": true,
     "assumeChangesOnlyAffectDirectDependencies": true
   },
