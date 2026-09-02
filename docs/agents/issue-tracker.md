@@ -13,6 +13,42 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
+## Branching
+
+**Every ticket is implemented on its own branch.** Never commit ticket work directly to `main`.
+
+Branch name: `<type>/<issue#>-<slug>`
+
+| Part | Rule |
+|---|---|
+| `<type>` | `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, or `perf` — the conventional-commit type matching the bulk of the change |
+| `<issue#>` | the bare GitHub issue number, no `#` |
+| `<slug>` | 2-5 kebab-case words from the issue title |
+
+```
+feat/112-order-history-page
+fix/98-id-validator-uncalled
+chore/106-prisma-import-file-extension
+docs/104-adr-error-codes
+```
+
+**Base and target: `main`.** Branch off an up-to-date `main` and open the PR against `main`. The
+legacy `dev` branch is retired — do not branch from it, target it, or merge into it.
+
+```bash
+git switch main && git pull
+git switch -c <type>/<issue#>-<slug>
+# ...work, commit...
+gh pr create --base main --title "..." --body "...Closes #<issue#>"
+```
+
+Reference the issue in the commit body and the PR body with `Closes #<issue#>` so GitHub closes it
+on merge. If work has already been committed to `main` by mistake and not yet pushed, move it with
+`git branch <name>` then `git reset --hard origin/main`.
+
+**No ticket?** Process or housekeeping work that came from a direct request rather than an issue drops
+the number: `<type>/<slug>` (e.g. `docs/branching-convention`). Anything a ticket exists for keeps it.
+
 ## Pull requests as a triage surface
 
 **PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
