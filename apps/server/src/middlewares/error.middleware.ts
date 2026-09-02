@@ -159,8 +159,15 @@ const sendErrorDev = (err: unknown, req: Request, res: Response) => {
 };
 
 const sendErrorProd = (err: unknown, req: Request, res: Response) => {
-  // Operational, trusted error: send message to client
+  const statusCode = err instanceof AppError ? err.statusCode : 500;
 
+  // Server-side failures are ours to debug, so they go to the server output;
+  // 4xx are the client's problem and stay unlogged.
+  if (statusCode >= 500) {
+    console.error("ERROR 💥", err);
+  }
+
+  // Operational, trusted error: send message to client
   if (err instanceof AppError) {
     if (err.code === ErrorCode.INVALID_CREDENTIALS) {
       {
@@ -181,9 +188,6 @@ const sendErrorProd = (err: unknown, req: Request, res: Response) => {
   }
 
   // Programming or other unknown error: don't leak error details
-  if (process.env.NODE_ENV === "development") {
-    console.error("ERROR 💥", err);
-  }
   return res.status(500).json(
     createErrorResponse({
       message: "Something went very wrong!",
