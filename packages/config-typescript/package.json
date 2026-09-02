@@ -4,5 +4,13 @@
   "private": true,
   "publishConfig": {
     "access": "public"
+  },
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "eslint": "^9.39.2"
   }
 }

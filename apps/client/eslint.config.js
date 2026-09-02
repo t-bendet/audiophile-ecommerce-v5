@@ -1,22 +1,16 @@
-import js from "@eslint/js";
+import { base, turboEnvAllowList } from "@repo/eslint-config/base";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
-import tseslint from "typescript-eslint";
 
 export default [
-  { ignores: ["dist"] },
+  ...base,
   {
     files: ["**/*.{ts,tsx}"],
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
-      ecmaVersion: 2020,
-      sourceType: "module",
       globals: globals.browser,
-      parser: tseslint.parser,
     },
     plugins: {
-      "@typescript-eslint": tseslint.plugin,
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
     },
@@ -25,6 +19,12 @@ export default [
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },
+      ],
+      "turbo/no-undeclared-env-vars": [
+        "error",
+        // DEV/MODE are Vite's build-time `import.meta.env` constants rather
+        // than process env, so turbo has nothing to track for them.
+        { allowList: [...turboEnvAllowList, "DEV", "MODE"] },
       ],
     },
   },
