@@ -22,7 +22,7 @@ import { IdValidator } from "./shared.js";
 
 export type Product = PrismaProduct;
 export type ProductCreateInput = Prisma.ProductCreateInput;
-export type ProductUpdateInput = Prisma.ProductUpdateInput;
+export type ProductUpdateInput = Prisma.ProductUncheckedUpdateInput;
 export type ProductWhereInput = Prisma.ProductWhereInput;
 export type ProductSelect = Prisma.ProductSelect;
 export type ProductScalarFieldEnum = Prisma.ProductScalarFieldEnum;

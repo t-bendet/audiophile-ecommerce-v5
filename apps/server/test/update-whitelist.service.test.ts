@@ -1,5 +1,10 @@
 import { prisma } from "@repo/database";
-import { ErrorCode, type UserSelfUpdateInput } from "@repo/domain";
+import {
+  ErrorCode,
+  type ConfigUpdateInput,
+  type ProductUpdateInput,
+  type UserSelfUpdateInput,
+} from "@repo/domain";
 import { beforeEach, describe, expect, it } from "vitest";
 import { categoryService } from "../src/services/category.service.js";
 import { configService } from "../src/services/config.service.js";
@@ -58,7 +63,7 @@ describe("CategoryService.update", () => {
 });
 
 describe("ProductService.update", () => {
-  it("writes the fields outside the blacklist", async () => {
+  it("writes the whitelisted fields", async () => {
     const product = await createProduct({ price: 100 });
 
     const dto = await productService.update(product.id, {
@@ -70,6 +75,32 @@ describe("ProductService.update", () => {
       price: 250,
       description: "rewritten description",
     });
+  });
+
+  it("writes categoryId, the only relation the update route exposes", async () => {
+    const product = await createProduct();
+    const category = await createCategory("Speakers");
+
+    const dto = await productService.update(product.id, {
+      categoryId: category.id,
+    });
+
+    expect(dto).toMatchObject({ categoryId: category.id });
+  });
+
+  it("drops a field no allowlist entry names", async () => {
+    const product = await createProduct({ price: 100 });
+
+    await productService.update(product.id, {
+      price: 250,
+      smuggled: "never persisted",
+    } as ProductUpdateInput);
+
+    const stored = await prisma.product.findUniqueOrThrow({
+      where: { id: product.id },
+    });
+    expect(stored).toMatchObject({ price: 250 });
+    expect(stored).not.toHaveProperty("smuggled");
   });
 
   it("drops createdAt and v", async () => {
@@ -93,14 +124,34 @@ describe("ProductService.update", () => {
 });
 
 describe("ConfigService.update", () => {
-  it("writes the fields outside the blacklist", async () => {
+  it("writes the whitelisted fields", async () => {
     const config = await createConfig();
+    const featured = await createProduct();
 
     const dto = await configService.update(config.id, {
       name: "renamed-config",
+      featuredProductId: featured.id,
     });
 
-    expect(dto).toMatchObject({ name: "renamed-config" });
+    expect(dto).toMatchObject({
+      name: "renamed-config",
+      featuredProductId: featured.id,
+    });
+  });
+
+  it("drops a field no allowlist entry names", async () => {
+    const config = await createConfig();
+
+    await configService.update(config.id, {
+      name: "renamed-config",
+      smuggled: "never persisted",
+    } as ConfigUpdateInput);
+
+    const stored = await prisma.config.findUniqueOrThrow({
+      where: { id: config.id },
+    });
+    expect(stored).toMatchObject({ name: "renamed-config" });
+    expect(stored).not.toHaveProperty("smuggled");
   });
 
   it("drops createdAt and v", async () => {

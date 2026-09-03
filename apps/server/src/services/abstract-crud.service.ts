@@ -144,7 +144,7 @@ export abstract class AbstractCrudService<
 
   /**
    * Optional: Filter/validate update input before persistence.
-   * Override to whitelist or blacklist fields.
+   * Override to whitelist the fields the entity accepts on update.
    */
   protected filterUpdateInput?(input: UpdateInput): UpdateInput;
 
@@ -160,18 +160,5 @@ export abstract class AbstractCrudService<
       }
       return acc;
     }, {} as Partial<T>);
-  }
-
-  protected pickFieldsByNotAllowed<T extends Record<string, any>>(
-    obj: T,
-    fields: (keyof T)[],
-  ): Partial<T> {
-    const result: Partial<T> = {};
-    for (const key in obj) {
-      if (!fields.includes(key as keyof T)) {
-        result[key] = obj[key];
-      }
-    }
-    return result;
   }
 }

@@ -17,6 +17,14 @@ const CONFIG_QUERY_FIELDS = [
   "v",
 ] as const satisfies readonly (keyof ConfigSelect)[];
 
+const CONFIG_UPDATE_FIELDS = [
+  "name",
+  "featuredProductId",
+  "showCaseCoverId",
+  "showCaseWideId",
+  "showCaseGridId",
+] as const satisfies readonly (keyof ConfigUpdateInput)[];
+
 export class ConfigService extends AbstractCrudService<
   Config,
   ConfigCreateInput,
@@ -60,19 +68,8 @@ export class ConfigService extends AbstractCrudService<
     return prisma.config.create({ data: input });
   }
 
-  /**
-   * Whitelist only allowed fields for updates
-   * Prevents clients from updating fields like 'id', 'createdAt', 'v', etc.
-   */
   protected filterUpdateInput(input: ConfigUpdateInput): ConfigUpdateInput {
-    // Define which fields are not allowed to be updated
-    const disallowedFields: (keyof typeof input)[] = [
-      "createdAt",
-      "v",
-      // Add other non-updateable fields here
-    ];
-
-    return this.pickFieldsByNotAllowed(input, disallowedFields);
+    return this.pickFieldsByAllowed(input, [...CONFIG_UPDATE_FIELDS]);
   }
 
   protected async persistUpdate(id: string, input: ConfigUpdateInput) {
