@@ -150,7 +150,7 @@ export abstract class AbstractCrudService<
 
   // ** Helper Methods **
 
-  protected pickFieldsByAllowed<T extends Record<string, any>>(
+  protected pickFieldsByAllowed<T extends Record<string, unknown>>(
     obj: T,
     fields: (keyof T)[],
   ): Partial<T> {

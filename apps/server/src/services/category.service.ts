@@ -9,6 +9,7 @@ import type {
   NAME,
 } from "@repo/domain";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
+import { isRecordNotFoundError } from "../utils/prisma-errors.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const CATEGORY_QUERY_FIELDS = [
@@ -76,8 +77,8 @@ export class CategoryService extends AbstractCrudService<
         data: input,
       });
       return entity;
-    } catch (e: any) {
-      if (e?.code === "P2025") return null;
+    } catch (e) {
+      if (isRecordNotFoundError(e)) return null;
       throw e;
     }
   }
@@ -86,8 +87,8 @@ export class CategoryService extends AbstractCrudService<
     try {
       await prisma.category.delete({ where: { id } });
       return true;
-    } catch (e: any) {
-      if (e?.code === "P2025") return false;
+    } catch (e) {
+      if (isRecordNotFoundError(e)) return false;
       throw e;
     }
   }
