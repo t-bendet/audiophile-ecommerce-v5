@@ -234,35 +234,28 @@ export const ApiResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
 
 // ===== Request Schema Helper =====
 
+const EmptyParamsSchema = z.object({}).strict();
+const EmptyBodySchema = z.undefined();
+const EmptyQuerySchema = z.object({});
+
 /**
  * Create a typed request schema that validates params, body, and query
  * All fields are required to be present but may have empty/default objects
  */
 export const createRequestSchema = <
-  P extends z.ZodTypeAny,
-  B extends z.ZodTypeAny,
-  Q extends z.ZodTypeAny,
+  P extends z.ZodTypeAny = typeof EmptyParamsSchema,
+  B extends z.ZodTypeAny = typeof EmptyBodySchema,
+  Q extends z.ZodTypeAny = typeof EmptyQuerySchema,
 >(options?: {
   params?: P;
   body?: B;
   query?: Q;
-}): z.ZodType<RequestSchema> => {
-  return z.object({
-    params: options?.params || z.object({}).strict(),
-    body: options?.body || z.undefined(),
-    query: options?.query || z.object({}),
-  }) as any;
-};
-
-export type RequestSchema<
-  P = Record<string, any>,
-  B = Record<string, any>,
-  Q = Record<string, any>,
-> = {
-  params: P;
-  body: B;
-  query: Q;
-};
+}) =>
+  z.object({
+    params: options?.params ?? EmptyParamsSchema,
+    body: options?.body ?? EmptyBodySchema,
+    query: options?.query ?? EmptyQuerySchema,
+  } as { params: P; body: B; query: Q });
 
 export interface baseQueryParams {
   page?: number;

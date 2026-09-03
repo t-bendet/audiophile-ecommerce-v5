@@ -29,11 +29,7 @@ export const validateSchema = (schema: ZodType<any>): RequestHandler =>
       );
     }
 
-    req.verified = {
-      params: parsedRequest.data.params,
-      body: parsedRequest.data.body,
-      query: parsedRequest.data.query,
-    };
+    req.verified = parsedRequest.data;
 
     return next();
   });

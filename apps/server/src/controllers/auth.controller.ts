@@ -1,5 +1,8 @@
 import {
   AppError,
+  AuthLoginRequestSchema,
+  AuthSignUpRequestSchema,
+  AuthUpdatePasswordRequestSchema,
   createEmptyResponse,
   createSingleItemResponse,
   ErrorCode,
@@ -7,6 +10,7 @@ import {
 } from "@repo/domain";
 import { Request, RequestHandler, Response } from "express";
 import { authService } from "../services/auth.service.js";
+import { ValidatedRequest } from "../types/validated-request.js";
 import catchAsync from "../utils/catchAsync.js";
 import { env } from "../utils/env.js";
 import { getTokenFromRequest } from "../middlewares/auth.middleware.js";
@@ -62,8 +66,10 @@ const createAndSendAuthCookie = (
  * Sign up a new user
  * Parses request, delegates to service, sends response
  */
-export const signup: RequestHandler = catchAsync(async (req, res, next) => {
-  const { token, user } = await authService.signup(req.verified?.body);
+export const signup: RequestHandler = catchAsync<
+  ValidatedRequest<typeof AuthSignUpRequestSchema>
+>(async (req, res) => {
+  const { token, user } = await authService.signup(req.verified.body);
   createAndSendAuthCookie(user, token, 201, req, res);
 });
 
@@ -71,8 +77,10 @@ export const signup: RequestHandler = catchAsync(async (req, res, next) => {
  * Log in a user
  * Validates credentials via service, sends response with token
  */
-export const login: RequestHandler = catchAsync(async (req, res, next) => {
-  const { email, password } = req.verified?.body;
+export const login: RequestHandler = catchAsync<
+  ValidatedRequest<typeof AuthLoginRequestSchema>
+>(async (req, res) => {
+  const { email, password } = req.verified.body;
   const { user, token } = await authService.login({ email, password });
   createAndSendAuthCookie(user, token, 200, req, res);
 });
@@ -97,27 +105,27 @@ export const logout = (req: Request, res: Response) => {
  * Update user password
  * Gets user ID from request(after authentication), delegates to service, sends response with new token
  */
-export const updatePassword: RequestHandler = catchAsync(
-  async (req, res, next) => {
-    // passwordConfirm and currentPassword validation handled in zod schema
-    const { currentPassword, password } = req.verified?.body;
-    const userId = req.user?.id!;
+export const updatePassword: RequestHandler = catchAsync<
+  ValidatedRequest<typeof AuthUpdatePasswordRequestSchema>
+>(async (req, res, next) => {
+  // passwordConfirm and currentPassword validation handled in zod schema
+  const { currentPassword, password } = req.verified.body;
+  const userId = req.user?.id;
 
-    if (!userId) {
-      return next(
-        new AppError("User ID not found in request", ErrorCode.UNAUTHORIZED),
-      );
-    }
-
-    const userData = await authService.updatePassword(
-      userId,
-      currentPassword,
-      password,
+  if (!userId) {
+    return next(
+      new AppError("User ID not found in request", ErrorCode.UNAUTHORIZED),
     );
-    const { token, user } = userData;
-    createAndSendAuthCookie(user, token, 200, req, res);
-  },
-);
+  }
+
+  const userData = await authService.updatePassword(
+    userId,
+    currentPassword,
+    password,
+  );
+  const { token, user } = userData;
+  createAndSendAuthCookie(user, token, 200, req, res);
+});
 
 export const getUserAuthStatus: RequestHandler = catchAsync(
   async (req, res, _next) => {

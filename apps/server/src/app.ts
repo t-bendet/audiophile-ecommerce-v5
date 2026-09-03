@@ -1,4 +1,4 @@
-import { AppError, ErrorCode, UserPublicInfo } from "@repo/domain";
+import { AppError, ErrorCode } from "@repo/domain";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Express } from "express";
@@ -8,15 +8,6 @@ import indexRoute from "./routes/index.js";
 import { env } from "./utils/env.js";
 import { httpLogger } from "./utils/logger.js";
 import { apiLimiter } from "./utils/rateLimiters.js";
-
-declare global {
-  namespace Express {
-    export interface Request {
-      user?: UserPublicInfo;
-      verified?: Record<string, any>;
-    }
-  }
-}
 
 const app: Express = express();
 app.set("query parser", "extended");

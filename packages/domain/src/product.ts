@@ -106,7 +106,7 @@ export const ProductQueryParamsSchema = BaseQueryParamsSchema.extend({
 }) satisfies z.ZodType<ProductQueryParams>;
 
 export const ProductGetAllRequestSchema = createRequestSchema({
-  query: ProductQueryParamsSchema.optional(),
+  query: ProductQueryParamsSchema,
 });
 
 // GET - Get single Product by ID

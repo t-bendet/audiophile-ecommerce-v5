@@ -2,9 +2,16 @@ import {
   createEmptyResponse,
   createListResponse,
   createSingleItemResponse,
+  UserCreateRequestSchema,
+  UserDeleteByIdRequestSchema,
+  UserGetAllRequestSchema,
+  UserGetByIdRequestSchema,
+  UserUpdateByIdRequestSchema,
+  UserUpdateMeRequestSchema,
 } from "@repo/domain";
 import { RequestHandler } from "express";
 import { userService } from "../services/user.service.js";
+import { ValidatedRequest } from "../types/validated-request.js";
 import catchAsync from "../utils/catchAsync.js";
 
 // Get the authenticated user's own record
@@ -14,8 +21,10 @@ export const getMe: RequestHandler = catchAsync(async (req, res, _next) => {
 });
 
 // Get a single user
-export const getUser: RequestHandler = catchAsync(async (req, res, _next) => {
-  const dto = await userService.get(req.verified?.params.id);
+export const getUser: RequestHandler = catchAsync<
+  ValidatedRequest<typeof UserGetByIdRequestSchema>
+>(async (req, res, _next) => {
+  const dto = await userService.get(req.verified.params.id);
   res.status(200).json(createSingleItemResponse(dto));
 });
 
@@ -25,40 +34,42 @@ export const deleteMe: RequestHandler = catchAsync(async (req, res, _next) => {
 });
 
 // Get all Users
-export const getAllUsers: RequestHandler = catchAsync(
-  async (req, res, _next) => {
-    const result = await userService.getAll(req.verified?.query);
-    res.status(200).json(createListResponse(result.data, result.meta));
-  }
-);
+export const getAllUsers: RequestHandler = catchAsync<
+  ValidatedRequest<typeof UserGetAllRequestSchema>
+>(async (req, res, _next) => {
+  const result = await userService.getAll(req.verified.query);
+  res.status(200).json(createListResponse(result.data, result.meta));
+});
 
 // deleting a user
-export const deleteUser: RequestHandler = catchAsync(
-  async (req, res, _next) => {
-    await userService.delete(req.verified?.params.id);
-    res.status(200).json(createEmptyResponse());
-  }
-);
+export const deleteUser: RequestHandler = catchAsync<
+  ValidatedRequest<typeof UserDeleteByIdRequestSchema>
+>(async (req, res, _next) => {
+  await userService.delete(req.verified.params.id);
+  res.status(200).json(createEmptyResponse());
+});
 
 // updating a single user
-export const updateUser: RequestHandler = catchAsync(
-  async (req, res, _next) => {
-    const dto = await userService.update(
-      req.verified?.params.id,
-      req.verified?.body
-    );
-    res.status(200).json(createSingleItemResponse(dto));
-  }
-);
-
-export const updateMe: RequestHandler = catchAsync(async (req, res, _next) => {
-  const dto = await userService.update(req.user!.id, req.verified?.body);
+export const updateUser: RequestHandler = catchAsync<
+  ValidatedRequest<typeof UserUpdateByIdRequestSchema>
+>(async (req, res, _next) => {
+  const dto = await userService.update(
+    req.verified.params.id,
+    req.verified.body
+  );
   res.status(200).json(createSingleItemResponse(dto));
 });
 
-export const createUser: RequestHandler = catchAsync(
-  async (req, res, _next) => {
-    const dto = await userService.create(req.verified?.body);
-    res.status(201).json(createSingleItemResponse(dto));
-  }
-);
+export const updateMe: RequestHandler = catchAsync<
+  ValidatedRequest<typeof UserUpdateMeRequestSchema>
+>(async (req, res, _next) => {
+  const dto = await userService.update(req.user!.id, req.verified.body);
+  res.status(200).json(createSingleItemResponse(dto));
+});
+
+export const createUser: RequestHandler = catchAsync<
+  ValidatedRequest<typeof UserCreateRequestSchema>
+>(async (req, res, _next) => {
+  const dto = await userService.create(req.verified.body);
+  res.status(201).json(createSingleItemResponse(dto));
+});
