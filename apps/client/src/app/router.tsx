@@ -7,11 +7,26 @@ import {
 } from "@/components/layouts/root-layout";
 import { paths } from "@/config/paths";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
+import { ComponentType, useMemo } from "react";
+import {
+  ActionFunction,
+  createBrowserRouter,
+  LoaderFunction,
+  Navigate,
+  RouterProvider,
+} from "react-router";
 // import { ProtectedRoute } from "@/lib/auth";
 
-const convert = (queryClient: QueryClient) => (m: any) => {
+// The shape every lazily imported route module in this app exports: a default
+// component, plus loaders/actions that take the query client and return the
+// real react-router handler.
+type RouteModule = {
+  default: ComponentType;
+  clientLoader?: (queryClient: QueryClient) => LoaderFunction;
+  clientAction?: (queryClient: QueryClient) => ActionFunction;
+};
+
+const convert = (queryClient: QueryClient) => (m: RouteModule) => {
   const { clientLoader, clientAction, default: Component, ...rest } = m;
   return {
     ...rest,

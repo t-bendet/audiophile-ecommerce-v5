@@ -7,14 +7,20 @@ export const isClientZodError = (err: unknown): err is ZodError => {
   return err instanceof ZodError;
 };
 
+const isErrorCode = (code: string): code is ErrorCode =>
+  Object.values<string>(ErrorCode).includes(code);
+
 const isAppError = (err: unknown): err is AppError => {
   return (
     typeof err === "object" &&
     err !== null &&
-    typeof (err as any).code === "string" &&
-    Object.values(ErrorCode).includes((err as any).code) &&
-    typeof (err as any).statusCode === "number" &&
-    typeof (err as any).message === "string"
+    "code" in err &&
+    typeof err.code === "string" &&
+    isErrorCode(err.code) &&
+    "statusCode" in err &&
+    typeof err.statusCode === "number" &&
+    "message" in err &&
+    typeof err.message === "string"
   );
 };
 
