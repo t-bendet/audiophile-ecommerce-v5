@@ -103,7 +103,7 @@ export type ProductQueryParams = ExtendedQueryParams<{ name?: string }>;
 
 export const ProductQueryParamsSchema = BaseQueryParamsSchema.extend({
   name: z.string().optional(),
-}) satisfies z.ZodType<ProductQueryParams>;
+}).strict() satisfies z.ZodType<ProductQueryParams>;
 
 export const ProductGetAllRequestSchema = createRequestSchema({
   query: ProductQueryParamsSchema,

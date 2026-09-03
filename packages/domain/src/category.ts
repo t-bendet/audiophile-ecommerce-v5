@@ -50,7 +50,7 @@ export type CategoryQueryParams = ExtendedQueryParams<{ name?: NAME }>;
 
 export const CategoryQueryParamsSchema = BaseQueryParamsSchema.extend({
   name: z.enum(NAME).optional(),
-}) satisfies z.ZodType<CategoryQueryParams>;
+}).strict() satisfies z.ZodType<CategoryQueryParams>;
 
 export const CategoryGetAllRequestSchema = createRequestSchema({
   query: CategoryQueryParamsSchema,

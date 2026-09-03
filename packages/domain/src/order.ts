@@ -159,13 +159,15 @@ export type UpdateOrderStatusInput = z.infer<
 /**
  * Order query params
  */
-export const OrderQueryParamsSchema = z.object({
-  status: OrderStatusSchema.optional(),
-  paymentStatus: PaymentStatusSchema.optional(),
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(10),
-  sort: z.string().optional(),
-});
+export const OrderQueryParamsSchema = z
+  .object({
+    status: OrderStatusSchema.optional(),
+    paymentStatus: PaymentStatusSchema.optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().max(100).default(10),
+    sort: z.string().optional(),
+  })
+  .strict();
 
 export type OrderQueryParams = z.infer<typeof OrderQueryParamsSchema>;
 

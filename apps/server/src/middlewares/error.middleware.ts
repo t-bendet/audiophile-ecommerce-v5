@@ -3,6 +3,7 @@ import { AppError, createErrorResponse, ErrorCode } from "@repo/domain";
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { env } from "../utils/env.js";
+import { zodIssuesToDetails } from "../utils/zodDetails.js";
 
 // ------------------ Specific Error Handlers ------------------
 
@@ -38,13 +39,7 @@ const handleValidationErrorDB = () => {
 // safety net for unexpected zod errors
 const handleZodError = (err: ZodError) => {
   const message = `Validation failed: ${err.issues.length} error(s)`;
-
-  // Parse Zod issues into structured details
-  const details = err.issues.map((issue) => ({
-    code: issue.code,
-    message: issue.message,
-    path: issue.path.length > 0 ? issue.path.map(String) : undefined,
-  }));
+  const details = zodIssuesToDetails(err);
 
   return new AppError(message, ErrorCode.VALIDATION_ERROR, undefined, details);
 };
