@@ -266,7 +266,7 @@ export class CartService extends AbstractCrudService<
     }
 
     if (cartItem.cart.userId !== userId) {
-      throw new AppError("Unauthorized", ErrorCode.UNAUTHORIZED);
+      throw new AppError("Forbidden", ErrorCode.FORBIDDEN);
     }
 
     // Update quantity
@@ -294,7 +294,7 @@ export class CartService extends AbstractCrudService<
     }
 
     if (cartItem.cart.userId !== userId) {
-      throw new AppError("Unauthorized", ErrorCode.UNAUTHORIZED);
+      throw new AppError("Forbidden", ErrorCode.FORBIDDEN);
     }
 
     // Delete cart item

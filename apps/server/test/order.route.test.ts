@@ -136,6 +136,19 @@ describe("GET /api/v1/orders/:orderId", () => {
     expect(res.body.data.id).toBe(created.body.data.id);
   });
 
+  it("refuses to read another user's order", async () => {
+    const owner = await createUser();
+    const intruder = await createUser();
+    const { res: created } = await orderFromCart(owner.id, 800);
+
+    const res = await request(app)
+      .get(`/api/v1/orders/${created.body.data.id}`)
+      .set("Cookie", authCookie(intruder.id));
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe(ErrorCode.FORBIDDEN);
+  });
+
   it("returns VALIDATION_ERROR for a malformed order id", async () => {
     const user = await createUser();
 
