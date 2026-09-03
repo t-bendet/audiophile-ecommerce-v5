@@ -27,13 +27,38 @@ type LogLine = {
 
 const collect = () => {
   const lines: LogLine[] = [];
+  let arrived: (() => void) | undefined;
   const stream = {
     write(chunk: string) {
       lines.push(JSON.parse(chunk));
+      arrived?.();
     },
   };
   const logger = pino({ ...loggerOptions, level: "info" }, stream);
-  return { lines, logger };
+
+  // pino-http writes the completion line from the response's `finish` event,
+  // which nothing orders against supertest resolving on the client side.
+  const linesReaching = (expected: number, timeoutMs = 1000) =>
+    new Promise<[LogLine, ...LogLine[]]>((resolve, reject) => {
+      const settle = () => {
+        if (lines.length < expected) return;
+        clearTimeout(timer);
+        arrived = undefined;
+        resolve(lines as [LogLine, ...LogLine[]]);
+      };
+      const timer = setTimeout(() => {
+        arrived = undefined;
+        reject(
+          new Error(
+            `Timed out after ${timeoutMs}ms waiting for ${expected} log line(s); ${lines.length} arrived`,
+          ),
+        );
+      }, timeoutMs);
+      arrived = settle;
+      settle();
+    });
+
+  return { lines, logger, linesReaching };
 };
 
 const appWith = (logger: ReturnType<typeof collect>["logger"]) => {
@@ -47,43 +72,46 @@ const appWith = (logger: ReturnType<typeof collect>["logger"]) => {
 
 describe("http logger", () => {
   it("emits one line per request with method, url, status, duration and requestId", async () => {
-    const { lines, logger } = collect();
+    const { lines, logger, linesReaching } = collect();
 
     await request(appWith(logger)).get("/hello");
+    const [line] = await linesReaching(1);
 
     expect(lines).toHaveLength(1);
-    expect(lines[0]).toMatchObject({
+    expect(line).toMatchObject({
       req: { method: "GET", url: "/hello" },
       res: { statusCode: 200 },
     });
-    expect(typeof lines[0]!.responseTime).toBe("number");
-    expect(lines[0]!.requestId).toBe(lines[0]!.req!.id);
+    expect(typeof line.responseTime).toBe("number");
+    expect(line.requestId).toBe(line.req!.id);
   });
 
   it("reuses a client-sent x-request-id and echoes it back", async () => {
-    const { lines, logger } = collect();
+    const { logger, linesReaching } = collect();
 
     const res = await request(appWith(logger))
       .get("/hello")
       .set("x-request-id", "client-supplied-id");
+    const [line] = await linesReaching(1);
 
     expect(res.headers["x-request-id"]).toBe("client-supplied-id");
-    expect(lines[0]!.requestId).toBe("client-supplied-id");
+    expect(line.requestId).toBe("client-supplied-id");
   });
 
   it("generates a request id when the client sends none", async () => {
-    const { lines, logger } = collect();
+    const { logger, linesReaching } = collect();
 
     const res = await request(appWith(logger)).get("/hello");
+    const [line] = await linesReaching(1);
 
     expect(res.headers["x-request-id"]).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
-    expect(lines[0]!.requestId).toBe(res.headers["x-request-id"]);
+    expect(line.requestId).toBe(res.headers["x-request-id"]);
   });
 
   it("redacts credential headers on the request and the response", async () => {
-    const { lines, logger } = collect();
+    const { lines, logger, linesReaching } = collect();
     const app = appWith(logger);
     app.get("/secret", (_req, res) => {
       res.setHeader("set-cookie", "jwt=super-secret-token; HttpOnly");
@@ -94,12 +122,13 @@ describe("http logger", () => {
       .get("/secret")
       .set("authorization", "Bearer super-secret-token")
       .set("cookie", "jwt=super-secret-token");
+    const [line] = await linesReaching(1);
 
     const output = JSON.stringify(lines);
     expect(output).not.toContain("super-secret-token");
-    expect(lines[0]!.req!.headers.authorization).toBe("[Redacted]");
-    expect(lines[0]!.req!.headers.cookie).toBe("[Redacted]");
-    expect(lines[0]!.res!.headers["set-cookie"]).toBe("[Redacted]");
+    expect(line.req!.headers.authorization).toBe("[Redacted]");
+    expect(line.req!.headers.cookie).toBe("[Redacted]");
+    expect(line.res!.headers["set-cookie"]).toBe("[Redacted]");
   });
 
   it("redacts password fields wherever they are logged", () => {
@@ -129,55 +158,58 @@ describe("error boundary logging", () => {
   };
 
   it("logs a server failure once, at error level, carrying the real error", async () => {
-    const { lines, logger } = collect();
+    const { lines, logger, linesReaching } = collect();
 
     const res = await request(
       appThatFailsWith(logger, () => {
         throw new Error("kaboom");
       }),
     ).get("/boom");
+    const [line] = await linesReaching(1);
 
     expect(res.status).toBe(500);
     expect(lines).toHaveLength(1);
-    expect(lines[0]!.level).toBe(50);
-    expect(lines[0]!.err?.message).toBe("kaboom");
-    expect(res.body.error.requestId).toBe(lines[0]!.requestId);
+    expect(line.level).toBe(50);
+    expect(line.err?.message).toBe("kaboom");
+    expect(res.body.error.requestId).toBe(line.requestId);
   });
 
   it("logs a server failure the client asked for at error level", async () => {
-    const { lines, logger } = collect();
+    const { lines, logger, linesReaching } = collect();
 
     const res = await request(
       appThatFailsWith(logger, () => {
         throw new AppError("broken", ErrorCode.INTERNAL_ERROR);
       }),
     ).get("/boom");
+    const [line] = await linesReaching(1);
 
     expect(res.status).toBe(500);
     expect(lines).toHaveLength(1);
-    expect(lines[0]!.level).toBe(50);
+    expect(line.level).toBe(50);
   });
 
   it("downgrades a client fault to warn instead of dropping it", async () => {
-    const { lines, logger } = collect();
+    const { lines, logger, linesReaching } = collect();
 
     const res = await request(
       appThatFailsWith(logger, () => {
         throw new AppError("nope", ErrorCode.NOT_FOUND);
       }),
     ).get("/boom");
+    const [line] = await linesReaching(1);
 
     expect(res.status).toBe(404);
     expect(lines).toHaveLength(1);
-    expect(lines[0]!.level).toBe(40);
-    expect(lines[0]!.err?.message).toBe("nope");
+    expect(line.level).toBe(40);
+    expect(line.err?.message).toBe("nope");
   });
 
   // A malformed Prisma query means our query shape is wrong, and `normalizeError`
   // launders it into an ordinary validation error - so only the origin flag can
   // still tell the boundary this one is a bug of ours.
   it("logs a programmer error at error level even when it maps to a 4xx", async () => {
-    const { lines, logger } = collect();
+    const { lines, logger, linesReaching } = collect();
     const prismaValidationError = Object.assign(
       new Error("Invalid `prisma.product.findMany()` invocation"),
       { name: "PrismaClientValidationError" },
@@ -188,11 +220,12 @@ describe("error boundary logging", () => {
         throw prismaValidationError;
       }),
     ).get("/boom");
+    const [line] = await linesReaching(1);
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
     expect(lines).toHaveLength(1);
-    expect(lines[0]!.level).toBe(50);
+    expect(line.level).toBe(50);
   });
 
   it("keeps the operational flag out of the response body", async () => {
@@ -208,7 +241,7 @@ describe("error boundary logging", () => {
   });
 
   it("keeps a failure at error level when the response already went out", async () => {
-    const { lines, logger } = collect();
+    const { lines, logger, linesReaching } = collect();
     const app = express();
     app.use(pinoHttp({ ...httpLoggerOptions, logger }));
     // A double send: the client already has its 200, so the boundary can no
@@ -222,11 +255,12 @@ describe("error boundary logging", () => {
     app.use(globalErrorHandler);
 
     const res = await request(app).get("/late");
+    const [line] = await linesReaching(1);
 
     expect(res.status).toBe(200);
     expect(lines).toHaveLength(1);
-    expect(lines[0]!.level).toBe(50);
-    expect(lines[0]!.err?.message).toBe("late failure");
-    expect(lines[0]!.res?.statusCode).toBe(500);
+    expect(line.level).toBe(50);
+    expect(line.err?.message).toBe("late failure");
+    expect(line.res?.statusCode).toBe(500);
   });
 });
