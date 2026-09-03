@@ -21,6 +21,7 @@ import {
 export type User = PrismaUser;
 export type UserCreateInput = Prisma.UserCreateInput;
 export type UserUpdateInput = Prisma.UserUpdateInput;
+export type UserSelfUpdateInput = Pick<UserUpdateInput, "name" | "email">;
 export type UserWhereInput = Prisma.UserWhereInput;
 export type UserSelect = Prisma.UserSelect;
 export type UserScalarFieldEnum = Prisma.UserScalarFieldEnum;
@@ -55,7 +56,7 @@ export const UserUpdateMeRequestSchema = createRequestSchema({
       name: NameValidator("User").optional(),
       email: EmailValidator.optional(),
     })
-    .strict() satisfies z.ZodType<UserUpdateInput>,
+    .strict() satisfies z.ZodType<UserSelfUpdateInput>,
 });
 
 // DELETE - Delete Me
