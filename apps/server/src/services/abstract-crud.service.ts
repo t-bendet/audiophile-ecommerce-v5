@@ -1,4 +1,5 @@
-import { AppError, ErrorCode, Meta } from "@repo/domain";
+import { AppError, ErrorCode } from "@repo/domain";
+import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
 
 /**
  * Simplified abstract base class for CRUD operations.
@@ -13,7 +14,8 @@ import { AppError, ErrorCode, Meta } from "@repo/domain";
  * @description
  * This class provides a standardized interface for CRUD operations.
  * Subclasses implement 6 core persistence methods only - all query building
- * (where, select, orderBy) happens inside persistFindMany.
+ * (where, select, orderBy) happens inside persistFindMany, using the shared
+ * parsers in `utils/query.ts`.
  *
  * Benefits:
  * - Clear data flow: getAll() -> persistFindMany() -> toDTO()
@@ -35,26 +37,22 @@ import { AppError, ErrorCode, Meta } from "@repo/domain";
  *
  *   // All query logic lives here
  *   protected async persistFindMany(params) {
- *     const { page = 1, limit = 20, filters, sort, fields } = params;
+ *     const { skip, take, filters, sort, fields } = params;
  *
- *     // Build where, select, orderBy locally
  *     const where = this.buildProductWhere(filters);
- *     const select = this.parseProductSelect(fields);
- *     const orderBy = this.parseProductOrderBy(sort);
+ *     const select = parseSelect(fields, PRODUCT_QUERY_FIELDS);
+ *     const orderBy = parseOrderBy(sort, PRODUCT_QUERY_FIELDS);
  *
- *     const skip = (page - 1) * limit;
  *     const [data, total] = await prisma.$transaction([
- *       prisma.product.findMany({ where, select, orderBy, skip, take: limit }),
+ *       prisma.product.findMany({ where, select, orderBy, skip, take }),
  *       prisma.product.count({ where }),
  *     ]);
  *
  *     return { data, total };
  *   }
  *
- *   // Private helpers
+ *   // Only the entity-specific where-builder stays private to the service
  *   private buildProductWhere(filters?: any) { ... }
- *   private parseProductSelect(fields?: string) { ... }
- *   private parseProductOrderBy(sort?: string) { ... }
  * }
  * ```
  *
@@ -82,11 +80,11 @@ export abstract class AbstractCrudService<
    * @param params - Query parameters including page, limit, filters, sort, fields
    * @returns Array of entities and total count
    */
-  protected abstract persistFindMany(params: {
-    page?: number;
-    limit?: number;
-    [key: string]: any; // Allow services to pass any custom query params
-  }): Promise<{ data: Entity[]; total: number }>;
+  protected abstract persistFindMany(
+    params: Pagination & {
+      [key: string]: any; // Allow services to pass any custom query params
+    }
+  ): Promise<{ data: Entity[]; total: number }>;
 
   protected abstract persistFindById(id: string): Promise<Entity | null>;
   protected abstract persistCreate(data: CreateInput): Promise<Entity>;
@@ -99,25 +97,17 @@ export abstract class AbstractCrudService<
   // ***** Public CRUD Methods *****
 
   async getAll(query: any) {
-    const page =
-      typeof query?.page !== "undefined" ? Number(query?.page) || 1 : 1;
-    const limit =
-      typeof query?.limit !== "undefined" ? Number(query?.limit) || 20 : 20;
+    const pagination = parsePagination(query);
 
     // Pass all query params to persistFindMany - service decides what to do with them
     const { data, total } = await this.persistFindMany({
-      page,
-      limit,
       ...query, // filters, sort, fields, etc.
+      ...pagination,
     });
-
-    const totalPages = Math.ceil(total / limit);
-    const hasNext = page < totalPages;
-    const hasPrev = page > 1;
 
     return {
       data: data.map((e) => this.toDTO(e)),
-      meta: { page, limit, total, totalPages, hasNext, hasPrev } satisfies Meta,
+      meta: buildMeta({ ...pagination, total }),
     };
   }
 

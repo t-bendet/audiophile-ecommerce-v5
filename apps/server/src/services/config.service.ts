@@ -6,7 +6,15 @@ import type {
   ConfigSelect,
   ConfigUpdateInput,
 } from "@repo/domain";
+import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
+
+const CONFIG_QUERY_FIELDS = [
+  "id",
+  "name",
+  "createdAt",
+  "v",
+] as const satisfies readonly (keyof ConfigSelect)[];
 
 export class ConfigService extends AbstractCrudService<
   Config,
@@ -20,23 +28,20 @@ export class ConfigService extends AbstractCrudService<
 
   // ***** Persistence Layer Methods *****
 
-  protected async persistFindMany(params: {
-    page?: number;
-    limit?: number;
-    [key: string]: any;
-  }): Promise<{ data: Config[]; total: number }> {
-    const { page = 1, limit = 20, sort, fields } = params;
-    const skip = (page - 1) * limit;
+  protected async persistFindMany(
+    params: Pagination & { [key: string]: any }
+  ): Promise<{ data: Config[]; total: number }> {
+    const { skip, take, sort, fields } = params;
 
     const where = this.buildConfigWhere();
-    const select = this.parseConfigSelect(fields);
-    const orderBy = this.parseConfigOrderBy(sort);
+    const select = parseSelect(fields, CONFIG_QUERY_FIELDS);
+    const orderBy = parseOrderBy(sort, CONFIG_QUERY_FIELDS);
 
     const [data, total] = await prisma.$transaction([
       prisma.config.findMany({
         where,
         skip,
-        take: limit,
+        take,
         orderBy,
         select,
       }),
@@ -91,34 +96,6 @@ export class ConfigService extends AbstractCrudService<
     }
   }
 
-  protected parseSelect(fields?: string): ConfigSelect | undefined {
-    if (!fields || typeof fields !== "string") {
-      return undefined;
-    }
-
-    const selectKeys = fields.split(",");
-    const validFields = [
-      "id",
-      "name",
-      "createdAt",
-      "v",
-      "featuredProduct",
-      "showCaseProducts",
-    ] as const;
-
-    const select: Partial<ConfigSelect> = {};
-
-    for (const key of selectKeys) {
-      if (validFields.includes(key as (typeof validFields)[number])) {
-        select[key as keyof ConfigSelect] = true;
-      }
-    }
-
-    return Object.keys(select).length > 0
-      ? (select as ConfigSelect)
-      : undefined;
-  }
-
   // ===== Private Query Builders =====
 
   private buildConfigWhere() {
@@ -126,45 +103,6 @@ export class ConfigService extends AbstractCrudService<
     return {};
   }
 
-  private parseConfigSelect(fields?: string): ConfigSelect | undefined {
-    if (!fields || typeof fields !== "string") {
-      return undefined;
-    }
-
-    const selectKeys = fields.split(",");
-    const validFields = [
-      "id",
-      "name",
-      "createdAt",
-      "v",
-      "featuredProduct",
-      "showCaseProducts",
-    ] as const;
-
-    const select: Partial<ConfigSelect> = {};
-
-    for (const key of selectKeys) {
-      if (validFields.includes(key as (typeof validFields)[number])) {
-        select[key as keyof ConfigSelect] = true;
-      }
-    }
-
-    return Object.keys(select).length > 0
-      ? (select as ConfigSelect)
-      : undefined;
-  }
-
-  private parseConfigOrderBy(sort?: string) {
-    if (!sort || typeof sort !== "string") {
-      return [{ id: "desc" as const }];
-    }
-
-    return sort.split(",").map((field: string) => {
-      const isDescending = field.startsWith("-");
-      const fieldName = isDescending ? field.substring(1) : field;
-      return { [fieldName]: isDescending ? "desc" : "asc" };
-    });
-  }
   async getUniqueConfig(): Promise<ConfigDTO | null> {
     const entity = await prisma.config.findFirst();
     return entity ? this.toDTO(entity) : null;
