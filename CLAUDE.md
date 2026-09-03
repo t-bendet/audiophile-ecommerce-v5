@@ -19,6 +19,7 @@ pnpm db:push           # push schema to MongoDB Atlas
 pnpm db:seed           # seed database
 
 # Type-check
+pnpm type-check        # tsc across every workspace via Turbo
 pnpm types:watch       # watch mode across all TS projects
 
 # Quality

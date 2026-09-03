@@ -20,6 +20,7 @@
       "persistent": true
     },
     "type-check": {
+      "dependsOn": ["^build", "db:generate"],
       "cache": true,
       "outputs": []
     },

@@ -2,6 +2,8 @@
   "files": [],
   "references": [
     { "path": "packages/database/tsconfig.build.json" },
-    { "path": "packages/domain/tsconfig.build.json" }
+    { "path": "packages/domain/tsconfig.build.json" },
+    { "path": "apps/server/tsconfig.json" },
+    { "path": "apps/client/tsconfig.json" }
   ]
 }

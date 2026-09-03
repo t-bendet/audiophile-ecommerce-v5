@@ -16,7 +16,7 @@ This is a **Turborepo + pnpm workspace** monorepo with:
 - **Build**: `pnpm build` (Turbo builds all packages + apps)
 - **Database**: `pnpm db:generate` → runs `prisma generate`; the generator's `importFileExtension = "js"` emits `.js` extensions on generated imports (required for ESM)
 - **Seed**: `pnpm db:seed` (located at `packages/database/src/seed/`)
-- **Type-check**: `pnpm types:watch` (watch mode for all TS projects)
+- **Type-check**: `pnpm type-check` (every workspace via Turbo) | `pnpm types:watch` (watch mode for all TS projects)
 
 ### Build Order Dependencies
 

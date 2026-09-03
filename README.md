@@ -968,6 +968,7 @@ pnpm db:push          # Push schema changes to database (dev only)
 # Code Quality
 pnpm lint             # Run ESLint on all packages
 pnpm format           # Format all code with Prettier
+pnpm type-check       # Type check every workspace via Turbo
 pnpm types:watch      # Watch mode type checking for all packages
 
 # Production
