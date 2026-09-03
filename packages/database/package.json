@@ -22,6 +22,7 @@
     "studio": "prisma studio",
     "format": "prisma format",
     "lint": "eslint . --max-warnings 4",
+    "type-check": "tsc -p tsconfig.json --noEmit",
     "build": "pnpm db:generate && tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json -w"
   },

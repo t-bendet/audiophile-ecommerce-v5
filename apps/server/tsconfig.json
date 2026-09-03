@@ -4,8 +4,8 @@
     "rootDir": "src",
     "outDir": "dist",
     "types": ["node"],
-    "skipLibCheck": true,
-    "composite": true
+    "composite": true,
+    "noEmit": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": [

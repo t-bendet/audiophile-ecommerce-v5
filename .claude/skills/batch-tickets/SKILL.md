@@ -54,11 +54,11 @@ nothing else can proceed until it returns). Give it:
 ### 4. Verify
 
 ```bash
-pnpm build && pnpm lint && pnpm test
+pnpm build && pnpm lint && pnpm test && pnpm type-check
 ```
 
-All three must pass. There is no working root type-check script (see #134); `pnpm build` is what
-type-checks the packages. Skip `pnpm format` — it is broken at the root (see #131).
+All four must pass. `pnpm type-check` runs `tsc` in every workspace; `pnpm build` also
+type-checks the packages it compiles. Skip `pnpm format` — it is broken at the root (see #131).
 
 **On failure**: make one focused attempt to fix it yourself. If it still fails, this ticket is a
 **miss** — go to _Handling a miss_ below and move on to the next ticket. Never merge red.

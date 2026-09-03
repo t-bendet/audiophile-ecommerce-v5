@@ -18,6 +18,7 @@
 
     /* Linting */
     "strict": true,
+    // Stricter than @repo/typescript-config/base.json on unused bindings; see #130.
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
