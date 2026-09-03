@@ -16,7 +16,7 @@ const connectionStringRegex =
 
 const createEnv = () => {
   const EnvSchema = z.object({
-    NODE_ENV: z.enum(["development", "production"]),
+    NODE_ENV: z.enum(["development", "production", "test"]),
     PORT: z.coerce.number().int().min(1000).max(65535),
     DATABASE_URL: z.custom<ConnectionString>((val) =>
       connectionStringRegex.test(val as string),

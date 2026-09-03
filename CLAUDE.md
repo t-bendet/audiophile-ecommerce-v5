@@ -24,6 +24,7 @@ pnpm types:watch       # watch mode across all TS projects
 # Quality
 pnpm lint
 pnpm format
+pnpm test          # domain + server vitest suites via Turbo (no database needed)
 ```
 
 ### Running a single workspace
@@ -136,7 +137,7 @@ JWT_COOKIE_EXPIRES_IN=20000
 PORT=8000
 ```
 
-`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses.
+`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses. `test` is set by the vitest configs and behaves like `production` (no request logging, no localhost CORS origin, sanitized errors).
 
 ## Git workflow
 

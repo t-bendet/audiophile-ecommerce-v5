@@ -51,6 +51,10 @@
     "db:reset": {
       "cache": false,
       "env": ["DATABASE_URL"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
     }
   }
 }

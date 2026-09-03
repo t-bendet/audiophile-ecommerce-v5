@@ -13,7 +13,7 @@ import {
   ListResponseSchema,
   SingleItemResponse,
   SingleItemResponseSchema,
-} from "./index.js";
+} from "./common.js";
 import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics )=====
