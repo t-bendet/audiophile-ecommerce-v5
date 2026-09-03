@@ -24,6 +24,7 @@ pnpm types:watch       # watch mode across all TS projects
 # Quality
 pnpm lint
 pnpm format
+pnpm test          # domain + server vitest suites via Turbo (no database needed)
 ```
 
 ### Running a single workspace
