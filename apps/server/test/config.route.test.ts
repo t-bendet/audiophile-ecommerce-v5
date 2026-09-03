@@ -77,7 +77,7 @@ describe("POST /api/v1/config", () => {
         showCaseWideId: ABSENT_ID,
       });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ path: ["body", "featuredProductId"] }],

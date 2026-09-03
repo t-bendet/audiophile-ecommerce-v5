@@ -21,3 +21,23 @@ describe("TOO_MANY_REQUESTS", () => {
     expect(parsed.success).toBe(true);
   });
 });
+
+// The status for a rejected input is a cross-package contract: the server
+// middleware, the client's own Zod handling and every validation doc read it
+// off this map, so a silent edit here would split them apart again.
+
+describe("VALIDATION_ERROR", () => {
+  it("maps to 422", () => {
+    expect(getStatusCode(ErrorCode.VALIDATION_ERROR)).toBe(422);
+  });
+
+  it("is accepted by the error envelope", () => {
+    const parsed = ErrorObjectSchema.safeParse({
+      code: ErrorCode.VALIDATION_ERROR,
+      message: "Validation failed: 1 error(s)",
+      statusCode: getStatusCode(ErrorCode.VALIDATION_ERROR),
+    });
+
+    expect(parsed.success).toBe(true);
+  });
+});

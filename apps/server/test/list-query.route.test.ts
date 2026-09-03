@@ -144,7 +144,7 @@ describe("GET /api/v1/categories", () => {
   it("rejects an unknown query key and names it in the error details", async () => {
     const { res } = await listCategories("?name=Headphones&foo=1");
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ code: "unrecognized_keys", path: ["query", "foo"] }],
@@ -185,7 +185,7 @@ describe("GET /api/v1/products", () => {
   it("rejects a product field that is not a supported filter", async () => {
     const { res } = await listProducts("?price=100");
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ code: "unrecognized_keys", path: ["query", "price"] }],
@@ -196,7 +196,7 @@ describe("GET /api/v1/products", () => {
   it("names every unknown query key in the error details", async () => {
     const { res } = await listProducts("?utm_source=newsletter&fbclid=abc");
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error.details).toEqual([
       expect.objectContaining({ path: ["query", "utm_source"] }),
       expect.objectContaining({ path: ["query", "fbclid"] }),
@@ -236,7 +236,7 @@ describe("GET /api/v1/users", () => {
   it("rejects an unknown query key and names it in the error details", async () => {
     const { res } = await listUsers("?role=ADMIN&email=a@b.c");
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ code: "unrecognized_keys", path: ["query", "email"] }],

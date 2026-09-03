@@ -50,7 +50,7 @@ describe("GET /api/v1/categories/:id", () => {
   it("returns VALIDATION_ERROR for a malformed id", async () => {
     const res = await request(app).get("/api/v1/categories/not-an-id");
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ path: ["params", "id"] }],
@@ -75,7 +75,7 @@ describe("GET /api/v1/categories/:category/products", () => {
       "/api/v1/categories/Turntables/products",
     );
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
   });
 });

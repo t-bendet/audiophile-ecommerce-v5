@@ -6,7 +6,7 @@
  */
 
 export enum ErrorCode {
-  // Validation errors (400)
+  // Validation errors
   VALIDATION_ERROR = "VALIDATION_ERROR",
   INVALID_INPUT = "INVALID_INPUT",
   INVALID_ID = "INVALID_ID",
@@ -65,8 +65,8 @@ export enum ErrorCode {
  * Maps error codes to their corresponding HTTP status codes
  */
 export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
-  // Validation errors (400)
-  [ErrorCode.VALIDATION_ERROR]: 400,
+  // Validation errors
+  [ErrorCode.VALIDATION_ERROR]: 422,
   [ErrorCode.INVALID_INPUT]: 400,
   [ErrorCode.INVALID_ID]: 400,
   [ErrorCode.MISSING_REQUIRED_FIELD]: 400,

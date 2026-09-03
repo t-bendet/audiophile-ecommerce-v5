@@ -56,7 +56,7 @@ describe("PATCH /api/v1/users/updateMe", () => {
       .set("Cookie", authCookie(user.id))
       .send({ role: "ADMIN" });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
   });
 });
@@ -95,7 +95,7 @@ describe("GET /api/v1/users/:id", () => {
       .get("/api/v1/users/not-an-id")
       .set("Cookie", authCookie(admin.id));
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ path: ["params", "id"] }],

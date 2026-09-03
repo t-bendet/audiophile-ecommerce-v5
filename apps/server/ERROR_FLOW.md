@@ -120,7 +120,7 @@
 ┌─────────┐  ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐       │
 │ handle  │  │P2023:   │  │ handle   │  │Expired:  │  │  Pass   │       │
 │ZodError │  │Cast 400 │  │Validation│  │  401     │  │ through │       │
-│ 400     │  │P2002:   │  │Error 422 │  │Invalid:  │  │         │       │
+│ 422     │  │P2002:   │  │Error 422 │  │Invalid:  │  │         │       │
 │         │  │Dup. 400 │  │          │  │  401     │  │         │       │
 │         │  │P2025:   │  │          │  │          │  │         │       │
 │         │  │Missing  │  │          │  │          │  │         │       │
@@ -163,7 +163,7 @@
 | Error Type            | Handler                   | Status | Message Format                                                                     |
 | --------------------- | ------------------------- | ------ | ---------------------------------------------------------------------------------- |
 | ZodError (middleware) | validateSchema → AppError | 422    | "Unprocessable Content. The following variables are missing or invalid: {details}" |
-| ZodError (global)     | handleZodError            | 400    | "Unprocessable Content. The following variables are missing or invalid: {details}" |
+| ZodError (global)     | handleZodError            | 422    | "Unprocessable Content. The following variables are missing or invalid: {details}" |
 
 ### Database Errors (Prisma)
 
@@ -236,7 +236,7 @@ Error Occurs
     └─ Production?
         └─ YES → Check error type
             │
-            ├─ ZodError? → handleZodError(400)
+            ├─ ZodError? → handleZodError(422)
             ├─ Prisma P2023? → handleCastErrorDB(400)
             ├─ Prisma P2002? → handleDuplicateFieldsDB(400)
             ├─ Prisma P2025? → handleMissingDocumentDB(404)

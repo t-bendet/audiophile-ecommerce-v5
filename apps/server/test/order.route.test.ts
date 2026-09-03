@@ -96,7 +96,7 @@ describe("POST /api/v1/orders", () => {
         shippingAddress: { ...checkout.shippingAddress, city: "" },
       });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ path: ["body", "shippingAddress", "city"] }],
@@ -129,7 +129,7 @@ describe("GET /api/v1/orders", () => {
       .get("/api/v1/orders?status=PENDING&userId=abc")
       .set("Cookie", authCookie(user.id));
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ code: "unrecognized_keys", path: ["query", "userId"] }],
@@ -170,7 +170,7 @@ describe("GET /api/v1/orders/:orderId", () => {
       .get("/api/v1/orders/not-an-id")
       .set("Cookie", authCookie(user.id));
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ path: ["params", "orderId"] }],

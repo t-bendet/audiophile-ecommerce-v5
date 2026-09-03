@@ -203,6 +203,7 @@ export function ProductList() {
 import { useMutation } from "@tanstack/react-query";
 import { postSignUp } from "@/lib/api/auth";
 import { classifyHttpError, isAppError } from "@/lib/errors";
+import { ErrorCode } from "@repo/domain";
 import { useState } from "react";
 
 export function SignUpForm() {
@@ -223,12 +224,14 @@ export function SignUpForm() {
     } catch (error) {
       const appError = classifyHttpError(error);
 
-      // Handle validation errors (400/422)
-      if (appError.statusCode === 422 && appError.details?.fields) {
-        setFieldErrors(appError.details.fields);
-      } else if (appError.statusCode === 400) {
-        // Generic 400 error
-        setFieldErrors({ form: appError.message });
+      // Branch on the code, never the number: the status for a rejected
+      // input lives in ERROR_CODE_TO_STATUS and is free to change.
+      if (appError.code === ErrorCode.VALIDATION_ERROR) {
+        if (appError.details?.fields) {
+          setFieldErrors(appError.details.fields);
+        } else {
+          setFieldErrors({ form: appError.message });
+        }
       } else {
         // Network or server error
         toast({
@@ -282,9 +285,9 @@ export function SignUpForm() {
 2. Request sent → Axios throws raw error
 3. Mutation catches error (no React Query retry for mutations by default)
 4. Component classifies error via `classifyHttpError()`
-5. Check status code:
-   - 422 validation: Set `fieldErrors` from `appError.details`
-   - 400 bad request: Show generic form error
+5. Check the error code:
+   - `VALIDATION_ERROR` with field details: Set `fieldErrors` from `appError.details`
+   - `VALIDATION_ERROR` without them: Show generic form error
    - 5xx/network: Show toast notification
 6. Component re-renders with errors displayed
 
