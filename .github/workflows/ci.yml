@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Superseded PR pushes stop early; pushes to main keep their status.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts refuses to load without it; nothing here connects.
+      DATABASE_URL: mongodb://localhost:27017/audiophile
+      MONGOMS_DOWNLOAD_DIR: ${{ github.workspace }}/.cache/mongodb-binaries
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve MongoDB version
+        id: mongodb
+        run: |
+          version=$(sed -n 's/^const MONGODB_VERSION = "\(.*\)";$/\1/p' apps/server/test/helpers/global-setup.ts)
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "MONGOMS_VERSION=$version" >> "$GITHUB_ENV"
+
+      # pnpm's version comes from the root package.json `packageManager` field.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # A postinstall hook downloads the binary, so restore before install.
+      - name: Cache MongoDB binary
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.MONGOMS_DOWNLOAD_DIR }}
+          key: mongodb-binaries-${{ runner.os }}-${{ steps.mongodb.outputs.version }}
+
+      - run: pnpm install --frozen-lockfile
+        timeout-minutes: 10
+
+      # The Prisma client is generated, not committed.
+      - run: pnpm db:generate
+
+      - run: pnpm build
+
+      - run: pnpm lint
+
+      - run: pnpm type-check
+
+      - run: pnpm test
+        timeout-minutes: 10
+
+      - run: pnpm format:check
