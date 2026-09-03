@@ -1,4 +1,4 @@
-import { AppError, ErrorCode } from "@repo/domain";
+import { AppError, ErrorCode, type baseQueryParams } from "@repo/domain";
 import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
 
 /**
@@ -8,6 +8,7 @@ import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
  * @template CreateInput - The input type for creating new entities
  * @template UpdateInput - The input type for updating existing entities
  * @template DTO - The Data Transfer Object type returned to clients
+ * @template Query - The validated list query params this service accepts
  *
  * @abstract
  *
@@ -29,17 +30,18 @@ import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
  *   Product,
  *   ProductCreateInput,
  *   ProductUpdateInput,
- *   ProductDTO
+ *   ProductDTO,
+ *   ProductQueryParams
  * > {
  *   protected toDTO(entity: Product): ProductDTO {
  *     return { id: entity.id, name: entity.name };
  *   }
  *
  *   // All query logic lives here
- *   protected async persistFindMany(params) {
- *     const { skip, take, filters, sort, fields } = params;
+ *   protected async persistFindMany(params: Pagination & ProductQueryParams) {
+ *     const { skip, take, name, sort, fields } = params;
  *
- *     const where = this.buildProductWhere(filters);
+ *     const where = this.buildProductWhere(name);
  *     const select = parseSelect(fields, PRODUCT_QUERY_FIELDS);
  *     const orderBy = parseOrderBy(sort, PRODUCT_QUERY_FIELDS);
  *
@@ -52,13 +54,13 @@ import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
  *   }
  *
  *   // Only the entity-specific where-builder stays private to the service
- *   private buildProductWhere(filters?: any) { ... }
+ *   private buildProductWhere(name?: string) { ... }
  * }
  * ```
  *
  * @remarks
  * - Services implement only what they need
- * - Minimal type complexity: 4 generic params instead of 7
+ * - Minimal type complexity: 5 generic params instead of 7
  * - All error handling and pagination handled by base class
  * - Optional filterUpdateInput hook for input validation
  */
@@ -67,6 +69,7 @@ export abstract class AbstractCrudService<
   CreateInput,
   UpdateInput,
   DTO,
+  Query extends baseQueryParams = baseQueryParams,
 > {
   /**
    * Transform entity to DTO for client response
@@ -81,9 +84,7 @@ export abstract class AbstractCrudService<
    * @returns Array of entities and total count
    */
   protected abstract persistFindMany(
-    params: Pagination & {
-      [key: string]: any; // Allow services to pass any custom query params
-    }
+    params: Pagination & Query
   ): Promise<{ data: Entity[]; total: number }>;
 
   protected abstract persistFindById(id: string): Promise<Entity | null>;
@@ -96,12 +97,11 @@ export abstract class AbstractCrudService<
 
   // ***** Public CRUD Methods *****
 
-  async getAll(query: any) {
+  async getAll(query: Query) {
     const pagination = parsePagination(query);
 
-    // Pass all query params to persistFindMany - service decides what to do with them
     const { data, total } = await this.persistFindMany({
-      ...query, // filters, sort, fields, etc.
+      ...query,
       ...pagination,
     });
 

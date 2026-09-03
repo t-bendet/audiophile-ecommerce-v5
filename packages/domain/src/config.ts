@@ -1,6 +1,7 @@
 import type { Prisma, Config as PrismaConfig } from "@repo/database";
 import { string, z } from "zod";
 import type {
+  baseQueryParams,
   EmptyResponse,
   ListResponse,
   SingleItemResponse,
@@ -25,6 +26,8 @@ export type ConfigScalarFieldEnum = Prisma.ConfigScalarFieldEnum;
 // *  ===== Entity Specific Types =====
 
 export type ConfigDTO = Config;
+
+export type ConfigQueryParams = baseQueryParams;
 
 // * =====  Common Schemas =====
 

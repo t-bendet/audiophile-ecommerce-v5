@@ -1,6 +1,8 @@
 import type { Prisma, User as PrismaUser } from "@repo/database";
 import { z } from "zod";
+import type { ExtendedQueryParams } from "./common.js";
 import {
+  BaseQueryParamsSchema,
   createRequestSchema,
   EmptyResponse,
   EmptyResponseSchema,
@@ -67,16 +69,14 @@ export const UserDeleteMeRequestSchema = createRequestSchema({
 
 // LIST - Get all Users (pagination + filtering) - admin only
 
+export type UserQueryParams = ExtendedQueryParams<{ role?: ROLE }>;
+
+export const UserQueryParamsSchema = BaseQueryParamsSchema.extend({
+  role: z.enum(ROLE).optional(),
+}) satisfies z.ZodType<UserQueryParams>;
+
 export const UserGetAllRequestSchema = createRequestSchema({
-  query: z
-    .object({
-      sort: z.string().optional(),
-      fields: z.string().optional(),
-      page: z.coerce.number().int().positive().optional(),
-      limit: z.coerce.number().int().positive().optional(),
-      role: z.enum(ROLE).optional(),
-    })
-    .optional(),
+  query: UserQueryParamsSchema.optional(),
 });
 
 // CREATE - Create new user - admin only

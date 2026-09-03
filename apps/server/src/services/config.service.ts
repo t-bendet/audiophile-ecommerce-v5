@@ -3,6 +3,7 @@ import type {
   Config,
   ConfigCreateInput,
   ConfigDTO,
+  ConfigQueryParams,
   ConfigSelect,
   ConfigUpdateInput,
 } from "@repo/domain";
@@ -20,7 +21,8 @@ export class ConfigService extends AbstractCrudService<
   Config,
   ConfigCreateInput,
   ConfigUpdateInput,
-  ConfigDTO
+  ConfigDTO,
+  ConfigQueryParams
 > {
   protected toDTO(entity: Config): ConfigDTO {
     return entity;
@@ -29,7 +31,7 @@ export class ConfigService extends AbstractCrudService<
   // ***** Persistence Layer Methods *****
 
   protected async persistFindMany(
-    params: Pagination & { [key: string]: any }
+    params: Pagination & ConfigQueryParams
   ): Promise<{ data: Config[]; total: number }> {
     const { skip, take, sort, fields } = params;
 

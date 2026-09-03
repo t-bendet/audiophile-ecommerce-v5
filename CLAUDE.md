@@ -96,6 +96,7 @@ Even then: one short line. No rationale paragraphs, no restating what the code a
 | `*WhereInput` | filter params |
 | `*Select` | field selection |
 | `ExtendedQueryParams` | pagination/sorting |
+| `*QueryParams` | one entity's list query: `ExtendedQueryParams<{ filters }>` |
 
 All exports flow through `packages/domain/src/index.ts`.
 

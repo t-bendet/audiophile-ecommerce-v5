@@ -5,7 +5,9 @@ import type {
 } from "@repo/database";
 import { z } from "zod";
 import { NAME } from "./category.js";
+import type { ExtendedQueryParams } from "./common.js";
 import {
+  BaseQueryParamsSchema,
   createRequestSchema,
   EmptyResponse,
   EmptyResponseSchema,
@@ -97,16 +99,14 @@ const ProductPropertiesSchema = z
 // * ===== RequestSchemas =====
 
 // LIST - Get all Products (pagination + filtering)
+export type ProductQueryParams = ExtendedQueryParams<{ name?: string }>;
+
+export const ProductQueryParamsSchema = BaseQueryParamsSchema.extend({
+  name: z.string().optional(),
+}) satisfies z.ZodType<ProductQueryParams>;
+
 export const ProductGetAllRequestSchema = createRequestSchema({
-  query: z
-    .object({
-      sort: z.string().optional(),
-      fields: z.string().optional(),
-      page: z.coerce.number().int().positive().optional(),
-      limit: z.coerce.number().int().positive().optional(),
-      name: z.string().optional(),
-    })
-    .optional(),
+  query: ProductQueryParamsSchema.optional(),
 });
 
 // GET - Get single Product by ID

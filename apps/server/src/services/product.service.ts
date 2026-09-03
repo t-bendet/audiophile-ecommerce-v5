@@ -2,7 +2,6 @@ import { NAME, prisma } from "@repo/database";
 import {
   AppError,
   ErrorCode,
-  ExtendedQueryParams,
   Meta,
   Product,
   ProductCreateInput,
@@ -10,6 +9,7 @@ import {
   ProductFeaturedProductsDTO,
   ProductRelatedProductsDTO,
   ProductsByCategoryNameDTO,
+  ProductQueryParams,
   ProductSelect,
   ProductShowCaseProductsDTO,
   ProductUpdateInput,
@@ -40,7 +40,8 @@ export class ProductService extends AbstractCrudService<
   Product,
   ProductCreateInput,
   ProductUpdateInput,
-  ProductDTO
+  ProductDTO,
+  ProductQueryParams
 > {
   protected toDTO(entity: Product): ProductDTO {
     return entity;
@@ -48,35 +49,24 @@ export class ProductService extends AbstractCrudService<
 
   // ===== Private Query Builders =====
 
-  private buildProductWhere(name?: string, price?: number): ProductWhereInput {
-    if (!name || typeof name !== "string") {
+  private buildProductWhere(name?: string): ProductWhereInput {
+    if (!name) {
       return {};
-    }
-    if (price === undefined || typeof price !== "number") {
-      return {
-        name: {
-          equals: name,
-          mode: "insensitive" as const,
-        },
-      };
     }
     return {
       name: {
         equals: name,
         mode: "insensitive" as const,
       },
-      price: {
-        equals: price,
-      },
     };
   }
 
   protected async persistFindMany(
-    params: Pagination & ExtendedQueryParams<{ name: string; price: number }>
+    params: Pagination & ProductQueryParams
   ): Promise<{ data: Product[]; total: number }> {
-    const { skip, take, sort, fields, name, price } = params;
+    const { skip, take, sort, fields, name } = params;
 
-    const where = this.buildProductWhere(name, price);
+    const where = this.buildProductWhere(name);
     const select = parseSelect(fields, PRODUCT_QUERY_FIELDS);
     const orderBy = parseOrderBy(sort, PRODUCT_QUERY_FIELDS);
 
