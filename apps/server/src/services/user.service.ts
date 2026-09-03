@@ -7,7 +7,19 @@ import type {
   UserSelect,
   UserUpdateInput,
 } from "@repo/domain";
+import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
+
+const USER_QUERY_FIELDS = [
+  "id",
+  "name",
+  "email",
+  "role",
+  "emailVerified",
+  "createdAt",
+  "active",
+  "v",
+] as const satisfies readonly (keyof UserSelect)[];
 
 export class UserService extends AbstractCrudService<
   UserPublicInfo,
@@ -31,23 +43,20 @@ export class UserService extends AbstractCrudService<
 
   // ***** Persistence Layer Methods *****
 
-  protected async persistFindMany(params: {
-    page?: number;
-    limit?: number;
-    [key: string]: any;
-  }): Promise<{ data: UserPublicInfo[]; total: number }> {
-    const { page = 1, limit = 20, role, sort, fields } = params;
-    const skip = (page - 1) * limit;
+  protected async persistFindMany(
+    params: Pagination & { [key: string]: any }
+  ): Promise<{ data: UserPublicInfo[]; total: number }> {
+    const { skip, take, role, sort, fields } = params;
 
     const where = this.buildUserWhere(role);
-    const select = this.parseUserSelect(fields);
-    const orderBy = this.parseUserOrderBy(sort);
+    const select = parseSelect(fields, USER_QUERY_FIELDS);
+    const orderBy = parseOrderBy(sort, USER_QUERY_FIELDS);
 
     const [data, total] = await prisma.$transaction([
       prisma.user.findMany({
         where,
         skip,
-        take: limit,
+        take,
         orderBy,
         select,
       }),
@@ -105,34 +114,6 @@ export class UserService extends AbstractCrudService<
     }
   }
 
-  protected parseSelect(fields?: string): UserSelect | undefined {
-    if (!fields || typeof fields !== "string") {
-      return undefined;
-    }
-
-    const selectKeys = fields.split(",");
-    const validFields = [
-      "id",
-      "name",
-      "email",
-      "role",
-      "emailVerified",
-      "createdAt",
-      "active",
-      "v",
-    ] as const;
-
-    const select: Partial<UserSelect> = {};
-
-    for (const key of selectKeys) {
-      if (validFields.includes(key as (typeof validFields)[number])) {
-        select[key as keyof UserSelect] = true;
-      }
-    }
-
-    return Object.keys(select).length > 0 ? (select as UserSelect) : undefined;
-  }
-
   // ===== Private Query Builders =====
 
   private buildUserWhere(role?: string) {
@@ -142,46 +123,6 @@ export class UserService extends AbstractCrudService<
     return {
       role: { equals: role as ROLE },
     };
-  }
-
-  private parseUserSelect(fields?: string): UserSelect | undefined {
-    if (!fields || typeof fields !== "string") {
-      return undefined;
-    }
-
-    const selectKeys = fields.split(",");
-    const validFields = [
-      "id",
-      "name",
-      "email",
-      "role",
-      "emailVerified",
-      "createdAt",
-      "active",
-      "v",
-    ] as const;
-
-    const select: Partial<UserSelect> = {};
-
-    for (const key of selectKeys) {
-      if (validFields.includes(key as (typeof validFields)[number])) {
-        select[key as keyof UserSelect] = true;
-      }
-    }
-
-    return Object.keys(select).length > 0 ? (select as UserSelect) : undefined;
-  }
-
-  private parseUserOrderBy(sort?: string) {
-    if (!sort || typeof sort !== "string") {
-      return [{ id: "desc" as const }];
-    }
-
-    return sort.split(",").map((field: string) => {
-      const isDescending = field.startsWith("-");
-      const fieldName = isDescending ? field.substring(1) : field;
-      return { [fieldName]: isDescending ? "desc" : "asc" };
-    });
   }
 }
 

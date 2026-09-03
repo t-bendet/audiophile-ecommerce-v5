@@ -15,7 +15,26 @@ import {
   ProductUpdateInput,
   ProductWhereInput,
 } from "@repo/domain";
+import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
+
+const PRODUCT_QUERY_FIELDS = [
+  "id",
+  "cartLabel",
+  "name",
+  "slug",
+  "price",
+  "categoryId",
+  "createdAt",
+  "v",
+  "shortLabel",
+  "fullLabel",
+  "description",
+  "isNewProduct",
+  "featuredImageText",
+  "showCaseImageText",
+  "featuresText",
+] as const satisfies readonly (keyof Product)[];
 
 export class ProductService extends AbstractCrudService<
   Product,
@@ -52,64 +71,20 @@ export class ProductService extends AbstractCrudService<
     };
   }
 
-  private parseProductSelect(fields?: string): ProductSelect | undefined {
-    if (!fields || typeof fields !== "string") return undefined;
-    const validFields = [
-      "id",
-      "cartLabel",
-      "name",
-      "slug",
-      "price",
-      "categoryId",
-      "createdAt",
-      "v",
-      "shortLabel",
-      "fullLabel",
-      "description",
-      "isNewProduct",
-      "featuredImageText",
-      "showCaseImageText",
-      "featuresText",
-    ] satisfies readonly (keyof Product)[];
-
-    const select: Partial<ProductSelect> = {};
-    for (const field of fields.split(",")) {
-      if (validFields.includes(field as (typeof validFields)[number])) {
-        select[field as keyof ProductSelect] = true;
-      }
-    }
-    return Object.keys(select).length ? select : undefined;
-  }
-
-  private parseProductOrderBy(sort?: string) {
-    if (!sort || typeof sort !== "string") {
-      return [{ id: "desc" as const }];
-    }
-
-    return sort.split(",").map((field: string) => {
-      const isDescending = field.startsWith("-");
-      const fieldName = isDescending ? field.substring(1) : field;
-      return { [fieldName]: isDescending ? "desc" : "asc" };
-    });
-  }
-
   protected async persistFindMany(
-    params: ExtendedQueryParams<{ name: string; price: number }>
+    params: Pagination & ExtendedQueryParams<{ name: string; price: number }>
   ): Promise<{ data: Product[]; total: number }> {
-    const { page = 1, limit = 20, sort, fields, name, price } = params;
+    const { skip, take, sort, fields, name, price } = params;
 
-    const skip = (page - 1) * limit;
-
-    // Build query components locally
     const where = this.buildProductWhere(name, price);
-    const select = this.parseProductSelect(fields);
-    const orderBy = this.parseProductOrderBy(sort);
+    const select = parseSelect(fields, PRODUCT_QUERY_FIELDS);
+    const orderBy = parseOrderBy(sort, PRODUCT_QUERY_FIELDS);
 
     const [data, total] = await prisma.$transaction([
       prisma.product.findMany({
         where,
         skip,
-        take: limit,
+        take,
         orderBy,
         select,
       }),
