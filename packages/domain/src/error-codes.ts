@@ -31,6 +31,9 @@ export enum ErrorCode {
   BAD_REQUEST = "BAD_REQUEST",
   UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY",
 
+  // Rate limiting errors (429)
+  TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS",
+
   // Component/UI errors (400)
   COMPONENT_COMPOSITION_ERROR = "COMPONENT_COMPOSITION_ERROR",
 
@@ -86,6 +89,9 @@ export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
 
   // Request errors
   [ErrorCode.UNPROCESSABLE_ENTITY]: 422,
+
+  // Rate limiting errors (429)
+  [ErrorCode.TOO_MANY_REQUESTS]: 429,
 
   // Component/UI errors (400)
   [ErrorCode.COMPONENT_COMPOSITION_ERROR]: 400,
