@@ -17,19 +17,19 @@ const categoryRouter: express.Router = express.Router();
 categoryRouter.get(
   "/",
   validateSchema(CategoryGetAllRequestSchema),
-  categoryController.getAllCategories
+  categoryController.getAllCategories,
 );
 
 categoryRouter.get(
   "/:category/products",
   validateSchema(ProductGetByCategorySchema),
-  productController.getProductsByCategoryName
+  productController.getProductsByCategoryName,
 );
 
 categoryRouter.get(
   "/:id",
   validateSchema(CategoryGetByIdRequestSchema),
-  categoryController.getCategoryById
+  categoryController.getCategoryById,
 );
 
 // * ADMIN ROUTES (restricted to admin roles)
@@ -39,18 +39,18 @@ categoryRouter.use(authenticate, authorize("ADMIN"));
 categoryRouter.post(
   "/",
   validateSchema(CategoryCreateRequestSchema),
-  categoryController.createCategory
+  categoryController.createCategory,
 );
 
 categoryRouter
   .route("/:id")
   .patch(
     validateSchema(CategoryUpdateByIdRequestSchema),
-    categoryController.updateCategory
+    categoryController.updateCategory,
   )
   .delete(
     validateSchema(CategoryDeleteByIdRequestSchema),
-    categoryController.deleteCategory
+    categoryController.deleteCategory,
   );
 
 export default categoryRouter;

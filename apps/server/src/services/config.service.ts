@@ -31,7 +31,7 @@ export class ConfigService extends AbstractCrudService<
   // ***** Persistence Layer Methods *****
 
   protected async persistFindMany(
-    params: Pagination & ConfigQueryParams
+    params: Pagination & ConfigQueryParams,
   ): Promise<{ data: Config[]; total: number }> {
     const { skip, take, sort, fields } = params;
 

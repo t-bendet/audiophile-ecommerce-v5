@@ -24,7 +24,7 @@ export const Navbar = () => {
     <>
       <nav className="bg-neutral-900 max-md:border-b max-md:border-neutral-100/20">
         <Container>
-          <div className="flex h-(--nav-bar-height) items-center justify-between md:border-b md:border-neutral-100/20">
+          <div className="h-(--nav-bar-height) flex items-center justify-between md:border-b md:border-neutral-100/20">
             {!isLarge && <NavBarDialog />}
             {isSmall ? (
               <Link
@@ -56,12 +56,12 @@ export const Navbar = () => {
               </SafeRenderWithErrorBlock>
               <button
                 onClick={() => setCartOpen(true)}
-                className="relative hover:*:fill-primary-500 focus-visible:*:fill-primary-500 cursor-pointer"
+                className="hover:*:fill-primary-500 focus-visible:*:fill-primary-500 relative cursor-pointer"
                 aria-label="Open cart"
               >
                 <CartIcon title="cart icon" />
                 {cart?.data.itemCount && cart.data.itemCount > 0 ? (
-                  <span className="absolute -top-2 -right-2 bg-primary-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="bg-primary-500 absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-white">
                     {cart.data.itemCount}
                   </span>
                 ) : null}

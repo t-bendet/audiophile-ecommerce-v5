@@ -19,7 +19,7 @@ const Home = () => {
         description="Explore premium headphones, earphones, and speakers from Audiophile."
       />
       <main>
-        <Section classes="mb-10 h-[calc(100vh-(var(--nav-bar-height)))] w-full bg-neutral-900 md:mb-24 lg:mb-30">
+        <Section classes="lg:mb-30 mb-10 h-[calc(100vh-(var(--nav-bar-height)))] w-full bg-neutral-900 md:mb-24">
           <Container classes="grid h-full grid-cols-1 bg-neutral-600">
             <SafeRenderWithErrorBlock
               title="Error loading featured product"
@@ -30,7 +30,7 @@ const Home = () => {
           </Container>
         </Section>
 
-        <Section classes="md:mb-24 lg:mb-42">
+        <Section classes="lg:mb-42 md:mb-24">
           <SafeRenderWithErrorBlock
             title="Error loading categories"
             containerClasses="mb-30"
@@ -41,12 +41,12 @@ const Home = () => {
           </SafeRenderWithErrorBlock>
         </Section>
 
-        <Section classes="space-y-6 md:mb-24 md:space-y-8 lg:mb-53 lg:space-y-12">
+        <Section classes="lg:mb-53 space-y-6 md:mb-24 md:space-y-8 lg:space-y-12">
           <SafeRenderWithErrorBlock title="Error loading showcase products">
             <ShowCaseProductsSection />
           </SafeRenderWithErrorBlock>
         </Section>
-        <Section classes="md:mb-24 lg:mb-47">
+        <Section classes="lg:mb-47 md:mb-24">
           <BestGearSection />
         </Section>
       </main>

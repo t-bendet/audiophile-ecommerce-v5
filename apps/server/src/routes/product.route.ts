@@ -18,35 +18,35 @@ const productRouter: express.Router = express.Router();
 productRouter.get(
   "/",
   validateSchema(ProductGetAllRequestSchema),
-  productController.getAllProducts
+  productController.getAllProducts,
 );
 productRouter.get(
   "/featured",
   validateSchema(ProductGetByPathSchema),
-  productController.getFeaturedProduct
+  productController.getFeaturedProduct,
 );
 productRouter.get(
   "/show-case",
   validateSchema(ProductGetByPathSchema),
-  productController.getShowCaseProducts
+  productController.getShowCaseProducts,
 );
 
 productRouter.get(
   "/related-products/:id",
   validateSchema(ProductGetRelatedByIdRequestSchema),
-  productController.getRelatedProducts
+  productController.getRelatedProducts,
 );
 
 productRouter.get(
   "/:id",
   validateSchema(ProductGetByIdRequestSchema),
-  productController.getProductById
+  productController.getProductById,
 );
 
 productRouter.get(
   "/slug/:slug",
   validateSchema(ProductGetBySlugSchema),
-  productController.getProductBySlug
+  productController.getProductBySlug,
 );
 
 // * ADMIN ROUTES (restricted to admin roles)
@@ -56,18 +56,18 @@ productRouter.use(authenticate, authorize("ADMIN"));
 productRouter.post(
   "/",
   validateSchema(ProductCreateRequestSchema),
-  productController.createProduct
+  productController.createProduct,
 );
 
 productRouter
   .route("/:id")
   .patch(
     validateSchema(ProductUpdateByIdRequestSchema),
-    productController.updateProduct
+    productController.updateProduct,
   )
   .delete(
     validateSchema(ProductDeleteByIdRequestSchema),
-    productController.deleteProduct
+    productController.deleteProduct,
   );
 
 export default productRouter;

@@ -62,7 +62,7 @@ export class ProductService extends AbstractCrudService<
   }
 
   protected async persistFindMany(
-    params: Pagination & ProductQueryParams
+    params: Pagination & ProductQueryParams,
   ): Promise<{ data: Product[]; total: number }> {
     const { skip, take, sort, fields, name } = params;
 
@@ -129,7 +129,7 @@ export class ProductService extends AbstractCrudService<
   }
 
   async getProductsByCategoryName(
-    categoryName: NAME
+    categoryName: NAME,
   ): Promise<{ data: ProductsByCategoryNameDTO[]; meta: Meta }> {
     // Find category by name
     const products = await prisma.product.findMany({
@@ -180,7 +180,7 @@ export class ProductService extends AbstractCrudService<
    */
 
   async getRelatedProducts(
-    productId: string
+    productId: string,
   ): Promise<{ data: ProductRelatedProductsDTO[]; meta: Meta }> {
     // Get base product info
     const product = await prisma.product.findUnique({
@@ -296,7 +296,7 @@ export class ProductService extends AbstractCrudService<
     if (!config) {
       throw new AppError(
         "Site configuration not found",
-        ErrorCode.INTERNAL_ERROR
+        ErrorCode.INTERNAL_ERROR,
       );
     }
 
@@ -308,7 +308,7 @@ export class ProductService extends AbstractCrudService<
     if (!config.showCaseCover || !config.showCaseWide || !config.showCaseGrid) {
       throw new AppError(
         "Incomplete showcase configuration",
-        ErrorCode.INTERNAL_ERROR
+        ErrorCode.INTERNAL_ERROR,
       );
     }
 
@@ -348,7 +348,7 @@ export class ProductService extends AbstractCrudService<
     if (!config) {
       throw new AppError(
         "Site configuration not found",
-        ErrorCode.INTERNAL_ERROR
+        ErrorCode.INTERNAL_ERROR,
       );
     }
 
@@ -360,14 +360,14 @@ export class ProductService extends AbstractCrudService<
     if (!config.featuredProduct.featuredImageText) {
       throw new AppError(
         "Featured product missing featured text",
-        ErrorCode.INTERNAL_ERROR
+        ErrorCode.INTERNAL_ERROR,
       );
     }
 
     if (!config.featuredProduct.images?.featuredImage) {
       throw new AppError(
         "Featured product missing featured image",
-        ErrorCode.INTERNAL_ERROR
+        ErrorCode.INTERNAL_ERROR,
       );
     }
 

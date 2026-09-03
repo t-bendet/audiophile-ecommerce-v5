@@ -159,42 +159,48 @@
 ## Error Types & Status Codes
 
 ### Validation Errors
-| Error Type | Handler | Status | Message Format |
-|------------|---------|--------|----------------|
-| ZodError (middleware) | validateSchema → AppError | 422 | "Unprocessable Content. The following variables are missing or invalid: {details}" |
-| ZodError (global) | handleZodError | 400 | "Unprocessable Content. The following variables are missing or invalid: {details}" |
+
+| Error Type            | Handler                   | Status | Message Format                                                                     |
+| --------------------- | ------------------------- | ------ | ---------------------------------------------------------------------------------- |
+| ZodError (middleware) | validateSchema → AppError | 422    | "Unprocessable Content. The following variables are missing or invalid: {details}" |
+| ZodError (global)     | handleZodError            | 400    | "Unprocessable Content. The following variables are missing or invalid: {details}" |
 
 ### Database Errors (Prisma)
-| Error Code | Handler | Status | Message |
-|------------|---------|--------|---------|
-| P2023 | handleCastErrorDB | 400 | "{err.meta.message}" |
-| P2002 | handleDuplicateFieldsDB | 400 | "Duplicate field value: {target}. Please use another value!" |
-| P2025 | handleMissingDocumentDB | 404 | "No matching {modelName} was found" |
-| PrismaClientValidationError | handleValidationErrorDB | 422 | "Invalid query data. - Unprocessable Content" |
+
+| Error Code                  | Handler                 | Status | Message                                                      |
+| --------------------------- | ----------------------- | ------ | ------------------------------------------------------------ |
+| P2023                       | handleCastErrorDB       | 400    | "{err.meta.message}"                                         |
+| P2002                       | handleDuplicateFieldsDB | 400    | "Duplicate field value: {target}. Please use another value!" |
+| P2025                       | handleMissingDocumentDB | 404    | "No matching {modelName} was found"                          |
+| PrismaClientValidationError | handleValidationErrorDB | 422    | "Invalid query data. - Unprocessable Content"                |
 
 ### Authentication Errors (JWT)
-| Error Name | Handler | Status | Message |
-|------------|---------|--------|---------|
-| JsonWebTokenError | handleJWTError | 401 | "Invalid token. Please log in again!" |
-| TokenExpiredError | handleJWTExpiredError | 401 | "Your token has expired! Please log in again." |
+
+| Error Name        | Handler               | Status | Message                                        |
+| ----------------- | --------------------- | ------ | ---------------------------------------------- |
+| JsonWebTokenError | handleJWTError        | 401    | "Invalid token. Please log in again!"          |
+| TokenExpiredError | handleJWTExpiredError | 401    | "Your token has expired! Please log in again." |
 
 ### Application Errors
-| Type | Status | Operational | Description |
-|------|--------|-------------|-------------|
-| AppError | Custom (400-599) | true | Intentional errors thrown by app logic |
-| Unknown Error | 500 | false | Programming errors, unexpected exceptions |
+
+| Type          | Status           | Operational | Description                               |
+| ------------- | ---------------- | ----------- | ----------------------------------------- |
+| AppError      | Custom (400-599) | true        | Intentional errors thrown by app logic    |
+| Unknown Error | 500              | false       | Programming errors, unexpected exceptions |
 
 ---
 
 ## Key Components
 
 ### 1. catchAsync (utils/catchAsync.ts)
+
 ```typescript
 // Wraps async route handlers to catch Promise rejections
 // Passes errors to next() → error middleware
 ```
 
 ### 2. validateSchema (middlewares/validation.middleware.ts)
+
 ```typescript
 // Validates req.params, req.body, req.query against Zod schema
 // On failure: Creates AppError(422) and calls next(appError)
@@ -202,12 +208,14 @@
 ```
 
 ### 3. Error Middleware (middlewares/error.middleware.ts)
+
 ```typescript
 // Central error handling with 4 parameters: (err, req, res, next)
 // Branches based on NODE_ENV
 ```
 
 ### 4. AppError (utils/appError.ts)
+
 ```typescript
 // Custom error class with:
 // - statusCode (HTTP status)
@@ -267,12 +275,14 @@ bare `logger`.
 ❌ **Production**: Hide implementation details to prevent information leakage
 
 **Operational Errors** (expected, safe to show):
+
 - Validation failures
 - Missing resources (404)
 - Duplicate entries
 - Authentication failures
 
 **Non-Operational Errors** (unexpected, hide details):
+
 - Syntax errors
 - Undefined references
 - Database connection failures

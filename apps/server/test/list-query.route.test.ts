@@ -150,7 +150,9 @@ describe("GET /api/v1/products", () => {
   });
 
   it("keeps a valid sort list and whitelisted fields", async () => {
-    const { args } = await listProducts("?sort=-price,name&fields=id,price,hax");
+    const { args } = await listProducts(
+      "?sort=-price,name&fields=id,price,hax",
+    );
 
     expect(args).toMatchObject({
       orderBy: [{ price: "desc" }, { name: "asc" }],
@@ -170,7 +172,9 @@ describe("GET /api/v1/users", () => {
   });
 
   it("keeps a valid sort list and whitelisted fields", async () => {
-    const { args } = await listUsers("?sort=-createdAt,email&fields=id,email,password");
+    const { args } = await listUsers(
+      "?sort=-createdAt,email&fields=id,email,password",
+    );
 
     expect(args).toMatchObject({
       orderBy: [{ createdAt: "desc" }, { email: "asc" }],

@@ -40,7 +40,9 @@ export const getProductBySlug: RequestHandler = catchAsync<
 export const getRelatedProducts: RequestHandler = catchAsync<
   ValidatedRequest<typeof ProductGetRelatedByIdRequestSchema>
 >(async (req, res) => {
-  const result = await productService.getRelatedProducts(req.verified.params.id);
+  const result = await productService.getRelatedProducts(
+    req.verified.params.id,
+  );
   res.status(200).json(createListResponse(result.data, result.meta));
 });
 
@@ -48,7 +50,7 @@ export const getProductsByCategoryName: RequestHandler = catchAsync<
   ValidatedRequest<typeof ProductGetByCategorySchema>
 >(async (req, res) => {
   const result = await productService.getProductsByCategoryName(
-    req.verified.params.category
+    req.verified.params.category,
   );
   res.status(200).json(createListResponse(result.data, result.meta));
 });
@@ -58,14 +60,14 @@ export const getShowCaseProducts: RequestHandler = catchAsync(
   async (_req, res) => {
     const dto = await productService.getShowCaseProducts();
     res.status(200).json(createSingleItemResponse(dto));
-  }
+  },
 );
 
 export const getFeaturedProduct: RequestHandler = catchAsync(
   async (_req, res) => {
     const dto = await productService.getFeaturedProduct();
     res.status(200).json(createSingleItemResponse(dto));
-  }
+  },
 );
 
 // * ADMIN CONTROLLERS
@@ -82,7 +84,7 @@ export const updateProduct: RequestHandler = catchAsync<
 >(async (req, res) => {
   const dto = await productService.update(
     req.verified.params.id,
-    req.verified.body
+    req.verified.body,
   );
   res.status(200).json(createSingleItemResponse(dto));
 });

@@ -29,7 +29,7 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
               src={category.thumbnail.src}
               alt={category.thumbnail.altText}
               aria-label={category.thumbnail.ariaLabel}
-              className="z-10 col-start-1 col-end-2 row-start-1 row-end-3 max-w-1/3 md:max-w-2/3 lg:max-w-5/6"
+              className="max-w-1/3 md:max-w-2/3 lg:max-w-5/6 z-10 col-start-1 col-end-2 row-start-1 row-end-3"
             />
             <div className="col-start-1 col-end-2 row-start-2 row-end-4 w-full rounded-md bg-neutral-200"></div>
             <div className="col-start-1 col-end-2 row-start-3 row-end-4 w-full text-center">

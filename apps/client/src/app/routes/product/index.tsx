@@ -43,7 +43,7 @@ const Product = () => {
         image={product.images.primaryImage.desktopSrc}
         type="product"
       />
-      <Container classes="mt-4 mb-6 md:mt-8 md:mb-8 lg:mt-19 lg:mb-14">
+      <Container classes="lg:mt-19 mb-6 mt-4 md:mb-8 md:mt-8 lg:mb-14">
         <Button
           onClick={() => navigate(-1)}
           aria-label="Go back to previous page"
@@ -57,7 +57,7 @@ const Product = () => {
 
       <main className="text-neutral-900" key={productSlug}>
         <Section classes="max-sm:mb-22">
-          <Container classes="flex flex-col gap-y-8 md:flex-row md:gap-x-17 lg:gap-x-31">
+          <Container classes="md:gap-x-17 lg:gap-x-31 flex flex-col gap-y-8 md:flex-row">
             <ResponsivePicture
               mobileSrc={product.images.primaryImage.mobileSrc}
               tabletSrc={product.images.primaryImage.tabletSrc}
@@ -91,7 +91,7 @@ const Product = () => {
         </Section>
 
         <Section classes="mb-22 md:mb-38 lg:mb-40">
-          <Container classes="flex flex-col gap-22 md:gap-30 lg:flex-row lg:gap-31">
+          <Container classes="gap-22 md:gap-30 lg:gap-31 flex flex-col lg:flex-row">
             <div>
               <h2 className="tracking-300 mb-6 text-xl font-bold uppercase md:mb-8 md:text-[32px]">
                 features
@@ -113,7 +113,7 @@ const Product = () => {
                     <span className="text-primary-700 mr-5 font-bold md:mr-6">
                       {inc.quantity}x
                     </span>
-                    <span className="text-neutral-600 capitalize">
+                    <span className="capitalize text-neutral-600">
                       {inc.item}
                     </span>
                   </li>

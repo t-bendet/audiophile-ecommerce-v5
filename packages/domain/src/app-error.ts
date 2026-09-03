@@ -10,7 +10,7 @@ export class AppError extends Error {
     message: string,
     code: ErrorCode,
     statusCode?: number,
-    details?: ErrorDetail[]
+    details?: ErrorDetail[],
   ) {
     super(message);
 

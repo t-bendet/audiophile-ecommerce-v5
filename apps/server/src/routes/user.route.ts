@@ -22,19 +22,19 @@ userRouter.use(authenticate);
 userRouter.get(
   "/me",
   validateSchema(UserGetMeRequestSchema),
-  userController.getMe
+  userController.getMe,
 );
 
 userRouter.patch(
   "/updateMe",
   validateSchema(UserUpdateMeRequestSchema),
-  userController.updateMe
+  userController.updateMe,
 );
 
 userRouter.delete(
   "/deleteMe",
   validateSchema(UserDeleteMeRequestSchema),
-  userController.deleteMe
+  userController.deleteMe,
 );
 
 // * ADMIN ROUTES (restricted to admin roles)
@@ -44,31 +44,31 @@ userRouter.use(authorize("ADMIN"));
 userRouter.get(
   "/",
   validateSchema(UserGetAllRequestSchema),
-  userController.getAllUsers
+  userController.getAllUsers,
 );
 
 userRouter.post(
   "/",
   validateSchema(UserCreateRequestSchema),
-  userController.createUser
+  userController.createUser,
 );
 
 userRouter.get(
   "/:id",
   validateSchema(UserGetByIdRequestSchema),
-  userController.getUser
+  userController.getUser,
 );
 
 userRouter.patch(
   "/:id",
   validateSchema(UserUpdateByIdRequestSchema),
-  userController.updateUser
+  userController.updateUser,
 );
 
 userRouter.delete(
   "/:id",
   validateSchema(UserDeleteByIdRequestSchema),
-  userController.deleteUser
+  userController.deleteUser,
 );
 
 export default userRouter;

@@ -18,7 +18,7 @@ export function PasswordVisibilityToggle({
     <button
       type="button"
       className={cn(
-        "absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer p-1 text-neutral-500/70 hover:text-neutral-700 focus-visible:outline-none",
+        "absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer p-1 text-neutral-500/70 hover:text-neutral-700 focus-visible:outline-none",
         className,
       )}
       onClick={onToggle}

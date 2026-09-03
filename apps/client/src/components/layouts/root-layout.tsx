@@ -31,7 +31,7 @@ export function RootLayout() {
     <div className="flex min-h-dvh flex-col">
       <Metadata />
       {isLoading && (
-        <div className="absolute top-0 left-0 z-50 w-full bg-black/10">
+        <div className="absolute left-0 top-0 z-50 w-full bg-black/10">
           <div className="flex h-screen w-full items-center justify-center">
             <LoadingSpinner size="xl" />
           </div>

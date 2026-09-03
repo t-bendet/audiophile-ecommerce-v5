@@ -20,42 +20,42 @@ cartRouter.use(authenticate);
 cartRouter.get(
   "/",
   validateSchema(GetCartRequestSchema),
-  cartController.getCart
+  cartController.getCart,
 );
 
 // Add item to cart
 cartRouter.post(
   "/",
   validateSchema(AddToCartRequestSchema),
-  cartController.addToCart
+  cartController.addToCart,
 );
 
 // Sync local cart with server cart
 cartRouter.post(
   "/sync",
   validateSchema(SyncCartRequestSchema),
-  cartController.syncCart
+  cartController.syncCart,
 );
 
 // Update cart item quantity
 cartRouter.patch(
   "/items/:cartItemId",
   validateSchema(UpdateCartItemRequestSchema),
-  cartController.updateCartItem
+  cartController.updateCartItem,
 );
 
 // Remove item from cart
 cartRouter.delete(
   "/items/:cartItemId",
   validateSchema(RemoveFromCartRequestSchema),
-  cartController.removeFromCart
+  cartController.removeFromCart,
 );
 
 // Clear cart
 cartRouter.delete(
   "/",
   validateSchema(ClearCartRequestSchema),
-  cartController.clearCart
+  cartController.clearCart,
 );
 
 export default cartRouter;

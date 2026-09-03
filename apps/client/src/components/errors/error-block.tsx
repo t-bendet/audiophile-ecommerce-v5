@@ -22,7 +22,7 @@ const ErrorBlock = ({
       classes={cn("flex items-center justify-center", containerClasses)}
     >
       <div className="bg-primary-500 flex gap-4 rounded p-4 text-left max-sm:flex-col max-sm:items-center max-sm:gap-2">
-        <div className="bg-primary-700 flex h-12 w-12 items-center justify-center rounded-4xl text-3xl">
+        <div className="bg-primary-700 rounded-4xl flex h-12 w-12 items-center justify-center text-3xl">
           !
         </div>
         <div className="clr-primary-700 fw-bold flow">
