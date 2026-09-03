@@ -25,7 +25,7 @@ export const validateSchema = (schema: ZodType<any>): RequestHandler =>
       }));
 
       return next(
-        new AppError(message, ErrorCode.VALIDATION_ERROR, undefined, details)
+        new AppError(message, ErrorCode.VALIDATION_ERROR, undefined, details),
       );
     }
 

@@ -69,7 +69,7 @@ import { categoryUpdateSchema } from "@repo/domain";
 
 router.route("/:id").patch(
   validateSchema(categoryUpdateSchema), // ← Validation happens here
-  categoryController.updateCategory
+  categoryController.updateCategory,
 );
 ```
 

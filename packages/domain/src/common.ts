@@ -151,7 +151,7 @@ export function createErrorResponse(options: ErrorObject): ErrorResponse {
  * Check if response is successful
  */
 export function isSuccessResponse<T>(
-  response: ApiResponse<T>
+  response: ApiResponse<T>,
 ): response is SingleItemResponse<T> | ListResponse<T> | EmptyResponse {
   return response.success === true;
 }
@@ -160,7 +160,7 @@ export function isSuccessResponse<T>(
  * Check if response is an error
  */
 export function isErrorResponse<T>(
-  response: ApiResponse<T>
+  response: ApiResponse<T>,
 ): response is ErrorResponse {
   return response.success === false;
 }
@@ -169,7 +169,7 @@ export function isErrorResponse<T>(
  * Check if response is a paginated list
  */
 export function isListResponse<T>(
-  response: ApiResponse<T>
+  response: ApiResponse<T>,
 ): response is ListResponse<T> {
   return response.success === true && "meta" in response;
 }
@@ -178,7 +178,7 @@ export function isListResponse<T>(
  * Check if response is a single item
  */
 export function isSingleItemResponse<T>(
-  response: ApiResponse<T>
+  response: ApiResponse<T>,
 ): response is SingleItemResponse<T> {
   return (
     response.success === true && response.data !== null && !("meta" in response)
@@ -189,7 +189,7 @@ export function isSingleItemResponse<T>(
  * Check if response is empty (DELETE)
  */
 export function isEmptyResponse<T>(
-  response: ApiResponse<T>
+  response: ApiResponse<T>,
 ): response is EmptyResponse {
   return response.success === true && response.data === null;
 }

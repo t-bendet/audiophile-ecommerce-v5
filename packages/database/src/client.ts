@@ -61,7 +61,7 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
         // if password and password confirm exist ,iit can only be update password route
         if (args.data.password && args.data.passwordConfirm) {
           const hashedPassword = await hashPassword(
-            args.data.password as string
+            args.data.password as string,
           );
           args.data.password = hashedPassword;
           args.data.passwordConfirm = hashedPassword;
@@ -78,18 +78,18 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
     user: {
       validatePassword: async function (
         candidatePassword: string,
-        userPassword: string
+        userPassword: string,
       ) {
         return await bcrypt.compare(candidatePassword, userPassword);
       },
       isPasswordChangedAfter: async function (
         JWTTimestamp: number,
-        passwordChangedAt: Date
+        passwordChangedAt: Date,
       ) {
         if (passwordChangedAt) {
           const changedTimestamp = parseInt(
             (passwordChangedAt.getTime() / 1000).toString(),
-            10
+            10,
           );
 
           return JWTTimestamp < changedTimestamp;

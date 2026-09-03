@@ -41,7 +41,7 @@ export const updateCategory: RequestHandler = catchAsync<
 >(async (req, res) => {
   const dto = await categoryService.update(
     req.verified.params.id,
-    req.verified.body
+    req.verified.body,
   );
   res.status(200).json(createSingleItemResponse(dto));
 });

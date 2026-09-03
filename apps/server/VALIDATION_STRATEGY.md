@@ -88,7 +88,7 @@
 // Example: Product route with validation
 router.route("/slug/:slug").get(
   validateSchema(GetProductBySlugSchema), // ← VALIDATE HERE
-  productController.getProductBySlug
+  productController.getProductBySlug,
 );
 ```
 
@@ -122,7 +122,7 @@ export const updateProduct: RequestHandler = catchAsync(async (req, res) => {
   if (product.publishedAt && req.body.price < product.price * 0.5) {
     throw new AppError(
       "Cannot reduce published product price by more than 50%",
-      400
+      400,
     );
   }
 
@@ -499,7 +499,7 @@ export const CreateOrderSchema = z.object({
       (data) => {
         const itemsTotal = data.items.reduce(
           (sum, item) => sum + item.price * item.quantity,
-          0
+          0,
         );
         const discountedTotal = itemsTotal - (data.discount || 0);
         return Math.abs(discountedTotal - data.total) < 0.01;
@@ -507,7 +507,7 @@ export const CreateOrderSchema = z.object({
       {
         message: "Total must match items total minus discount",
         path: ["total"],
-      }
+      },
     ),
 });
 ```
@@ -766,12 +766,12 @@ router.route("/category/:id").get(controller.getCategoryById); // Uses same vali
 ```typescript
 router.route("/:id").get(
   validateSchema(GetProductByIdSchema), // Clear what's validated
-  controller.getById
+  controller.getById,
 );
 
 router.route("/category/:id").get(
   validateSchema(GetCategoryByIdSchema), // Different validation
-  controller.getCategoryById
+  controller.getCategoryById,
 );
 ```
 
@@ -799,7 +799,7 @@ router.route("/category/:id").get(
 router.post(
   "/products",
   validateSchema(CreateProductSchema), // ✅ Right layer
-  controller.createProduct
+  controller.createProduct,
 );
 ```
 

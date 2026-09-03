@@ -34,7 +34,7 @@ const Category = () => {
           {activeCategory}
         </h1>
       </header>
-      <main className="mt-16 md:mt-30 lg:mt-40">
+      <main className="md:mt-30 mt-16 lg:mt-40">
         <ProductsList products={ProductsResponse.data} />
 
         <Section>

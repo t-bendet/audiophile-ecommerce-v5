@@ -9,10 +9,10 @@ export default function ProductSkeleton({ classes }: { classes?: string }) {
         classes,
       )}
     >
-      <Skeleton className="mb-6 h-5 w-51" />
-      <Skeleton className="mb-8 h-14 w-66" />
-      <Skeleton className="mb-6 h-22 w-68" />
-      <Skeleton className="h-12 w-46 rounded-none" />
+      <Skeleton className="w-51 mb-6 h-5" />
+      <Skeleton className="w-66 mb-8 h-14" />
+      <Skeleton className="h-22 w-68 mb-6" />
+      <Skeleton className="w-46 h-12 rounded-none" />
       <p className="sr-only">Loading product details...</p>
       <span className="sr-only">Loading...</span>
     </article>

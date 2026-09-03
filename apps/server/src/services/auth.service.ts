@@ -57,7 +57,7 @@ export class AuthService {
    * @returns The created user with token
    */
   async signup(
-    data: AuthSignUpRequest
+    data: AuthSignUpRequest,
   ): Promise<{ user: UserDTO; token: string }> {
     // Create user with Prisma (password hashing happens via schema defaults)
     const user = await prisma.user.create({
@@ -96,20 +96,20 @@ export class AuthService {
     if (!user) {
       throw new AppError(
         "Incorrect email or password",
-        ErrorCode.INVALID_CREDENTIALS
+        ErrorCode.INVALID_CREDENTIALS,
       );
     }
 
     // Validate password using Prisma's custom method
     const isPasswordValid = await prisma.user.validatePassword(
       password,
-      user.password
+      user.password,
     );
 
     if (!isPasswordValid) {
       throw new AppError(
         "Incorrect email or password",
-        ErrorCode.INVALID_CREDENTIALS
+        ErrorCode.INVALID_CREDENTIALS,
       );
     }
 
@@ -136,7 +136,7 @@ export class AuthService {
   async updatePassword(
     userId: string,
     currentPassword: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<AuthSessionDTO> {
     // Get user with password field
     const user = await prisma.user.findUnique({
@@ -149,20 +149,20 @@ export class AuthService {
     if (!user) {
       throw new AppError(
         "Your current password is wrong.",
-        ErrorCode.INVALID_CREDENTIALS
+        ErrorCode.INVALID_CREDENTIALS,
       );
     }
 
     // Validate current password
     const isPasswordValid = await prisma.user.validatePassword(
       currentPassword,
-      user.password
+      user.password,
     );
 
     if (!isPasswordValid) {
       throw new AppError(
         "Your current password is wrong.",
-        ErrorCode.INVALID_CREDENTIALS
+        ErrorCode.INVALID_CREDENTIALS,
       );
     }
 
@@ -225,7 +225,7 @@ export class AuthService {
     if (token === null) {
       throw new AppError(
         "You ar not logged in! Please log in to gain access",
-        ErrorCode.UNAUTHORIZED
+        ErrorCode.UNAUTHORIZED,
       );
     }
     const decoded = this.verifyToken(token);
@@ -238,7 +238,7 @@ export class AuthService {
     if (!currentUser) {
       throw new AppError(
         "The user belonging to this token does no longer exists",
-        ErrorCode.UNAUTHORIZED
+        ErrorCode.UNAUTHORIZED,
       );
     }
 
@@ -246,12 +246,12 @@ export class AuthService {
     if (currentUser.passwordChangedAt) {
       const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
         decoded.iat!,
-        currentUser.passwordChangedAt
+        currentUser.passwordChangedAt,
       );
       if (hasPasswordChanged) {
         throw new AppError(
           "User recently changed password! Please log in to again",
-          ErrorCode.UNAUTHORIZED
+          ErrorCode.UNAUTHORIZED,
         );
       }
     }

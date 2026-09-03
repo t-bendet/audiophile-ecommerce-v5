@@ -46,7 +46,7 @@ export class UserService extends AbstractCrudService<
   // ***** Persistence Layer Methods *****
 
   protected async persistFindMany(
-    params: Pagination & UserQueryParams
+    params: Pagination & UserQueryParams,
   ): Promise<{ data: UserPublicInfo[]; total: number }> {
     const { skip, take, role, sort, fields } = params;
 

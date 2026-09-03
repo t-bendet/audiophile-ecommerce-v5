@@ -16,7 +16,7 @@ describe("ValidatedRequest", () => {
         expectTypeOf(req.verified.body.status).toEqualTypeOf<
           "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED"
         >();
-      }
+      },
     );
 
     catchAsync<ValidatedRequest<typeof ProductGetAllRequestSchema>>(
@@ -24,7 +24,7 @@ describe("ValidatedRequest", () => {
         expectTypeOf(req.verified.query.name).toEqualTypeOf<
           string | undefined
         >();
-      }
+      },
     );
   });
 
@@ -41,7 +41,7 @@ describe("ValidatedRequest", () => {
     const handler = catchAsync<ValidatedRequest<typeof GetOrderRequestSchema>>(
       async (req, res) => {
         res.json({ orderId: req.verified.params.orderId });
-      }
+      },
     );
 
     expectTypeOf(handler).toExtend<RequestHandler>();

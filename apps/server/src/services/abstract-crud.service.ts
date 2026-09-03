@@ -84,14 +84,14 @@ export abstract class AbstractCrudService<
    * @returns Array of entities and total count
    */
   protected abstract persistFindMany(
-    params: Pagination & Query
+    params: Pagination & Query,
   ): Promise<{ data: Entity[]; total: number }>;
 
   protected abstract persistFindById(id: string): Promise<Entity | null>;
   protected abstract persistCreate(data: CreateInput): Promise<Entity>;
   protected abstract persistUpdate(
     id: string,
-    data: UpdateInput
+    data: UpdateInput,
   ): Promise<Entity | null>;
   protected abstract persistDelete(id: string): Promise<boolean>;
 
@@ -152,7 +152,7 @@ export abstract class AbstractCrudService<
 
   protected pickFieldsByAllowed<T extends Record<string, any>>(
     obj: T,
-    fields: (keyof T)[]
+    fields: (keyof T)[],
   ): Partial<T> {
     return fields.reduce((acc, field) => {
       if (field in obj) {
@@ -164,7 +164,7 @@ export abstract class AbstractCrudService<
 
   protected pickFieldsByNotAllowed<T extends Record<string, any>>(
     obj: T,
-    fields: (keyof T)[]
+    fields: (keyof T)[],
   ): Partial<T> {
     const result: Partial<T> = {};
     for (const key in obj) {

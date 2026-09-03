@@ -51,7 +51,7 @@ export const buildMeta = ({
 
 export const parseSelect = <Field extends string>(
   fields: unknown,
-  allowedFields: readonly Field[]
+  allowedFields: readonly Field[],
 ): Record<Field, true> | undefined => {
   if (typeof fields !== "string" || !fields) return undefined;
 
@@ -67,7 +67,7 @@ export const parseSelect = <Field extends string>(
 
 export const parseOrderBy = <Field extends string>(
   sort: unknown,
-  allowedFields: readonly Field[]
+  allowedFields: readonly Field[],
 ): OrderBy[] => {
   const defaultOrderBy: OrderBy[] = [{ id: "desc" }];
   if (typeof sort !== "string" || !sort) return defaultOrderBy;

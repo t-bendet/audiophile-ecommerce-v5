@@ -55,7 +55,7 @@ export const updateUser: RequestHandler = catchAsync<
 >(async (req, res, _next) => {
   const dto = await userService.update(
     req.verified.params.id,
-    req.verified.body
+    req.verified.body,
   );
   res.status(200).json(createSingleItemResponse(dto));
 });

@@ -22,7 +22,7 @@ refactor last, since it touches every controller).
 params: z.object({ orderId: IdValidator }),    // ← the factory, not a schema
 ```
 
-Everywhere else in the codebase it's `IdValidator()`. Here the *function* is passed.
+Everywhere else in the codebase it's `IdValidator()`. Here the _function_ is passed.
 
 **Why it matters:** Zod 4 constructs the object fine, then throws
 `Invalid element at key "orderId": expected a Zod schema` **at parse time**. That throw happens
@@ -30,20 +30,24 @@ inside `validateSchema`, so it's a plain `Error` — not a `ZodError` — which 
 passes it through untouched and `sendErrorProd` returns a generic **500 INTERNAL_ERROR**.
 
 Affected routes (`apps/server/src/routes/order.route.ts:35,46`):
+
 - `GET /api/v1/orders/:orderId`
 - `PATCH /api/v1/orders/:orderId/status`
 
 Both are unconditionally broken in production. Verified by probe, not inferred.
 
 **Fix:**
+
 ```ts
 params: z.object({ orderId: IdValidator("Order") }).strict(),
 ```
+
 (Add `.strict()` while you're there — the other entity schemas have it, these two don't.)
 
 **Blast radius:** 2 lines.
 
 **Verify:**
+
 ```bash
 curl -s localhost:8000/api/v1/orders/<valid-24-char-id> -H "Cookie: jwt=<token>" | jq '.success'
 # before: false / 500 INTERNAL_ERROR — after: true
@@ -76,11 +80,11 @@ Also note it reads `process.env.NODE_ENV` directly instead of the validated `env
 const sendErrorProd = (err: unknown, req: Request, res: Response) => {
   if (err instanceof AppError) {
     if (err.code === ErrorCode.INVALID_CREDENTIALS) clearAuthCookie(req, res);
-    if (err.statusCode >= 500) console.error("ERROR 💥", err);   // ← add
+    if (err.statusCode >= 500) console.error("ERROR 💥", err); // ← add
     return res.status(err.statusCode).json(/* … */);
   }
 
-  console.error("ERROR 💥", err);                                 // ← always
+  console.error("ERROR 💥", err); // ← always
   return res.status(500).json(/* generic */);
 };
 ```
@@ -143,7 +147,7 @@ complete" and exit promptly.
 return sort.split(",").map((field) => {
   const isDescending = field.startsWith("-");
   const fieldName = isDescending ? field.substring(1) : field;
-  return { [fieldName]: isDescending ? "desc" : "asc" };   // ← any field name reaches Prisma
+  return { [fieldName]: isDescending ? "desc" : "asc" }; // ← any field name reaches Prisma
 });
 ```
 
@@ -173,6 +177,7 @@ Export conditions are matched **in declaration order**. `"import"` resolves firs
 relies on the map (rather than the top-level `"types"` fallback) never sees the declarations.
 
 **Fix:**
+
 ```json
 "exports": { ".": { "types": "./dist/src/index.d.ts", "import": "./dist/src/index.js" } }
 ```
@@ -204,6 +209,7 @@ Produces `"Product  Id is required"` (double space) in the client-facing error m
 ### 8. `req.verified` is untyped — schemas don't reach controllers
 
 **Where:**
+
 - `packages/domain/src/common.ts:237-251` — `createRequestSchema` casts its return to
   `z.ZodType<RequestSchema>` with `as any`, discarding the inferred `{params, body, query}` types
 - `apps/server/src/app.ts:16` — `verified?: Record<string, any>`
@@ -216,24 +222,34 @@ controller access is `any` with an optional-chain + non-null-assertion dance to 
 **Fix (3 steps):**
 
 1. `common.ts` — stop widening the return type:
+
    ```ts
    export const createRequestSchema = <
      P extends z.ZodTypeAny = z.ZodObject<Record<string, never>>,
      B extends z.ZodTypeAny = z.ZodUndefined,
      Q extends z.ZodTypeAny = z.ZodObject<Record<string, never>>,
-   >(options?: { params?: P; body?: B; query?: Q }) =>
+   >(options?: {
+     params?: P;
+     body?: B;
+     query?: Q;
+   }) =>
      z.object({
        params: (options?.params ?? z.strictObject({})) as P,
        body: (options?.body ?? z.undefined()) as B,
        query: (options?.query ?? z.object({})) as Q,
      });
    ```
+
    (The `RequestSchema` type export becomes dead — remove it.)
 
 2. `validation.middleware.ts` — add the narrowed request type:
+
    ```ts
-   export type ValidatedRequest<S extends ZodType> = Request & { verified: z.infer<S> };
+   export type ValidatedRequest<S extends ZodType> = Request & {
+     verified: z.infer<S>;
+   };
    ```
+
    and change the augmentation in `app.ts` to `verified?: unknown` (intersection then collapses to
    the schema type). Consider moving the augmentation to `src/types/express.d.ts` while you're here.
 
@@ -244,17 +260,20 @@ controller access is `any` with an optional-chain + non-null-assertion dance to 
      <TReq extends Request = Request>(
        fn: (req: TReq, res: Response, next: NextFunction) => Promise<unknown>,
      ): RequestHandler =>
-     (req, res, next) => { fn(req as TReq, res, next).catch(next); };
+     (req, res, next) => {
+       fn(req as TReq, res, next).catch(next);
+     };
    ```
 
 Then controllers become:
+
 ```ts
-export const getCategoryById = catchAsync<ValidatedRequest<typeof CategoryGetByIdRequestSchema>>(
-  async (req, res) => {
-    const dto = await categoryService.get(req.verified.params.id);  // string, checked
-    res.status(200).json(createSingleItemResponse(dto));
-  },
-);
+export const getCategoryById = catchAsync<
+  ValidatedRequest<typeof CategoryGetByIdRequestSchema>
+>(async (req, res) => {
+  const dto = await categoryService.get(req.verified.params.id); // string, checked
+  res.status(200).json(createSingleItemResponse(dto));
+});
 ```
 
 **Blast radius:** largest item on the list — `common.ts`, `validation.middleware.ts`,
@@ -275,6 +294,7 @@ schema and confirm the controller fails to compile.
 destructures untyped params.
 
 **Fix:** add a 5th generic:
+
 ```ts
 export abstract class AbstractCrudService<
   Entity, CreateInput, UpdateInput, DTO,
@@ -287,6 +307,7 @@ export abstract class AbstractCrudService<
   async getAll(query: Query): Promise<{ data: DTO[]; meta: Meta }> { … }
 }
 ```
+
 Then e.g. `CategoryService extends AbstractCrudService<…, ExtendedQueryParams<{ name?: NAME }>>`.
 
 Defaulting the generic means existing subclasses keep compiling until you tighten them one at a
@@ -366,6 +387,7 @@ Today: no logs at all in production, no request ids, no way to correlate a clien
 with a server log line.
 
 **Fix:** add `pino` + `pino-http` (`utils/logger.ts`, full version in blueprint §7) with:
+
 - `genReqId` assigning/propagating `x-request-id`
 - redaction of `authorization`, `cookie`, `set-cookie`, `*.password`, `*.passwordConfirm`
 - `pino-pretty` transport in development only
@@ -400,6 +422,7 @@ warnings on first run.
 ### 15. No tests
 
 There is no test setup at all. Highest value per line of effort:
+
 - one **route test** per resource via `supertest` against `app` — covers validation → controller →
   service → error middleware in one assertion
 - one **service test** per service for the business rules (`filterUpdateInput` whitelists,
@@ -445,24 +468,24 @@ is the only option and `pnpm db:push` is correct here. Nothing to change.
 
 ## Summary
 
-| # | Fix | Priority | Files touched |
-|---|---|---|---|
-| 1 | `IdValidator` uncalled → 2 routes 500 | **P0** | 1 |
-| 2 | Production errors never logged | **P0** | 1 |
-| 3 | Await DB connect before listen | P1 | 1 |
-| 4 | Unified graceful shutdown | P1 | 1 |
-| 5 | Whitelist `?sort=` fields | P1 | 4 (or 1 with #10) |
-| 6 | `exports` condition order | P1 | 1–2 |
-| 7 | Stray space in validator label | P1 | 1 |
-| 8 | Typed `req.verified` | P2 | ~11 |
-| 9 | `getAll` Query generic | P2 | 6 |
-| 10 | Shared `utils/query.ts` | P2 | 6 |
-| 11 | Dead `parseSelect` | P2 | 1 |
-| 12 | `getMe` param mutation | P2 | 2 |
-| 13 | pino structured logging | P3 | 6 |
-| 14 | ESLint flat config | P3 | ~6 |
-| 15 | Tests | P3 | new |
-| 16 | Prisma import patch script | P3 (done) | 7 |
-| 17 | Migrations | N/A (Mongo) | — |
+| #   | Fix                                   | Priority    | Files touched     |
+| --- | ------------------------------------- | ----------- | ----------------- |
+| 1   | `IdValidator` uncalled → 2 routes 500 | **P0**      | 1                 |
+| 2   | Production errors never logged        | **P0**      | 1                 |
+| 3   | Await DB connect before listen        | P1          | 1                 |
+| 4   | Unified graceful shutdown             | P1          | 1                 |
+| 5   | Whitelist `?sort=` fields             | P1          | 4 (or 1 with #10) |
+| 6   | `exports` condition order             | P1          | 1–2               |
+| 7   | Stray space in validator label        | P1          | 1                 |
+| 8   | Typed `req.verified`                  | P2          | ~11               |
+| 9   | `getAll` Query generic                | P2          | 6                 |
+| 10  | Shared `utils/query.ts`               | P2          | 6                 |
+| 11  | Dead `parseSelect`                    | P2          | 1                 |
+| 12  | `getMe` param mutation                | P2          | 2                 |
+| 13  | pino structured logging               | P3          | 6                 |
+| 14  | ESLint flat config                    | P3          | ~6                |
+| 15  | Tests                                 | P3          | new               |
+| 16  | Prisma import patch script            | P3 (done)   | 7                 |
+| 17  | Migrations                            | N/A (Mongo) | —                 |
 
 P0+P1 is roughly an afternoon and fixes two real production bugs. P2 is a weekend. P3 is ongoing.

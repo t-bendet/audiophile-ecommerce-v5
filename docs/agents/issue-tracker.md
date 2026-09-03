@@ -19,11 +19,11 @@ Infer the repo from `git remote -v`; `gh` does this automatically when run insid
 
 Branch name: `<type>/<issue#>-<slug>`
 
-| Part | Rule |
-|---|---|
-| `<type>` | `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, or `perf` — the conventional-commit type matching the bulk of the change |
-| `<issue#>` | the bare GitHub issue number, no `#` |
-| `<slug>` | 2-5 kebab-case words from the issue title |
+| Part       | Rule                                                                                                                         |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `<type>`   | `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, or `perf` — the conventional-commit type matching the bulk of the change |
+| `<issue#>` | the bare GitHub issue number, no `#`                                                                                         |
+| `<slug>`   | 2-5 kebab-case words from the issue title                                                                                    |
 
 ```
 feat/112-order-history-page

@@ -16,7 +16,7 @@ const configRouter: express.Router = express.Router();
 configRouter.get(
   "/",
   validateSchema(ConfigGetUniqueRequestSchema),
-  configController.getConfig
+  configController.getConfig,
 );
 
 // * ADMIN ROUTES (restricted to admin roles)
@@ -25,19 +25,19 @@ configRouter.use(authenticate, authorize("ADMIN"));
 configRouter.post(
   "/",
   validateSchema(ConfigCreateRequestSchema),
-  configController.createConfig
+  configController.createConfig,
 );
 
 configRouter.patch(
   "/:id",
   validateSchema(ConfigUpdateByIdRequestSchema),
-  configController.updateConfig
+  configController.updateConfig,
 );
 
 configRouter.delete(
   "/:id",
   validateSchema(ConfigDeleteByIdRequestSchema),
-  configController.deleteConfig
+  configController.deleteConfig,
 );
 
 export default configRouter;

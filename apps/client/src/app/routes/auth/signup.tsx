@@ -4,7 +4,7 @@ import { Metadata } from "@/components/seo/metadata";
 
 export default function SignupPage() {
   return (
-    <Section classes="tracking-200 max-w-md min-w-xs">
+    <Section classes="tracking-200 min-w-xs max-w-md">
       <Metadata title="Create Account" noIndex />
       <SignupForm />
     </Section>

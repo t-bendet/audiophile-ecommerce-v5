@@ -51,9 +51,7 @@ export const Metadata = ({
       />
       <meta name="twitter:title" content={resolvedTitle} />
       <meta name="twitter:description" content={resolvedDescription} />
-      {resolvedImage && (
-        <meta name="twitter:image" content={resolvedImage} />
-      )}
+      {resolvedImage && <meta name="twitter:image" content={resolvedImage} />}
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
     </>
   );

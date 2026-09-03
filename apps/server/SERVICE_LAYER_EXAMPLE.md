@@ -119,7 +119,7 @@ export class OrderService {
         if (product.inventory < item.quantity) {
           throw new AppError(
             `Insufficient stock for ${product.name}. Available: ${product.inventory}, Requested: ${item.quantity}`,
-            400
+            400,
           );
         }
 
@@ -134,7 +134,7 @@ export class OrderService {
       if (Math.abs(calculatedTotal - orderData.total) > 0.01) {
         throw new AppError(
           `Total mismatch. Expected: ${calculatedTotal}, Received: ${orderData.total}`,
-          400
+          400,
         );
       }
 
@@ -176,8 +176,8 @@ export class OrderService {
           tx.product.update({
             where: { id: update.id },
             data: { inventory: update.quantity },
-          })
-        )
+          }),
+        ),
       );
 
       return order;
@@ -208,7 +208,7 @@ export class OrderService {
       if (!["PENDING", "PROCESSING"].includes(order.status)) {
         throw new AppError(
           `Cannot cancel order with status: ${order.status}`,
-          400
+          400,
         );
       }
 
@@ -225,8 +225,8 @@ export class OrderService {
           tx.product.update({
             where: { id: item.productId },
             data: { inventory: { increment: item.quantity } },
-          })
-        )
+          }),
+        ),
       );
 
       return updatedOrder;
@@ -242,7 +242,7 @@ export class OrderService {
       status?: string;
       page?: number;
       limit?: number;
-    }
+    },
   ) {
     const page = options.page || 1;
     const limit = options.limit || 10;
@@ -434,7 +434,7 @@ export class UserService {
     // Validate password using Prisma extension method
     const isPasswordValid = await prisma.user.validatePassword(
       credentials.password,
-      user.password
+      user.password,
     );
 
     if (!isPasswordValid) {
@@ -456,7 +456,7 @@ export class UserService {
   async updatePassword(
     userId: string,
     currentPassword: string,
-    newPassword: string
+    newPassword: string,
   ) {
     // Get user with password
     const user = await prisma.user.findUnique({
@@ -471,7 +471,7 @@ export class UserService {
     // Verify current password
     const isValid = await prisma.user.validatePassword(
       currentPassword,
-      user.password
+      user.password,
     );
 
     if (!isValid) {
@@ -576,7 +576,7 @@ export class ProductService {
   async createProduct(productData: CreateProductInput) {
     // Upload images to Cloudinary (external service)
     const uploadedImages = await this.uploadImagesToCloudinary(
-      productData.images
+      productData.images,
     );
 
     // Create product with uploaded image URLs
@@ -647,8 +647,8 @@ export class ProductService {
           prisma.product.updateMany({
             where: { sku: item.sku },
             data: { price: item.price },
-          })
-        )
+          }),
+        ),
       );
 
       return {
@@ -671,7 +671,7 @@ export class ProductService {
           url: "https://cloudinary.com/uploaded-image.jpg",
           publicId: "product-images/abc123",
         };
-      })
+      }),
     );
 
     return uploads;
@@ -685,7 +685,7 @@ export class ProductService {
     Promise.all(
       publicIds.map(async (publicId) => {
         // Delete from cloudinary
-      })
+      }),
     ).catch((error) => {
       console.error("Failed to delete images from Cloudinary", error);
     });
@@ -792,7 +792,7 @@ describe("OrderService", () => {
       });
 
       await expect(service.createOrder("user-1", orderData)).rejects.toThrow(
-        "Insufficient stock"
+        "Insufficient stock",
       );
     });
   });

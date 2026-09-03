@@ -29,7 +29,7 @@ export const updateConfig: RequestHandler = catchAsync<
 >(async (req, res) => {
   const dto = await configService.update(
     req.verified.params.id,
-    req.verified.body
+    req.verified.body,
   );
   res.status(200).json(createSingleItemResponse(dto));
 });

@@ -31,7 +31,7 @@ export class CategoryService extends AbstractCrudService<
   }
 
   protected async persistFindMany(
-    params: Pagination & CategoryQueryParams
+    params: Pagination & CategoryQueryParams,
   ): Promise<{ data: Category[]; total: number }> {
     const { skip, take, name, sort, fields } = params;
 

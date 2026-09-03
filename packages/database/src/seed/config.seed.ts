@@ -16,7 +16,7 @@ const seedConfigs = async (createdProducts: ProductCreateResult[]) => {
       acc[category.name] = category.id;
       return acc;
     },
-    {} as Record<string, string>
+    {} as Record<string, string>,
   );
 
   const config = await prisma.config.create({
