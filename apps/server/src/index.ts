@@ -3,6 +3,7 @@ import figlet from "figlet";
 import type { Server } from "node:http";
 import app from "./app.js";
 import { env } from "./utils/env.js";
+import { logger } from "./utils/logger.js";
 
 const port = env.PORT;
 const SHUTDOWN_TIMEOUT_MS = 10_000;
@@ -12,7 +13,7 @@ let shuttingDown = false;
 
 function logBanner(devText: string, prodText: string) {
   if (env.NODE_ENV === "development") {
-    console.log(
+    logger.info(
       figlet.textSync(devText, {
         font: "Ogre",
         horizontalLayout: "controlled smushing",
@@ -22,14 +23,13 @@ function logBanner(devText: string, prodText: string) {
       }),
     );
   } else {
-    console.log(prodText);
+    logger.info(prodText);
   }
 }
 
 // Handle synchronous exceptions - must be registered before any async code
 process.on("uncaughtException", (err) => {
-  console.error("UNCAUGHT EXCEPTION! Shutting down...");
-  console.error(err.name, err.message);
+  logger.fatal({ err }, "uncaught exception, shutting down");
   void shutdown("uncaughtException", 1);
 });
 
@@ -37,8 +37,7 @@ async function start() {
   try {
     await prisma.$connect();
   } catch (err) {
-    console.error("DATABASE CONNECTION FAILED! Shutting down...");
-    console.error(err);
+    logger.fatal({ err }, "database connection failed, shutting down");
     process.exit(1);
   }
 
@@ -57,10 +56,13 @@ async function shutdown(signal: string, exitCode: number) {
   if (shuttingDown) return;
   shuttingDown = true;
 
-  console.log(`${signal} received, shutting down gracefully...`);
+  logger.info({ signal }, "signal received, shutting down gracefully");
 
   const forceExitTimer = setTimeout(() => {
-    console.error("Shutdown timed out, forcing exit");
+    logger.error(
+      { timeoutMs: SHUTDOWN_TIMEOUT_MS },
+      "shutdown timed out, forcing exit",
+    );
     process.exit(exitCode);
   }, SHUTDOWN_TIMEOUT_MS);
   forceExitTimer.unref();
@@ -80,10 +82,10 @@ async function shutdown(signal: string, exitCode: number) {
   try {
     await prisma.$disconnect();
   } catch (err) {
-    console.error("Error disconnecting Prisma during shutdown:", err);
+    logger.error({ err }, "error disconnecting Prisma during shutdown");
   }
 
-  console.log("shutdown complete");
+  logger.info("shutdown complete");
   process.exit(exitCode);
 }
 
@@ -93,8 +95,7 @@ process.on("SIGINT", () => void shutdown("SIGINT", 0));
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err: Error) => {
-  console.error("UNHANDLED REJECTION!");
-  console.error(err.name, err.message);
+  logger.fatal({ err }, "unhandled rejection, shutting down");
   void shutdown("unhandledRejection", 1);
 });
 

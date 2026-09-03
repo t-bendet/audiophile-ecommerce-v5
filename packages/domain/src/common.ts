@@ -38,7 +38,11 @@ export const ErrorObjectSchema = z.object({
   details: z.array(ErrorDetailSchema).optional(),
   stack: z.string().optional(),
   statusCode: z.number(),
-}) satisfies z.ZodType<Omit<AppError, "name" | "cause">>;
+  /** Correlates this response with the server log line for the request. */
+  requestId: z.string().optional(),
+}) satisfies z.ZodType<
+  Omit<AppError, "name" | "cause"> & { requestId?: string }
+>;
 
 export type ErrorObject = z.infer<typeof ErrorObjectSchema>;
 

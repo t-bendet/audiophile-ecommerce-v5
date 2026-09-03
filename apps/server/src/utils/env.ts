@@ -14,9 +14,33 @@ type ConnectionString =
 const connectionStringRegex =
   /^mongodb\+srv:\/\/([^:]+):([^@]+)@([^/]+)\/([^?]+)\?retryWrites=true&w=majority&appName=([^&]+)$/;
 
+const NodeEnvSchema = z.enum(["development", "production", "test"]);
+
+// pino's levels, ordered as pino orders them.
+const LogLevelSchema = z.enum([
+  "fatal",
+  "error",
+  "warn",
+  "info",
+  "debug",
+  "trace",
+  "silent",
+]);
+
+// Tests run silent so that a request-per-line logger does not drown the
+// reporter; development gets `debug`, everything else `info`.
+const LOG_LEVEL_DEFAULTS = {
+  development: "debug",
+  production: "info",
+  test: "silent",
+} as const satisfies Record<
+  z.infer<typeof NodeEnvSchema>,
+  z.infer<typeof LogLevelSchema>
+>;
+
 const createEnv = () => {
   const EnvSchema = z.object({
-    NODE_ENV: z.enum(["development", "production", "test"]),
+    NODE_ENV: NodeEnvSchema,
     PORT: z.coerce.number().int().min(1000).max(65535),
     DATABASE_URL: z.custom<ConnectionString>((val) =>
       connectionStringRegex.test(val as string),
@@ -27,6 +51,7 @@ const createEnv = () => {
     JWT_EXPIRES_IN: msDurationStringCheck,
     JWT_COOKIE_EXPIRES_IN: z.coerce.number().positive(),
     ALLOWED_ORIGINS: z.string().optional(),
+    LOG_LEVEL: LogLevelSchema.optional(),
     VITE_APP_PORT: z.coerce.number().int().min(1000).max(65535).optional(),
   });
 
@@ -39,7 +64,11 @@ const createEnv = () => {
     ${z.prettifyError(parsedEnv.error)}`,
     );
   }
-  return parsedEnv.data;
+  return {
+    ...parsedEnv.data,
+    LOG_LEVEL:
+      parsedEnv.data.LOG_LEVEL ?? LOG_LEVEL_DEFAULTS[parsedEnv.data.NODE_ENV],
+  };
 };
 
 export const env = createEnv();

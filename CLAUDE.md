@@ -60,6 +60,7 @@ Route → validateSchema middleware → Controller → Service → Prisma
 - **`validateSchema(ZodSchema)`** — validates `params`, `body`, `query`; validated data lands in `req.verified`
 - **`AppError`** — throw with error codes from `@repo/domain/error-codes`; never throw raw errors
 - **Zod errors** — auto-converted to `AppError(422, VALIDATION_ERROR)` by error middleware
+- **Logging** — `pino` + `pino-http`; inside a request use `req.log` (it carries `requestId`), never the bare `logger`. Errors are logged once, at the boundary: the error middleware puts 5xx on `res.err` and pino-http emits the single line for that request. Layers in between throw, they don't log.
 
 ### Service layer
 
@@ -135,9 +136,12 @@ JWT_SECRET=<min 32 chars>
 JWT_EXPIRES_IN=90d
 JWT_COOKIE_EXPIRES_IN=20000
 PORT=8000
+LOG_LEVEL=debug
 ```
 
-`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses. `test` is set by the vitest configs and behaves like `production` (no request logging, no localhost CORS origin, sanitized errors).
+`LOG_LEVEL` is optional; unset it defaults per environment — `debug` in development, `info` in production, `silent` in test.
+
+`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses. `test` is set by the vitest configs and behaves like `production` (logger silent, no localhost CORS origin, sanitized errors).
 
 ## Git workflow
 

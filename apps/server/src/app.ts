@@ -4,10 +4,10 @@ import cors from "cors";
 import express, { Express } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import morgan from "morgan";
 import globalErrorHandler from "./middlewares/error.middleware.js";
 import indexRoute from "./routes/index.js";
 import { env } from "./utils/env.js";
+import { httpLogger } from "./utils/logger.js";
 
 declare global {
   namespace Express {
@@ -24,7 +24,11 @@ app.set("query parser", "extended");
 // Trust reverse proxy (Render, Railway, etc.) - required for secure cookies
 app.set("trust proxy", 1);
 
-// 1. CORS - handle preflight immediately, reject disallowed origins early
+// 1. Logging - first in the chain so every request, including the ones CORS
+// and the rate limiter reject, gets a request id and a log line
+app.use(httpLogger);
+
+// 2. CORS - handle preflight immediately, reject disallowed origins early
 const allowedOrigins: string[] = env.ALLOWED_ORIGINS?.split(",") || [];
 if (env.NODE_ENV === "development") {
   allowedOrigins.push(`http://localhost:${env.VITE_APP_PORT || 5173}`);
@@ -47,7 +51,7 @@ app.use(
   }),
 );
 
-// 2. Rate limiting - reject abusive requests before parsing body
+// 3. Rate limiting - reject abusive requests before parsing body
 const limiter = rateLimit({
   limit: 500, // 500 requests per window (SPAs make many calls per page)
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -57,13 +61,8 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
-// 3. Security headers
+// 4. Security headers
 app.use(helmet());
-
-// 4. Logging - log all requests including rejected ones
-if (env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-}
 
 // 5. Body parsers - parse only legitimate requests
 app.use(express.json({ limit: "10kb" }));
