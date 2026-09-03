@@ -28,10 +28,7 @@ app.set("trust proxy", 1);
 // and the rate limiter reject, gets a request id and a log line
 app.use(httpLogger);
 
-// 2. Security headers - set on every response, including ones CORS and the
-// rate limiter reject below. Helmet only sets headers; it parses nothing and
-// reads no body, so it doesn't conflict with the "reject abusive requests
-// before parsing body" intent of step 4.
+// 2. Security headers - set on every response
 app.use(helmet());
 
 // 3. CORS - handle preflight immediately, reject disallowed origins early
