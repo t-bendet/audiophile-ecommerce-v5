@@ -158,4 +158,27 @@ describe("error boundary logging", () => {
     expect(lines[0]!.level).toBe(30);
     expect(lines[0]!.err).toBeUndefined();
   });
+
+  it("keeps a failure at error level when the response already went out", async () => {
+    const { lines, logger } = collect();
+    const app = express();
+    app.use(pinoHttp({ ...httpLoggerOptions, logger }));
+    // A double send: the client already has its 200, so the boundary can no
+    // longer change what was delivered. It still marks the request failed, and
+    // the log line has to say so - which is why the logged status (500, set on
+    // a response that is already out) does not match what the client received.
+    app.get("/late", (_req, res, next) => {
+      res.status(200).json({ ok: true });
+      next(new Error("late failure"));
+    });
+    app.use(globalErrorHandler);
+
+    const res = await request(app).get("/late");
+
+    expect(res.status).toBe(200);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]!.level).toBe(50);
+    expect(lines[0]!.err?.message).toBe("late failure");
+    expect(lines[0]!.res?.statusCode).toBe(500);
+  });
 });
