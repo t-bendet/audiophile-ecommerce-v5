@@ -71,7 +71,7 @@ export type UserQueryParams = ExtendedQueryParams<{ role?: ROLE }>;
 
 export const UserQueryParamsSchema = BaseQueryParamsSchema.extend({
   role: z.enum(ROLE).optional(),
-}) satisfies z.ZodType<UserQueryParams>;
+}).strict() satisfies z.ZodType<UserQueryParams>;
 
 export const UserGetAllRequestSchema = createRequestSchema({
   query: UserQueryParamsSchema,

@@ -6,7 +6,6 @@ import {
 } from "@/types/api";
 import {
   NAME,
-  Product,
   ProductGetAllResponse,
   ProductGetAllResponseSchema,
   ProductGetByCategoryResponse,
@@ -15,15 +14,14 @@ import {
   ProductGetRelatedResponseSchema,
   ProductGetShowCaseResponse,
   ProductGetShowCaseResponseSchema,
+  ProductQueryParams,
 } from "@repo/domain";
 import { queryOptions } from "@tanstack/react-query";
 import productKeys from "./product-keys";
 
 // ** GetProducts
 
-type productKeys = keyof Product;
-
-type TProductFilters = Partial<Record<productKeys, string>>;
+type TProductFilters = Partial<Record<keyof ProductQueryParams, string>>;
 
 type TGetProducts = TBaseHandler<
   ProductGetAllResponse,

@@ -1,3 +1,4 @@
+import { ErrorCode } from "@repo/domain";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -139,6 +140,17 @@ describe("GET /api/v1/categories", () => {
       orderBy: [{ name: "asc" }],
     });
   });
+
+  it("rejects an unknown query key and names it in the error details", async () => {
+    const { res } = await listCategories("?name=Headphones&foo=1");
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.VALIDATION_ERROR,
+      details: [{ code: "unrecognized_keys", path: ["query", "foo"] }],
+    });
+    expect(findMany).not.toHaveBeenCalled();
+  });
 });
 
 describe("GET /api/v1/products", () => {
@@ -160,6 +172,35 @@ describe("GET /api/v1/products", () => {
       skip: 0,
       take: 20,
     });
+  });
+
+  it("accepts the name filter and the pagination keys", async () => {
+    const { res } = await listProducts(
+      "?name=zx9&fields=id,name&sort=-price&page=2&limit=5",
+    );
+
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects a product field that is not a supported filter", async () => {
+    const { res } = await listProducts("?price=100");
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.VALIDATION_ERROR,
+      details: [{ code: "unrecognized_keys", path: ["query", "price"] }],
+    });
+    expect(productFindMany).not.toHaveBeenCalled();
+  });
+
+  it("names every unknown query key in the error details", async () => {
+    const { res } = await listProducts("?utm_source=newsletter&fbclid=abc");
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.details).toEqual([
+      expect.objectContaining({ path: ["query", "utm_source"] }),
+      expect.objectContaining({ path: ["query", "fbclid"] }),
+    ]);
   });
 });
 
@@ -190,5 +231,16 @@ describe("GET /api/v1/users", () => {
       skip: 20,
       take: 10,
     });
+  });
+
+  it("rejects an unknown query key and names it in the error details", async () => {
+    const { res } = await listUsers("?role=ADMIN&email=a@b.c");
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.VALIDATION_ERROR,
+      details: [{ code: "unrecognized_keys", path: ["query", "email"] }],
+    });
+    expect(userFindMany).not.toHaveBeenCalled();
   });
 });

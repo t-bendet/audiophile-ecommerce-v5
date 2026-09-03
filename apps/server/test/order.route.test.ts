@@ -121,6 +121,20 @@ describe("GET /api/v1/orders", () => {
       .set("Cookie", authCookie(other.id));
     expect(otherRes.body.data).toEqual([]);
   });
+
+  it("rejects an unknown query key and names it in the error details", async () => {
+    const user = await createUser();
+
+    const res = await request(app)
+      .get("/api/v1/orders?status=PENDING&userId=abc")
+      .set("Cookie", authCookie(user.id));
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.VALIDATION_ERROR,
+      details: [{ code: "unrecognized_keys", path: ["query", "userId"] }],
+    });
+  });
 });
 
 describe("GET /api/v1/orders/:orderId", () => {
