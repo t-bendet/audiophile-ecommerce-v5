@@ -28,7 +28,10 @@ app.set("trust proxy", 1);
 // and the rate limiter reject, gets a request id and a log line
 app.use(httpLogger);
 
-// 2. CORS - handle preflight immediately, reject disallowed origins early
+// 2. Security headers - set on every response
+app.use(helmet());
+
+// 3. CORS - handle preflight immediately, reject disallowed origins early
 const allowedOrigins: string[] = env.ALLOWED_ORIGINS?.split(",") || [];
 if (env.NODE_ENV === "development") {
   allowedOrigins.push(`http://localhost:${env.VITE_APP_PORT || 5173}`);
@@ -51,11 +54,8 @@ app.use(
   }),
 );
 
-// 3. Rate limiting - reject abusive requests before parsing body
+// 4. Rate limiting - reject abusive requests before parsing body
 app.use("/api", apiLimiter);
-
-// 4. Security headers
-app.use(helmet());
 
 // 5. Body parsers - parse only legitimate requests
 app.use(express.json({ limit: "10kb" }));

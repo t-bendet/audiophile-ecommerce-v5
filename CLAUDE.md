@@ -77,6 +77,16 @@ Skip the service layer for simple pass-through CRUD; go controller → Prisma di
 - Controllers do **not** re-validate structure (middleware already did it)
 - 5-layer system: route middleware → controller logic → Prisma extensions → DB constraints → DTO mapping
 
+### Code comments
+
+Default to no comments — names and structure should carry the meaning; rationale belongs in docs/CONTEXT.md, not inline.
+
+Add one only when:
+- an existing convention already comments every item in a section (e.g. the numbered middleware steps in `app.ts` — match the existing one-line style), or
+- a genuinely non-obvious constraint needs flagging (a hidden invariant, a workaround, something a reader would get wrong without it).
+
+Even then: one short line. No rationale paragraphs, no restating what the code already shows.
+
 ### Domain package naming
 
 | Suffix | Purpose |
