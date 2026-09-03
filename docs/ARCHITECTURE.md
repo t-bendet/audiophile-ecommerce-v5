@@ -32,7 +32,10 @@ Base class handles pagination meta; concrete subclasses implement six abstract m
 Instead of try/catch in every handler, all async controllers are wrapped once. Errors propagate to a centralized error middleware.
 
 **3. `req.verified` contract**
-Validated input is written here by `validateSchema(ZodSchema)` middleware before the controller even runs. Controllers never touch raw `req.body` or `req.params`. Zod schemas use `.strict()` to reject unknown fields. Handlers declare `catchAsync<ValidatedRequest<typeof XRequestSchema>>`, which narrows `req.verified` to the schema's inferred type, so renaming a schema field breaks the controller at compile time.
+Validated input is written here by `validateSchema(ZodSchema)` middleware before the controller even runs. Controllers never touch raw `req.body` or `req.params`. Zod schemas use `.strict()` to reject unknown fields. `req.verified` is narrowed to the schema's inferred type, so renaming a schema field breaks the controller at compile time.
+
+**3a. `defineHandler(schema, fn)`**
+The schema and the handler that reads it are declared together: `defineHandler` returns the `[validateSchema(schema), catchAsync(fn)]` pair, the controller exports it, and the route spreads it (`router.post("/", ...controller.createX)`). The schema is named once, route files import none, and a handler cannot be mounted against a schema other than the one it was written for — the drift is unrepresentable rather than merely detectable. `catchAsync` alone remains for the handful of handlers whose routes mount no schema.
 
 **4. Semantic `ErrorCode` enum (in `@repo/domain`)**
 Shared between client and server. One source of truth maps `ErrorCode → HTTP status`. Both sides speak the same error vocabulary.
