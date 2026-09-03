@@ -8,7 +8,8 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseded PR pushes stop early; pushes to main keep their status.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -18,8 +19,7 @@ jobs:
     name: Verify
     runs-on: ubuntu-latest
     env:
-      # Nothing here connects to a database, but prisma.config.ts refuses to
-      # load without the variable, so generate/build/type-check need a value.
+      # prisma.config.ts refuses to load without it; nothing here connects.
       DATABASE_URL: mongodb://localhost:27017/audiophile
       MONGOMS_DOWNLOAD_DIR: ${{ github.workspace }}/.cache/mongodb-binaries
 
@@ -42,8 +42,7 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      # mongodb-memory-server downloads its binary from a postinstall hook, so
-      # the cache has to be restored before install, not before the test step.
+      # A postinstall hook downloads the binary, so restore before install.
       - name: Cache MongoDB binary
         uses: actions/cache@v4
         with:
@@ -51,6 +50,7 @@ jobs:
           key: mongodb-binaries-${{ runner.os }}-${{ steps.mongodb.outputs.version }}
 
       - run: pnpm install --frozen-lockfile
+        timeout-minutes: 10
 
       # The Prisma client is generated, not committed.
       - run: pnpm db:generate

@@ -20,8 +20,8 @@ conflicts are impossible.
      print it and proceed.
 2. **Check the tree is clean and `main` is current**: `git switch main && git pull`. Abort the whole
    batch if the tree is dirty; that is the user's uncommitted work.
-3. **Announce the gate**: this repo has no PR CI, so `pnpm build && pnpm lint && pnpm test` run
-   locally _is_ the merge gate.
+3. **Announce the gate**: `.github/workflows/ci.yml` runs the same checks on every PR, and the
+   local run below is the pre-merge gate that mirrors it.
 
 ## Per-ticket loop
 

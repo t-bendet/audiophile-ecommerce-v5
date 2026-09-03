@@ -8,6 +8,7 @@ const run = promisify(execFile);
 
 // Pinned so a run does not silently change engine version; the binary is
 // downloaded once at install time and cached globally after that.
+// `.github/workflows/ci.yml` parses this line for its binary cache key.
 const MONGODB_VERSION = "8.2.6";
 
 declare module "vitest" {
