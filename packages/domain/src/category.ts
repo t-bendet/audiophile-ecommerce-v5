@@ -53,7 +53,7 @@ export const CategoryQueryParamsSchema = BaseQueryParamsSchema.extend({
 }) satisfies z.ZodType<CategoryQueryParams>;
 
 export const CategoryGetAllRequestSchema = createRequestSchema({
-  query: CategoryQueryParamsSchema.optional(),
+  query: CategoryQueryParamsSchema,
 });
 
 // GET - Get single category by ID

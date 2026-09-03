@@ -76,7 +76,7 @@ export const UserQueryParamsSchema = BaseQueryParamsSchema.extend({
 }) satisfies z.ZodType<UserQueryParams>;
 
 export const UserGetAllRequestSchema = createRequestSchema({
-  query: UserQueryParamsSchema.optional(),
+  query: UserQueryParamsSchema,
 });
 
 // CREATE - Create new user - admin only
