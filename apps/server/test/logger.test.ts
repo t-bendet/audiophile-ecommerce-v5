@@ -222,7 +222,7 @@ describe("error boundary logging", () => {
     ).get("/boom");
     const [line] = await linesReaching(1);
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
     expect(lines).toHaveLength(1);
     expect(line.level).toBe(50);

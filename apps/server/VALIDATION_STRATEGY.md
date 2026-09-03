@@ -27,7 +27,7 @@
          │  ✓ validateSchema(ZodSchema)      │
          │  ✓ Validates structure & types    │
          │  ✓ Transforms data if needed      │
-         │  ✓ REJECT early (422/400)         │
+         │  ✓ REJECT early (422)             │
          └────────────┬──────────────────────┘
                       │
                       ▼ (validated input)
@@ -606,14 +606,14 @@ Database Constraints (Schema)
 
 | Request Type   | Error Detail Level | Status Code | Example                                                    |
 | -------------- | ------------------ | ----------- | ---------------------------------------------------------- |
-| GET            | Low (simple)       | 400         | "Invalid ID format"                                        |
+| GET            | Low (simple)       | 422         | "Invalid ID format"                                        |
 | POST/PUT/PATCH | High (detailed)    | 422         | "body.price: must be positive number, body.name: required" |
-| DELETE         | Medium             | 400/404     | "Resource not found"                                       |
+| DELETE         | Medium             | 404         | "Resource not found"                                       |
 
 **Status Code Usage**:
 
-- `422 Unprocessable Entity` - Validation middleware catches malformed input
-- `400 Bad Request` - Global error handler catches ZodError or semantic errors
+- `422 Unprocessable Entity` - Any rejected input: the validation middleware, the global ZodError safety net, or a Prisma validation error
+- `400 Bad Request` - Semantic errors raised after the input parsed cleanly
 - `404 Not Found` - Resource doesn't exist
 - `401 Unauthorized` - Authentication failed
 - `403 Forbidden` - Authorization failed (authenticated but no permission)

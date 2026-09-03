@@ -27,7 +27,9 @@ const handleZodError = (err: ZodError) => {
     message: issue.message,
     path: issue.path.length > 0 ? issue.path.map(String) : undefined,
   }));
-  return new AppError(message, ErrorCode.VALIDATION_ERROR, 422, details);
+  // Status omitted on purpose: it comes off ERROR_CODE_TO_STATUS, so a
+  // client-side rejection can never diverge from a server-side one.
+  return new AppError(message, ErrorCode.VALIDATION_ERROR, undefined, details);
 };
 
 /**

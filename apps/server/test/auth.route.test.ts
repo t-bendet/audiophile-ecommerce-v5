@@ -48,7 +48,7 @@ describe("POST /api/v1/auth/signup", () => {
       .post("/api/v1/auth/signup")
       .send({ ...signupBody, passwordConfirm: "something-else" });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect(res.body.error).toMatchObject({
       code: ErrorCode.VALIDATION_ERROR,
       details: [{ path: ["body", "passwordConfirm"] }],

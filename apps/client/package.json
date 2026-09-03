@@ -9,7 +9,8 @@
     "prod": "vite preview",
     "start": "vite preview",
     "type-check": "tsc -b",
-    "lint": "eslint . --max-warnings 23"
+    "lint": "eslint . --max-warnings 23",
+    "test": "vitest run"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
@@ -60,6 +61,7 @@
     "typescript": "~5.8.3",
     "vite": "^7.0.6",
     "vite-plugin-svgr": "^4.3.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.1.11"
   }
 }

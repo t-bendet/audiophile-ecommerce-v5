@@ -242,7 +242,13 @@ export function normalizeError(error: unknown): AppError {
   } else if (error instanceof ZodError) {
     // Validation errors from forms
     const message = `Validation failed: ${error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`;
-    return new AppError(message, ErrorCode.VALIDATION_ERROR, 422, error.issues);
+    // Status omitted: AppError derives it from ERROR_CODE_TO_STATUS (422)
+    return new AppError(
+      message,
+      ErrorCode.VALIDATION_ERROR,
+      undefined,
+      error.issues,
+    );
   } else if (error instanceof Error) {
     return new AppError(
       error.message,
@@ -493,8 +499,8 @@ Error Received
         │   │   │
         │   │   └─ NO → Fall back to status code
         │   │
-        │   ├─ Status 400 or 422?
-        │   │   └─ AppError(VALIDATION_ERROR, 400)
+        │   ├─ Status 422?
+        │   │   └─ AppError(VALIDATION_ERROR, 422)
         │   │       "Please check your input..."
         │   │
         │   ├─ Status 401?
@@ -1395,7 +1401,7 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 
 | HTTP Status | ErrorCode              | Meaning                 | User Action              |
 | ----------- | ---------------------- | ----------------------- | ------------------------ |
-| 400         | VALIDATION_ERROR       | Invalid input           | Fix and retry            |
+| 422         | VALIDATION_ERROR       | Invalid input           | Fix and retry            |
 | 401         | UNAUTHORIZED           | Not authenticated       | Log in                   |
 | 403         | FORBIDDEN              | Not authorized          | Contact support          |
 | 404         | NOT_FOUND              | Resource missing        | Navigate elsewhere       |
@@ -1414,7 +1420,7 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 
 **Validation (form errors)**
 
-- VALIDATION_ERROR (400/422)
+- VALIDATION_ERROR (422)
 
 **Not Found (resource missing)**
 
@@ -1669,11 +1675,11 @@ Component shows updated data
 
 ### Production Use Case: Form Validation Details
 
-**Valid scenario:** For `VALIDATION_ERROR` (400/422) responses on form submissions, include `details` field in production to show field-level error messages to the user.
+**Valid scenario:** For `VALIDATION_ERROR` (422) responses on form submissions, include `details` field in production to show field-level error messages to the user.
 
 **When to include `details`:**
 
-✅ `VALIDATION_ERROR` (400/422): Include field-level messages for form errors  
+✅ `VALIDATION_ERROR` (422): Include field-level messages for form errors  
 ❌ `UNAUTHORIZED` (401): No details (no sensitive auth info)  
 ❌ `FORBIDDEN` (403): No details  
 ❌ `NOT_FOUND` (404): No details  
@@ -1845,7 +1851,7 @@ When testing error handling, verify:
 
 - Network disconnection and recovery
 - 404 invalid routes/product slugs
-- 400/422 validation error responses
+- 422 validation error responses
 - 500/503 server error with retry
 - 401 auth redirect
 - Loader function failures
