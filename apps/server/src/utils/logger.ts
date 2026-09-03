@@ -59,12 +59,12 @@ export const httpLoggerOptions: PinoHttpOptions = {
   },
   customProps: (req) => ({ requestId: req.id }),
   // Without this pino-http reports every request at `info`, including the ones
-  // that failed. The error middleware puts the real error on `res.err`, so the
-  // completion line is also the failure line. `res.err` is checked first so
-  // severity follows the boundary's judgement rather than a status code the
-  // boundary may no longer be able to set (a response already on the wire).
+  // that failed. The error middleware puts the real error on `res.err` and the
+  // severity it decided on `res.errLogLevel`, so the completion line is also
+  // the failure line - and only the boundary knows whether the failure was
+  // ours or the caller's, which the status code alone cannot say.
   customLogLevel: (_req, res) =>
-    res.err || res.statusCode >= 500 ? "error" : "info",
+    res.errLogLevel ?? (res.statusCode >= 500 ? "error" : "info"),
 };
 
 export const httpLogger = pinoHttp({ ...httpLoggerOptions, logger });

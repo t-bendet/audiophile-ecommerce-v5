@@ -31,6 +31,9 @@ export type ErrorDetail = z.infer<typeof ErrorDetailSchema>;
 
 /**
  * Error Object Schema
+ *
+ * The satisfies clause omits `isOperational`: it is a server-side log signal
+ * and must never reach the client.
  */
 export const ErrorObjectSchema = z.object({
   code: z.enum(ErrorCode),
@@ -41,7 +44,7 @@ export const ErrorObjectSchema = z.object({
   /** Correlates this response with the server log line for the request. */
   requestId: z.string().optional(),
 }) satisfies z.ZodType<
-  Omit<AppError, "name" | "cause"> & { requestId?: string }
+  Omit<AppError, "name" | "cause" | "isOperational"> & { requestId?: string }
 >;
 
 export type ErrorObject = z.infer<typeof ErrorObjectSchema>;

@@ -144,7 +144,21 @@ describe("error boundary logging", () => {
     expect(res.body.error.requestId).toBe(lines[0]!.requestId);
   });
 
-  it("leaves a client error at the default level with no error attached", async () => {
+  it("logs a server failure the client asked for at error level", async () => {
+    const { lines, logger } = collect();
+
+    const res = await request(
+      appThatFailsWith(logger, () => {
+        throw new AppError("broken", ErrorCode.INTERNAL_ERROR);
+      }),
+    ).get("/boom");
+
+    expect(res.status).toBe(500);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]!.level).toBe(50);
+  });
+
+  it("downgrades a client fault to warn instead of dropping it", async () => {
     const { lines, logger } = collect();
 
     const res = await request(
@@ -155,8 +169,42 @@ describe("error boundary logging", () => {
 
     expect(res.status).toBe(404);
     expect(lines).toHaveLength(1);
-    expect(lines[0]!.level).toBe(30);
-    expect(lines[0]!.err).toBeUndefined();
+    expect(lines[0]!.level).toBe(40);
+    expect(lines[0]!.err?.message).toBe("nope");
+  });
+
+  // A malformed Prisma query means our query shape is wrong, and `normalizeError`
+  // launders it into an ordinary validation error - so only the origin flag can
+  // still tell the boundary this one is a bug of ours.
+  it("logs a programmer error at error level even when it maps to a 4xx", async () => {
+    const { lines, logger } = collect();
+    const prismaValidationError = Object.assign(
+      new Error("Invalid `prisma.product.findMany()` invocation"),
+      { name: "PrismaClientValidationError" },
+    );
+
+    const res = await request(
+      appThatFailsWith(logger, () => {
+        throw prismaValidationError;
+      }),
+    ).get("/boom");
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]!.level).toBe(50);
+  });
+
+  it("keeps the operational flag out of the response body", async () => {
+    const { logger } = collect();
+
+    const res = await request(
+      appThatFailsWith(logger, () => {
+        throw new AppError("nope", ErrorCode.NOT_FOUND);
+      }),
+    ).get("/boom");
+
+    expect(JSON.stringify(res.body)).not.toContain("isOperational");
   });
 
   it("keeps a failure at error level when the response already went out", async () => {

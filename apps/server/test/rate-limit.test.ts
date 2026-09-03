@@ -99,8 +99,8 @@ describe("rate limiting", () => {
 
     expect(res.status).toBe(429);
     expect(lines).toHaveLength(2);
-    expect(lines[1]!.level).toBe(30);
-    expect(lines[1]!.err).toBeUndefined();
+    expect(lines[1]!.level).toBe(40);
+    expect(lines[1]!.err?.message).toBe("slow down");
     expect(lines[1]!.res?.statusCode).toBe(429);
   });
 });
