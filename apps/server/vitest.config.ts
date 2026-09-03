@@ -3,6 +3,10 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     include: ["test/**/*.test.ts"],
+    typecheck: {
+      enabled: true,
+      tsconfig: "./tsconfig.typecheck.json",
+    },
     // `src/utils/env.ts` validates process.env at import time, and `app.ts`
     // imports it, so every value the schema requires has to be present before
     // the first test file loads. These are placeholders: no test connects to

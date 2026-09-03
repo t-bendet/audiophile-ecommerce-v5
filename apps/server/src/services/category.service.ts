@@ -3,11 +3,11 @@ import type {
   Category,
   CategoryCreateInput,
   CategoryDTO,
+  CategoryQueryParams,
   CategorySelect,
   CategoryUpdateInput,
   NAME,
 } from "@repo/domain";
-import { NAME as NAME_ENUM } from "@repo/domain";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
@@ -23,14 +23,15 @@ export class CategoryService extends AbstractCrudService<
   Category,
   CategoryCreateInput,
   CategoryUpdateInput,
-  CategoryDTO
+  CategoryDTO,
+  CategoryQueryParams
 > {
   protected toDTO(entity: Category): CategoryDTO {
     return entity;
   }
 
   protected async persistFindMany(
-    params: Pagination & { [key: string]: any }
+    params: Pagination & CategoryQueryParams
   ): Promise<{ data: Category[]; total: number }> {
     const { skip, take, name, sort, fields } = params;
 
@@ -89,19 +90,8 @@ export class CategoryService extends AbstractCrudService<
 
   // ===== Private Query Builders =====
 
-  private buildCategoryWhere(name?: string) {
-    if (!name || typeof name !== "string") {
-      return {};
-    }
-
-    // Validate that the name is a valid NAME enum value
-    if (!Object.values(NAME_ENUM).includes(name as NAME)) {
-      return {};
-    }
-
-    return {
-      name: name as NAME,
-    };
+  private buildCategoryWhere(name?: NAME) {
+    return name ? { name } : {};
   }
 }
 

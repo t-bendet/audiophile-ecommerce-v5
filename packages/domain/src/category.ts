@@ -6,10 +6,12 @@ import type {
 import { z } from "zod";
 import type {
   EmptyResponse,
+  ExtendedQueryParams,
   ListResponse,
   SingleItemResponse,
 } from "./common.js";
 import {
+  BaseQueryParamsSchema,
   createRequestSchema,
   EmptyResponseSchema,
   ListResponseSchema,
@@ -44,16 +46,14 @@ export const CategoryThumbnailSchema = z.object({
 // * ===== RequestSchemas =====
 
 // LIST - Get all categories (pagination + filtering)
+export type CategoryQueryParams = ExtendedQueryParams<{ name?: NAME }>;
+
+export const CategoryQueryParamsSchema = BaseQueryParamsSchema.extend({
+  name: z.enum(NAME).optional(),
+}) satisfies z.ZodType<CategoryQueryParams>;
+
 export const CategoryGetAllRequestSchema = createRequestSchema({
-  query: z
-    .object({
-      sort: z.string().optional(),
-      name: z.enum(NAME).optional(),
-      fields: z.string().optional(),
-      page: z.coerce.number().int().positive().optional(),
-      limit: z.coerce.number().int().positive().optional(),
-    })
-    .optional(),
+  query: CategoryQueryParamsSchema.optional(),
 });
 
 // GET - Get single category by ID

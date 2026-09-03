@@ -4,6 +4,7 @@ import type {
   UserCreateInput,
   UserDTO,
   UserPublicInfo,
+  UserQueryParams,
   UserSelect,
   UserUpdateInput,
 } from "@repo/domain";
@@ -25,7 +26,8 @@ export class UserService extends AbstractCrudService<
   UserPublicInfo,
   UserCreateInput,
   UserUpdateInput,
-  UserDTO
+  UserDTO,
+  UserQueryParams
 > {
   protected toDTO(entity: UserPublicInfo): UserDTO {
     const dto = {
@@ -44,7 +46,7 @@ export class UserService extends AbstractCrudService<
   // ***** Persistence Layer Methods *****
 
   protected async persistFindMany(
-    params: Pagination & { [key: string]: any }
+    params: Pagination & UserQueryParams
   ): Promise<{ data: UserPublicInfo[]; total: number }> {
     const { skip, take, role, sort, fields } = params;
 
@@ -116,12 +118,12 @@ export class UserService extends AbstractCrudService<
 
   // ===== Private Query Builders =====
 
-  private buildUserWhere(role?: string) {
-    if (!role || typeof role !== "string") {
+  private buildUserWhere(role?: ROLE) {
+    if (!role) {
       return {};
     }
     return {
-      role: { equals: role as ROLE },
+      role: { equals: role },
     };
   }
 }
