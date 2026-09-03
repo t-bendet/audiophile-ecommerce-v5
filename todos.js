@@ -26,8 +26,6 @@ x;
 // TODO add errors for update same value
 // TODO checkout prices should return from backend
 // TODO handle slugs ,where is generated create update, user provide??
-// TODO add rate limiting middleware to server
-// TODO add helmet middleware to server
 
 // ============================================================================
 // ERROR HANDLING & VALIDATION

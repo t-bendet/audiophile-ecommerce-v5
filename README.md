@@ -615,23 +615,33 @@ Multiple layers of security implemented:
 **Rate Limiting**:
 
 ```typescript
-// Global rate limit
-app.use(
-  "/api",
+// apps/server/src/utils/rateLimiters.ts - one factory, one rejection path.
+// A rejection leaves through next(), so the global error middleware shapes it
+// into the same envelope as every other failure instead of an ad-hoc body.
+const createRateLimiter = ({ message, ...options }: RateLimiterOptions) =>
   rateLimit({
-    limit: 500,
-    windowMs: 15 * 60 * 1000, // 15 minutes
-  }),
-);
+    ...options,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (_req, _res, next) => {
+      next(new AppError(message, ErrorCode.TOO_MANY_REQUESTS)); // -> 429
+    },
+  });
 
-// Strict rate limiting for sensitive endpoints
-const authLimiter = rateLimit({
-  limit: 5,
+// A flood cap on the whole API, plus stricter per-route quotas
+export const apiLimiter = createRateLimiter({ limit: 500, windowMs: 15 * 60 * 1000, ... });
+export const loginLimiter = createRateLimiter({
+  limit: 10,
   windowMs: 15 * 60 * 1000,
+  message: "Too many login attempts. Please try again in 15 minutes.",
+  skipSuccessfulRequests: true, // only failed attempts burn the quota
 });
-router.post("/auth/login", authLimiter, loginHandler);
-router.post("/auth/signup", authLimiter, signupHandler);
+
+app.use("/api", apiLimiter); // app.ts
+authRouter.post("/login", loginLimiter, /* ... */); // auth.route.ts
 ```
+
+Signup is 5/hour and order creation 20/hour, each with its own limiter.
 
 **Security Headers** (Helmet):
 
@@ -695,6 +705,7 @@ Based on recent commits and the current branch (`fix/lighthouse-a11y-bp-seo`):
 - ✅ Added Helmet middleware for security headers
 - ✅ Enhanced CORS configuration with origin validation
 - ✅ Proper middleware ordering (CORS → Rate Limit → Security → Body Parsing)
+- ✅ Rate-limit rejections return the standard error envelope (`TOO_MANY_REQUESTS`, 429) instead of an ad-hoc body
 
 **Lighthouse Optimizations** (In Progress):
 

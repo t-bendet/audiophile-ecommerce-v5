@@ -2,12 +2,12 @@ import { AppError, ErrorCode, UserPublicInfo } from "@repo/domain";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Express } from "express";
-import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import globalErrorHandler from "./middlewares/error.middleware.js";
 import indexRoute from "./routes/index.js";
 import { env } from "./utils/env.js";
 import { httpLogger } from "./utils/logger.js";
+import { apiLimiter } from "./utils/rateLimiters.js";
 
 declare global {
   namespace Express {
@@ -52,14 +52,7 @@ app.use(
 );
 
 // 3. Rate limiting - reject abusive requests before parsing body
-const limiter = rateLimit({
-  limit: 500, // 500 requests per window (SPAs make many calls per page)
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  message: "Too many requests from this IP, please try again in 15 minutes!",
-  standardHeaders: true, // Return rate limit info in headers
-  legacyHeaders: false, // Disable X-RateLimit-* headers
-});
-app.use("/api", limiter);
+app.use("/api", apiLimiter);
 
 // 4. Security headers
 app.use(helmet());
