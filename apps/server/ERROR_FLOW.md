@@ -261,8 +261,10 @@ Every response carries an `x-request-id` header - the id the client sent, or one
 request's log line, so a client-reported failure can be looked up directly.
 
 Errors are logged **once, at the boundary**. The error middleware never calls the logger itself:
-for a 5xx it puts the error on `res.err`, and `pino-http` folds it into the single completion line
-it already emits for the request (at `error` level; 4xx stay at `info`). Controllers and services
+it puts the error on `res.err` and the severity it decided on `res.errLogLevel`, and `pino-http`
+folds both into the single completion line it already emits for the request. Severity follows the
+error's origin, not its status: a non-operational `AppError` (a bug of ours, whatever status it maps
+to) or a 5xx is logged at `error`, every other failure at `warn`. Controllers and services
 should not log errors on the way up - throw an `AppError` and let the boundary report it. Anything
 else worth logging inside a request goes through `req.log`, which carries `requestId`, not the
 bare `logger`.

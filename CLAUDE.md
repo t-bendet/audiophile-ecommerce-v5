@@ -63,7 +63,7 @@ Route → validateSchema middleware → Controller → Service → Prisma
 - **`catchAsync<ValidatedRequest<typeof XRequestSchema>>`** — types `req.verified` from the route's schema; use it in every handler that reads validated input
 - **`AppError`** — throw with error codes from `@repo/domain/error-codes`; never throw raw errors
 - **Zod errors** — auto-converted to `AppError(422, VALIDATION_ERROR)` by error middleware
-- **Logging** — `pino` + `pino-http`; inside a request use `req.log` (it carries `requestId`), never the bare `logger`. Errors are logged once, at the boundary: the error middleware puts 5xx on `res.err` and pino-http emits the single line for that request. Layers in between throw, they don't log.
+- **Logging** — `pino` + `pino-http`; inside a request use `req.log` (it carries `requestId`), never the bare `logger`. Errors are logged once, at the boundary: the error middleware puts the error on `res.err` and its severity on `res.errLogLevel` (`error` for our own failures - a non-operational `AppError` or a 5xx - `warn` for client faults) and pino-http emits the single line for that request. Layers in between throw, they don't log.
 
 ### Service layer
 

@@ -25,7 +25,14 @@ const handleMissingDocumentDB = (err: Prisma.PrismaClientKnownRequestError) => {
 const handleValidationErrorDB = () => {
   // ** should get caught by zod before this point
   const message = `Invalid query data. -  Unprocessable Content`;
-  return new AppError(message, ErrorCode.VALIDATION_ERROR);
+  // A malformed query is our bug, whatever status the client ends up seeing.
+  return new AppError(
+    message,
+    ErrorCode.VALIDATION_ERROR,
+    undefined,
+    undefined,
+    false,
+  );
 };
 
 // safety net for unexpected zod errors
@@ -209,19 +216,21 @@ export default (
   // Convert known error types to AppError
   const normalizedError = normalizeError(err);
 
-  // Server-side failures are ours to debug; 4xx are the client's problem and
-  // stay off the error level. Handing the error to pino-http instead of
-  // logging it here keeps the failure on the one line that already carries the
-  // request id, method, url and status - the boundary logs once. Finer
-  // severity rules for 4xx are #111.
+  // Severity follows the error's origin, not the status it maps to: a
+  // programmer error laundered into a 4xx is still ours to debug, while a
+  // client fault stays at `warn` - kept as signal, off the error level.
+  // Handing it to pino-http rather than logging here keeps the failure on the
+  // one line that already carries the request id, method, url and status.
   const statusCode =
     normalizedError instanceof AppError ? normalizedError.statusCode : 500;
-  if (statusCode >= 500) {
-    res.err =
-      normalizedError instanceof Error
-        ? normalizedError
-        : new Error(String(normalizedError));
-  }
+  const isOperational =
+    normalizedError instanceof AppError && normalizedError.isOperational;
+
+  res.err =
+    normalizedError instanceof Error
+      ? normalizedError
+      : new Error(String(normalizedError));
+  res.errLogLevel = !isOperational || statusCode >= 500 ? "error" : "warn";
 
   // Send appropriate response based on environment
   if (env.NODE_ENV === "development") {
