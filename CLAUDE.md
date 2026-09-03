@@ -137,7 +137,7 @@ JWT_COOKIE_EXPIRES_IN=20000
 PORT=8000
 ```
 
-`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses.
+`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses. `test` is set by the vitest configs and behaves like `production` (no request logging, no localhost CORS origin, sanitized errors).
 
 ## Git workflow
 
