@@ -173,7 +173,7 @@ export class OrderService extends AbstractCrudService<
 
     // Verify ownership
     if (order.userId !== userId) {
-      throw new AppError("Unauthorized", ErrorCode.UNAUTHORIZED);
+      throw new AppError("Forbidden", ErrorCode.FORBIDDEN);
     }
 
     return this.toDTO(order as any);

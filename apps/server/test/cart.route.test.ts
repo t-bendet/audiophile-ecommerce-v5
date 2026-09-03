@@ -104,7 +104,6 @@ describe("PATCH /api/v1/cart/items/:cartItemId", () => {
     expect(res.body.data).toMatchObject({ itemCount: 5, subtotal: 500 });
   });
 
-  // Pins today's 401; an authenticated non-owner arguably deserves 403 (#135).
   it("refuses to touch another user's cart item", async () => {
     const owner = await createUser();
     const intruder = await createUser();
@@ -120,8 +119,8 @@ describe("PATCH /api/v1/cart/items/:cartItemId", () => {
       .set("Cookie", authCookie(intruder.id))
       .send({ quantity: 2 });
 
-    expect(res.status).toBe(401);
-    expect(res.body.error.code).toBe(ErrorCode.UNAUTHORIZED);
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe(ErrorCode.FORBIDDEN);
   });
 });
 
