@@ -27,37 +27,33 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
   name: "userExtensions",
   query: {
     user: {
-      $allOperations(params: any) {
-        const { model: _model, operation, args, query } = params;
-        const findMethods = [
+      $allOperations({ operation, args, query }) {
+        const findMethods: readonly string[] = [
           "findFirst",
           "findMany",
           "findFirstOrThrow",
           "aggregate",
           "findUniqueOrThrow",
           "findUnique",
-          "findMany",
-        ] as const;
-        type FindMethod = (typeof findMethods)[number];
-        let queryArgs = args;
-        if (findMethods.includes(operation as FindMethod)) {
-          queryArgs = {
+        ];
+        // `where` is absent from create/upsert args, so the union needs the
+        // `in` check before the soft-delete filter can be merged into it.
+        if (findMethods.includes(operation) && "where" in args && args.where) {
+          return query({
             ...args,
-            ...(args.where
-              ? { where: { ...args.where, active: { not: false } } }
-              : {}),
-          };
+            where: { ...args.where, active: { not: false } },
+          });
         }
-        return query(queryArgs);
+        return query(args);
       },
       // ** user input should be validated before this functions are called
-      async create({ args, query }: any) {
+      async create({ args, query }) {
         const hashedPassword = await hashPassword(args.data.password);
         args.data.password = hashedPassword;
         args.data.passwordConfirm = hashedPassword;
         return query(args);
       },
-      async update({ args, query }: any) {
+      async update({ args, query }) {
         // if password and password confirm exist ,iit can only be update password route
         if (args.data.password && args.data.passwordConfirm) {
           const hashedPassword = await hashPassword(
