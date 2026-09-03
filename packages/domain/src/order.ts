@@ -1,9 +1,7 @@
 import type {
   BillingAddress,
   Prisma,
-  Order as PrismaOrder,
   OrderItem as PrismaOrderItem,
-  Product as PrismaProduct,
   ShippingAddress,
 } from "@repo/database";
 import { z } from "zod";
@@ -20,15 +18,19 @@ import { IdValidator } from "./shared.js";
 
 export type OrderItem = PrismaOrderItem;
 
-/** The product fields every order query selects alongside its items. */
-export type OrderItemProduct = Pick<
-  PrismaProduct,
-  "id" | "cartLabel" | "slug" | "images"
->;
-export type OrderItemWithProduct = PrismaOrderItem & {
-  product: OrderItemProduct;
-};
-export type Order = PrismaOrder & { items: OrderItemWithProduct[] };
+// Every order query loads its items with these product fields, and `Order` is
+// derived from the same object, so the two cannot drift.
+export const ORDER_INCLUDE = {
+  items: {
+    include: {
+      product: {
+        select: { id: true, cartLabel: true, slug: true, images: true },
+      },
+    },
+  },
+} as const satisfies Prisma.OrderInclude;
+
+export type Order = Prisma.OrderGetPayload<{ include: typeof ORDER_INCLUDE }>;
 export type OrderCreateInput = Prisma.OrderCreateInput;
 export type OrderUpdateInput = Prisma.OrderUpdateInput;
 export type OrderWhereInput = Prisma.OrderWhereInput;

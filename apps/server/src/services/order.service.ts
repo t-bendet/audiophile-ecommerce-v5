@@ -7,6 +7,7 @@ import {
   Order,
   OrderCreateInput,
   OrderDTO,
+  ORDER_INCLUDE,
   OrderItemDTO,
   OrderQueryParams,
   type OrderStatus,
@@ -126,20 +127,7 @@ export class OrderService extends AbstractCrudService<
       // Fetch complete order with items
       return tx.order.findUnique({
         where: { id: newOrder.id },
-        include: {
-          items: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  cartLabel: true,
-                  slug: true,
-                  images: true,
-                },
-              },
-            },
-          },
-        },
+        include: ORDER_INCLUDE,
       });
     });
 
@@ -156,20 +144,7 @@ export class OrderService extends AbstractCrudService<
   async getOrderById(userId: string, orderId: string): Promise<OrderDTO> {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
     if (!order) {
@@ -202,20 +177,7 @@ export class OrderService extends AbstractCrudService<
         skip,
         take,
         orderBy: { createdAt: "desc" },
-        include: {
-          items: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  cartLabel: true,
-                  slug: true,
-                  images: true,
-                },
-              },
-            },
-          },
-        },
+        include: ORDER_INCLUDE,
       }),
       prisma.order.count({ where }),
     ]);
@@ -262,20 +224,7 @@ export class OrderService extends AbstractCrudService<
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: { status },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
     return this.toDTO(updatedOrder);
@@ -314,20 +263,7 @@ export class OrderService extends AbstractCrudService<
         skip,
         take,
         orderBy: { createdAt: "desc" },
-        include: {
-          items: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  cartLabel: true,
-                  slug: true,
-                  images: true,
-                },
-              },
-            },
-          },
-        },
+        include: ORDER_INCLUDE,
       }),
       prisma.order.count({ where }),
     ]);
@@ -338,20 +274,7 @@ export class OrderService extends AbstractCrudService<
   protected async persistFindById(id: string): Promise<Order | null> {
     const order = await prisma.order.findUnique({
       where: { id },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
     return order;
@@ -360,20 +283,7 @@ export class OrderService extends AbstractCrudService<
   protected async persistCreate(data: OrderCreateInput): Promise<Order> {
     const order = await prisma.order.create({
       data,
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
     return order;
@@ -386,20 +296,7 @@ export class OrderService extends AbstractCrudService<
     const order = await prisma.order.update({
       where: { id },
       data,
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
     return order;

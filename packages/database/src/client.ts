@@ -28,17 +28,20 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
   query: {
     user: {
       $allOperations({ operation, args, query }) {
-        const findMethods: readonly string[] = [
+        const findMethods = [
           "findFirst",
           "findMany",
           "findFirstOrThrow",
           "aggregate",
           "findUniqueOrThrow",
           "findUnique",
-        ];
-        // `where` is absent from create/upsert args, so the union needs the
-        // `in` check before the soft-delete filter can be merged into it.
-        if (findMethods.includes(operation) && "where" in args && args.where) {
+        ] as const;
+        // `where` is absent from the create and upsert members of this union.
+        if (
+          (findMethods as readonly string[]).includes(operation) &&
+          "where" in args &&
+          args.where
+        ) {
           return query({
             ...args,
             where: { ...args.where, active: { not: false } },

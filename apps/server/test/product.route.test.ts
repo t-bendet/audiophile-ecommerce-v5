@@ -101,9 +101,7 @@ describe("DELETE /api/v1/products/:id", () => {
     expect(res.body.error.code).toBe(ErrorCode.UNAUTHORIZED);
   });
 
-  // The message pins which path produced the 404: the service recognised
-  // Prisma's P2025 and returned `false`, rather than letting the raw Prisma
-  // error reach the error middleware.
+  // The message pins the service path; a raw Prisma error would 404 too.
   it("returns NOT_FOUND for a well-formed id that matches nothing", async () => {
     const admin = await createAdmin();
 

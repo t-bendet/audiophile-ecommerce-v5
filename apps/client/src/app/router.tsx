@@ -17,9 +17,6 @@ import {
 } from "react-router";
 // import { ProtectedRoute } from "@/lib/auth";
 
-// The shape every lazily imported route module in this app exports: a default
-// component, plus loaders/actions that take the query client and return the
-// real react-router handler.
 type RouteModule = {
   default: ComponentType;
   clientLoader?: (queryClient: QueryClient) => LoaderFunction;
