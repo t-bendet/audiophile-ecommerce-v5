@@ -3,8 +3,9 @@ packages:
   - packages/*
 
 onlyBuiltDependencies:
-  - '@prisma/client'
-  - '@prisma/engines'
+  - "@prisma/client"
+  - "@prisma/engines"
   - bcrypt
   - esbuild
+  - mongodb-memory-server
   - prisma

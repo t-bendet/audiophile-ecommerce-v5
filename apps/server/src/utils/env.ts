@@ -8,11 +8,19 @@ const msDurationStringCheck = z.custom<ms.StringValue>((val) => {
   return ms(val as ms.StringValue) && typeof val === "string";
 }, "Invalid ms duration format");
 
-type ConnectionString =
+type SrvConnectionString =
   `mongodb+srv://${string}:${string}@${string}/${string}?retryWrites=true&w=majority&appName=${string}`;
 
-const connectionStringRegex =
+// A directly addressed host, which is how the in-memory replica set the route
+// tests run against advertises itself.
+type DirectConnectionString = `mongodb://${string}`;
+
+type ConnectionString = SrvConnectionString | DirectConnectionString;
+
+const srvConnectionStringRegex =
   /^mongodb\+srv:\/\/([^:]+):([^@]+)@([^/]+)\/([^?]+)\?retryWrites=true&w=majority&appName=([^&]+)$/;
+
+const directConnectionStringRegex = /^mongodb:\/\/[^/]+\/[^?]+(\?.*)?$/;
 
 const NodeEnvSchema = z.enum(["development", "production", "test"]);
 
@@ -42,8 +50,10 @@ const createEnv = () => {
   const EnvSchema = z.object({
     NODE_ENV: NodeEnvSchema,
     PORT: z.coerce.number().int().min(1000).max(65535),
-    DATABASE_URL: z.custom<ConnectionString>((val) =>
-      connectionStringRegex.test(val as string),
+    DATABASE_URL: z.custom<ConnectionString>(
+      (val) =>
+        srvConnectionStringRegex.test(val as string) ||
+        directConnectionStringRegex.test(val as string),
     ),
     JWT_SECRET: z
       .string()
@@ -55,7 +65,15 @@ const createEnv = () => {
     VITE_APP_PORT: z.coerce.number().int().min(1000).max(65535).optional(),
   });
 
-  const parsedEnv = EnvSchema.safeParse(process.env);
+  const parsedEnv = EnvSchema.refine(
+    (env) =>
+      env.NODE_ENV !== "production" ||
+      srvConnectionStringRegex.test(env.DATABASE_URL),
+    {
+      path: ["DATABASE_URL"],
+      message: "production requires a mongodb+srv connection string",
+    },
+  ).safeParse(process.env);
 
   if (!parsedEnv.success) {
     throw new Error(
