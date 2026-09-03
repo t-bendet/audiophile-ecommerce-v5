@@ -36,6 +36,23 @@ const PRODUCT_QUERY_FIELDS = [
   "featuresText",
 ] as const satisfies readonly (keyof Product)[];
 
+const PRODUCT_UPDATE_FIELDS = [
+  "cartLabel",
+  "name",
+  "slug",
+  "price",
+  "categoryId",
+  "shortLabel",
+  "fullLabel",
+  "description",
+  "isNewProduct",
+  "featuredImageText",
+  "showCaseImageText",
+  "featuresText",
+  "includedItems",
+  "images",
+] as const satisfies readonly (keyof ProductUpdateInput)[];
+
 export class ProductService extends AbstractCrudService<
   Product,
   ProductCreateInput,
@@ -92,8 +109,7 @@ export class ProductService extends AbstractCrudService<
   }
 
   protected filterUpdateInput(input: ProductUpdateInput): ProductUpdateInput {
-    const disallowedFields: (keyof typeof input)[] = ["createdAt", "v"];
-    return this.pickFieldsByNotAllowed(input, disallowedFields);
+    return this.pickFieldsByAllowed(input, [...PRODUCT_UPDATE_FIELDS]);
   }
 
   protected async persistUpdate(id: string, input: ProductUpdateInput) {

@@ -19,6 +19,11 @@ const CATEGORY_QUERY_FIELDS = [
   "thumbnail",
 ] as const satisfies readonly (keyof CategorySelect)[];
 
+const CATEGORY_UPDATE_FIELDS = [
+  "name",
+  "thumbnail",
+] as const satisfies readonly (keyof CategoryUpdateInput)[];
+
 export class CategoryService extends AbstractCrudService<
   Category,
   CategoryCreateInput,
@@ -61,8 +66,7 @@ export class CategoryService extends AbstractCrudService<
   }
 
   protected filterUpdateInput(input: CategoryUpdateInput): CategoryUpdateInput {
-    const allowedFields: (keyof CategoryUpdateInput)[] = ["name", "thumbnail"];
-    return this.pickFieldsByAllowed(input, allowedFields);
+    return this.pickFieldsByAllowed(input, [...CATEGORY_UPDATE_FIELDS]);
   }
 
   protected async persistUpdate(id: string, input: CategoryUpdateInput) {
