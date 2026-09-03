@@ -4,8 +4,6 @@ import type { ExtendedQueryParams } from "./common.js";
 import {
   BaseQueryParamsSchema,
   createRequestSchema,
-  EmptyResponse,
-  EmptyResponseSchema,
   ListResponse,
   ListResponseSchema,
   SingleItemResponse,

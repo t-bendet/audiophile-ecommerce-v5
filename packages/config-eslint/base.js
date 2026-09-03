@@ -49,6 +49,14 @@ export const base = tseslint.config(
         "error",
         { allowList: turboEnvAllowList },
       ],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
 );

@@ -22,7 +22,7 @@ const handleMissingDocumentDB = (err: Prisma.PrismaClientKnownRequestError) => {
   return new AppError(message, ErrorCode.NOT_FOUND);
 };
 
-const handleValidationErrorDB = (err: Error) => {
+const handleValidationErrorDB = () => {
   // ** should get caught by zod before this point
   const message = `Invalid query data. -  Unprocessable Content`;
   return new AppError(message, ErrorCode.VALIDATION_ERROR);
@@ -117,7 +117,7 @@ const normalizeError = (err: unknown): AppError | unknown => {
   }
 
   if (isPrismaValidationError(err)) {
-    return handleValidationErrorDB(err);
+    return handleValidationErrorDB();
   }
 
   // JWT errors
@@ -199,11 +199,12 @@ const sendErrorProd = (err: unknown, req: Request, res: Response) => {
   );
 };
 
+// Express only treats a 4-arity handler as error middleware, so `_next` must stay.
 export default (
   err: unknown,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) => {
   // Convert known error types to AppError
   const normalizedError = normalizeError(err);

@@ -58,7 +58,7 @@ app.use(cookieParser());
 // 7. Routes
 app.use("/api/v1", indexRoute);
 
-app.all(/.*/, (req, res, next) => {
+app.all(/.*/, (req, _res, next) => {
   next(
     new AppError(
       `Can't find ${req.originalUrl} on this server!`,

@@ -21,7 +21,7 @@
     "db:reset": "pnpm db:push --force-reset && pnpm db:generate && pnpm db:seed",
     "studio": "prisma studio",
     "format": "prisma format",
-    "lint": "eslint . --max-warnings 4",
+    "lint": "eslint . --max-warnings 3",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "build": "pnpm db:generate && tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json -w"

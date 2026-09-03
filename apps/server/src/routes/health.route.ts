@@ -7,7 +7,7 @@ const healthRouter: express.Router = express.Router();
  * @desc    Health check endpoint for load balancers and monitoring
  * @access  Public
  */
-healthRouter.get("/", (req, res) => {
+healthRouter.get("/", (_req, res) => {
   res.status(200).json({
     status: "ok",
     timestamp: new Date().toISOString(),
