@@ -102,3 +102,36 @@ describe("GET /api/v1/users/:id", () => {
     });
   });
 });
+
+describe("DELETE /api/v1/users/deleteMe", () => {
+  it("deactivates the signed-in user", async () => {
+    const user = await createUser();
+    const cookie = authCookie(user.id);
+
+    const res = await request(app)
+      .delete("/api/v1/users/deleteMe")
+      .set("Cookie", cookie);
+
+    expect(res.status).toBe(200);
+
+    const after = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", cookie);
+    expect(after.status).toBe(401);
+  });
+});
+
+describe("PATCH /api/v1/users/:id", () => {
+  it("lets an admin promote a user", async () => {
+    const admin = await createAdmin();
+    const user = await createUser();
+
+    const res = await request(app)
+      .patch(`/api/v1/users/${user.id}`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ name: user.name, role: "ADMIN" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.role).toBe("ADMIN");
+  });
+});

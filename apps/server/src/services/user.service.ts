@@ -6,6 +6,7 @@ import type {
   UserPublicInfo,
   UserQueryParams,
   UserSelect,
+  UserSelfUpdateInput,
   UserUpdateInput,
 } from "@repo/domain";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
@@ -21,6 +22,19 @@ const USER_QUERY_FIELDS = [
   "active",
   "v",
 ] as const satisfies readonly (keyof UserSelect)[];
+
+const SELF_UPDATE_FIELDS = [
+  "name",
+  "email",
+] as const satisfies readonly (keyof UserSelfUpdateInput)[];
+
+const PRIVILEGED_UPDATE_FIELDS = [
+  "name",
+  "email",
+  "role",
+  "emailVerified",
+  "active",
+] as const satisfies readonly (keyof UserUpdateInput)[];
 
 export class UserService extends AbstractCrudService<
   UserPublicInfo,
@@ -41,6 +55,30 @@ export class UserService extends AbstractCrudService<
     };
 
     return dto satisfies UserDTO;
+  }
+
+  // ***** Public CRUD Methods *****
+
+  /** Self-service surface: narrows the input to the fields a user owns. */
+  override async update(
+    id: string,
+    input: UserSelfUpdateInput,
+  ): Promise<UserDTO> {
+    return super.update(
+      id,
+      this.pickFieldsByAllowed(input, [
+        ...SELF_UPDATE_FIELDS,
+      ]) as UserUpdateInput,
+    );
+  }
+
+  /** Privileged surface: the only path that may write role, emailVerified or active. */
+  async updateAsAdmin(id: string, input: UserUpdateInput): Promise<UserDTO> {
+    return super.update(id, input);
+  }
+
+  async deactivate(id: string): Promise<void> {
+    await this.updateAsAdmin(id, { active: false });
   }
 
   // ***** Persistence Layer Methods *****
@@ -80,17 +118,9 @@ export class UserService extends AbstractCrudService<
    * Prevents clients from updating fields like 'password', 'passwordConfirm', etc.
    */
   protected filterUpdateInput(input: UserUpdateInput): UserUpdateInput {
-    // Define which fields are allowed to be updated through this service
-    const allowedFields: (keyof UserUpdateInput)[] = [
-      "name",
-      "email",
-      "role",
-      "emailVerified",
-      "active",
-      // Add other updateable fields here
-    ];
-
-    return this.pickFieldsByAllowed(input, allowedFields) as UserUpdateInput;
+    return this.pickFieldsByAllowed(input, [
+      ...PRIVILEGED_UPDATE_FIELDS,
+    ]) as UserUpdateInput;
   }
 
   protected async persistUpdate(id: string, input: UserUpdateInput) {

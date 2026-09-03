@@ -29,7 +29,7 @@ export const getUser: RequestHandler = catchAsync<
 });
 
 export const deleteMe: RequestHandler = catchAsync(async (req, res, _next) => {
-  await userService.update(req.user!.id, { active: false });
+  await userService.deactivate(req.user!.id);
   res.status(200).json(createEmptyResponse());
 });
 
@@ -53,7 +53,7 @@ export const deleteUser: RequestHandler = catchAsync<
 export const updateUser: RequestHandler = catchAsync<
   ValidatedRequest<typeof UserUpdateByIdRequestSchema>
 >(async (req, res, _next) => {
-  const dto = await userService.update(
+  const dto = await userService.updateAsAdmin(
     req.verified.params.id,
     req.verified.body,
   );

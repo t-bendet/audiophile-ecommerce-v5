@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { ErrorCode } from "@repo/domain";
+import { ErrorCode, type UserSelfUpdateInput } from "@repo/domain";
 import { beforeEach, describe, expect, it } from "vitest";
 import { categoryService } from "../src/services/category.service.js";
 import { configService } from "../src/services/config.service.js";
@@ -124,10 +124,49 @@ describe("ConfigService.update", () => {
 });
 
 describe("UserService.update", () => {
-  it("writes the whitelisted fields", async () => {
+  it("writes the self-service fields", async () => {
     const user = await createUser();
 
     const dto = await userService.update(user.id, {
+      name: "renamed-user",
+      email: "renamed-user@example.com",
+    });
+
+    expect(dto).toMatchObject({
+      name: "renamed-user",
+      email: "renamed-user@example.com",
+    });
+  });
+
+  it("drops the privileged fields, so a user cannot promote themselves", async () => {
+    const user = await createUser();
+    const escalation = {
+      name: "renamed-user",
+      role: "ADMIN",
+      emailVerified: true,
+      active: false,
+    } as UserSelfUpdateInput;
+
+    await userService.update(user.id, escalation);
+
+    const stored = await prisma.user.findUniqueOrThrow({
+      where: { id: user.id },
+      omit: { active: false },
+    });
+    expect(stored).toMatchObject({
+      name: "renamed-user",
+      role: "USER",
+      emailVerified: false,
+      active: true,
+    });
+  });
+});
+
+describe("UserService.updateAsAdmin", () => {
+  it("writes the privileged fields", async () => {
+    const user = await createUser();
+
+    const dto = await userService.updateAsAdmin(user.id, {
       name: "renamed-user",
       email: "renamed-user@example.com",
       role: "ADMIN",
@@ -142,16 +181,6 @@ describe("UserService.update", () => {
     });
   });
 
-  it("writes the whitelisted active flag that soft-deletes a user", async () => {
-    const user = await createUser();
-
-    await userService.update(user.id, { active: false });
-
-    await expect(userService.get(user.id)).rejects.toMatchObject({
-      code: ErrorCode.NOT_FOUND,
-    });
-  });
-
   it("drops the credential fields, so an update cannot overwrite a password", async () => {
     const user = await createUser();
     const before = await prisma.user.findUniqueOrThrow({
@@ -159,7 +188,7 @@ describe("UserService.update", () => {
       omit: { password: false, passwordConfirm: false },
     });
 
-    await userService.update(user.id, {
+    await userService.updateAsAdmin(user.id, {
       name: "renamed-user",
       password: "hijacked-password",
       passwordConfirm: "hijacked-password",
@@ -183,7 +212,7 @@ describe("UserService.update", () => {
   it("drops createdAt and v", async () => {
     const user = await createUser();
 
-    await userService.update(user.id, {
+    await userService.updateAsAdmin(user.id, {
       name: "renamed-user",
       createdAt: STALE_DATE,
       v: 99,
@@ -196,6 +225,18 @@ describe("UserService.update", () => {
       name: "renamed-user",
       createdAt: user.createdAt,
       v: user.v,
+    });
+  });
+});
+
+describe("UserService.deactivate", () => {
+  it("soft-deletes the user", async () => {
+    const user = await createUser();
+
+    await userService.deactivate(user.id);
+
+    await expect(userService.get(user.id)).rejects.toMatchObject({
+      code: ErrorCode.NOT_FOUND,
     });
   });
 });
