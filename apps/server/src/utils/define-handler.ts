@@ -6,8 +6,7 @@ import catchAsync from "./catchAsync.js";
 
 export type ValidatedHandler = readonly [RequestHandler, RequestHandler];
 
-// Pairs a request schema with the handler that reads it, so a route mounts
-// both together and the two can never name different schemas.
+// Binds a schema to the handler that reads it, so the two cannot drift.
 export const defineHandler = <S extends ZodType>(
   schema: S,
   fn: (

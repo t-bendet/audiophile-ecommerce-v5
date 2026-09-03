@@ -4,13 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import app from "../src/app.js";
 import { authService } from "../src/services/auth.service.js";
 
-// Every schema-guarded route, sent an input its own schema must reject. If a
-// route ever stops mounting its `validateSchema`, the request falls through to
-// the controller and the status changes. The asserted `details[].path` proves
-// the *right* schema ran, which a status alone does not.
-//
-// `authenticate` is the only database touch ahead of validation, so stubbing
-// the token lookup is enough to reach `validateSchema` with no database.
+// Every schema-guarded route, sent an input its own schema must reject. The
+// asserted `details[].path` proves the *right* schema ran, not merely one.
 
 const VALIDATION_STATUS = getStatusCode(ErrorCode.VALIDATION_ERROR);
 

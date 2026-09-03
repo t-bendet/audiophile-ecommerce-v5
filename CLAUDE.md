@@ -58,9 +58,9 @@ packages/database  →  packages/domain  →  apps/server
 Route → validateSchema middleware → Controller → Service → Prisma
 ```
 
-- **`catchAsync`** — wrap every async route handler; centralized error middleware handles the rest
-- **`validateSchema(ZodSchema)`** — validates `params`, `body`, `query`; validated data lands in `req.verified`
-- **`catchAsync<ValidatedRequest<typeof XRequestSchema>>`** — types `req.verified` from the route's schema; use it in every handler that reads validated input
+- **`defineHandler(XRequestSchema, fn)`** — how every route that takes input is written. It returns the `[validateSchema(schema), catchAsync(fn)]` pair, the controller exports it as a `ValidatedHandler`, and the route spreads it (`router.post("/", ...controller.createX)`). The schema is named once, in the controller, and `req.verified` is inferred from it. Route files never import a request schema.
+- **`catchAsync`** — wrap every async route handler; centralized error middleware handles the rest. Only for handlers whose route mounts no schema
+- **`validateSchema(ZodSchema)`** — validates `params`, `body`, `query`; validated data lands in `req.verified`. Reached through `defineHandler`, not mounted by hand
 - **`AppError`** — throw with error codes from `@repo/domain/error-codes`; never throw raw errors
 - **Zod errors** — auto-converted to `AppError(422, VALIDATION_ERROR)` by error middleware
 - **Logging** — `pino` + `pino-http`; inside a request use `req.log` (it carries `requestId`), never the bare `logger`. Errors are logged once, at the boundary: the error middleware puts the error on `res.err` and its severity on `res.errLogLevel` (`error` for our own failures - a non-operational `AppError` or a 5xx - `warn` for client faults) and pino-http emits the single line for that request. Layers in between throw, they don't log.
@@ -142,8 +142,8 @@ Used for cross-cutting concerns (auth, logging, timing). Middleware chain runs p
 ## Critical Pitfalls
 
 1. **Regenerate with `pnpm db:generate` after any schema change** — the `prisma-client` generator is configured with `importFileExtension = "js"` (plus `runtime = "nodejs"`, `moduleFormat = "esm"`), so generated imports carry `.js` natively. No post-processing step is involved any more.
-2. **Every async route handler must use `catchAsync`** — uncaught promise rejections won't reach the centralized error middleware otherwise.
-3. **Every route accepting input must use `validateSchema`** — never skip it.
+2. **Every async route handler must use `catchAsync`** — uncaught promise rejections won't reach the centralized error middleware otherwise. `defineHandler` does this for you.
+3. **Every route accepting input must go through `defineHandler`** — never mount `validateSchema` by hand, and never skip it.
 4. **Build order matters**: if types are missing, ensure `packages/database` and `packages/domain` are built before `apps/server`.
 
 ## Environment Variables

@@ -9,8 +9,7 @@ import orderRouter from "../src/routes/order.route.js";
 import productRouter from "../src/routes/product.route.js";
 import userRouter from "../src/routes/user.route.js";
 
-// Reads Express internals on purpose: the mounted stack is the only place the
-// real middleware order lives. Keep the walk here, never in production code.
+// Reads Express internals: keep the walk here, never in production code.
 
 type RouteLayer = {
   name: string;
@@ -24,8 +23,7 @@ type RouteLayer = {
 
 type StackHolder = { stack: RouteLayer[] };
 
-// Express 5 keeps the mount prefix in the parent layer's matcher function, out
-// of reach of a stack walk, so groups are named by router identity instead.
+// Express 5 hides the mount prefix in the parent matcher: name groups by identity.
 const ROUTER_NAMES = new Map<unknown, string>([
   [healthRouter, "health"],
   [userRouter, "users"],
