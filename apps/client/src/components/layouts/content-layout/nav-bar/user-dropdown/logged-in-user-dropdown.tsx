@@ -43,7 +43,7 @@ export default function LoggedInUserDropdown() {
         description: "See you soon!",
         duration: 3000,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Logout failed",
         description: "Please try again",

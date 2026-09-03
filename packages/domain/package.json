@@ -16,7 +16,7 @@
     "dev": "tsc -p tsconfig.build.json -w",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "clean": "rimraf dist",
-    "lint": "eslint . --max-warnings 7",
+    "lint": "eslint . --max-warnings 1",
     "test": "vitest run"
   },
   "dependencies": {

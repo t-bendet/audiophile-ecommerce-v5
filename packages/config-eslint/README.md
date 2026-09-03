@@ -25,10 +25,19 @@ are nominal and lint would never fail on its own. Enforcement comes from each
 package's budget instead:
 
 ```json
-"lint": "eslint . --max-warnings 61"
+"lint": "eslint . --max-warnings 28"
 ```
 
-The number is that package's warning count at the time of the ESLint 9 flat-config
-migration. It is a **ratchet**: a new warning pushes the count over budget and
-fails the build, while the existing backlog stays visible instead of being
-silenced. Lower the number as warnings are burned off; never raise it.
+The number is that package's **exact** current warning count, so it carries no
+slack: a new warning pushes the count over budget and fails the build, while the
+existing backlog stays visible instead of being silenced. Lower the number as
+warnings are burned off; never raise it.
+
+## Unused bindings
+
+`@typescript-eslint/no-unused-vars` is configured with `^_` ignore patterns for
+arguments, variables and caught errors, matching the codebase convention of
+prefixing an intentionally-unused binding with `_`. `@repo/typescript-config`
+enables `noUnusedLocals` and `noUnusedParameters` so the compiler enforces the
+same thing; note TypeScript honours the `_` prefix for parameters and caught
+errors but not for locals.

@@ -9,7 +9,7 @@
     "prod": "vite preview",
     "start": "vite preview",
     "type-check": "tsc -b",
-    "lint": "eslint . --max-warnings 34"
+    "lint": "eslint . --max-warnings 23"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
