@@ -24,10 +24,11 @@ pnpm types:watch       # watch mode across all TS projects
 # Quality
 pnpm lint
 pnpm format
-pnpm test          # domain + server vitest suites via Turbo (no database needed)
+pnpm test          # domain + server vitest suites via Turbo (no network database needed)
 ```
 
 ### Running a single workspace
+
 ```bash
 pnpm --filter server run dev
 pnpm --filter client run dev
@@ -72,6 +73,16 @@ All query building (where, select, orderBy) belongs inside `persistFindMany` via
 
 Skip the service layer for simple pass-through CRUD; go controller → Prisma directly.
 
+### Tests
+
+Server route tests run against the real Express `app` through supertest. A vitest `globalSetup`
+boots an in-memory MongoDB replica set (Prisma requires one), pushes the schema for its indexes,
+and hands the URL to `test/helpers/setup.ts`, which sets `DATABASE_URL` before `app` is imported.
+Seed with the fixture builders in `test/helpers/database.ts` and call `resetDatabase` around each
+test; protected routes take a real signed JWT via `authCookie(userId)`. Files share one database,
+so `fileParallelism` is off. The mongod binary is fetched once by `pnpm install` and cached
+globally; `global-setup.ts` pins the version it runs.
+
 ### Validation rules
 
 - Use `.strict()` on all Zod input schemas (rejects unknown fields)
@@ -83,6 +94,7 @@ Skip the service layer for simple pass-through CRUD; go controller → Prisma di
 Default to no comments — names and structure should carry the meaning; rationale belongs in docs/CONTEXT.md, not inline.
 
 Add one only when:
+
 - an existing convention already comments every item in a section (e.g. the numbered middleware steps in `app.ts` — match the existing one-line style), or
 - a genuinely non-obvious constraint needs flagging (a hidden invariant, a workaround, something a reader would get wrong without it).
 
@@ -90,14 +102,14 @@ Even then: one short line. No rationale paragraphs, no restating what the code a
 
 ### Domain package naming
 
-| Suffix | Purpose |
-|--------|---------|
-| `*CreateInput` / `*UpdateInput` | write operations |
-| `*DTO` | read responses |
-| `*WhereInput` | filter params |
-| `*Select` | field selection |
-| `ExtendedQueryParams` | pagination/sorting |
-| `*QueryParams` | one entity's list query: `ExtendedQueryParams<{ filters }>` |
+| Suffix                          | Purpose                                                     |
+| ------------------------------- | ----------------------------------------------------------- |
+| `*CreateInput` / `*UpdateInput` | write operations                                            |
+| `*DTO`                          | read responses                                              |
+| `*WhereInput`                   | filter params                                               |
+| `*Select`                       | field selection                                             |
+| `ExtendedQueryParams`           | pagination/sorting                                          |
+| `*QueryParams`                  | one entity's list query: `ExtendedQueryParams<{ filters }>` |
 
 All exports flow through `packages/domain/src/index.ts`.
 
@@ -136,11 +148,13 @@ Used for cross-cutting concerns (auth, logging, timing). Middleware chain runs p
 ## Environment Variables
 
 **`packages/database/.env`**
+
 ```
 DATABASE_URL=mongodb+srv://...
 ```
 
 **`apps/server/.env`**
+
 ```
 DATABASE_URL=mongodb+srv://...
 NODE_ENV=development
