@@ -129,6 +129,13 @@ const normalizeError = (err: unknown): AppError | unknown => {
   return err;
 };
 
+/**
+ * The id pino-http assigned to this request, echoed to the client so a bug
+ * report can be traced straight to its log line.
+ */
+const requestIdOf = (req: Request): string | undefined =>
+  typeof req.id === "string" ? req.id : undefined;
+
 const sendErrorDev = (err: unknown, req: Request, res: Response) => {
   const statusCode = err instanceof AppError ? err.statusCode : 500;
   const code = (
@@ -154,19 +161,12 @@ const sendErrorDev = (err: unknown, req: Request, res: Response) => {
       stack,
       details,
       statusCode,
+      requestId: requestIdOf(req),
     }),
   );
 };
 
 const sendErrorProd = (err: unknown, req: Request, res: Response) => {
-  const statusCode = err instanceof AppError ? err.statusCode : 500;
-
-  // Server-side failures are ours to debug, so they go to the server output;
-  // 4xx are the client's problem and stay unlogged.
-  if (statusCode >= 500) {
-    console.error("ERROR 💥", err);
-  }
-
   // Operational, trusted error: send message to client
   if (err instanceof AppError) {
     if (err.code === ErrorCode.INVALID_CREDENTIALS) {
@@ -183,6 +183,7 @@ const sendErrorProd = (err: unknown, req: Request, res: Response) => {
         code: err.code,
         details: err.details,
         statusCode: err.statusCode,
+        requestId: requestIdOf(req),
       }),
     );
   }
@@ -193,6 +194,7 @@ const sendErrorProd = (err: unknown, req: Request, res: Response) => {
       message: "Something went very wrong!",
       code: ErrorCode.INTERNAL_ERROR,
       statusCode: 500,
+      requestId: requestIdOf(req),
     }),
   );
 };
@@ -205,6 +207,20 @@ export default (
 ) => {
   // Convert known error types to AppError
   const normalizedError = normalizeError(err);
+
+  // Server-side failures are ours to debug; 4xx are the client's problem and
+  // stay off the error level. Handing the error to pino-http instead of
+  // logging it here keeps the failure on the one line that already carries the
+  // request id, method, url and status - the boundary logs once. Finer
+  // severity rules for 4xx are #111.
+  const statusCode =
+    normalizedError instanceof AppError ? normalizedError.statusCode : 500;
+  if (statusCode >= 500) {
+    res.err =
+      normalizedError instanceof Error
+        ? normalizedError
+        : new Error(String(normalizedError));
+  }
 
   // Send appropriate response based on environment
   if (env.NODE_ENV === "development") {
