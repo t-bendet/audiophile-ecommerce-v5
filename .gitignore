@@ -35,8 +35,5 @@ yarn-error.log*
 apps/server/dist
 packages/database/dist
 packages/database/generated
-CONCEPTS.md
 
 dist
-audiophile-client-i8rq.onrender.com-20260210T131202.json
-docs/ARCHITECTURE.md
