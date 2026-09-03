@@ -10,7 +10,7 @@
     "build:tsc": "NODE_OPTIONS='--max-old-space-size=8192' tsc -p tsconfig.build.json",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "start": "node dist/index.js",
-    "lint": "eslint . --max-warnings 28",
+    "lint": "eslint . --max-warnings 15",
     "test": "vitest run"
   },
   "dependencies": {
