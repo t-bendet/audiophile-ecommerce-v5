@@ -7,7 +7,7 @@ import { zodIssuesToDetails } from "../utils/zodDetails.js";
 
 // * Middleware to validate request (params, body, query) against a Zod schema
 
-export const validateSchema = (schema: ZodType<any>): RequestHandler =>
+export const validateSchema = (schema: ZodType): RequestHandler =>
   catchAsync(async (req, _res, next) => {
     const parsedRequest = schema.safeParse({
       params: req.params,

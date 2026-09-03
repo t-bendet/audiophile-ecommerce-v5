@@ -13,5 +13,10 @@ export const isPrismaKnownRequestError = (
   err.name === "PrismaClientKnownRequestError" &&
   "code" in err;
 
+export const isPrismaValidationError = (
+  err: unknown,
+): err is Prisma.PrismaClientValidationError =>
+  err instanceof Error && err.name === "PrismaClientValidationError";
+
 export const isRecordNotFoundError = (err: unknown): boolean =>
   isPrismaKnownRequestError(err) && err.code === RECORD_NOT_FOUND;
