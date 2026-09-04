@@ -100,4 +100,36 @@ describe("DELETE /api/v1/products/:id", () => {
     expect(res.status).toBe(401);
     expect(res.body.error.code).toBe(ErrorCode.UNAUTHORIZED);
   });
+
+  // The message pins the service path; a raw Prisma error would 404 too.
+  it("returns NOT_FOUND for a well-formed id that matches nothing", async () => {
+    const admin = await createAdmin();
+
+    const res = await request(app)
+      .delete(`/api/v1/products/${ABSENT_ID}`)
+      .set("Cookie", authCookie(admin.id));
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.NOT_FOUND,
+      message: "No document found with that ID",
+    });
+  });
+});
+
+describe("PATCH /api/v1/products/:id", () => {
+  it("returns NOT_FOUND for a well-formed id that matches nothing", async () => {
+    const admin = await createAdmin();
+
+    const res = await request(app)
+      .patch(`/api/v1/products/${ABSENT_ID}`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ price: 999 });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.NOT_FOUND,
+      message: "No document found with that ID",
+    });
+  });
 });

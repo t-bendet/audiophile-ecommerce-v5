@@ -27,8 +27,7 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
   name: "userExtensions",
   query: {
     user: {
-      $allOperations(params: any) {
-        const { model: _model, operation, args, query } = params;
+      $allOperations({ operation, args, query }) {
         const findMethods = [
           "findFirst",
           "findMany",
@@ -36,28 +35,28 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
           "aggregate",
           "findUniqueOrThrow",
           "findUnique",
-          "findMany",
         ] as const;
-        type FindMethod = (typeof findMethods)[number];
-        let queryArgs = args;
-        if (findMethods.includes(operation as FindMethod)) {
-          queryArgs = {
+        // `where` is absent from the create and upsert members of this union.
+        if (
+          (findMethods as readonly string[]).includes(operation) &&
+          "where" in args &&
+          args.where
+        ) {
+          return query({
             ...args,
-            ...(args.where
-              ? { where: { ...args.where, active: { not: false } } }
-              : {}),
-          };
+            where: { ...args.where, active: { not: false } },
+          });
         }
-        return query(queryArgs);
+        return query(args);
       },
       // ** user input should be validated before this functions are called
-      async create({ args, query }: any) {
+      async create({ args, query }) {
         const hashedPassword = await hashPassword(args.data.password);
         args.data.password = hashedPassword;
         args.data.passwordConfirm = hashedPassword;
         return query(args);
       },
-      async update({ args, query }: any) {
+      async update({ args, query }) {
         // if password and password confirm exist ,iit can only be update password route
         if (args.data.password && args.data.passwordConfirm) {
           const hashedPassword = await hashPassword(

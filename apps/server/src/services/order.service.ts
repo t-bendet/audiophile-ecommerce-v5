@@ -3,16 +3,21 @@ import {
   AppError,
   CreateOrderInput,
   ErrorCode,
+  type Meta,
   Order,
   OrderCreateInput,
   OrderDTO,
+  ORDER_INCLUDE,
   OrderItemDTO,
+  OrderQueryParams,
   type OrderStatus,
   ORDER_STATUS,
   OrderUpdateInput,
+  OrderWhereInput,
   type PaymentStatus,
   PAYMENT_STATUS,
 } from "@repo/domain";
+import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 import { cartService } from "./cart.service.js";
 
@@ -20,14 +25,15 @@ export class OrderService extends AbstractCrudService<
   Order,
   OrderCreateInput,
   OrderUpdateInput,
-  OrderDTO
+  OrderDTO,
+  OrderQueryParams
 > {
   /**
    * Transform Order entity to OrderDTO
    */
   protected toDTO(entity: Order): OrderDTO {
     // Transform order items with product details
-    const items: OrderItemDTO[] = (entity.items || []).map((item: any) => ({
+    const items: OrderItemDTO[] = (entity.items || []).map((item) => ({
       id: item.id,
       productId: item.productId,
       productName: item.product.cartLabel,
@@ -121,20 +127,7 @@ export class OrderService extends AbstractCrudService<
       // Fetch complete order with items
       return tx.order.findUnique({
         where: { id: newOrder.id },
-        include: {
-          items: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  cartLabel: true,
-                  slug: true,
-                  images: true,
-                },
-              },
-            },
-          },
-        },
+        include: ORDER_INCLUDE,
       });
     });
 
@@ -142,7 +135,7 @@ export class OrderService extends AbstractCrudService<
       throw new AppError("Failed to create order", ErrorCode.OPERATION_FAILED);
     }
 
-    return this.toDTO(order as any);
+    return this.toDTO(order);
   }
 
   /**
@@ -151,20 +144,7 @@ export class OrderService extends AbstractCrudService<
   async getOrderById(userId: string, orderId: string): Promise<OrderDTO> {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
     if (!order) {
@@ -176,7 +156,7 @@ export class OrderService extends AbstractCrudService<
       throw new AppError("Forbidden", ErrorCode.FORBIDDEN);
     }
 
-    return this.toDTO(order as any);
+    return this.toDTO(order);
   }
 
   /**
@@ -184,52 +164,27 @@ export class OrderService extends AbstractCrudService<
    */
   async listUserOrders(
     userId: string,
-    query: {
-      page?: number;
-      limit?: number;
-      status?: OrderStatus;
-      paymentStatus?: PaymentStatus;
-    },
-  ): Promise<{ data: OrderDTO[]; meta: any }> {
-    const { page = 1, limit = 10, status, paymentStatus } = query;
-    const skip = (page - 1) * limit;
+    query: OrderQueryParams,
+  ): Promise<{ data: OrderDTO[]; meta: Meta }> {
+    const { status, paymentStatus } = query;
+    const { page, limit, skip, take } = parsePagination(query);
 
-    // Build where clause
-    const where: any = { userId };
-    if (status) where.status = status;
-    if (paymentStatus) where.paymentStatus = paymentStatus;
+    const where = this.buildOrderWhere({ status, paymentStatus, userId });
 
     const [data, total] = await prisma.$transaction([
       prisma.order.findMany({
         where,
         skip,
-        take: limit,
+        take,
         orderBy: { createdAt: "desc" },
-        include: {
-          items: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  cartLabel: true,
-                  slug: true,
-                  images: true,
-                },
-              },
-            },
-          },
-        },
+        include: ORDER_INCLUDE,
       }),
       prisma.order.count({ where }),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
-    const hasNext = page < totalPages;
-    const hasPrev = page > 1;
-
     return {
-      data: data.map((order) => this.toDTO(order as any)),
-      meta: { page, limit, total, totalPages, hasNext, hasPrev },
+      data: data.map((order) => this.toDTO(order)),
+      meta: buildMeta({ page, limit, total }),
     };
   }
 
@@ -269,109 +224,69 @@ export class OrderService extends AbstractCrudService<
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: { status },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
-    return this.toDTO(updatedOrder as any);
+    return this.toDTO(updatedOrder);
+  }
+
+  // ===== Private Query Builders =====
+
+  private buildOrderWhere({
+    userId,
+    status,
+    paymentStatus,
+  }: {
+    userId?: string;
+    status?: OrderStatus;
+    paymentStatus?: PaymentStatus;
+  }): OrderWhereInput {
+    return {
+      ...(userId && { userId }),
+      ...(status && { status }),
+      ...(paymentStatus && { paymentStatus }),
+    };
   }
 
   // ===== Abstract Method Implementations =====
 
-  protected async persistFindMany(params: {
-    page?: number;
-    limit?: number;
-    status?: OrderStatus;
-    paymentStatus?: PaymentStatus;
-  }): Promise<{ data: Order[]; total: number }> {
-    const { page = 1, limit = 20, status, paymentStatus } = params;
-    const skip = (page - 1) * limit;
+  protected async persistFindMany(
+    params: Pagination & OrderQueryParams,
+  ): Promise<{ data: Order[]; total: number }> {
+    const { skip, take, status, paymentStatus } = params;
 
-    const where: any = {};
-    if (status) where.status = status;
-    if (paymentStatus) where.paymentStatus = paymentStatus;
+    const where = this.buildOrderWhere({ status, paymentStatus });
 
     const [data, total] = await prisma.$transaction([
       prisma.order.findMany({
         where,
         skip,
-        take: limit,
+        take,
         orderBy: { createdAt: "desc" },
-        include: {
-          items: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  cartLabel: true,
-                  slug: true,
-                  images: true,
-                },
-              },
-            },
-          },
-        },
+        include: ORDER_INCLUDE,
       }),
       prisma.order.count({ where }),
     ]);
 
-    return { data: data as any[], total };
+    return { data, total };
   }
 
   protected async persistFindById(id: string): Promise<Order | null> {
     const order = await prisma.order.findUnique({
       where: { id },
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
-    return order as any;
+    return order;
   }
 
   protected async persistCreate(data: OrderCreateInput): Promise<Order> {
     const order = await prisma.order.create({
       data,
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
-    return order as any;
+    return order;
   }
 
   protected async persistUpdate(
@@ -381,23 +296,10 @@ export class OrderService extends AbstractCrudService<
     const order = await prisma.order.update({
       where: { id },
       data,
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                cartLabel: true,
-                slug: true,
-                images: true,
-              },
-            },
-          },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
-    return order as any;
+    return order;
   }
 
   protected async persistDelete(id: string): Promise<boolean> {

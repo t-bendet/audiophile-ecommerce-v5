@@ -3,6 +3,10 @@ import { AppError, createErrorResponse, ErrorCode } from "@repo/domain";
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { env } from "../utils/env.js";
+import {
+  isPrismaKnownRequestError,
+  isPrismaValidationError,
+} from "../utils/prisma-errors.js";
 import { zodIssuesToDetails } from "../utils/zodDetails.js";
 
 // ------------------ Specific Error Handlers ------------------
@@ -54,42 +58,14 @@ const handleJWTExpiredError = () =>
   );
 
 // ------------------ Type guards ------------------
-const isPrismaKnownRequestError = (
-  err: unknown,
-): err is Prisma.PrismaClientKnownRequestError => {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    ("code" in err || (err as any).name === "PrismaClientKnownRequestError")
-  );
-};
+const isErrorNamed = (err: unknown, name: string): err is Error =>
+  err instanceof Error && err.name === name;
 
-const isPrismaValidationError = (
-  err: unknown,
-): err is Prisma.PrismaClientValidationError => {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    (err as any).name === "PrismaClientValidationError"
-  );
-};
+const isJwtExpiredError = (err: unknown): boolean =>
+  isErrorNamed(err, "TokenExpiredError");
 
-const isJwtExpiredError = (err: unknown): boolean => {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    (err as any).name === "TokenExpiredError"
-  );
-};
-
-const isJwtError = (err: unknown): err is Error => {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    ((err as any).name === "JsonWebTokenError" ||
-      (err as any).name === "TokenExpiredError")
-  );
-};
+const isJwtError = (err: unknown): err is Error =>
+  isErrorNamed(err, "JsonWebTokenError") || isJwtExpiredError(err);
 
 const isZodError = (err: unknown): err is ZodError => {
   return err instanceof ZodError;
