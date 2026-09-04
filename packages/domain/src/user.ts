@@ -2,7 +2,7 @@ import type { Prisma, User as PrismaUser } from "@repo/database";
 import { z } from "zod";
 import type { ExtendedQueryParams } from "./common.js";
 import {
-  BaseQueryParamsSchema,
+  createQueryParamsSchema,
   createRequestSchema,
   ListResponse,
   ListResponseSchema,
@@ -70,9 +70,20 @@ export const UserDeleteMeRequestSchema = createRequestSchema({
 
 export type UserQueryParams = ExtendedQueryParams<{ role?: ROLE }>;
 
-export const UserQueryParamsSchema = BaseQueryParamsSchema.extend({
-  role: z.enum(ROLE).optional(),
-}).strict() satisfies z.ZodType<UserQueryParams>;
+export const USER_QUERY_FIELDS = [
+  "id",
+  "name",
+  "email",
+  "role",
+  "emailVerified",
+  "createdAt",
+  "active",
+  "v",
+] as const satisfies readonly (keyof UserSelect)[];
+
+export const UserQueryParamsSchema = createQueryParamsSchema(USER_QUERY_FIELDS)
+  .extend({ role: z.enum(ROLE).optional() })
+  .strict() satisfies z.ZodType<UserQueryParams>;
 
 export const UserGetAllRequestSchema = createRequestSchema({
   query: UserQueryParamsSchema,

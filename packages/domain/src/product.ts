@@ -7,7 +7,7 @@ import { z } from "zod";
 import { NAME } from "./category.js";
 import type { ExtendedQueryParams } from "./common.js";
 import {
-  BaseQueryParamsSchema,
+  createQueryParamsSchema,
   createRequestSchema,
   EmptyResponse,
   EmptyResponseSchema,
@@ -101,9 +101,29 @@ const ProductPropertiesSchema = z
 // LIST - Get all Products (pagination + filtering)
 export type ProductQueryParams = ExtendedQueryParams<{ name?: string }>;
 
-export const ProductQueryParamsSchema = BaseQueryParamsSchema.extend({
-  name: z.string().optional(),
-}).strict() satisfies z.ZodType<ProductQueryParams>;
+export const PRODUCT_QUERY_FIELDS = [
+  "id",
+  "cartLabel",
+  "name",
+  "slug",
+  "price",
+  "categoryId",
+  "createdAt",
+  "v",
+  "shortLabel",
+  "fullLabel",
+  "description",
+  "isNewProduct",
+  "featuredImageText",
+  "showCaseImageText",
+  "featuresText",
+] as const satisfies readonly (keyof Product)[];
+
+export const ProductQueryParamsSchema = createQueryParamsSchema(
+  PRODUCT_QUERY_FIELDS,
+)
+  .extend({ name: z.string().optional() })
+  .strict() satisfies z.ZodType<ProductQueryParams>;
 
 export const ProductGetAllRequestSchema = createRequestSchema({
   query: ProductQueryParamsSchema,

@@ -72,11 +72,21 @@ beforeEach(() => {
 });
 
 describe("GET /api/v1/categories", () => {
-  it("ignores an unknown sort field and falls back to the default order", async () => {
-    const { res, args } = await listCategories("?sort=hax");
+  it("rejects an unknown sort field and names it in the error details", async () => {
+    const { res } = await listCategories("?sort=hax");
 
-    expect(res.status).toBe(200);
-    expect(args.orderBy).toEqual([{ id: "desc" }]);
+    expect(res.status).toBe(422);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.VALIDATION_ERROR,
+      details: [
+        {
+          code: "unknown_value",
+          message: expect.stringContaining('Unknown sort value "hax"'),
+          path: ["query", "sort"],
+        },
+      ],
+    });
+    expect(findMany).not.toHaveBeenCalled();
   });
 
   it("keeps a valid sort list, descending fields included", async () => {
@@ -85,22 +95,37 @@ describe("GET /api/v1/categories", () => {
     expect(args.orderBy).toEqual([{ name: "desc" }, { createdAt: "asc" }]);
   });
 
-  it("drops only the unknown members of a mixed sort list", async () => {
-    const { args } = await listCategories("?sort=hax,-createdAt");
+  it("rejects a mixed sort list rather than dropping its unknown members", async () => {
+    const { res } = await listCategories("?sort=hax,-createdAt");
 
-    expect(args.orderBy).toEqual([{ createdAt: "desc" }]);
+    expect(res.status).toBe(422);
+    expect(res.body.error.details).toEqual([
+      expect.objectContaining({ path: ["query", "sort"] }),
+    ]);
+    expect(findMany).not.toHaveBeenCalled();
   });
 
-  it("selects only whitelisted fields", async () => {
-    const { args } = await listCategories("?fields=id,name,password");
+  it("selects the requested fields when all are whitelisted", async () => {
+    const { args } = await listCategories("?fields=id,name");
 
     expect(args.select).toEqual({ id: true, name: true });
   });
 
-  it("omits select entirely when no requested field is whitelisted", async () => {
-    const { args } = await listCategories("?fields=password");
+  it("rejects an unknown field and names it in the error details", async () => {
+    const { res } = await listCategories("?fields=id,name,password");
 
-    expect(args.select).toBeUndefined();
+    expect(res.status).toBe(422);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.VALIDATION_ERROR,
+      details: [
+        {
+          code: "unknown_value",
+          message: expect.stringContaining('Unknown fields value "password"'),
+          path: ["query", "fields"],
+        },
+      ],
+    });
+    expect(findMany).not.toHaveBeenCalled();
   });
 
   it("defaults to the first page of 20", async () => {
@@ -154,17 +179,15 @@ describe("GET /api/v1/categories", () => {
 });
 
 describe("GET /api/v1/products", () => {
-  it("ignores an unknown sort field and falls back to the default order", async () => {
-    const { res, args } = await listProducts("?sort=hax");
+  it("rejects an unknown sort field", async () => {
+    const { res } = await listProducts("?sort=hax");
 
-    expect(res.status).toBe(200);
-    expect(args.orderBy).toEqual([{ id: "desc" }]);
+    expect(res.status).toBe(422);
+    expect(productFindMany).not.toHaveBeenCalled();
   });
 
-  it("keeps a valid sort list and whitelisted fields", async () => {
-    const { args } = await listProducts(
-      "?sort=-price,name&fields=id,price,hax",
-    );
+  it("keeps a valid sort list and field selection", async () => {
+    const { args } = await listProducts("?sort=-price,name&fields=id,price");
 
     expect(args).toMatchObject({
       orderBy: [{ price: "desc" }, { name: "asc" }],
@@ -172,6 +195,18 @@ describe("GET /api/v1/products", () => {
       skip: 0,
       take: 20,
     });
+  });
+
+  it("names every unknown sort and field value in one response", async () => {
+    const { res } = await listProducts("?sort=hax,-nope&fields=password");
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.details).toEqual([
+      expect.objectContaining({ path: ["query", "sort"] }),
+      expect.objectContaining({ path: ["query", "sort"] }),
+      expect.objectContaining({ path: ["query", "fields"] }),
+    ]);
+    expect(productFindMany).not.toHaveBeenCalled();
   });
 
   it("accepts the name filter and the pagination keys", async () => {
@@ -205,22 +240,30 @@ describe("GET /api/v1/products", () => {
 });
 
 describe("GET /api/v1/users", () => {
-  it("ignores an unknown sort field and falls back to the default order", async () => {
-    const { res, args } = await listUsers("?sort=hax");
+  it("rejects an unknown sort field", async () => {
+    const { res } = await listUsers("?sort=hax");
 
-    expect(res.status).toBe(200);
-    expect(args.orderBy).toEqual([{ id: "desc" }]);
+    expect(res.status).toBe(422);
+    expect(userFindMany).not.toHaveBeenCalled();
   });
 
-  it("keeps a valid sort list and whitelisted fields", async () => {
-    const { args } = await listUsers(
-      "?sort=-createdAt,email&fields=id,email,password",
-    );
+  it("keeps a valid sort list and field selection", async () => {
+    const { args } = await listUsers("?sort=-createdAt,email&fields=id,email");
 
     expect(args).toMatchObject({
       orderBy: [{ createdAt: "desc" }, { email: "asc" }],
       select: { id: true, email: true },
     });
+  });
+
+  it("rejects a field the user list does not expose", async () => {
+    const { res } = await listUsers("?fields=id,email,password");
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.details).toEqual([
+      expect.objectContaining({ path: ["query", "fields"] }),
+    ]);
+    expect(userFindMany).not.toHaveBeenCalled();
   });
 
   it("still applies the role filter alongside the parsed query", async () => {

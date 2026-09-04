@@ -11,7 +11,7 @@ import type {
   SingleItemResponse,
 } from "./common.js";
 import {
-  BaseQueryParamsSchema,
+  createQueryParamsSchema,
   createRequestSchema,
   EmptyResponseSchema,
   ListResponseSchema,
@@ -48,9 +48,19 @@ export const CategoryThumbnailSchema = z.object({
 // LIST - Get all categories (pagination + filtering)
 export type CategoryQueryParams = ExtendedQueryParams<{ name?: NAME }>;
 
-export const CategoryQueryParamsSchema = BaseQueryParamsSchema.extend({
-  name: z.enum(NAME).optional(),
-}).strict() satisfies z.ZodType<CategoryQueryParams>;
+export const CATEGORY_QUERY_FIELDS = [
+  "id",
+  "name",
+  "createdAt",
+  "v",
+  "thumbnail",
+] as const satisfies readonly (keyof CategorySelect)[];
+
+export const CategoryQueryParamsSchema = createQueryParamsSchema(
+  CATEGORY_QUERY_FIELDS,
+)
+  .extend({ name: z.enum(NAME).optional() })
+  .strict() satisfies z.ZodType<CategoryQueryParams>;
 
 export const CategoryGetAllRequestSchema = createRequestSchema({
   query: CategoryQueryParamsSchema,

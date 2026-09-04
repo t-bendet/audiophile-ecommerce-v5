@@ -5,24 +5,13 @@ import type {
   UserDTO,
   UserPublicInfo,
   UserQueryParams,
-  UserSelect,
   UserSelfUpdateInput,
   UserUpdateInput,
 } from "@repo/domain";
+import { USER_QUERY_FIELDS } from "@repo/domain";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { isRecordNotFoundError } from "../utils/prisma-errors.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
-
-const USER_QUERY_FIELDS = [
-  "id",
-  "name",
-  "email",
-  "role",
-  "emailVerified",
-  "createdAt",
-  "active",
-  "v",
-] as const satisfies readonly (keyof UserSelect)[];
 
 const SELF_UPDATE_FIELDS = [
   "name",

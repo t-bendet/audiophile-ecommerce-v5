@@ -17,6 +17,7 @@ const ADMIN: UserPublicInfo = {
 };
 
 const BAD_ID = "not-an-id";
+const VALID_ID = "0123456789abcdef01234567";
 const UNEXPECTED_BODY = { unexpected: true };
 
 type Case = {
@@ -264,6 +265,32 @@ describe("every schema-guarded route still runs its schema", () => {
     });
     expect(res.body.error.details).toContainEqual(
       expect.objectContaining({ path }),
+    );
+  });
+});
+
+// Routes that declare no query params still validate the query they were given.
+const noQueryRoutes = [
+  {
+    route: "GET /products/:id",
+    send: () => request(app).get(`/api/v1/products/${VALID_ID}?foo=1`),
+  },
+  {
+    route: "GET /config",
+    send: () => request(app).get("/api/v1/config?foo=1"),
+  },
+];
+
+describe("a route declaring no query params rejects unknown ones", () => {
+  it.each(noQueryRoutes)("$route", async ({ send }) => {
+    const res = await send();
+
+    expect(res.status).toBe(VALIDATION_STATUS);
+    expect(res.body.error.details).toContainEqual(
+      expect.objectContaining({
+        code: "unrecognized_keys",
+        path: ["query", "foo"],
+      }),
     );
   });
 });

@@ -4,21 +4,13 @@ import type {
   CategoryCreateInput,
   CategoryDTO,
   CategoryQueryParams,
-  CategorySelect,
   CategoryUpdateInput,
   NAME,
 } from "@repo/domain";
+import { CATEGORY_QUERY_FIELDS } from "@repo/domain";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { isRecordNotFoundError } from "../utils/prisma-errors.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
-
-const CATEGORY_QUERY_FIELDS = [
-  "id",
-  "name",
-  "createdAt",
-  "v",
-  "thumbnail",
-] as const satisfies readonly (keyof CategorySelect)[];
 
 const CATEGORY_UPDATE_FIELDS = [
   "name",

@@ -1,3 +1,4 @@
+import { AppError, ErrorCode } from "@repo/domain";
 import { describe, expect, it } from "vitest";
 import {
   buildMeta,
@@ -90,29 +91,64 @@ describe("buildMeta", () => {
   });
 });
 
+const detailsOf = (run: () => unknown) => {
+  try {
+    run();
+  } catch (err) {
+    expect(err).toBeInstanceOf(AppError);
+    expect((err as AppError).code).toBe(ErrorCode.VALIDATION_ERROR);
+    return (err as AppError).details ?? [];
+  }
+
+  throw new Error("expected the call to throw");
+};
+
 describe("parseSelect", () => {
   it("returns undefined when no fields are requested", () => {
     expect(parseSelect(undefined, ALLOWED)).toBeUndefined();
-    expect(parseSelect("", ALLOWED)).toBeUndefined();
     expect(parseSelect(42, ALLOWED)).toBeUndefined();
   });
 
-  it("keeps only allowed fields", () => {
-    expect(parseSelect("id,name,secret", ALLOWED)).toEqual({
+  it("rejects an empty value, as the request schema does", () => {
+    expect(() => parseSelect("", ALLOWED)).toThrow(AppError);
+  });
+
+  it("keeps every requested field when all are allowed", () => {
+    expect(parseSelect("id,name", ALLOWED)).toEqual({
       id: true,
       name: true,
     });
   });
 
-  it("returns undefined when nothing survives the whitelist", () => {
-    expect(parseSelect("secret,password", ALLOWED)).toBeUndefined();
+  it("rejects the whole list when one field is outside the whitelist", () => {
+    const details = detailsOf(() => parseSelect("id,name,secret", ALLOWED));
+
+    expect(details).toEqual([
+      {
+        code: "unknown_value",
+        message: expect.stringContaining('Unknown fields value "secret"'),
+        path: ["query", "fields"],
+      },
+    ]);
+  });
+
+  it("names every field outside the whitelist", () => {
+    const details = detailsOf(() => parseSelect("secret,password", ALLOWED));
+
+    expect(details.map((detail) => detail.message)).toEqual([
+      expect.stringContaining('"secret"'),
+      expect.stringContaining('"password"'),
+    ]);
   });
 });
 
 describe("parseOrderBy", () => {
   it("defaults to descending id", () => {
     expect(parseOrderBy(undefined, ALLOWED)).toEqual([{ id: "desc" }]);
-    expect(parseOrderBy("", ALLOWED)).toEqual([{ id: "desc" }]);
+  });
+
+  it("rejects an empty value, as the request schema does", () => {
+    expect(() => parseOrderBy("", ALLOWED)).toThrow(AppError);
   });
 
   it("reads a leading minus as descending", () => {
@@ -126,15 +162,32 @@ describe("parseOrderBy", () => {
     ]);
   });
 
-  it("drops fields outside the whitelist", () => {
-    expect(parseOrderBy("name,hax", ALLOWED)).toEqual([{ name: "asc" }]);
-    expect(parseOrderBy("-hax,createdAt", ALLOWED)).toEqual([
-      { createdAt: "asc" },
+  it("rejects the whole list when one field is outside the whitelist", () => {
+    const details = detailsOf(() => parseOrderBy("name,hax", ALLOWED));
+
+    expect(details).toEqual([
+      {
+        code: "unknown_value",
+        message: expect.stringContaining('Unknown sort value "hax"'),
+        path: ["query", "sort"],
+      },
     ]);
   });
 
-  it("falls back to the default order when nothing survives", () => {
-    expect(parseOrderBy("hax", ALLOWED)).toEqual([{ id: "desc" }]);
-    expect(parseOrderBy("-hax,-alsoHax", ALLOWED)).toEqual([{ id: "desc" }]);
+  it("names the offending member with its direction prefix intact", () => {
+    const details = detailsOf(() => parseOrderBy("-hax,createdAt", ALLOWED));
+
+    expect(details.map((detail) => detail.message)).toEqual([
+      expect.stringContaining('"-hax"'),
+    ]);
+  });
+
+  it("names every member outside the whitelist", () => {
+    const details = detailsOf(() => parseOrderBy("-hax,-alsoHax", ALLOWED));
+
+    expect(details.map((detail) => detail.message)).toEqual([
+      expect.stringContaining('"-hax"'),
+      expect.stringContaining('"-alsoHax"'),
+    ]);
   });
 });

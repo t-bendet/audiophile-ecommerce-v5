@@ -1,4 +1,11 @@
-import type { Meta } from "@repo/domain";
+import {
+  AppError,
+  ErrorCode,
+  sortFieldName,
+  unknownFieldListMembers,
+  type FieldListKey,
+  type Meta,
+} from "@repo/domain";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -49,40 +56,48 @@ export const buildMeta = ({
   };
 };
 
+// A request schema rejects these first; this is the guard for a drifted whitelist.
+const rejectUnknownMembers = (
+  key: FieldListKey,
+  value: string,
+  allowedFields: readonly string[],
+) => {
+  const details = unknownFieldListMembers(key, value, allowedFields);
+  if (details.length === 0) return;
+
+  throw new AppError(
+    `Validation failed: ${details.length} error(s)`,
+    ErrorCode.VALIDATION_ERROR,
+    undefined,
+    details,
+  );
+};
+
 export const parseSelect = <Field extends string>(
   fields: unknown,
   allowedFields: readonly Field[],
 ): Record<Field, true> | undefined => {
-  if (typeof fields !== "string" || !fields) return undefined;
+  if (typeof fields !== "string") return undefined;
+
+  rejectUnknownMembers("fields", fields, allowedFields);
 
   const select = {} as Record<Field, true>;
   for (const field of fields.split(",")) {
-    if ((allowedFields as readonly string[]).includes(field)) {
-      select[field as Field] = true;
-    }
+    select[field as Field] = true;
   }
 
-  return Object.keys(select).length > 0 ? select : undefined;
+  return select;
 };
 
 export const parseOrderBy = <Field extends string>(
   sort: unknown,
   allowedFields: readonly Field[],
 ): OrderBy[] => {
-  const defaultOrderBy: OrderBy[] = [{ id: "desc" }];
-  if (typeof sort !== "string" || !sort) return defaultOrderBy;
+  if (typeof sort !== "string") return [{ id: "desc" }];
 
-  const orderBy = sort
-    .split(",")
-    .map((field) => {
-      const isDescending = field.startsWith("-");
-      const fieldName = isDescending ? field.substring(1) : field;
-      if (!(allowedFields as readonly string[]).includes(fieldName)) {
-        return undefined;
-      }
-      return { [fieldName]: isDescending ? "desc" : "asc" } satisfies OrderBy;
-    })
-    .filter((entry): entry is OrderBy => entry !== undefined);
+  rejectUnknownMembers("sort", sort, allowedFields);
 
-  return orderBy.length > 0 ? orderBy : defaultOrderBy;
+  return sort.split(",").map((field) => ({
+    [sortFieldName(field)]: field.startsWith("-") ? "desc" : "asc",
+  }));
 };
