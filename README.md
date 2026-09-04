@@ -725,7 +725,7 @@ Ensure you have the following installed:
 
 - **Node.js** 24.5.0 or higher ([Download](https://nodejs.org/))
 - **pnpm** 10.26.2 or higher (`npm install -g pnpm`)
-- **MongoDB** Atlas account or local instance ([Sign Up](https://www.mongodb.com/atlas))
+- **Docker** for the local MongoDB replica set (`docker compose up -d --wait`); MongoDB Atlas only for deployment
 
 ### Installation
 
@@ -749,13 +749,13 @@ Create `.env` files in the following locations:
 **`packages/database/.env`**:
 
 ```env
-DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
+DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 ```
 
 **`apps/server/.env`**:
 
 ```env
-DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
+DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 NODE_ENV=development
 JWT_SECRET=your-secret-key-at-least-32-characters-long
 JWT_EXPIRES_IN=90d
@@ -1442,4 +1442,4 @@ Feel free to use this code for learning, inspiration, or your own projects!
 
 ---
 
-**Last Updated**: February 11, 2026
+**Last Updated**: September 4, 2026

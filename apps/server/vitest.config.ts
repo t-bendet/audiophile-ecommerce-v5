@@ -15,9 +15,9 @@ export default defineConfig({
     // `src/utils/env.ts` validates process.env at import time, and `app.ts`
     // imports it, so every value the schema requires has to be present before
     // the first test file loads. DATABASE_URL is the exception: the global
-    // setup boots an in-memory replica set and `test/helpers/setup.ts` injects
-    // its address. dotenv never overrides an existing variable, so a local
-    // `.env` cannot leak into a test run.
+    // setup boots an in-memory replica set (or takes TEST_DATABASE_URL) and
+    // `test/helpers/setup.ts` injects its address. dotenv never overrides an
+    // existing variable, so a local `.env` cannot leak into a test run.
     env: {
       NODE_ENV: "test",
       PORT: "8000",

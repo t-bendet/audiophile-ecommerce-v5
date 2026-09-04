@@ -121,15 +121,15 @@ The generator block sets `runtime = "nodejs"`, `moduleFormat = "esm"` and `impor
 ### packages/database/.env
 
 ```
-DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
+DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 ```
 
-Required for Prisma migrations, seeding, and client generation. Uses **MongoDB Atlas** connection string format.
+Required for Prisma migrations, seeding, and client generation. Points at the local Docker replica set (see below); the `mongodb+srv://` Atlas form is for deployment only.
 
 ### apps/server/.env
 
 ```
-DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
+DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 NODE_ENV=development
 JWT_SECRET=your-secret-key-for-signing-tokens-min-32-chars
 JWT_EXPIRES_IN=90d
@@ -139,21 +139,23 @@ PORT=8000
 
 **Key variables:**
 
-- `DATABASE_URL`: MongoDB Atlas connection string; must match database/.env
+- `DATABASE_URL`: MongoDB connection string; must match database/.env
 - `NODE_ENV`: `development` or `production` (affects error responses, logging)
 - `JWT_SECRET`: Used to sign/verify JWT tokens; must be at least 32 characters for production security
 - `JWT_EXPIRES_IN`: Token expiration (e.g., `90d`, `7d`, `24h`); parsed by `ms` package
 - `JWT_COOKIE_EXPIRES_IN`: Cookie expiration in milliseconds
 - `PORT`: Server listening port (default: 8000)
 
-### MongoDB Atlas Setup
+### Local MongoDB Setup
 
-This project uses **MongoDB Atlas** (cloud-hosted MongoDB):
+Dev, seeding and the opt-in test path (`TEST_DATABASE_URL`) use the single-node replica set in
+`docker-compose.yml`; Atlas is production only.
 
-1. Create a cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas)
-2. Create a database user with read/write access
-3. Whitelist your IP address (or use `0.0.0.0/0` for development)
-4. Copy the connection string and update both `.env` files
+1. Make sure nothing else holds port 27017 (`brew services stop mongodb-community` if a Homebrew mongod runs)
+2. `docker compose up -d --wait` at the repo root (`--wait` blocks until the set is writable)
+3. `pnpm db:push && pnpm db:seed`
+
+Details and the version pin rationale: `CLAUDE.md` ("Local database") and `docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md`.
 
 ---
 
@@ -333,4 +335,4 @@ See [todos.js](todos.js) for tracked tasks, including:
 - Move product route endpoint to category route
 - Consider adding config ID to environment variables
 
-**Last Updated:** February 10, 2026
+**Last Updated:** September 4, 2026

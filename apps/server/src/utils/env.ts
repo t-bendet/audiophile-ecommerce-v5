@@ -11,8 +11,8 @@ const msDurationStringCheck = z.custom<ms.StringValue>((val) => {
 type SrvConnectionString =
   `mongodb+srv://${string}:${string}@${string}/${string}?retryWrites=true&w=majority&appName=${string}`;
 
-// A directly addressed host, which is how the in-memory replica set the route
-// tests run against advertises itself.
+// A directly addressed host: the Docker replica set in dev and the in-memory
+// one the route tests boot.
 type DirectConnectionString = `mongodb://${string}`;
 
 type ConnectionString = SrvConnectionString | DirectConnectionString;

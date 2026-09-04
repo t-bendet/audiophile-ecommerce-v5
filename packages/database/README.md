@@ -4,10 +4,10 @@ Shared Prisma client and schema for the Audiophile E-Commerce monorepo.
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and configure your MongoDB Atlas connection string:
+1. Copy `.env.example` to `.env`; it points at the Docker replica set from the repo's `docker-compose.yml` (`docker compose up -d --wait` at the repo root):
 
 ```
-DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
+DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 ```
 
 2. Run the appropriate setup command (see below).
@@ -76,4 +76,4 @@ type UserWithOrders = Prisma.UserGetPayload<{
 }>;
 ```
 
-**Last Updated:** February 10, 2026
+**Last Updated:** September 4, 2026
