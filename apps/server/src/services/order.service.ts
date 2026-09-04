@@ -293,13 +293,9 @@ export class OrderService extends AbstractCrudService<
     id: string,
     data: OrderUpdateInput,
   ): Promise<Order | null> {
-    const order = await prisma.order.update({
-      where: { id },
-      data,
-      include: ORDER_INCLUDE,
-    });
-
-    return order;
+    return this.nullOnMissingRecord(() =>
+      prisma.order.update({ where: { id }, data, include: ORDER_INCLUDE }),
+    );
   }
 
   protected async persistDelete(id: string): Promise<boolean> {

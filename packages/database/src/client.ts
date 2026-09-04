@@ -5,9 +5,7 @@ const hashPassword = async (password: string) => {
   return await bcrypt.hash(password, 12);
 };
 
-// Prisma types a string update as `string | { set?: string }`; both forms have
-// to arrive here as a string, since this extension is the only writer of the
-// stored hash.
+// Prisma types a string update as `string | { set?: string }`; both carry the hash.
 const passwordToHash = (
   value: string | Prisma.StringFieldUpdateOperationsInput,
 ): string => {

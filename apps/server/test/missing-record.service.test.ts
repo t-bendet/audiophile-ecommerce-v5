@@ -58,6 +58,18 @@ describe("a missing row on update", () => {
     ).rejects.toMatchObject({ code: ErrorCode.NOT_FOUND });
   });
 
+  it("becomes a NOT_FOUND for orders", async () => {
+    await expect(
+      orderService.update(ABSENT_ID, { status: "SHIPPED" }),
+    ).rejects.toMatchObject({ code: ErrorCode.NOT_FOUND });
+  });
+
+  it("becomes a NOT_FOUND for carts", async () => {
+    await expect(
+      cartService.update(ABSENT_ID, { v: 1 }),
+    ).rejects.toMatchObject({ code: ErrorCode.NOT_FOUND });
+  });
+
   it("propagates any other failure", async () => {
     await expect(
       categoryService.update(MALFORMED_ID, { name: "Speakers" }),

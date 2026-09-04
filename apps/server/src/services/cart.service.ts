@@ -372,13 +372,13 @@ export class CartService extends AbstractCrudService<
     id: string,
     data: CartUpdateInput,
   ): Promise<CartWithProducts | null> {
-    const cart = await prisma.cart.update({
-      where: { id },
-      data,
-      include: cartWithProductsInclude,
-    });
-
-    return cart;
+    return this.nullOnMissingRecord(() =>
+      prisma.cart.update({
+        where: { id },
+        data,
+        include: cartWithProductsInclude,
+      }),
+    );
   }
 
   protected async persistDelete(id: string): Promise<boolean> {
