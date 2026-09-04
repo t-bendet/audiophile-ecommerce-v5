@@ -1,8 +1,20 @@
 import bcrypt from "bcrypt";
-import { PrismaClient } from "../generated/prisma/client.js";
+import { Prisma, PrismaClient } from "../generated/prisma/client.js";
 
 const hashPassword = async (password: string) => {
   return await bcrypt.hash(password, 12);
+};
+
+// Prisma types a string update as `string | { set?: string }`; both forms have
+// to arrive here as a string, since this extension is the only writer of the
+// stored hash.
+const passwordToHash = (
+  value: string | Prisma.StringFieldUpdateOperationsInput,
+): string => {
+  const password = typeof value === "string" ? value : value.set;
+  if (typeof password !== "string")
+    throw new TypeError("A user password update must carry a string password");
+  return password;
 };
 
 // Prisma Extensions Use cases:
@@ -60,7 +72,7 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
         // if password and password confirm exist ,iit can only be update password route
         if (args.data.password && args.data.passwordConfirm) {
           const hashedPassword = await hashPassword(
-            args.data.password as string,
+            passwordToHash(args.data.password),
           );
           args.data.password = hashedPassword;
           args.data.passwordConfirm = hashedPassword;

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 import {
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
   GetOrderRequestSchema,
+  OrderQueryParamsSchema,
   UpdateOrderStatusRequestSchema,
 } from "../src/index.js";
 
@@ -54,5 +57,14 @@ describe("UpdateOrderStatusRequestSchema", () => {
         query: {},
       }),
     ).toThrow(ZodError);
+  });
+});
+
+describe("OrderQueryParamsSchema pagination", () => {
+  it("falls back to the shared defaults", () => {
+    expect(OrderQueryParamsSchema.parse({})).toMatchObject({
+      page: DEFAULT_PAGE,
+      limit: DEFAULT_LIMIT,
+    });
   });
 });

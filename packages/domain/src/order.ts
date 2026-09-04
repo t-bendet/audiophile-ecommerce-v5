@@ -7,6 +7,8 @@ import type {
 import { z } from "zod";
 import {
   createRequestSchema,
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
   ListResponse,
   ListResponseSchema,
   SingleItemResponse,
@@ -175,8 +177,8 @@ export const OrderQueryParamsSchema = z
   .object({
     status: OrderStatusSchema.optional(),
     paymentStatus: PaymentStatusSchema.optional(),
-    page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().positive().max(100).default(10),
+    page: z.coerce.number().int().positive().default(DEFAULT_PAGE),
+    limit: z.coerce.number().int().positive().max(100).default(DEFAULT_LIMIT),
   })
   .strict();
 

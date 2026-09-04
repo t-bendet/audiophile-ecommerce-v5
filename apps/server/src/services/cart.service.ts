@@ -382,12 +382,9 @@ export class CartService extends AbstractCrudService<
   }
 
   protected async persistDelete(id: string): Promise<boolean> {
-    try {
-      await prisma.cart.delete({ where: { id } });
-      return true;
-    } catch {
-      return false;
-    }
+    return this.falseOnMissingRecord(() =>
+      prisma.cart.delete({ where: { id } }),
+    );
   }
 }
 

@@ -1,14 +1,13 @@
 import {
   AppError,
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
   ErrorCode,
   sortFieldName,
   unknownFieldListMembers,
   type FieldListKey,
   type Meta,
 } from "@repo/domain";
-
-const DEFAULT_PAGE = 1;
-const DEFAULT_LIMIT = 20;
 
 export interface Pagination {
   page: number;

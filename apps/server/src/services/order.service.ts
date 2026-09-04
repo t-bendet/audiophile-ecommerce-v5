@@ -303,12 +303,9 @@ export class OrderService extends AbstractCrudService<
   }
 
   protected async persistDelete(id: string): Promise<boolean> {
-    try {
-      await prisma.order.delete({ where: { id } });
-      return true;
-    } catch {
-      return false;
-    }
+    return this.falseOnMissingRecord(() =>
+      prisma.order.delete({ where: { id } }),
+    );
   }
 }
 
