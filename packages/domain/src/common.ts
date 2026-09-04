@@ -239,7 +239,7 @@ export const ApiResponseSchema = <T extends z.ZodTypeAny>(item: T) =>
 
 const EmptyParamsSchema = z.object({}).strict();
 const EmptyBodySchema = z.undefined();
-const EmptyQuerySchema = z.object({});
+const EmptyQuerySchema = z.object({}).strict();
 
 /**
  * Create a typed request schema that validates params, body, and query
@@ -267,11 +267,60 @@ export interface baseQueryParams {
   fields?: string;
 }
 
-export const BaseQueryParamsSchema = z.object({
-  sort: z.string().optional(),
-  fields: z.string().optional(),
-  page: z.coerce.number().int().positive().optional(),
-  limit: z.coerce.number().int().positive().optional(),
-}) satisfies z.ZodType<baseQueryParams>;
+export type FieldListKey = "sort" | "fields";
+
+export const sortFieldName = (member: string) =>
+  member.startsWith("-") ? member.slice(1) : member;
+
+/**
+ * One unknown member rejects the whole list, and each gets its own detail.
+ */
+export const unknownFieldListMembers = (
+  key: FieldListKey,
+  value: string,
+  allowedFields: readonly string[],
+): ErrorDetail[] =>
+  value
+    .split(",")
+    .filter(
+      (member) =>
+        !allowedFields.includes(
+          key === "sort" ? sortFieldName(member) : member,
+        ),
+    )
+    .map((member) => ({
+      code: "unknown_value",
+      message: `Unknown ${key} value "${member}". Allowed values: ${allowedFields.join(", ")}`,
+      path: ["query", key],
+    }));
+
+const FieldListValidator = (
+  key: FieldListKey,
+  allowedFields: readonly string[],
+) =>
+  z
+    .string()
+    .optional()
+    .superRefine((value, ctx) => {
+      if (value === undefined) return;
+
+      for (const detail of unknownFieldListMembers(key, value, allowedFields)) {
+        ctx.addIssue({
+          code: "custom",
+          message: detail.message,
+          params: { code: detail.code },
+        });
+      }
+    });
+
+export const createQueryParamsSchema = <Field extends string>(
+  allowedFields: readonly Field[],
+) =>
+  z.object({
+    sort: FieldListValidator("sort", allowedFields),
+    fields: FieldListValidator("fields", allowedFields),
+    page: z.coerce.number().int().positive().optional(),
+    limit: z.coerce.number().int().positive().optional(),
+  }) satisfies z.ZodType<baseQueryParams>;
 
 export type ExtendedQueryParams<T> = baseQueryParams & T;

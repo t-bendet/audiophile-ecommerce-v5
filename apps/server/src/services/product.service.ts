@@ -4,6 +4,7 @@ import {
   ErrorCode,
   Meta,
   Product,
+  PRODUCT_QUERY_FIELDS,
   ProductCreateInput,
   ProductDTO,
   ProductFeaturedProductsDTO,
@@ -18,24 +19,6 @@ import {
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { isRecordNotFoundError } from "../utils/prisma-errors.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
-
-const PRODUCT_QUERY_FIELDS = [
-  "id",
-  "cartLabel",
-  "name",
-  "slug",
-  "price",
-  "categoryId",
-  "createdAt",
-  "v",
-  "shortLabel",
-  "fullLabel",
-  "description",
-  "isNewProduct",
-  "featuredImageText",
-  "showCaseImageText",
-  "featuresText",
-] as const satisfies readonly (keyof Product)[];
 
 const PRODUCT_UPDATE_FIELDS = [
   "cartLabel",

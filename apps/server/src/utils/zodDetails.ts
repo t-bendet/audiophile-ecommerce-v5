@@ -15,9 +15,15 @@ export const zodIssuesToDetails = (error: ZodError): ErrorDetail[] =>
       }));
     }
 
+    // A custom issue may name a more specific code than zod's "custom".
+    const code =
+      issue.code === "custom" && typeof issue.params?.code === "string"
+        ? issue.params.code
+        : issue.code;
+
     return [
       {
-        code: issue.code,
+        code,
         message: issue.message,
         path: path.length > 0 ? path : undefined,
       },
