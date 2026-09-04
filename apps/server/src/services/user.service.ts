@@ -10,7 +10,6 @@ import type {
 } from "@repo/domain";
 import { USER_QUERY_FIELDS } from "@repo/domain";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
-import { isRecordNotFoundError } from "../utils/prisma-errors.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const SELF_UPDATE_FIELDS = [
@@ -114,26 +113,15 @@ export class UserService extends AbstractCrudService<
   }
 
   protected async persistUpdate(id: string, input: UserUpdateInput) {
-    try {
-      const entity = await prisma.user.update({
-        where: { id },
-        data: input,
-      });
-      return entity;
-    } catch (e) {
-      if (isRecordNotFoundError(e)) return null;
-      throw e;
-    }
+    return this.nullOnMissingRecord(() =>
+      prisma.user.update({ where: { id }, data: input }),
+    );
   }
 
   protected async persistDelete(id: string) {
-    try {
-      await prisma.user.delete({ where: { id } });
-      return true;
-    } catch (e) {
-      if (isRecordNotFoundError(e)) return false;
-      throw e;
-    }
+    return this.falseOnMissingRecord(() =>
+      prisma.user.delete({ where: { id } }),
+    );
   }
 
   // ===== Private Query Builders =====

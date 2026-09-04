@@ -17,7 +17,6 @@ import {
   ProductWhereInput,
 } from "@repo/domain";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
-import { isRecordNotFoundError } from "../utils/prisma-errors.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const PRODUCT_UPDATE_FIELDS = [
@@ -97,26 +96,15 @@ export class ProductService extends AbstractCrudService<
   }
 
   protected async persistUpdate(id: string, input: ProductUpdateInput) {
-    try {
-      const entity = await prisma.product.update({
-        where: { id },
-        data: input,
-      });
-      return entity;
-    } catch (e) {
-      if (isRecordNotFoundError(e)) return null;
-      throw e;
-    }
+    return this.nullOnMissingRecord(() =>
+      prisma.product.update({ where: { id }, data: input }),
+    );
   }
 
   protected async persistDelete(id: string) {
-    try {
-      await prisma.product.delete({ where: { id } });
-      return true;
-    } catch (e) {
-      if (isRecordNotFoundError(e)) return false;
-      throw e;
-    }
+    return this.falseOnMissingRecord(() =>
+      prisma.product.delete({ where: { id } }),
+    );
   }
 
   // ** Helper Methods (optional overrides) **

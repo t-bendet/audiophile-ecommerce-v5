@@ -9,6 +9,8 @@ import {
   CreateOrderInput,
   CreateOrderResponse,
   CreateOrderResponseSchema,
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
   GetOrderResponse,
   GetOrderResponseSchema,
   ListOrdersResponse,
@@ -119,7 +121,7 @@ const listOrders: TListOrders = async ({
 };
 
 export const listOrdersQueryOptions = (
-  filters: OrderQueryParams = { page: 1, limit: 10 },
+  filters: OrderQueryParams = { page: DEFAULT_PAGE, limit: DEFAULT_LIMIT },
 ) =>
   queryOptions({
     queryKey: orderKeys.list(filters),
@@ -128,7 +130,7 @@ export const listOrdersQueryOptions = (
   });
 
 export const useOrders = (
-  filters: OrderQueryParams = { page: 1, limit: 10 },
+  filters: OrderQueryParams = { page: DEFAULT_PAGE, limit: DEFAULT_LIMIT },
 ) => {
   return useQuery(listOrdersQueryOptions(filters));
 };

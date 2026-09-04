@@ -1,4 +1,4 @@
-import { ErrorCode } from "@repo/domain";
+import { DEFAULT_LIMIT, DEFAULT_PAGE, ErrorCode } from "@repo/domain";
 import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 import app from "../src/app.js";
@@ -113,7 +113,11 @@ describe("GET /api/v1/orders", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
-    expect(res.body.meta).toMatchObject({ page: 1, limit: 10, total: 1 });
+    expect(res.body.meta).toMatchObject({
+      page: DEFAULT_PAGE,
+      limit: DEFAULT_LIMIT,
+      total: 1,
+    });
 
     const other = await createUser();
     const otherRes = await request(app)

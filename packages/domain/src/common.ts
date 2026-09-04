@@ -260,6 +260,10 @@ export const createRequestSchema = <
     query: options?.query ?? EmptyQuerySchema,
   } as { params: P; body: B; query: Q });
 
+/** The page and page size a list falls back to when the caller names neither. */
+export const DEFAULT_PAGE = 1;
+export const DEFAULT_LIMIT = 20;
+
 export interface baseQueryParams {
   page?: number;
   limit?: number;

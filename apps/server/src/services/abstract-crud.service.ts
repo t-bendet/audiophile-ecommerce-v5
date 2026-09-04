@@ -1,4 +1,5 @@
 import { AppError, ErrorCode, type baseQueryParams } from "@repo/domain";
+import { isRecordNotFoundError } from "../utils/prisma-errors.js";
 import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
 
 /**
@@ -149,6 +150,37 @@ export abstract class AbstractCrudService<
   protected filterUpdateInput?(input: UpdateInput): UpdateInput;
 
   // ** Helper Methods **
+
+  /**
+   * Run a write whose row may be gone, reporting that as `null`.
+   * Every other failure still throws.
+   */
+  protected async nullOnMissingRecord<T>(
+    write: () => Promise<T>,
+  ): Promise<T | null> {
+    try {
+      return await write();
+    } catch (e) {
+      if (isRecordNotFoundError(e)) return null;
+      throw e;
+    }
+  }
+
+  /**
+   * Run a write whose row may be gone, reporting that as `false`.
+   * Every other failure still throws.
+   */
+  protected async falseOnMissingRecord(
+    write: () => Promise<unknown>,
+  ): Promise<boolean> {
+    try {
+      await write();
+      return true;
+    } catch (e) {
+      if (isRecordNotFoundError(e)) return false;
+      throw e;
+    }
+  }
 
   protected pickFieldsByAllowed<T extends Record<string, unknown>>(
     obj: T,
