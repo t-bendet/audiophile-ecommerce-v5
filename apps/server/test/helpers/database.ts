@@ -1,4 +1,4 @@
-import { prisma, type NAME } from "@repo/database";
+import { prisma, type Category, type NAME } from "@repo/database";
 import jwt from "jsonwebtoken";
 import { env } from "../../src/utils/env.js";
 
@@ -79,7 +79,7 @@ const thumbnail = (label: string) => ({
   src: `https://cdn.example.com/${label}-thumb.jpg`,
 });
 
-export const createCategory = (name: NAME = "Headphones") =>
+export const createCategory = (name: NAME = "Headphones"): Promise<Category> =>
   prisma.category.create({
     data: { name, thumbnail: thumbnail(name.toLowerCase()) },
   });

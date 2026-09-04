@@ -65,9 +65,9 @@ describe("a missing row on update", () => {
   });
 
   it("becomes a NOT_FOUND for carts", async () => {
-    await expect(
-      cartService.update(ABSENT_ID, { v: 1 }),
-    ).rejects.toMatchObject({ code: ErrorCode.NOT_FOUND });
+    await expect(cartService.update(ABSENT_ID, { v: 1 })).rejects.toMatchObject(
+      { code: ErrorCode.NOT_FOUND },
+    );
   });
 
   it("propagates any other failure", async () => {
