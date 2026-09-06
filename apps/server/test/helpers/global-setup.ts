@@ -56,7 +56,12 @@ export default async function setup({ provide }: TestProject) {
   // Never DATABASE_URL: CI sets that, and a local `.env` could aim it anywhere.
   const externalDatabaseUrl = process.env.TEST_DATABASE_URL;
   if (externalDatabaseUrl) {
-    await pushSchema(externalDatabaseUrl);
+    await pushSchema(externalDatabaseUrl).catch((cause: unknown) => {
+      throw new Error(
+        "TEST_DATABASE_URL is set but the schema push to it failed. Is that database running? Start the local one with `docker compose up -d --wait`.",
+        { cause },
+      );
+    });
     provide("databaseUrl", externalDatabaseUrl);
     return;
   }
