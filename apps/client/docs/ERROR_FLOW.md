@@ -84,15 +84,14 @@ Axios makes HTTP request
     └─→ HTTP Error (any status)
             ↓
         Axios Interceptor (response.use())
-            ├─ Classify error via _classifyAxiosError()
-            ├─ If 401: Set redirectTo in error.details
-            └─ Throw AppError with ErrorCode
+            └─ Reject the raw AxiosError; no classification here
                 ↓
-            React Query catches AppError
-                ├─ Check status code for retry decision
-                ├─ If 4xx: No retry, throw to component
-                ├─ If 5xx: Retry up to 2x with backoff
-                └─ After retries exhausted OR 4xx: throw to ErrorBoundary
+            React Query catches the raw AxiosError
+                ├─ retry callback: processAxiosError() → read statusCode
+                ├─ If 4xx (or a Zod error): No retry
+                ├─ Otherwise: Retry up to 2x with backoff
+                └─ After retries exhausted OR 4xx: throw the raw error
+                   to the ErrorBoundary
                     ↓
                 ErrorBoundary catches error
                     ├─ Call normalizeError(error) → AppError
@@ -104,8 +103,8 @@ Axios makes HTTP request
 
 **Key characteristics of current flow:**
 
-- ✅ Axios classifies errors at transport layer (produces AppError)
-- ✅ React Query handles retry strategy based on status code
+- ✅ Axios is pure transport; it rejects the raw error unclassified
+- ✅ React Query handles retry strategy based on the classified status code
 - ✅ All errors normalized via `normalizeError()` before processing
 - ✅ Components/queries decide toast and UI handling
 - ✅ Errors bubble to appropriate boundary
@@ -199,7 +198,6 @@ Axios makes HTTP request
 
 **Behavior:**
 
-- For 401: Sets `redirectTo` flag on error object
 - For all errors: Throws raw HTTP error (no classification)
 - No toasts, no retries, no UI decisions
 - Pure transport: just passes error up
@@ -210,7 +208,7 @@ Axios makes HTTP request
 
 **Location:** Data fetching layer
 
-**Purpose:** Cache management, retry logic, and error classification
+**Purpose:** Cache management and retry logic
 
 **Catches:**
 
@@ -220,12 +218,14 @@ Axios makes HTTP request
 
 **Behavior:**
 
-- Classifies error: `classifyHttpError(error)` → `AppError`
-- Decides retry based on classification:
-  - 4xx errors: No retry (user's fault, fail fast)
-  - 5xx errors: Retry up to 2x with exponential backoff
-- Throws classified `AppError` to ErrorBoundary (if `throwOnError: true`)
-- Stores classified error in query state (if `throwOnError: false`)
+- Classifies error: `processAxiosError(error)` → `AppError`, then reads only
+  its `statusCode`; the `AppError` itself is discarded
+- Decides retry from that status:
+  - 4xx errors, and client-side Zod errors: No retry (fail fast)
+  - Everything else: Retry up to 2x with exponential backoff
+- Throws the **raw** error to ErrorBoundary (if `throwOnError: true`), which
+  normalizes it there
+- Stores the raw error in query state (if `throwOnError: false`)
 - Does NOT handle toasts; components decide
 
 **Code:** `apps/client/src/lib/react-query.ts`
@@ -238,7 +238,7 @@ All errors are normalized through a **single entry point** before any processing
 // lib/errors/errors.ts
 export function normalizeError(error: unknown): AppError {
   if (isAxiosError(error)) {
-    return _classifyAxiosError(error); // HTTP classification
+    return processAxiosError(error); // HTTP classification
   } else if (error instanceof ZodError) {
     // Validation errors from forms
     const message = `Validation failed: ${error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`;
@@ -534,15 +534,16 @@ isAxiosError(error): boolean
 // Use this FIRST to differentiate axios-specific errors from generic errors
 
 // Check if error is AppError (vs generic Error)
+// Module-private: used inside processAxiosError, never exported
 isAppError(error): boolean
 
 // Check if error is critical (should bubble to parent boundary)
 isCriticalError(error): boolean
-// Critical codes: UNAUTHORIZED, INVALID_TOKEN, TOKEN_EXPIRED, VALIDATION_ERROR
-
-// Get user-friendly message from error
-getErrorMessage(error): string
+// Critical: INTERNAL_ERROR, EXTERNAL_SERVICE_ERROR, or any statusCode >= 500
 ```
+
+The module exports exactly four things: `isClientZodError`, `processAxiosError`,
+`isCriticalError` and `normalizeError`.
 
 **Axios Error Codes Reference:**
 
@@ -571,15 +572,15 @@ Error Occurs in Component
     │   │
     │   ├─ isCriticalError(error)?
     │   │   ├─ YES → Re-throw to parent (RouteErrorBoundary)
-    │   │   │        Critical error codes:
-    │   │   │        - UNAUTHORIZED (auth required)
-    │   │   │        - INVALID_TOKEN (session invalid)
-    │   │   │        - TOKEN_EXPIRED (token expired)
-    │   │   │        - VALIDATION_ERROR (form errors)
+    │   │   │        Critical when the code is:
+    │   │   │        - INTERNAL_ERROR (server error from a loader/API)
+    │   │   │        - EXTERNAL_SERVICE_ERROR (network failure)
+    │   │   │        or when statusCode >= 500, whatever the code
     │   │   │
     │   │   └─ NO → Handle locally
     │   │            Display: title, message, retry button
-    │   │            Examples: 404 Not Found, 500 Server Error
+    │   │            Examples: 404 Not Found, 401 Unauthorized,
+    │   │                      422 Validation Error
     │
     ├─ Route-level ErrorBoundary (RouteErrorBoundary)
     │   │
@@ -588,9 +589,11 @@ Error Occurs in Component
     │   │            - Status 404 → "Page Not Found"
     │   │            - Status 400 → "Bad Request"
     │   │
-    │   ├─ isAppError()?
-    │   │   └─ YES → Extract statusCode and message
-    │   │            - Status 404 → title: "Not Found"
+    │   ├─ Anything else → normalizeError(error) → AppError
+    │   │   └─ Extract statusCode and message
+    │   │            - Code NOT_FOUND → title: "Not Found"
+    │   │            - isCriticalError() → title: "Critical Application Error"
+    │   │              (message sanitized)
     │   │            - Other → title: "Request Failed"
     │   │
     │   ├─ Unknown Error
@@ -1312,7 +1315,7 @@ export function RouteErrorBoundary() {
 interceptor.response.use(
   (response) => response.data,
   (error) => {
-    throw classifyHttpError(error); // That's it!
+    throw processAxiosError(error); // That's it!
   },
 );
 ```
@@ -1411,14 +1414,14 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 
 ## Key Components
 
-### apps/client/src/lib/errors.ts
+### apps/client/src/lib/errors/errors.ts
 
-**Functions:**
+**Exports:**
 
-- `classifyHttpError(axiosError): AppError` - Classify raw HTTP error
-- `isAppError(error): boolean` - Type guard for AppError
+- `normalizeError(error): AppError` - Single entry point; normalizes any error
+- `processAxiosError(axiosError): AppError` - Classify an Axios error
+- `isClientZodError(error): error is ZodError` - Type guard for Zod errors
 - `isCriticalError(error): boolean` - Check if error is critical
-- `getErrorMessage(error): string` - Get user-friendly message
 
 ### apps/client/src/lib/api-client.ts
 
@@ -1456,27 +1459,27 @@ useQuery(loginQueryOptions)
     ↓
 POST /auth/login { email, password }
     ↓
-Server returns 401 UNAUTHORIZED { code: "UNAUTHORIZED" }
+Server returns 401 with { error: { code: "UNAUTHORIZED", ... } }
     ↓
-Axios interceptor catches response error
+Axios interceptor rejects the raw AxiosError (code ERR_BAD_REQUEST)
     ↓
-classifyHttpError() → AppError(UNAUTHORIZED, 401, "Invalid credentials")
+React Query retry callback: processAxiosError() → 401 → 4xx, no retry
     ↓
-Throw AppError to React Query
+throwOnError: true → Throw the raw AxiosError to the ErrorBoundary
     ↓
-React Query throwOnError: true → Throw error to ErrorBoundary
+LoginForm ErrorBoundary catches, calls normalizeError() → processAxiosError()
     ↓
-LoginForm ErrorBoundary catches
+Pass-through branch: response.data.error is a well-formed AppError
     ↓
-Check: isCriticalError(error)? → YES (UNAUTHORIZED is critical)
+AppError(UNAUTHORIZED, 401, "Invalid credentials")
+    (the code comes from the response body, never from the 401 status)
     ↓
-Re-throw to parent (RouteErrorBoundary)
+Check: isCriticalError(error)? → NO
+       UNAUTHORIZED is not in criticalCodes, and 401 < 500
     ↓
-RouteErrorBoundary catches
+Handle locally with ErrorBlock
     ↓
-Show: "Invalid email or password"
-    ↓
-Display login form again
+Show: "Invalid email or password" beside the login form
 ```
 
 ### Example 2: 5xx Server Error During Product Load
@@ -1488,37 +1491,31 @@ Route loader calls useQuery(getProductsQueryOptions)
     ↓
 GET /api/products
     ↓
-Server returns 500 INTERNAL_ERROR
+Server returns 500 with { error: { code: "INTERNAL_ERROR", ... } }
     ↓
-Axios interceptor catches
+Axios interceptor rejects the raw AxiosError (code ERR_BAD_RESPONSE)
     ↓
-Show toast: "Server error. Retrying..."
-    ↓
-classifyHttpError() → AppError(INTERNAL_ERROR, 500)
-    ↓
-Throw AppError to React Query
-    ↓
-React Query: Is 5xx? → Retry (up to 2 times)
+React Query retry callback: processAxiosError() → 500 → not 4xx, retry
     │
     ├─ Retry 1: Still 500
     ├─ Wait 1s
     ├─ Retry 2: Still 500
     ├─ Wait 2s
-    └─ Give up, still errored
+    └─ Give up (failureCount === 2), still errored
     ↓
-throwOnError: true → Throw error to ErrorBoundary
+throwOnError: true → Throw the raw AxiosError to the ErrorBoundary
     ↓
-ProductList ErrorBoundary catches
+ProductList ErrorBoundary catches, calls normalizeError()
     ↓
-Check: isCriticalError(error)? → NO (INTERNAL_ERROR is not critical)
+Pass-through branch → AppError(INTERNAL_ERROR, 500)
     ↓
-Render error inline with ErrorBlock
+Check: isCriticalError(error)? → YES
+       INTERNAL_ERROR is in criticalCodes, and 500 >= 500
     ↓
-Show: "Failed to load products. Please try again."
+Re-throw to parent (RouteErrorBoundary)
     ↓
-Show retry button
-    ↓
-User clicks retry → refetch happens
+Show: "Critical Application Error", message sanitized to
+      "A critical error occurred. Please try again later."
 ```
 
 ### Example 3: Validation Error on Form Submit
@@ -1528,36 +1525,29 @@ User submits form with invalid data
     ↓
 Form validation component checks fields
     ↓
-isMutation(submitFormMutation)
+useMutation(submitFormMutation) with throwOnError: false
     ↓
 POST /api/user/update { ...invalid data }
     ↓
-Server returns 422 VALIDATION_ERROR with field errors
+Server returns 422 with { error: { code: "VALIDATION_ERROR", details: [...] } }
     ├─ "email" → "Invalid email format"
     ├─ "age" → "Must be 18 or older"
     └─ "name" → "Required"
     ↓
-Axios interceptor catches
+Axios interceptor rejects the raw AxiosError (code ERR_BAD_REQUEST)
     ↓
-No toast (4xx error)
+Mutation rejects; no retry (mutations do not retry by default)
     ↓
-classifyHttpError() → AppError(VALIDATION_ERROR, 422, "Invalid input")
+Component catches and calls normalizeError()
     ↓
-AppError.details = { email, age, name } (field errors)
+Pass-through branch → AppError(VALIDATION_ERROR, 422, "Invalid input")
+    with details carried over from the response body
+    (the code comes from the body, never from the 422 status)
     ↓
-Throw AppError to React Query
+Check: isCriticalError(error)? → NO
+       VALIDATION_ERROR is not in criticalCodes, and 422 < 500
     ↓
-React Query: Is 4xx? → No retry
-    ↓
-throwOnError: true → Throw error to ErrorBoundary
-    ↓
-Form component ErrorBoundary catches
-    ↓
-Check: isCriticalError(error)? → YES (VALIDATION_ERROR is critical)
-    ↓
-Re-throw to parent form boundary
-    ↓
-Parent can access error.details for field-level errors
+Handle locally: branch on error.code, read error.details
     ↓
 Show field-level errors next to inputs
     ↓
@@ -1581,29 +1571,27 @@ React Query starts refetch (refetchOnMount: "stale")
     ↓
 GET /api/products/:id (no network)
     ↓
-Axios throws ERR_NETWORK
+Axios throws ERR_NETWORK (no error.response)
     ↓
-Axios interceptor catches
+Axios interceptor rejects the raw AxiosError
     ↓
-classifyHttpError() → AppError(EXTERNAL_SERVICE_ERROR, 503)
-    ↓
-Show toast: "Network connection lost..."
-    ↓
-Throw AppError to React Query
-    ↓
-React Query: Is network error? → Retry (up to 2x)
+React Query retry callback: processAxiosError() → 503 → not 4xx, retry
     │
     ├─ Retry 1: Still no network
     ├─ Wait 1s
     ├─ Retry 2: Network restored!
     └─ Success
     ↓
-Toast updates: "Connection restored!"
-    ↓
-Data refetches successfully
+Data refetches successfully; no error ever reaches a boundary
     ↓
 Component shows updated data
 ```
+
+Had the retries been exhausted instead, the boundary's `normalizeError()`
+would produce `AppError(EXTERNAL_SERVICE_ERROR, 503)`, and
+`isCriticalError()` returns **YES** for it — it is in `criticalCodes`, and
+503 >= 500 — so the error re-throws to `RouteErrorBoundary` rather than
+rendering inline.
 
 ## Development vs Production Errors
 

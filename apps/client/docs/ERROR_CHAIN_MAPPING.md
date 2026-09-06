@@ -83,46 +83,56 @@ This document maps the complete error flow chain in the client application, from
 
 ## Axios Error Codes Reference
 
-When Axios encounters an error, it sets `error.code` to one of these values:
+When Axios encounters an error, it sets `error.code` to one of these values.
 
-### Network/Connection Errors (Retryable)
+**Retry is not decided from `error.code`.** The `retry` callback in
+[apps/client/src/lib/react-query.ts](apps/client/src/lib/react-query.ts) runs
+`processAxiosError(error)` and branches on the `statusCode` that comes back:
+a 4xx never retries, nor does a client-side Zod error; anything else retries up
+to twice. Since every code that
+arrives without an `error.response` classifies as `EXTERNAL_SERVICE_ERROR 503`,
+most of the codes below retry regardless of what Axios meant by them.
 
-| Error Code     | Meaning                                                                  | Retry? |
-| -------------- | ------------------------------------------------------------------------ | ------ |
-| `ERR_NETWORK`  | Network connection failed (no internet, DNS failure, connection refused) | ✅ Yes |
-| `ECONNABORTED` | Connection aborted - request was terminated before completion            | ✅ Yes |
-| `ETIMEDOUT`    | Request timeout - server didn't respond within the timeout period        | ✅ Yes |
+### Network/Connection Errors
 
-### Request/Configuration Errors (Non-Retryable)
+| Error Code     | Meaning                                                                  | `processAxiosError` result  | Retried? |
+| -------------- | ------------------------------------------------------------------------ | --------------------------- | -------- |
+| `ERR_NETWORK`  | Network connection failed (no internet, DNS failure, connection refused) | EXTERNAL_SERVICE_ERROR, 503 | Yes      |
+| `ECONNABORTED` | Connection aborted - request was terminated before completion            | EXTERNAL_SERVICE_ERROR, 503 | Yes      |
+| `ETIMEDOUT`    | Request timeout - server didn't respond within the timeout period        | EXTERNAL_SERVICE_ERROR, 503 | Yes      |
 
-| Error Code             | Meaning                                                  | Retry? |
-| ---------------------- | -------------------------------------------------------- | ------ |
-| `ERR_BAD_REQUEST`      | Malformed HTTP request or bad request syntax             | ❌ No  |
-| `ERR_INVALID_URL`      | URL provided is invalid or malformed                     | ❌ No  |
-| `ERR_BAD_OPTION`       | Invalid Axios configuration option used                  | ❌ No  |
-| `ERR_BAD_OPTION_VALUE` | Invalid value provided for an Axios configuration option | ❌ No  |
+### Request/Configuration Errors
 
-### Response Errors (Non-Retryable)
+| Error Code             | Meaning                                                  | `processAxiosError` result                             | Retried?                                     |
+| ---------------------- | -------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------- |
+| `ERR_BAD_REQUEST`      | A 4xx response from the server                           | the server's error passed through, e.g. NOT_FOUND, 404 | No, unless the body is malformed - see below |
+| `ERR_INVALID_URL`      | URL provided is invalid or malformed                     | EXTERNAL_SERVICE_ERROR, 503 (no response)              | Yes                                          |
+| `ERR_BAD_OPTION`       | Invalid Axios configuration option used                  | EXTERNAL_SERVICE_ERROR, 503 (no response)              | Yes                                          |
+| `ERR_BAD_OPTION_VALUE` | Invalid value provided for an Axios configuration option | EXTERNAL_SERVICE_ERROR, 503 (no response)              | Yes                                          |
 
-| Error Code         | Meaning                                                 | Retry? |
-| ------------------ | ------------------------------------------------------- | ------ |
-| `ERR_BAD_RESPONSE` | Server response is in an unexpected format or corrupted | ❌ No  |
+Both pass-through rows — `ERR_BAD_REQUEST` here and `ERR_BAD_RESPONSE` below —
+depend on the body: if `response.data.error` is not a well-formed `AppError`,
+they fall to the `INTERNAL_ERROR, 500` catch-all instead, and a 500 does retry.
 
-### Redirect Errors (Non-Retryable)
+### Response Errors
 
-| Error Code                  | Meaning                                          | Retry? |
-| --------------------------- | ------------------------------------------------ | ------ |
-| `ERR_FR_TOO_MANY_REDIRECTS` | Too many HTTP redirects (infinite redirect loop) | ❌ No  |
+| Error Code         | Meaning                        | `processAxiosError` result                               | Retried? |
+| ------------------ | ------------------------------ | -------------------------------------------------------- | -------- |
+| `ERR_BAD_RESPONSE` | A 5xx response from the server | the server's error passed through, or INTERNAL_ERROR 500 | Yes      |
 
-### Operation Errors (Non-Retryable)
+### Redirect Errors
 
-| Error Code        | Meaning                                                        | Retry? |
-| ----------------- | -------------------------------------------------------------- | ------ |
-| `ERR_CANCELED`    | Request was explicitly canceled via CancelToken or AbortSignal | ❌ No  |
-| `ERR_NOT_SUPPORT` | Operation is not supported in the current environment          | ❌ No  |
-| `ERR_DEPRECATED`  | Deprecated Axios feature used                                  | ❌ No  |
+| Error Code                  | Meaning                                          | `processAxiosError` result                | Retried? |
+| --------------------------- | ------------------------------------------------ | ----------------------------------------- | -------- |
+| `ERR_FR_TOO_MANY_REDIRECTS` | Too many HTTP redirects (infinite redirect loop) | EXTERNAL_SERVICE_ERROR, 503 (no response) | Yes      |
 
-**Usage in React Query:** The `retry` callback in [apps/client/src/lib/react-query.ts](apps/client/src/lib/react-query.ts) uses this information to decide whether to retry failed requests.
+### Operation Errors
+
+| Error Code        | Meaning                                                        | `processAxiosError` result                | Retried?                        |
+| ----------------- | -------------------------------------------------------------- | ----------------------------------------- | ------------------------------- |
+| `ERR_CANCELED`    | Request was explicitly canceled via CancelToken or AbortSignal | EXTERNAL_SERVICE_ERROR, 503 (no response) | n/a - a cancel is not a failure |
+| `ERR_NOT_SUPPORT` | Operation is not supported in the current environment          | EXTERNAL_SERVICE_ERROR, 503 (no response) | Yes                             |
+| `ERR_DEPRECATED`  | Deprecated Axios feature used                                  | EXTERNAL_SERVICE_ERROR, 503 (no response) | Yes                             |
 
 ### 3. Client-Side Validation Errors (Zod)
 
@@ -237,7 +247,8 @@ undefined;
 │ Location: apps/client/src/lib/react-query.ts                       │
 │ Function: retry callback                                            │
 │                                                                     │
-│ Action: classifyAxiosError(error) // For retry decision only       │
+│ Action: processAxiosError(error) // full classification; the        │
+│         retry callback reads only .statusCode off the result        │
 │ Result: status = 404 → Don't retry (4xx = client error)            │
 │                                                                     │
 │ Then: throwOnError: true → Throw error to ErrorBoundary            │
@@ -297,7 +308,7 @@ undefined;
 │ Code:                                                               │
 │   const error = useRouteError();                                    │
 │   const normalizedError = normalizeError(error); // NORMALIZATION  │
-│   let message = getErrorMessage(normalizedError);                   │
+│   let message = normalizedError.message;                            │
 │                                                                     │
 │ Why normalize again: Defensive - error might be thrown from loader │
 │ without normalization, or might be React Router Response error     │
@@ -341,8 +352,8 @@ undefined;
 ┌─────────────────────────────────────────────────────────────────────┐
 │ 3. REACT QUERY CATCHES ERROR                                        │
 ├─────────────────────────────────────────────────────────────────────┤
-│ Action: classifyAxiosError(error)                                   │
-│ Result: No response → Retry up to 2 times (network errors retry)   │
+│ Action: processAxiosError(error)                                    │
+│ Result: No response → 503 → not 4xx → retry up to 2 times        │
 │                                                                     │
 │ After retries exhausted: throwOnError: true → Throw to boundary    │
 └─────────────────────────────────────────────────────────────────────┘
@@ -352,7 +363,7 @@ undefined;
 ├─────────────────────────────────────────────────────────────────────┤
 │ Input: AxiosError with no response                                  │
 │                                                                     │
-│ classifyAxiosError() logic:                                         │
+│ processAxiosError() logic:                                          │
 │   if (error.code === "ERR_NETWORK" || !error.response) {           │
 │     return new AppError(                                            │
 │       "Network connection failed...",                               │
@@ -548,7 +559,7 @@ undefined;
 
 ### Point 2: Axios Error → AppError
 
-**Location:** `classifyAxiosError()` in `apps/client/src/lib/errors/errors.ts`
+**Location:** `processAxiosError()` in `apps/client/src/lib/errors/errors.ts`
 
 **Before:**
 
@@ -730,7 +741,7 @@ const normalizedError = normalizeError(error); // ← Defensive normalization
 
 ```typescript
 retry: (failureCount, error) => {
-  const classifiedError = classifyAxiosError(error); // ← For retry logic
+  const classifiedError = processAxiosError(error as AxiosError<ErrorResponse>); // ← Same classification as everywhere else
   const status = classifiedError.statusCode;
   if (status >= 400 && status < 500) return false; // Don't retry
   return failureCount < 2;
@@ -749,7 +760,7 @@ Error Occurs
     │            ↓
     │       React Query catches raw AxiosError
     │            ↓
-    │       Decides retry (calls classifyAxiosError for status only)
+    │       Decides retry (processAxiosError, then reads .statusCode)
     │            ↓
     │       throwOnError: true → Throw to boundary
     │            ↓
@@ -803,7 +814,7 @@ All boundaries work with `AppError` after normalization, simplifying logic:
 
 ```typescript
 const normalizedError = normalizeError(error); // Now guaranteed AppError
-const message = getErrorMessage(normalizedError); // Type-safe
+const message = normalizedError.message; // Type-safe
 if (isCriticalError(normalizedError)) { ... } // Type-safe
 ```
 

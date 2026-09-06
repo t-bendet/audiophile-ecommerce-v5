@@ -52,7 +52,7 @@ export function ProductPage() {
 **Error Flow:**
 
 1. Query fails → Axios throws raw HTTP error
-2. React Query classifies via `classifyHttpError()` in retry handler
+2. React Query classifies via `processAxiosError()` in its retry handler
 3. No retry for 4xx, or retries exhausted for 5xx
 4. React Query throws `AppError` (because `throwOnError: true`)
 5. ErrorBoundary catches → shows error page
@@ -69,7 +69,7 @@ export function ProductPage() {
 
 import { useQuery } from "@tanstack/react-query";
 import { getRelatedProductsQueryOptions } from "@/lib/query-options";
-import { classifyHttpError } from "@/lib/errors";
+import { normalizeError } from "@/lib/errors/errors";
 import { toast } from "@/hooks/use-toast";
 
 export function RelatedProducts({ productId }: { productId: string }) {
@@ -86,7 +86,7 @@ export function RelatedProducts({ productId }: { productId: string }) {
   if (query.isError) {
     // Handle error inline
     const error = query.error;
-    const appError = classifyHttpError(error); // Classify here
+    const appError = normalizeError(error); // Normalize here
 
     // Show fallback UI for non-critical data
     return (
@@ -135,7 +135,7 @@ export function RelatedProducts({ productId }: { productId: string }) {
 
 import { useQuery } from "@tanstack/react-query";
 import { getProductsQueryOptions } from "@/lib/query-options";
-import { classifyHttpError } from "@/lib/errors";
+import { normalizeError } from "@/lib/errors/errors";
 import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -148,7 +148,7 @@ export function ProductList() {
   // Detect refetch errors and show toast
   useEffect(() => {
     if (query.isRefetchError) {
-      const appError = classifyHttpError(query.error);
+      const appError = normalizeError(query.error);
 
       // Only toast on background/refetch errors (not initial load)
       toast({
@@ -166,7 +166,7 @@ export function ProductList() {
 
   if (query.isLoadingError) {
     // Initial load failed; show error UI
-    return <ErrorBlock error={classifyHttpError(query.error)} />;
+    return <ErrorBlock error={normalizeError(query.error)} />;
   }
 
   // Show stale data with toast message visible
@@ -202,7 +202,7 @@ export function ProductList() {
 
 import { useMutation } from "@tanstack/react-query";
 import { postSignUp } from "@/lib/api/auth";
-import { classifyHttpError, isAppError } from "@/lib/errors";
+import { normalizeError } from "@/lib/errors/errors";
 import { ErrorCode } from "@repo/domain";
 import { useState } from "react";
 
@@ -222,7 +222,7 @@ export function SignUpForm() {
       const response = await mutation.mutateAsync(formData);
       // Success; redirect or show message
     } catch (error) {
-      const appError = classifyHttpError(error);
+      const appError = normalizeError(error);
 
       // Branch on the code, never the number: the status for a rejected
       // input lives in ERROR_CODE_TO_STATUS and is free to change.
@@ -284,7 +284,7 @@ export function SignUpForm() {
 1. User submits form
 2. Request sent → Axios throws raw error
 3. Mutation catches error (no React Query retry for mutations by default)
-4. Component classifies error via `classifyHttpError()`
+4. Component normalizes the error via `normalizeError()`
 5. Check the error code:
    - `VALIDATION_ERROR` with field details: Set `fieldErrors` from `appError.details`
    - `VALIDATION_ERROR` without them: Show generic form error
@@ -466,10 +466,10 @@ Is the data REQUIRED for the page to be useful?
 // DON'T: Classify in Axios
 interceptor.response.use(
   (response) => response,
-  (error) => Promise.reject(classifyHttpError(error)), // ❌ Don't do this
+  (error) => Promise.reject(processAxiosError(error)), // ❌ Don't do this
 );
 
-// DO: Classify in React Query or component
+// DO: Normalize in React Query or component
 const query = useQuery({
   queryFn: () => getApi().get("/data"),
   throwOnError: true,
@@ -505,9 +505,9 @@ if (query.error) {
   return <div>{query.error.message}</div>; // ❌ May not have .message
 }
 
-// DO: Classify first
+// DO: Normalize first
 if (query.error) {
-  const appError = classifyHttpError(query.error);
+  const appError = normalizeError(query.error);
   return <div>{appError.message}</div>;
 }
 ```
