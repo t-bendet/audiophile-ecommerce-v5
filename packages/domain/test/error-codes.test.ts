@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { ErrorCode, ErrorObjectSchema, getStatusCode } from "../src/index.js";
+import {
+  ERROR_CODE_TO_STATUS,
+  ErrorCode,
+  ErrorObjectSchema,
+  getStatusCode,
+} from "../src/index.js";
 
 // The error envelope is closed over the enum - `ErrorObjectSchema.code` is
 // `z.enum(ErrorCode)` - so a rate-limit rejection could not be expressed as an
@@ -39,5 +44,24 @@ describe("VALIDATION_ERROR", () => {
     });
 
     expect(parsed.success).toBe(true);
+  });
+});
+
+// The map is typed `Record<ErrorCode, number>`, so the compiler catches a
+// missing row - this pins the other direction, that no stale row outlives the
+// member it was written for, and that every status is a real HTTP failure.
+
+describe("ERROR_CODE_TO_STATUS", () => {
+  it("covers every ErrorCode member and nothing else", () => {
+    expect(Object.keys(ERROR_CODE_TO_STATUS).sort()).toEqual(
+      Object.values(ErrorCode).sort(),
+    );
+  });
+
+  it("maps every code to an HTTP error status", () => {
+    for (const [code, status] of Object.entries(ERROR_CODE_TO_STATUS)) {
+      expect(status, code).toBeGreaterThanOrEqual(400);
+      expect(status, code).toBeLessThanOrEqual(599);
+    }
   });
 });

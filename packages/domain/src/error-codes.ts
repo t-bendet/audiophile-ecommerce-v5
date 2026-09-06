@@ -8,13 +8,10 @@
 export enum ErrorCode {
   // Validation errors
   VALIDATION_ERROR = "VALIDATION_ERROR",
-  INVALID_INPUT = "INVALID_INPUT",
   INVALID_ID = "INVALID_ID",
-  MISSING_REQUIRED_FIELD = "MISSING_REQUIRED_FIELD",
 
   // Resource errors (404, 409)
   NOT_FOUND = "NOT_FOUND",
-  ALREADY_EXISTS = "ALREADY_EXISTS",
   DUPLICATE_ENTRY = "DUPLICATE_ENTRY",
 
   // Authentication errors (401)
@@ -27,10 +24,6 @@ export enum ErrorCode {
   FORBIDDEN = "FORBIDDEN",
   INSUFFICIENT_PERMISSIONS = "INSUFFICIENT_PERMISSIONS",
 
-  // Request errors (400, 422)
-  BAD_REQUEST = "BAD_REQUEST",
-  UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY",
-
   // Rate limiting errors (429)
   TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS",
 
@@ -41,12 +34,10 @@ export enum ErrorCode {
   CART_NOT_FOUND = "CART_NOT_FOUND",
   CART_ITEM_NOT_FOUND = "CART_ITEM_NOT_FOUND",
   CART_EMPTY = "CART_EMPTY",
-  INSUFFICIENT_STOCK = "INSUFFICIENT_STOCK",
   INVALID_QUANTITY = "INVALID_QUANTITY",
 
   // Order errors (400, 404)
   ORDER_NOT_FOUND = "ORDER_NOT_FOUND",
-  PAYMENT_FAILED = "PAYMENT_FAILED",
   INVALID_ORDER_STATUS = "INVALID_ORDER_STATUS",
   ORDER_ALREADY_PROCESSED = "ORDER_ALREADY_PROCESSED",
 
@@ -58,7 +49,6 @@ export enum ErrorCode {
 
   // Business logic errors
   OPERATION_FAILED = "OPERATION_FAILED",
-  CONSTRAINT_VIOLATION = "CONSTRAINT_VIOLATION",
 }
 
 /**
@@ -67,14 +57,10 @@ export enum ErrorCode {
 export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
   // Validation errors
   [ErrorCode.VALIDATION_ERROR]: 422,
-  [ErrorCode.INVALID_INPUT]: 400,
   [ErrorCode.INVALID_ID]: 400,
-  [ErrorCode.MISSING_REQUIRED_FIELD]: 400,
-  [ErrorCode.BAD_REQUEST]: 400,
 
   // Resource errors
   [ErrorCode.NOT_FOUND]: 404,
-  [ErrorCode.ALREADY_EXISTS]: 409,
   [ErrorCode.DUPLICATE_ENTRY]: 409,
 
   // Authentication errors (401)
@@ -87,9 +73,6 @@ export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.FORBIDDEN]: 403,
   [ErrorCode.INSUFFICIENT_PERMISSIONS]: 403,
 
-  // Request errors
-  [ErrorCode.UNPROCESSABLE_ENTITY]: 422,
-
   // Rate limiting errors (429)
   [ErrorCode.TOO_MANY_REQUESTS]: 429,
 
@@ -100,12 +83,10 @@ export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.CART_NOT_FOUND]: 404,
   [ErrorCode.CART_ITEM_NOT_FOUND]: 404,
   [ErrorCode.CART_EMPTY]: 400,
-  [ErrorCode.INSUFFICIENT_STOCK]: 400,
   [ErrorCode.INVALID_QUANTITY]: 400,
 
   // Order errors
   [ErrorCode.ORDER_NOT_FOUND]: 404,
-  [ErrorCode.PAYMENT_FAILED]: 400,
   [ErrorCode.INVALID_ORDER_STATUS]: 400,
   [ErrorCode.ORDER_ALREADY_PROCESSED]: 400,
 
@@ -115,7 +96,6 @@ export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.EXTERNAL_SERVICE_ERROR]: 502,
   [ErrorCode.SERVICE_UNAVAILABLE]: 503,
   [ErrorCode.OPERATION_FAILED]: 500,
-  [ErrorCode.CONSTRAINT_VIOLATION]: 400,
 };
 
 /**
