@@ -5,7 +5,9 @@ import app from "../src/app.js";
 import {
   authCookie,
   createUser,
+  expiredAuthCookie,
   resetDatabase,
+  tamperedAuthCookie,
   TEST_PASSWORD,
 } from "./helpers/database.js";
 
@@ -129,5 +131,66 @@ describe("GET /api/v1/auth/status", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data).toEqual({ isAuthenticated: false });
+  });
+
+  // The status route answers a question; a dead cookie is an answer, not a
+  // failure. A 401 here breaks the client loaders that gate on it.
+  it("reports an expired token as not authenticated", async () => {
+    const user = await createUser();
+
+    const res = await request(app)
+      .get("/api/v1/auth/status")
+      .set("Cookie", expiredAuthCookie(user.id));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({ isAuthenticated: false });
+  });
+
+  it("reports a tampered token as not authenticated", async () => {
+    const user = await createUser();
+
+    const res = await request(app)
+      .get("/api/v1/auth/status")
+      .set("Cookie", tamperedAuthCookie(user.id));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({ isAuthenticated: false });
+  });
+
+  it("reports a deleted user as not authenticated", async () => {
+    const user = await createUser();
+    const cookie = authCookie(user.id);
+    await resetDatabase();
+
+    const res = await request(app)
+      .get("/api/v1/auth/status")
+      .set("Cookie", cookie);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({ isAuthenticated: false });
+  });
+});
+
+describe("protected routes still reject a dead cookie", () => {
+  it("returns TOKEN_EXPIRED for an expired token", async () => {
+    const user = await createUser();
+
+    const res = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", expiredAuthCookie(user.id));
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe(ErrorCode.TOKEN_EXPIRED);
+  });
+
+  it("returns INVALID_TOKEN for a tampered token", async () => {
+    const user = await createUser();
+
+    const res = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", tamperedAuthCookie(user.id));
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe(ErrorCode.INVALID_TOKEN);
   });
 });

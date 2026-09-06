@@ -78,6 +78,7 @@ const createAppRouter = (queryClient: QueryClient) =>
                   convert(queryClient),
                 ),
               path: paths.account.root.path,
+              errorElement: <RouteErrorBoundary />,
               children: [
                 {
                   element: <Navigate to={paths.account.profile.path} replace />,

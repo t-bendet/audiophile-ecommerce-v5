@@ -49,12 +49,13 @@ The current implementation uses a **5-layer error handling approach** without ce
 │                                                                    │
 │  Layer 3: Component-level ErrorBoundary (ErrorBlock)              │
 │           └─ Catches: Feature-specific errors, query errors       │
-│           └─ Re-throws: Critical errors (auth, validation)        │
+│           └─ Re-throws: Critical errors                           │
+│           └─ Redirects: Auth failures, to the login page          │
 │           └─ STATUS: ✅ Implemented                               │
 │                                                                    │
 │  Layer 4: API Client (Axios Interceptor)                          │
 │           └─ Classifies: HTTP errors → AppError                   │
-│           └─ Handles: 401 redirects; classification only (no UI)  │
+│           └─ Classification only: no redirects, no UI             │
 │           └─ STATUS: ✅ Implemented                               │
 │                                                                    │
 │  Layer 5: React Query                                             │
@@ -173,14 +174,18 @@ Axios makes HTTP request
 
 - Shows inline error UI
 - Offers retry button
+- Redirects auth failures to the login page
 - Re-throws critical errors to parent
 - Keeps rest of app functional
 
-**Code:** `apps/client/src/components/errors/ErrorBlock.tsx`
+**Code:** `apps/client/src/components/errors/error-block.tsx`
 
-**Re-throw rule:**
+**Classification rule:**
 
-- Catches error and checks `isCriticalError(error)`
+- Catches error and checks `isAuthError(error)` first
+- If YES → Render `RedirectToLogin` (no retry button; a retry would reuse the
+  same dead cookie)
+- Otherwise checks `isCriticalError(error)`
 - If YES → Re-throw (bubbles to RouteErrorBoundary)
 - If NO → Handle locally with inline UI
 
@@ -361,10 +366,12 @@ export const FeaturedSection = () => {
 
 1. Catch error from child component
 2. Call `normalizeError(error)` → consistent AppError
-3. Check `isCriticalError(normalizedError)` → DEFENSIVE re-throw
+3. Check `isAuthError(normalizedError)` → render `RedirectToLogin`
+   - The session is dead; a "Retry" button would refetch with the same cookie
+4. Check `isCriticalError(normalizedError)` → DEFENSIVE re-throw
    - ⚠️ **This is a safety net**: Critical errors should fail in loaders
    - If we reach here, we forgot to handle something → rethrow to RouteErrorBoundary
-4. For non-critical errors: Render ErrorBlock with title, message, "Retry" button
+5. For everything else: Render ErrorBlock with title, message, "Retry" button
 
 ---
 
@@ -540,10 +547,19 @@ isAppError(error): boolean
 // Check if error is critical (should bubble to parent boundary)
 isCriticalError(error): boolean
 // Critical: INTERNAL_ERROR, EXTERNAL_SERVICE_ERROR, or any statusCode >= 500
+
+// Check if the session is dead (should redirect to login)
+isAuthError(error): boolean
+// Auth: UNAUTHORIZED, INVALID_TOKEN, TOKEN_EXPIRED
+// NOT INVALID_CREDENTIALS - a rejected login is not an expired session
 ```
 
-The module exports exactly four things: `isClientZodError`, `processAxiosError`,
-`isCriticalError` and `normalizeError`.
+The module exports exactly five things: `isClientZodError`, `processAxiosError`,
+`isCriticalError`, `isAuthError` and `normalizeError`.
+
+The two predicates are disjoint and neither subsumes the other: a critical error
+means the route cannot render, an auth error means the route could render for
+somebody who is signed in.
 
 **Axios Error Codes Reference:**
 
@@ -570,6 +586,17 @@ Error Occurs in Component
     │
     ├─ Component-level ErrorBoundary (ErrorBlock)
     │   │
+    │   ├─ isAuthError(error)?
+    │   │   ├─ YES → Render RedirectToLogin
+    │   │   │        Auth when the code is:
+    │   │   │        - UNAUTHORIZED (no or unusable session)
+    │   │   │        - INVALID_TOKEN (cookie does not verify)
+    │   │   │        - TOKEN_EXPIRED (cookie outlived its JWT)
+    │   │   │        Clears the cached auth status, then navigates to
+    │   │   │        /auth/login?redirectTo=<current location>
+    │   │   │
+    │   │   └─ NO → fall through
+    │   │
     │   ├─ isCriticalError(error)?
     │   │   ├─ YES → Re-throw to parent (RouteErrorBoundary)
     │   │   │        Critical when the code is:
@@ -579,8 +606,8 @@ Error Occurs in Component
     │   │   │
     │   │   └─ NO → Handle locally
     │   │            Display: title, message, retry button
-    │   │            Examples: 404 Not Found, 401 Unauthorized,
-    │   │                      422 Validation Error
+    │   │            Examples: 404 Not Found, 422 Validation Error,
+    │   │                      401 INVALID_CREDENTIALS
     │
     ├─ Route-level ErrorBoundary (RouteErrorBoundary)
     │   │
@@ -591,6 +618,7 @@ Error Occurs in Component
     │   │
     │   ├─ Anything else → normalizeError(error) → AppError
     │   │   └─ Extract statusCode and message
+    │   │            - isAuthError() → RedirectToLogin
     │   │            - Code NOT_FOUND → title: "Not Found"
     │   │            - isCriticalError() → title: "Critical Application Error"
     │   │              (message sanitized)
@@ -798,17 +826,18 @@ Check: Is this "optional-data" query?
     │
     └─ NO → Throw error
             ↓
-            ErrorBoundary catches (checks isCriticalError)
+            ErrorBoundary catches (checks isAuthError, then isCriticalError)
             ↓
+            If auth: Redirect to login
             If critical: Show error page
-            If not critical: ErrorBlock handles locally
+            Otherwise: ErrorBlock handles locally
 ```
 
 **Why throw all errors?**
 
 - Simpler error handling flow (ErrorBoundary hierarchy handles all cases)
 - Avoids duplicate error handling in every component
-- ErrorBoundary's `isCriticalError()` check determines final behavior
+- ErrorBoundary's `isAuthError()` / `isCriticalError()` checks determine final behavior
 - Components can still use `query.error` if they want to handle locally
 
 **When `throwOnError: false` (alternative approach):**
@@ -1383,6 +1412,9 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 | ----------- | ---------------------- | ----------------------- | ------------------------ |
 | 422         | VALIDATION_ERROR       | Invalid input           | Fix and retry            |
 | 401         | UNAUTHORIZED           | Not authenticated       | Log in                   |
+| 401         | INVALID_TOKEN          | Cookie does not verify  | Log in                   |
+| 401         | TOKEN_EXPIRED          | Cookie outlived its JWT | Log in                   |
+| 401         | INVALID_CREDENTIALS    | Login attempt rejected  | Correct the form         |
 | 403         | FORBIDDEN              | Not authorized          | Contact support          |
 | 404         | NOT_FOUND              | Resource missing        | Navigate elsewhere       |
 | 500         | INTERNAL_ERROR         | Server error            | Retry or contact support |
@@ -1397,6 +1429,11 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 - INVALID_TOKEN
 - TOKEN_EXPIRED
 - FORBIDDEN (403)
+
+The first three are what `isAuthError` matches: the session is dead and a
+redirect to login fixes it. `FORBIDDEN` is not — the session is fine, the user
+just may not do this — and neither is `INVALID_CREDENTIALS`, which belongs to
+the login form.
 
 **Validation (form errors)**
 
@@ -1422,6 +1459,7 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 - `processAxiosError(axiosError): AppError` - Classify an Axios error
 - `isClientZodError(error): error is ZodError` - Type guard for Zod errors
 - `isCriticalError(error): boolean` - Check if error is critical
+- `isAuthError(error): boolean` - Check if the session is dead
 
 ### apps/client/src/lib/api-client.ts
 
@@ -1445,41 +1483,76 @@ Moving from current state (v1) to target state (v2) can be done in phases:
 - `MainErrorFallback` - Root error boundary UI
 - `RouteErrorBoundary` - Route-level error boundary
 - `ErrorBlock` - Feature-level error boundary
+- `SafeRenderWithErrorBlock` - Suspense + ErrorBoundary wrapper around a feature
+- `RedirectToLogin` - Clears the cached auth status, then navigates to login
 
 ## Error Flow Examples
 
 ### Example 1: Failed Login
 
+A rejected login never reaches an error boundary: it is a mutation, and the form
+reports it itself.
+
 ```
 User enters invalid password
     ↓
-Form submission
-    ↓
-useQuery(loginQueryOptions)
-    ↓
 POST /auth/login { email, password }
     ↓
-Server returns 401 with { error: { code: "UNAUTHORIZED", ... } }
+Server returns 401 with { error: { code: "INVALID_CREDENTIALS", ... } }
+    (and clears the jwt cookie)
     ↓
 Axios interceptor rejects the raw AxiosError (code ERR_BAD_REQUEST)
     ↓
-React Query retry callback: processAxiosError() → 401 → 4xx, no retry
+useLogin mutation: onError runs (mutations do not use throwOnError)
     ↓
-throwOnError: true → Throw the raw AxiosError to the ErrorBoundary
-    ↓
-LoginForm ErrorBoundary catches, calls normalizeError() → processAxiosError()
+LoginForm calls normalizeError() → processAxiosError()
     ↓
 Pass-through branch: response.data.error is a well-formed AppError
     ↓
-AppError(UNAUTHORIZED, 401, "Invalid credentials")
+AppError(INVALID_CREDENTIALS, 401, "Invalid email or password")
     (the code comes from the response body, never from the 401 status)
     ↓
-Check: isCriticalError(error)? → NO
-       UNAUTHORIZED is not in criticalCodes, and 401 < 500
+Show: a destructive toast, "Login Failed" + the server's message
     ↓
-Handle locally with ErrorBlock
+The user stays on the form and can try again
+```
+
+`INVALID_CREDENTIALS` is a 401 but is deliberately **not** an auth error by
+`isAuthError`. Signing in again is exactly what the user is already doing;
+redirecting them to the login page they are standing on would be a loop.
+
+### Example 1b: Expired Session on a Protected Query
+
+```
+User's cookie outlives its JWT (or the signing secret rotated)
     ↓
-Show: "Invalid email or password" beside the login form
+Cached auth status still says isAuthenticated: true (staleTime: Infinity)
+    ↓
+UserAreaLayout renders, useSuspenseQuery(getUserQueryOptions)
+    (in the component body, ABOVE the SafeRenderWithErrorBlock it renders,
+     so that boundary cannot catch this one)
+    ↓
+GET /api/v1/users/me
+    ↓
+Server returns 401 with { error: { code: "TOKEN_EXPIRED", ... } }
+    ↓
+React Query retry callback: 401 → 4xx, no retry
+    ↓
+throwOnError: true → Throw past the layout to the route errorElement,
+                     RouteErrorBoundary on the /account subtree
+    ↓
+normalizeError() → AppError(TOKEN_EXPIRED, 401)
+    ↓
+Check: isAuthError(error)? → YES
+    ↓
+RedirectToLogin: write isAuthenticated: false into the auth status cache,
+                 null the cached user, THEN navigate
+    (order matters - the auth layout's loader reads that cached status and
+     would bounce a stale `true` straight back to /account)
+    ↓
+Navigate to /auth/login?redirectTo=/account/profile
+    ↓
+User signs in; LoginForm reads redirectTo and returns them to /account/profile
 ```
 
 ### Example 2: 5xx Server Error During Product Load
@@ -1825,5 +1898,5 @@ When testing error handling, verify:
 
 ---
 
-**Last Updated:** December 20, 2025
+**Last Updated:** September 6, 2026
 **Status:** Current implementation complete (v1), Target state documented (v2)

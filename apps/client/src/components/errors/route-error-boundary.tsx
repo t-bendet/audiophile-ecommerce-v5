@@ -1,9 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { paths } from "@/config/paths";
-import { isCriticalError, normalizeError } from "@/lib/errors/errors";
+import {
+  isAuthError,
+  isCriticalError,
+  normalizeError,
+} from "@/lib/errors/errors";
 import { ErrorCode } from "@repo/domain";
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
+import { RedirectToLogin } from "./redirect-to-login";
 
 export function RouteErrorBoundary() {
   const error = useRouteError();
@@ -27,6 +32,12 @@ export function RouteErrorBoundary() {
   } else {
     // All other errors - normalize first
     const normalizedError = normalizeError(error);
+
+    // A dead session cannot be retried; only signing in again fixes it.
+    if (isAuthError(normalizedError)) {
+      return <RedirectToLogin />;
+    }
+
     statusCode = normalizedError.statusCode;
     title = "Request Failed";
     message = normalizedError.message;

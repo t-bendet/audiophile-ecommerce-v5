@@ -7,6 +7,7 @@ import {
   isPrismaKnownRequestError,
   isPrismaValidationError,
 } from "../utils/prisma-errors.js";
+import { isJwtError, toJwtAppError } from "../utils/jwt-errors.js";
 import { zodIssuesToDetails } from "../utils/zodDetails.js";
 
 // ------------------ Specific Error Handlers ------------------
@@ -48,25 +49,7 @@ const handleZodError = (err: ZodError) => {
   return new AppError(message, ErrorCode.VALIDATION_ERROR, undefined, details);
 };
 
-const handleJWTError = () =>
-  new AppError("Invalid token. Please log in again!", ErrorCode.INVALID_TOKEN);
-
-const handleJWTExpiredError = () =>
-  new AppError(
-    "Your token has expired! Please log in again.",
-    ErrorCode.TOKEN_EXPIRED,
-  );
-
 // ------------------ Type guards ------------------
-const isErrorNamed = (err: unknown, name: string): err is Error =>
-  err instanceof Error && err.name === name;
-
-const isJwtExpiredError = (err: unknown): boolean =>
-  isErrorNamed(err, "TokenExpiredError");
-
-const isJwtError = (err: unknown): err is Error =>
-  isErrorNamed(err, "JsonWebTokenError") || isJwtExpiredError(err);
-
 const isZodError = (err: unknown): err is ZodError => {
   return err instanceof ZodError;
 };
@@ -100,7 +83,7 @@ const normalizeError = (err: unknown): AppError | unknown => {
 
   // JWT errors
   if (isJwtError(err)) {
-    return isJwtExpiredError(err) ? handleJWTExpiredError() : handleJWTError();
+    return toJwtAppError(err);
   }
 
   // Unknown error type - return as is

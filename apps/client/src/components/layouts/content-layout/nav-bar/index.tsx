@@ -1,15 +1,14 @@
-import CartIcon from "@/assets/icon-cart.svg?react";
 import Logo from "@/assets/logo.svg?react";
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import NavBarDialog from "@/components/layouts/content-layout/nav-bar/nav-bar-dialog";
 import { Container } from "@/components/ui/container";
 import { paths } from "@/config/paths";
-import { useCart } from "@/features/cart/api/get-cart";
 import { MiniCart } from "@/features/cart/components/mini-cart";
 import useMedia from "@/hooks/useMedia";
 import { HomeIcon } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
+import { CartButton } from "./cart-button";
 import { NavLinks } from "./nav-links";
 import { UserDropdown } from "./user-dropdown";
 import LoadingSpinner from "@/components/ui/loading-spinner";
@@ -18,7 +17,6 @@ export const Navbar = () => {
   const isLarge = useMedia("lg");
   const isSmall = useMedia("sm");
   const [cartOpen, setCartOpen] = useState(false);
-  const { data: cart } = useCart();
 
   return (
     <>
@@ -54,23 +52,19 @@ export const Navbar = () => {
               >
                 <UserDropdown />
               </SafeRenderWithErrorBlock>
-              <button
-                onClick={() => setCartOpen(true)}
-                className="hover:*:fill-primary-500 focus-visible:*:fill-primary-500 relative cursor-pointer"
-                aria-label="Open cart"
+              <SafeRenderWithErrorBlock
+                title="Error loading cart"
+                fallback={<LoadingSpinner size="md" />}
               >
-                <CartIcon title="cart icon" />
-                {cart?.data.itemCount && cart.data.itemCount > 0 ? (
-                  <span className="bg-primary-500 absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-white">
-                    {cart.data.itemCount}
-                  </span>
-                ) : null}
-              </button>
+                <CartButton onOpen={() => setCartOpen(true)} />
+              </SafeRenderWithErrorBlock>
             </div>
           </div>
         </Container>
       </nav>
-      <MiniCart open={cartOpen} onOpenChange={setCartOpen} />
+      <SafeRenderWithErrorBlock title="Error loading cart">
+        <MiniCart open={cartOpen} onOpenChange={setCartOpen} />
+      </SafeRenderWithErrorBlock>
     </>
   );
 };
