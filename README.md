@@ -516,7 +516,7 @@ All errors classified to semantic types with specific codes:
 // Error codes in @repo/domain
 export enum ErrorCode {
   // 400s - Client errors
-  BAD_REQUEST = 400,
+  INVALID_ID = 400,
   UNAUTHORIZED = 401,
   FORBIDDEN = 403,
   NOT_FOUND = 404,
