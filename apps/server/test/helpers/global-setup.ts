@@ -58,7 +58,7 @@ export default async function setup({ provide }: TestProject) {
   if (externalDatabaseUrl) {
     await pushSchema(externalDatabaseUrl).catch((cause: unknown) => {
       throw new Error(
-        "TEST_DATABASE_URL is set but the schema push to it failed. Is that database running? Start the local one with `docker compose up -d --wait`.",
+        "TEST_DATABASE_URL is set but the schema push to it failed. Is that database running? Start the local one with `pnpm db:up`.",
         { cause },
       );
     });

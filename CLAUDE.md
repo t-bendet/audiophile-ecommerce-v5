@@ -14,10 +14,13 @@ pnpm dev:server        # server only
 pnpm build             # all packages + apps (Turbo, respects dependency order)
 
 # Database (local Docker replica set, see "Local database")
-docker compose up -d --wait   # start MongoDB; `--wait` blocks until the set can be written to
+pnpm db:up             # start MongoDB (docker compose up -d --wait); dev, db:setup, db:reset and test:db run it first
+pnpm db:down           # stop and remove the container; the data volume survives
 pnpm db:generate       # regenerate the Prisma client after any schema change
 pnpm db:push           # push schema to the local database
 pnpm db:seed           # seed database
+pnpm db:setup          # up + push + generate + seed: a fresh clone's one command after install
+pnpm db:reset          # up + push --force-reset + generate + seed: wipe dev data and start over
 
 # Type-check
 pnpm type-check        # tsc across every workspace via Turbo
@@ -27,7 +30,7 @@ pnpm types:watch       # watch mode across all TS projects
 pnpm lint
 pnpm format
 pnpm test          # domain + server + client vitest suites via Turbo (no network database needed)
-TEST_DATABASE_URL=<url> pnpm test   # server suite against the Docker database (see "Local database")
+pnpm test:db       # server suite against the Docker database, left in place for Compass (see "Local database")
 ```
 
 ### Running a single workspace
@@ -88,8 +91,9 @@ globally; `global-setup.ts` pins the version it runs.
 
 Setting `TEST_DATABASE_URL` skips the in-memory boot and runs the server suite against that
 database instead (schema pushed, nothing torn down), so a failed run can be inspected in Compass
-afterwards. Point it at the Docker database with its own database name, `audiophile-test`, never at
-`audiophile`: `resetDatabase` truncates every collection it knows about. The switch is keyed on
+afterwards. `pnpm test:db` does this against the Docker database, using its own database name,
+`audiophile-test`. Never point it at `audiophile`: `resetDatabase` truncates every collection it
+knows about. The switch is keyed on
 `TEST_DATABASE_URL` only; `DATABASE_URL` is ignored by the test setup, which is what keeps a local
 `.env` and the `DATABASE_URL` CI sets from redirecting a run. In-memory stays the default, so
 `pnpm test` on a fresh clone and in CI needs no Docker.
@@ -160,9 +164,12 @@ Used for cross-cutting concerns (auth, logging, timing). Middleware chain runs p
 
 Dev, seeding, the opt-in test path and Compass all use the one MongoDB in `docker-compose.yml`: a
 single-node replica set (`rs0`) on `localhost:27017`, which Prisma requires because nested writes run
-in transactions. Start it with `docker compose up -d --wait`; plain `up -d` returns before the
+in transactions. `pnpm db:up` starts it (`docker compose up -d --wait`), and `pnpm dev`,
+`dev:server`, `db:setup`, `db:reset` and `test:db` all run that first, so the container is only ever
+started by hand after a `pnpm db:down`. The `--wait` matters: plain `up -d` returns before the
 healthcheck has initiated the set, and the first schema push then fails. The healthcheck is what
-runs `rs.initiate()`, so the service works when started on its own.
+runs `rs.initiate()`, so the service works when started on its own. `pnpm test` and CI never start
+it.
 
 ```
 dev     -> mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true

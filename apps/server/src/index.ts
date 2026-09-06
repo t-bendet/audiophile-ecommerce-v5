@@ -40,7 +40,7 @@ async function start() {
     await prisma.$runCommandRaw({ ping: 1 });
   } catch (err) {
     const hint = env.DATABASE_URL.startsWith("mongodb://localhost")
-      ? " Is the local database running? Start it with `docker compose up -d --wait`."
+      ? " Is the local database running? Start it with `pnpm db:up`."
       : "";
     logger.fatal({ err }, `database connection failed, shutting down.${hint}`);
     process.exit(1);

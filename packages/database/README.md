@@ -4,7 +4,7 @@ Shared Prisma client and schema for the Audiophile E-Commerce monorepo.
 
 ## Setup
 
-1. Copy `.env.example` to `.env`; it points at the Docker replica set from the repo's `docker-compose.yml` (`docker compose up -d --wait` at the repo root):
+1. Copy `.env.example` to `.env`; it points at the Docker replica set from the repo's `docker-compose.yml` (`pnpm db:up` at the repo root; `pnpm db:setup` also pushes, generates and seeds):
 
 ```
 DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
@@ -76,4 +76,4 @@ type UserWithOrders = Prisma.UserGetPayload<{
 }>;
 ```
 
-**Last Updated:** September 4, 2026
+**Last Updated:** September 6, 2026

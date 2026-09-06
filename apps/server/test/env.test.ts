@@ -16,7 +16,7 @@ describe("env", () => {
   it("tells the developer how to supply DATABASE_URL when it is empty", async () => {
     vi.stubEnv("DATABASE_URL", "");
     await expect(loadEnv()).rejects.toThrow(
-      /Missing or invalid DATABASE_URL[\s\S]*\.env\.example[\s\S]*docker compose up -d --wait/,
+      /Missing or invalid DATABASE_URL[\s\S]*\.env\.example[\s\S]*pnpm db:up/,
     );
   });
 

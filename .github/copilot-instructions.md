@@ -152,8 +152,8 @@ Dev, seeding and the opt-in test path (`TEST_DATABASE_URL`) use the single-node 
 `docker-compose.yml`; Atlas is production only.
 
 1. Make sure nothing else holds port 27017 (`brew services stop mongodb-community` if a Homebrew mongod runs)
-2. `docker compose up -d --wait` at the repo root (`--wait` blocks until the set is writable)
-3. `pnpm db:push && pnpm db:seed`
+2. `pnpm db:setup` at the repo root: starts the container (`pnpm db:up`, which is `docker compose up -d --wait`), pushes the schema, regenerates the client and seeds
+3. `pnpm dev` starts the container itself; `pnpm db:down` stops it, `pnpm db:reset` wipes and reseeds, `pnpm test:db` runs the server suite against it
 
 Details and the version pin rationale: `CLAUDE.md` ("Local database") and `docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md`.
 
@@ -335,4 +335,4 @@ See [todos.js](todos.js) for tracked tasks, including:
 - Move product route endpoint to category route
 - Consider adding config ID to environment variables
 
-**Last Updated:** September 4, 2026
+**Last Updated:** September 6, 2026

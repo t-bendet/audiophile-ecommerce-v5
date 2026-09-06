@@ -79,7 +79,7 @@ const createEnv = () => {
     const databaseUrlHint =
       process.env.NODE_ENV !== "production" &&
       parsedEnv.error.issues.some((issue) => issue.path[0] === "DATABASE_URL")
-        ? "Missing or invalid DATABASE_URL. Copy apps/server/.env.example to apps/server/.env, then start the local database with `docker compose up -d --wait`.\n"
+        ? "Missing or invalid DATABASE_URL. Copy apps/server/.env.example to apps/server/.env, then start the local database with `pnpm db:up`.\n"
         : "";
     throw new Error(
       `${databaseUrlHint}Invalid env provided.
