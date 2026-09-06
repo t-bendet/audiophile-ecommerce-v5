@@ -85,17 +85,20 @@ export default function ProductActions(props: {
   return (
     <div className={cn("flex gap-4", props.classes)}>
       {props.hasNavigateAction ? (
-        <Link
-          to={paths.product.getHref(slug)}
-          onMouseEnter={() =>
-            queryClient.prefetchQuery(getProductBySlugQueryOptions(slug))
-          }
-          onFocus={() =>
-            queryClient.prefetchQuery(getProductBySlugQueryOptions(slug))
-          }
-        >
-          <Button variant="accent">see product</Button>
-        </Link>
+        <Button variant="accent" asChild>
+          <Link
+            to={paths.product.getHref(slug)}
+            className="after:absolute after:inset-0 after:content-['']"
+            onMouseEnter={() =>
+              queryClient.prefetchQuery(getProductBySlugQueryOptions(slug))
+            }
+            onFocus={() =>
+              queryClient.prefetchQuery(getProductBySlugQueryOptions(slug))
+            }
+          >
+            see product
+          </Link>
+        </Button>
       ) : null}
       {props.hasCartAction ? (
         <>

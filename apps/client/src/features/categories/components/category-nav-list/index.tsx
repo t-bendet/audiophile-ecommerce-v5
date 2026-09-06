@@ -20,7 +20,7 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
       <ul className="flex flex-col gap-4 text-neutral-900 md:flex-row md:justify-around lg:gap-8">
         {categoriesResponse.data.map((category) => (
           <li
-            className="col-auto grid grid-cols-1 grid-rows-[25%_1fr_80px] justify-items-center rounded-md"
+            className="relative col-auto grid grid-cols-1 grid-rows-[25%_1fr_80px] justify-items-center rounded-md"
             key={category.id}
           >
             <img
@@ -38,7 +38,7 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
               </span>
               <Link
                 to={paths.category.getHref(category.name)}
-                className="tracking-600 inline-flex items-center gap-2 text-xs font-bold uppercase opacity-50 hover:underline"
+                className="tracking-600 inline-flex items-center gap-2 text-xs font-bold uppercase opacity-50 after:absolute after:inset-0 after:z-20 after:content-[''] hover:underline"
                 onMouseEnter={() => {
                   queryClient.prefetchQuery(
                     getProductsByCategoryQueryOptions(category.name),
