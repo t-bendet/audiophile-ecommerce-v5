@@ -51,6 +51,13 @@ export const getAuthStatusQueryOptions = () =>
     select: (data) => data?.data, // Return only the user DTO
   });
 
+/** Record locally that the session is over; the cookie behind it is already dead. */
+export const markSignedOut = (queryClient: QueryClient) =>
+  queryClient.setQueryData<AuthCheckStatusResponse>(
+    [AUTH_STATUS_QUERY_KEY],
+    (previous) => previous && { ...previous, data: { isAuthenticated: false } },
+  );
+
 // ** Get User (Me)
 
 type TGetUser = TBaseHandler<UserDTOResponse>;

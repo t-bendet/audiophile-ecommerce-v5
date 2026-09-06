@@ -9,6 +9,7 @@ import {
 } from "@repo/domain";
 import jwt from "jsonwebtoken";
 import { env } from "../utils/env.js";
+import { isJwtError, toJwtAppError } from "../utils/jwt-errors.js";
 
 type AuthSessionDTO = {
   user: UserDTO;
@@ -191,7 +192,14 @@ export class AuthService {
    * @returns Decoded token payload
    */
   private verifyToken(token: string): jwt.JwtPayload {
-    const decoded = jwt.verify(token, env.JWT_SECRET);
+    let decoded: string | jwt.JwtPayload;
+    try {
+      decoded = jwt.verify(token, env.JWT_SECRET);
+    } catch (error) {
+      // Classified here, not at the boundary, so checkIsAuthenticated can read it.
+      if (!isJwtError(error)) throw error;
+      throw toJwtAppError(error);
+    }
     if (!decoded || typeof decoded === "string") {
       throw new AppError("Invalid token", ErrorCode.INVALID_TOKEN);
     }
@@ -202,6 +210,7 @@ export class AuthService {
     const tokenValidationErrors = [
       ErrorCode.UNAUTHORIZED,
       ErrorCode.INVALID_TOKEN,
+      ErrorCode.TOKEN_EXPIRED,
     ];
     try {
       await this.validateTokenAndGetUser(token);

@@ -1,10 +1,15 @@
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { cn } from "@/lib/cn";
-import { isCriticalError, normalizeError } from "@/lib/errors/errors";
+import {
+  isAuthError,
+  isCriticalError,
+  normalizeError,
+} from "@/lib/errors/errors";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { PropsWithChildren, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorBlock from "./error-block";
+import { RedirectToLogin } from "./redirect-to-login";
 
 type TSafeRenderWithErrorBlockProps = {
   title: string;
@@ -26,6 +31,10 @@ export const SafeRenderWithErrorBlock = ({
         <ErrorBoundary
           FallbackComponent={({ error, resetErrorBoundary }) => {
             const normalizedError = normalizeError(error);
+            // A dead session cannot be retried; only signing in again fixes it.
+            if (isAuthError(normalizedError)) {
+              return <RedirectToLogin />;
+            }
             // DEFENSIVE CHECK: Critical errors should be thrown from loaders using ensureQueryData()
             // and caught by RouteErrorBoundary. If a critical error reaches here, it means
             // we forgot to fail in the loader,rethrow it to prevent silent failures.

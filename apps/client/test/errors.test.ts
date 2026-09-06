@@ -1,8 +1,18 @@
-import { ErrorCode, ErrorResponse, getStatusCode } from "@repo/domain";
+import {
+  AppError,
+  ErrorCode,
+  ErrorResponse,
+  getStatusCode,
+} from "@repo/domain";
 import { AxiosError, AxiosHeaders } from "axios";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { normalizeError, processAxiosError } from "../src/lib/errors/errors";
+import {
+  isAuthError,
+  isCriticalError,
+  normalizeError,
+  processAxiosError,
+} from "../src/lib/errors/errors";
 
 // The same rejection can be produced by the API or by a schema parse in the
 // browser. Both have to carry one status, or a form would branch differently
@@ -64,5 +74,48 @@ describe("client validation errors", () => {
     expect(clientSide.code).toBe(ErrorCode.VALIDATION_ERROR);
     expect(clientSide.statusCode).toBe(serverSide.statusCode);
     expect(clientSide.statusCode).toBe(VALIDATION_STATUS);
+  });
+});
+
+// A dead session and a rejected login are both 401s, but only one of them is
+// fixed by signing in again. The two predicates have to disagree about them.
+
+describe("auth errors", () => {
+  it.each([
+    ErrorCode.UNAUTHORIZED,
+    ErrorCode.INVALID_TOKEN,
+    ErrorCode.TOKEN_EXPIRED,
+  ])("treats %s as an auth error, not a critical one", (code) => {
+    const error = new AppError("dead session", code);
+
+    expect(isAuthError(error)).toBe(true);
+    expect(isCriticalError(error)).toBe(false);
+  });
+
+  it("leaves INVALID_CREDENTIALS to the login form", () => {
+    const error = new AppError(
+      "Invalid email or password",
+      ErrorCode.INVALID_CREDENTIALS,
+    );
+
+    expect(isAuthError(error)).toBe(false);
+    expect(isCriticalError(error)).toBe(false);
+  });
+
+  it.each([ErrorCode.INTERNAL_ERROR, ErrorCode.EXTERNAL_SERVICE_ERROR])(
+    "keeps %s critical and not an auth error",
+    (code) => {
+      const error = new AppError("boom", code);
+
+      expect(isCriticalError(error)).toBe(true);
+      expect(isAuthError(error)).toBe(false);
+    },
+  );
+
+  it("does not treat a 404 as either", () => {
+    const error = new AppError("nope", ErrorCode.NOT_FOUND);
+
+    expect(isAuthError(error)).toBe(false);
+    expect(isCriticalError(error)).toBe(false);
   });
 });

@@ -288,6 +288,9 @@ undefined;
 │                                                                     │
 │ Code:                                                               │
 │   const normalizedError = normalizeError(error); // NORMALIZATION  │
+│   if (isAuthError(normalizedError)) {                              │
+│     return <RedirectToLogin />; // Dead session, go sign in        │
+│   }                                                                 │
 │   if (isCriticalError(normalizedError)) {                          │
 │     throw normalizedError; // Re-throw to RouteErrorBoundary       │
 │   }                                                                 │
@@ -721,6 +724,7 @@ try {
 ```typescript
 FallbackComponent={({ error }) => {
   const normalizedError = normalizeError(error); // ← Normalize caught error
+  if (isAuthError(normalizedError)) return <RedirectToLogin />;
   if (isCriticalError(normalizedError)) throw normalizedError;
   return <ErrorBlock message={normalizedError.message} />;
 }}
@@ -832,4 +836,4 @@ if (isCriticalError(normalizedError)) { ... } // Type-safe
 
 ---
 
-**Last Updated:** December 21, 2025
+**Last Updated:** September 6, 2026

@@ -581,11 +581,11 @@ describe('ProductList error handling', () => {
 
 ## Summary
 
-| Layer             | Responsibility                                     | Does NOT Do                              |
-| ----------------- | -------------------------------------------------- | ---------------------------------------- |
-| **Axios**         | Transport only; handle 401 redirects               | No classification, no toasts, no retries |
-| **React Query**   | Classify errors; decide retries; throw if critical | Handle UI; show toasts                   |
-| **Component**     | Classify errors; show inline/toast; error handling | Make HTTP requests directly              |
-| **ErrorBoundary** | Catch thrown errors; show error page               | Handle optional/background errors        |
+| Layer             | Responsibility                                     | Does NOT Do                                            |
+| ----------------- | -------------------------------------------------- | ------------------------------------------------------ |
+| **Axios**         | Transport only                                     | No classification, no toasts, no retries, no redirects |
+| **React Query**   | Classify errors; decide retries; throw if critical | Handle UI; show toasts                                 |
+| **Component**     | Classify errors; show inline/toast; error handling | Make HTTP requests directly                            |
+| **ErrorBoundary** | Catch thrown errors; show error page               | Handle optional/background errors                      |
 
-**Last Updated:** December 18, 2025
+**Last Updated:** September 6, 2026

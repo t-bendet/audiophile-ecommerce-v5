@@ -75,20 +75,37 @@ export function processAxiosError(error: AxiosError<ErrorResponse>): AppError {
 
 /**
  * Check if error is critical and should bubble up to router boundary.
- * Critical errors: env validation, auth failures, token issues, internal server errors.
+ * Critical means the route cannot render: internal server errors, network
+ * failures, and anything 5xx. Auth failures are not critical - they are
+ * recoverable by signing in again, and belong to `isAuthError`.
  */
 export function isCriticalError(error: AppError): boolean {
-  // Only data-loading and auth errors are critical and should crash the route.
+  // Only data-loading errors are critical and should crash the route.
   // Component composition errors and other 4xx errors should be caught by SafeRenderWithErrorBlock.
-  const criticalCodes = [
+  const criticalCodes: ErrorCode[] = [
     ErrorCode.INTERNAL_ERROR, // Server errors from loaders/API
     ErrorCode.EXTERNAL_SERVICE_ERROR, // Network issues from loaders
   ];
 
-  const isCriticalCode = criticalCodes.includes(error.code as ErrorCode);
+  const isCriticalCode = criticalCodes.includes(error.code);
   const isServerError = error.statusCode >= 500;
 
   return isCriticalCode || isServerError;
+}
+
+/**
+ * Check if error means the session is dead and the user has to sign in again.
+ * `INVALID_CREDENTIALS` is deliberately absent: it is a rejected login attempt,
+ * which the login form reports inline, not an expired session.
+ */
+export function isAuthError(error: AppError): boolean {
+  const authCodes: ErrorCode[] = [
+    ErrorCode.UNAUTHORIZED,
+    ErrorCode.INVALID_TOKEN,
+    ErrorCode.TOKEN_EXPIRED,
+  ];
+
+  return authCodes.includes(error.code);
 }
 
 /**

@@ -65,6 +65,18 @@ export const authCookie = (userId: string) => {
   return `jwt=${token}`;
 };
 
+/** A genuinely signed JWT whose expiry has already passed. */
+export const expiredAuthCookie = (userId: string) => {
+  const token = jwt.sign({ id: userId }, env.JWT_SECRET, { expiresIn: "-1s" });
+  return `jwt=${token}`;
+};
+
+/** A well-formed JWT signed with the wrong secret. */
+export const tamperedAuthCookie = (userId: string) => {
+  const token = jwt.sign({ id: userId }, `${env.JWT_SECRET}-wrong`);
+  return `jwt=${token}`;
+};
+
 export const image = (label: string) => ({
   altText: `${label} alt`,
   ariaLabel: `${label} aria`,
