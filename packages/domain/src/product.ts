@@ -17,11 +17,15 @@ import {
   SingleItemResponseSchema,
 } from "./common.js";
 import { IdValidator } from "./shared.js";
+import { SlugValidator } from "./slug.js";
 
 // * ===== Database Type Re-exports (Service Generics )=====
 
 export type Product = PrismaProduct;
-export type ProductCreateInput = Prisma.ProductCreateInput;
+// `slug` is optional on the wire: the service derives it from `name` when absent.
+export type ProductCreateInput = Omit<Prisma.ProductCreateInput, "slug"> & {
+  slug?: string;
+};
 export type ProductUpdateInput = Prisma.ProductUncheckedUpdateInput;
 export type ProductWhereInput = Prisma.ProductWhereInput;
 export type ProductSelect = Prisma.ProductSelect;
@@ -79,7 +83,7 @@ const ProductPropertiesSchema = z
       .string()
       .min(1, "Showcase image text is required")
       .nullable(),
-    slug: z.string().min(1, "Slug is required"),
+    slug: SlugValidator("Product"),
     includedItems: z.array(
       z
         .object({
@@ -150,7 +154,7 @@ export const ProductGetByPathSchema = createRequestSchema({});
 // GET - Get Product by Slug
 
 export const ProductGetBySlugSchema = createRequestSchema({
-  params: z.object({ slug: z.string().min(2, "Slug is required") }).strict(),
+  params: z.object({ slug: SlugValidator("Product") }).strict(),
 });
 
 // CREATE - Create new product
@@ -159,6 +163,7 @@ export const ProductCreateRequestSchema = createRequestSchema({
     category: z.object({
       connect: z.object({ id: IdValidator("Category") }).strict(),
     }),
+    slug: SlugValidator("Product").optional(),
   }).omit({
     createdAt: true,
     categoryId: true,

@@ -27,10 +27,3 @@ export const PasswordValidator = (identifier: string = "Password") => {
     .min(8, "Password must be at least 8 characters")
     .max(20, "Password must be at most 20 characters");
 };
-
-export const SlugValidator = (identifier: string = "Document") =>
-  z
-    .string({ message: `${identifier} Slug is required` })
-    .regex(/^[a-z0-9-]+$/i, { message: "Invalid slug format" })
-    .min(3)
-    .max(80);
