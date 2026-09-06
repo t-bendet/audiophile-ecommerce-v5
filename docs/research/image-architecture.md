@@ -10,7 +10,7 @@ the problem into layers, compare realistic options, and make one proportionate r
 a portfolio project. Nothing in the repo was modified.
 
 **Bottom line (details in §5):** keep images embedded in the product document, but store a
-human-readable *storage key* instead of a URL; keep the original files in the repo under a
+human-readable _storage key_ instead of a URL; keep the original files in the repo under a
 deterministic `products/<slug>/<role>-<breakpoint>.<ext>` convention; publish them one-way to a
 public, zero-egress object bucket with a small sync script; resolve key → URL once, at the API
 boundary, from a `MEDIA_BASE_URL` env var. Cloudflare R2 behind a custom subdomain is the
@@ -23,17 +23,17 @@ domain is available. No CMS, no admin UI, no image table.
 
 ### 1.1 Files and directories that matter
 
-| Concern | Location |
-| --- | --- |
-| The only image URLs in the codebase | `packages/database/src/seed/products.seed.ts` (126 URLs), `packages/database/src/seed/categories.seed.ts` (3 URLs) |
-| Persistence shape | `packages/database/prisma/schema/product.prisma` (`ProductImages`, `ProductImagesProperties`, `ProductsImagesThumbnail`), `category.prisma` (`CategoriesThumbnail`) |
-| Contract / validation | `packages/domain/src/product.ts:36-62`, `category.ts:40-44`, `cart.ts:26-35`, `order.ts:25-33,110-119` |
-| Server read path | `apps/server/src/services/product.service.ts` (`toDTO` is a passthrough, nested `images: { select: {...} }` per view), `cart.service.ts:54`, `order.service.ts:41` |
-| Server write path | `product.route.ts:20-29` admin-gated `POST/PATCH/DELETE`, `images` is in `PRODUCT_UPDATE_FIELDS` |
-| Rendering | `apps/client/src/components/ui/responsivePicture.tsx` (single `<picture>` primitive) + 2 raw `<img>` (category nav, cart item) |
-| Client-bundled images | `apps/client/src/assets/{mobile,tablet,desktop}/image-best-gear.jpg` + SVG icons (UI chrome only, via Vite/svgr) |
-| Deployment | `render.yaml`: Express on a Render free web service, client as a Render **static site**; MongoDB Atlas |
-| Tooling for images | **none** — no scripts dir, no sharp/multer/cloudinary/S3 SDK, no image env vars anywhere |
+| Concern                             | Location                                                                                                                                                            |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The only image URLs in the codebase | `packages/database/src/seed/products.seed.ts` (126 URLs), `packages/database/src/seed/categories.seed.ts` (3 URLs)                                                  |
+| Persistence shape                   | `packages/database/prisma/schema/product.prisma` (`ProductImages`, `ProductImagesProperties`, `ProductsImagesThumbnail`), `category.prisma` (`CategoriesThumbnail`) |
+| Contract / validation               | `packages/domain/src/product.ts:36-62`, `category.ts:40-44`, `cart.ts:26-35`, `order.ts:25-33,110-119`                                                              |
+| Server read path                    | `apps/server/src/services/product.service.ts` (`toDTO` is a passthrough, nested `images: { select: {...} }` per view), `cart.service.ts:54`, `order.service.ts:41`  |
+| Server write path                   | `product.route.ts:20-29` admin-gated `POST/PATCH/DELETE`, `images` is in `PRODUCT_UPDATE_FIELDS`                                                                    |
+| Rendering                           | `apps/client/src/components/ui/responsivePicture.tsx` (single `<picture>` primitive) + 2 raw `<img>` (category nav, cart item)                                      |
+| Client-bundled images               | `apps/client/src/assets/{mobile,tablet,desktop}/image-best-gear.jpg` + SVG icons (UI chrome only, via Vite/svgr)                                                    |
+| Deployment                          | `render.yaml`: Express on a Render free web service, client as a Render **static site**; MongoDB Atlas                                                              |
+| Tooling for images                  | **none** — no scripts dir, no sharp/multer/cloudinary/S3 SDK, no image env vars anywhere                                                                            |
 
 ### 1.2 The actual data flow
 
@@ -63,23 +63,23 @@ model; it is that every leaf of the model is an opaque third-party URL.
 
 ### 1.3 Facts that constrain the design (all verified this session)
 
-| Fact | Evidence | Why it matters |
-| --- | --- | --- |
-| 128 distinct URLs, 129 occurrences, one host (`i.ibb.co`), 122 `.jpg` + 6 `.png` | `grep -o` over both seed files | Blast radius of any migration is two files |
-| **6 URLs are dead (HTTP 404, ImgBB placeholder PNG)** | GET with browser UA: xx99-mark-one gallery 1 mobile / gallery 2 desktop / gallery 3 mobile; xx99-mark-two gallery 1 mobile; yx1 primary tablet + intro tablet | Production is already broken on 3 of 6 product pages; ImgBB deletes silently |
-| Whole catalogue is **~2.4 MB** (118 live files, Content-Length sum 2,327,084 B; largest 209 KB) | HEAD on every URL | Repo storage and any free tier are non-issues |
-| Breakpoint variants are **different crops**, not resizes (primary: 654×654 / 562×960 / 1080×1120; gallery-1: 654×348 / 554×348 / 445×280) | `file` on fetched bytes | On-the-fly resizing cannot replace the three-file model; art direction is content |
-| ImgBB serves `Cache-Control: max-age=315360000` (10 y) | HEAD | Replacing a file at ImgBB was never possible anyway (new upload = new URL) |
-| ImgBB API is upload-only (no list/delete API); ToS forbids commercial use and allows deletion "at any time, without warning" | api.imgbb.com, imgbb.com/tos | No programmatic management is possible; the host is unsuitable by policy, not just taste |
-| Filenames repeat across products (`image-product.jpg` ×17, `image-gallery-1.jpg` ×18); only the hash disambiguates | seed grep | The basename carries no identity; migration must key on the full URL |
-| `z.url()` is the entire validation surface (`product.ts:40,48-50`, commit `a0efeb9`) | domain package | DTO must stay absolute-URL or the client schema changes |
-| Client hard-codes `width`/`height` per call site (e.g. 1080×1120 for primary) while the `<img>` fallback is the 654×654 mobile file | `product/index.tsx:61-72`, `responsivePicture.tsx:31-40` | Dimensions belong with the data, per variant |
-| `index.css:101-107` sets `max-width:100%` on `img` without `height:auto`; no `aspect-ratio`; no `decoding`; gallery has no `loading` | client | Delivery fixes are cheap and independent of hosting |
-| Render Hobby workspaces include **5 GB/month** outbound bandwidth; static-site traffic counts; without a payment method the workspace is **spun down until next month** when exceeded | render.com/docs/outbound-bandwidth | Serving image bytes from Render itself puts the whole portfolio behind one cap |
-| Admin CRUD exists and is role-gated (`authorize("ADMIN")` at router level); body limit is 10 kb; no multipart | `product.route.ts`, `app.ts:52-53` | A URL/key-based admin form works today; an upload endpoint does not |
-| Seeding is destructive (`seed/index.ts` drops the DB) and production content is seed-derived | seed script | The repo *is* the CMS; the image workflow should live where the content lives |
-| Docs never mention ImgBB; every documented plan says "Cloudinary" (`todos.js:25`, README roadmap, issue #162); `CONTEXT.md` referenced by CLAUDE.md does not exist | docs agent | An ADR is needed; the glossary has no term for image host/key |
-| No custom domain in evidence (both services on `*.onrender.com`) | render.yaml, README | Affects which CDN implementation is frictionless (see §5) |
+| Fact                                                                                                                                                                                  | Evidence                                                                                                                                                      | Why it matters                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 128 distinct URLs, 129 occurrences, one host (`i.ibb.co`), 122 `.jpg` + 6 `.png`                                                                                                      | `grep -o` over both seed files                                                                                                                                | Blast radius of any migration is two files                                               |
+| **6 URLs are dead (HTTP 404, ImgBB placeholder PNG)**                                                                                                                                 | GET with browser UA: xx99-mark-one gallery 1 mobile / gallery 2 desktop / gallery 3 mobile; xx99-mark-two gallery 1 mobile; yx1 primary tablet + intro tablet | Production is already broken on 3 of 6 product pages; ImgBB deletes silently             |
+| Whole catalogue is **~2.4 MB** (118 live files, Content-Length sum 2,327,084 B; largest 209 KB)                                                                                       | HEAD on every URL                                                                                                                                             | Repo storage and any free tier are non-issues                                            |
+| Breakpoint variants are **different crops**, not resizes (primary: 654×654 / 562×960 / 1080×1120; gallery-1: 654×348 / 554×348 / 445×280)                                             | `file` on fetched bytes                                                                                                                                       | On-the-fly resizing cannot replace the three-file model; art direction is content        |
+| ImgBB serves `Cache-Control: max-age=315360000` (10 y)                                                                                                                                | HEAD                                                                                                                                                          | Replacing a file at ImgBB was never possible anyway (new upload = new URL)               |
+| ImgBB API is upload-only (no list/delete API); ToS forbids commercial use and allows deletion "at any time, without warning"                                                          | api.imgbb.com, imgbb.com/tos                                                                                                                                  | No programmatic management is possible; the host is unsuitable by policy, not just taste |
+| Filenames repeat across products (`image-product.jpg` ×17, `image-gallery-1.jpg` ×18); only the hash disambiguates                                                                    | seed grep                                                                                                                                                     | The basename carries no identity; migration must key on the full URL                     |
+| `z.url()` is the entire validation surface (`product.ts:40,48-50`, commit `a0efeb9`)                                                                                                  | domain package                                                                                                                                                | DTO must stay absolute-URL or the client schema changes                                  |
+| Client hard-codes `width`/`height` per call site (e.g. 1080×1120 for primary) while the `<img>` fallback is the 654×654 mobile file                                                   | `product/index.tsx:61-72`, `responsivePicture.tsx:31-40`                                                                                                      | Dimensions belong with the data, per variant                                             |
+| `index.css:101-107` sets `max-width:100%` on `img` without `height:auto`; no `aspect-ratio`; no `decoding`; gallery has no `loading`                                                  | client                                                                                                                                                        | Delivery fixes are cheap and independent of hosting                                      |
+| Render Hobby workspaces include **5 GB/month** outbound bandwidth; static-site traffic counts; without a payment method the workspace is **spun down until next month** when exceeded | render.com/docs/outbound-bandwidth                                                                                                                            | Serving image bytes from Render itself puts the whole portfolio behind one cap           |
+| Admin CRUD exists and is role-gated (`authorize("ADMIN")` at router level); body limit is 10 kb; no multipart                                                                         | `product.route.ts`, `app.ts:52-53`                                                                                                                            | A URL/key-based admin form works today; an upload endpoint does not                      |
+| Seeding is destructive (`seed/index.ts` drops the DB) and production content is seed-derived                                                                                          | seed script                                                                                                                                                   | The repo _is_ the CMS; the image workflow should live where the content lives            |
+| Docs never mention ImgBB; every documented plan says "Cloudinary" (`todos.js:25`, README roadmap, issue #162); `CONTEXT.md` referenced by CLAUDE.md does not exist                    | docs agent                                                                                                                                                    | An ADR is needed; the glossary has no term for image host/key                            |
+| No custom domain in evidence (both services on `*.onrender.com`)                                                                                                                      | render.yaml, README                                                                                                                                           | Affects which CDN implementation is frictionless (see §5)                                |
 
 ### 1.4 Current weaknesses, by layer
 
@@ -98,19 +98,19 @@ model; it is that every leaf of the model is an opaque third-party URL.
 
 ## 2. Actual problems, categorised
 
-| Category | Problem | Architectural or workflow? |
-| --- | --- | --- |
-| Storage | Host can and does delete files; no ToS-compliant use; no delete/list API | **Architectural** |
-| Storage | Originals exist nowhere under the project's control (only on ImgBB; 6 already gone) | **Architectural** (ownership) |
-| Identity | Reference = opaque hashed URL; no human-readable, stable name; variants not grouped | **Architectural** |
-| Identity | Replacement impossible without changing the reference (new upload = new URL) | **Architectural** |
-| Data model | Embedded roles are right; leaves are URLs; dimensions missing; `ariaLabel` duplicates `alt` and overrides it for assistive tech | Mostly fine; leaf type is the fix |
-| Data model | Optionality mismatch: Prisma `?` vs Zod `.nullable()` on `featuredImage`/`showCaseImage` (already `todos.js:58-69`) | Workflow/hygiene |
-| Developer experience | Manual upload, copy, paste; nothing lists "images in use"; `altText: "test"` shipped (`products.seed.ts:419`) | Workflow, solved by convention + one script |
-| Maintainability | No doc says where images live; roadmap says Cloudinary; nothing enforces validity of references | Workflow (docs, CI check) |
-| Performance | No preconnect to image origin; gallery eager; CLS from CSS + wrong intrinsic size; JPEG/PNG only | Workflow (client fixes), independent of hosting |
-| Reliability | 6/128 dead, no `onError`, no monitoring | Architectural cause, workflow symptom |
-| Migration | Seed wipes users/orders; filenames non-unique; 6 originals must come from the Frontend Mentor starter pack | Constraint on the plan |
+| Category             | Problem                                                                                                                         | Architectural or workflow?                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Storage              | Host can and does delete files; no ToS-compliant use; no delete/list API                                                        | **Architectural**                               |
+| Storage              | Originals exist nowhere under the project's control (only on ImgBB; 6 already gone)                                             | **Architectural** (ownership)                   |
+| Identity             | Reference = opaque hashed URL; no human-readable, stable name; variants not grouped                                             | **Architectural**                               |
+| Identity             | Replacement impossible without changing the reference (new upload = new URL)                                                    | **Architectural**                               |
+| Data model           | Embedded roles are right; leaves are URLs; dimensions missing; `ariaLabel` duplicates `alt` and overrides it for assistive tech | Mostly fine; leaf type is the fix               |
+| Data model           | Optionality mismatch: Prisma `?` vs Zod `.nullable()` on `featuredImage`/`showCaseImage` (already `todos.js:58-69`)             | Workflow/hygiene                                |
+| Developer experience | Manual upload, copy, paste; nothing lists "images in use"; `altText: "test"` shipped (`products.seed.ts:419`)                   | Workflow, solved by convention + one script     |
+| Maintainability      | No doc says where images live; roadmap says Cloudinary; nothing enforces validity of references                                 | Workflow (docs, CI check)                       |
+| Performance          | No preconnect to image origin; gallery eager; CLS from CSS + wrong intrinsic size; JPEG/PNG only                                | Workflow (client fixes), independent of hosting |
+| Reliability          | 6/128 dead, no `onError`, no monitoring                                                                                         | Architectural cause, workflow symptom           |
+| Migration            | Seed wipes users/orders; filenames non-unique; 6 originals must come from the Frontend Mentor starter pack                      | Constraint on the plan                          |
 
 The genuinely architectural problems are ownership, identity and replaceability. Everything else
 is convention, a script, or a client fix.
@@ -120,8 +120,9 @@ is convention, a script, or a client fix.
 ## 3. Requirements
 
 ### Must have
+
 1. Files owned by the project (originals in the repo or in a bucket the project controls).
-2. Human-readable, stable identity derived from what the image *is* (product, role, breakpoint).
+2. Human-readable, stable identity derived from what the image _is_ (product, role, breakpoint).
 3. Reference in data ≠ physical location: URL resolved from a base at one boundary.
 4. Add / replace / delete = file operation + one command; no copy-pasting URLs.
 5. A check that every referenced image exists and every stored image is referenced.
@@ -130,6 +131,7 @@ is convention, a script, or a client fix.
 8. Zero recurring cost at portfolio traffic; no hard failure mode at a few thousand views.
 
 ### Nice to have
+
 - Per-variant `width`/`height` in data (kills hard-coded sizes and mobile CLS).
 - Preconnect / `decoding="async"` / consistent `loading` / `height:auto` CSS.
 - CI publishes images on merge so "commit = published".
@@ -138,6 +140,7 @@ is convention, a script, or a client fix.
 - WebP/AVIF via build-time siblings or edge `format=auto`.
 
 ### Unnecessary (for this project)
+
 - An `Image` collection / first-class media entity (no sharing, no independent lifecycle, ~130
   files with a static owner each).
 - Admin upload UI, multipart endpoint, presigned uploads (no content editors; the repo is the CMS).
@@ -151,11 +154,13 @@ is convention, a script, or a client fix.
 ## 4. Architecture options
 
 ### Option A — Keep ImgBB, add a registry
+
 Store a `key → ImgBB URL` manifest in the repo; product data references keys. Fixes readability
 only. Storage, ownership, replaceability and the dead-file problem remain; no delete API exists.
 Cost $0. Complexity minimal. **Rejected**: does not solve the architectural problems.
 
 ### Option B — Repo static assets served by the Render static site
+
 Put originals under `apps/client/public/media/...`; data stores keys; server resolves against the
 client origin. Zero accounts, zero secrets, git-versioned, identity by path.
 Drawbacks: image bytes count against Render's 5 GB/month with workspace suspension as the failure
@@ -165,7 +170,8 @@ upload; cache headers only via `render.yaml` path rules; every PR preview re-shi
 Cost $0. Complexity lowest. Portability high (files are just files). Migration easy.
 **Kept as the zero-infrastructure fallback**; not primary because of the cap + ownership.
 
-### Option C — Repo-owned originals, path-keyed, published to a public object bucket + CDN  ← recommended
+### Option C — Repo-owned originals, path-keyed, published to a public object bucket + CDN ← recommended
+
 Originals live in a `packages/media/assets/` tree keyed `products/<slug>/<role>-<bp>.<ext>`;
 `media:sync` uploads with cache headers; data stores keys; server resolves `MEDIA_BASE_URL + key`;
 `media:check` validates references both ways. Implementation: Cloudflare R2 (S3 API, 10 GB free,
@@ -176,6 +182,7 @@ Portability: the S3 API is the industry standard; only `MEDIA_BASE_URL` and the 
 change. Migration: one import script.
 
 ### Option D — Managed image platform with path identity (ImageKit / Cloudinary)
+
 Same key convention and the same `MEDIA_BASE_URL` resolution, but the bucket is the vendor's media
 library, which brings a browsing UI, upload API/SDK, CDN, `format=auto` and DPR resizing.
 ImageKit free: 20 GB bandwidth, 3 GB storage, no domain needed (`ik.imagekit.io/<id>/<key>`).
@@ -187,6 +194,7 @@ place where files can be changed (dashboard) unless one-way sync is a rule, star
 ImageKit over Cloudinary for identity cleanliness and pricing.
 
 ### Option E — Headless CMS / DAM (Sanity, Payload, Strapi) or a first-class `Image` collection with upload endpoint
+
 Full media lifecycle, references, usage tracking, editors. Would duplicate the existing
 Prisma/Express data layer or force a second content pipeline; needs body-limit and multipart
 changes, storage credentials in the server, an admin UI. Cost $0–$15/month. Complexity highest.
@@ -195,18 +203,18 @@ revive the upload-endpoint variant.
 
 ### Comparison
 
-| | A ImgBB+registry | B Static site | C Bucket + keys | D ImageKit | E CMS/DAM |
-| --- | --- | --- | --- | --- | --- |
-| Ownership of bytes | ✗ | ✓ (git) | ✓ (git + bucket) | ✓ (vendor) | ✓ (vendor/bucket) |
-| Human-readable identity | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Replace in place | ✗ | ✓ | ✓ | ✓ | ✓ |
-| Orphan detection | manual | script | script | dashboard + script | built-in |
-| Bandwidth risk | none | Render 5 GB cap | none | 20 GB free | varies |
-| New accounts/secrets | 0 | 0 | 1 / 1 | 1 / 1 | 1–2 |
-| Cost at portfolio traffic | $0 | $0 | $0 | $0 | $0–15 |
-| Lock-in | high (no export API) | none | low (S3) | medium | high |
-| Fits future admin upload | ✗ | ✗ | ✓ | ✓ | ✓ |
-| Explainable in an interview | weak | ok | strong | ok | overkill |
+|                             | A ImgBB+registry     | B Static site   | C Bucket + keys  | D ImageKit         | E CMS/DAM         |
+| --------------------------- | -------------------- | --------------- | ---------------- | ------------------ | ----------------- |
+| Ownership of bytes          | ✗                    | ✓ (git)         | ✓ (git + bucket) | ✓ (vendor)         | ✓ (vendor/bucket) |
+| Human-readable identity     | ✓                    | ✓               | ✓                | ✓                  | ✓                 |
+| Replace in place            | ✗                    | ✓               | ✓                | ✓                  | ✓                 |
+| Orphan detection            | manual               | script          | script           | dashboard + script | built-in          |
+| Bandwidth risk              | none                 | Render 5 GB cap | none             | 20 GB free         | varies            |
+| New accounts/secrets        | 0                    | 0               | 1 / 1            | 1 / 1              | 1–2               |
+| Cost at portfolio traffic   | $0                   | $0              | $0               | $0                 | $0–15             |
+| Lock-in                     | high (no export API) | none            | low (S3)         | medium             | high              |
+| Fits future admin upload    | ✗                    | ✗               | ✓                | ✓                  | ✓                 |
+| Explainable in an interview | weak                 | ok              | strong           | ok                 | overkill          |
 
 ---
 
@@ -222,7 +230,8 @@ the same Cloudflare account; the app itself stays on Render's default `onrender.
 in §4 D, but no prerequisite now blocks R2.)
 
 Why it fits this repository:
-- The repo already *is* the CMS (seed literals → destructive reseed). Putting originals beside
+
+- The repo already _is_ the CMS (seed literals → destructive reseed). Putting originals beside
   the seed and treating the bucket as a build artifact mirrors `db:seed` exactly: data publishes
   to Mongo, files publish to the bucket. One mental model, two `pnpm` commands.
 - The existing embedded role model (`ProductImages`) is kept. ARCHITECTURE.md's justification for
@@ -238,6 +247,7 @@ level, no service that sleeps or pauses, and every piece is standard (S3 API, `C
 `<picture>`), which makes it easy to explain.
 
 Trade-offs accepted:
+
 - Replacement overwrites the same key; propagation relies on a moderate cache TTL (one day) plus
   optional purge, not on immutable content-hashed URLs. Chosen because hashed keys would turn every
   image swap into a data migration. Git history is the version log.
@@ -292,22 +302,34 @@ Domain (`packages/domain`), two schemas for the two sides of the boundary:
 
 ```ts
 // persisted / accepted on create & update
-export const ImageKeySchema = z.string().regex(
-  /^(products|categories)\/[a-z0-9-]+\/[a-z0-9-]+\.(jpg|png|webp|avif)$/,
-);
-export const ImageVariantSchema = z.object({
-  key: ImageKeySchema, width: z.number().int().positive(), height: z.number().int().positive(),
-}).strict();
+export const ImageKeySchema = z
+  .string()
+  .regex(
+    /^(products|categories)\/[a-z0-9-]+\/[a-z0-9-]+\.(jpg|png|webp|avif)$/,
+  );
+export const ImageVariantSchema = z
+  .object({
+    key: ImageKeySchema,
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+  })
+  .strict();
 
 // returned by the API (what the client already expects, plus dimensions)
-export const ImageVariantDTOSchema = z.object({
-  src: z.url(), width: z.number().int().positive(), height: z.number().int().positive(),
-}).strict();
+export const ImageVariantDTOSchema = z
+  .object({
+    src: z.url(),
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+  })
+  .strict();
 
-export const resolveImageUrl = (baseUrl: string, key: ImageKey) => `${baseUrl}/${key}`;
+export const resolveImageUrl = (baseUrl: string, key: ImageKey) =>
+  `${baseUrl}/${key}`;
 ```
 
 Field rationale:
+
 - `key` is the identity **and** the storage path: human-readable, product-scoped, breakpoint-
   qualified, stable across replacements. It never contains a host.
 - `width`/`height` per variant: the intrinsic size the browser needs for the file it actually
@@ -355,7 +377,7 @@ Concrete example — adding "ZX3 speaker" with primary, intro and one gallery im
 2. `pnpm media:check` prints the dimensions to paste (or `--write` updates the manifest); it fails
    if a required slot is missing or a filename breaks the convention.
 3. In `products.seed.ts`, add the product with `images.primaryImage.mobile = { key:
-   "products/zx3-speaker/primary-mobile.jpg", width: 654, height: 654 }` and so on.
+"products/zx3-speaker/primary-mobile.jpg", width: 654, height: 654 }` and so on.
 4. `pnpm media:sync` uploads only the new objects. `pnpm db:seed` locally; CI runs `media:check`.
 5. Replace an image later: overwrite the file, `media:sync` (purges or waits ≤ 1 day for cache).
 6. Delete a product: remove its seed entry and its folder; `media:check` passes; `media:sync --prune`
@@ -412,6 +434,7 @@ in the existing ADR prose format; README/ARCHITECTURE updated; `todos.js:25` and
 ## 9. Implementation scope
 
 ### Phase 1 — Minimum viable architecture
+
 - `packages/media/assets/**` with recovered originals under the key convention.
 - Prisma + domain model change (§6); `MEDIA_BASE_URL`; single resolver at the API boundary.
 - Seed rewritten to keys + dimensions; server tests updated.
@@ -421,6 +444,7 @@ in the existing ADR prose format; README/ARCHITECTURE updated; `todos.js:25` and
 - ADR 0004 + docs.
 
 ### Phase 2 — Developer experience
+
 - `media:import` retained as a general "pull from URL into convention" tool.
 - CI job publishing on merge; `media:check --remote` drift report.
 - Express `express.static` mount of `packages/media/assets` under `/media` in development so
@@ -431,6 +455,7 @@ in the existing ADR prose format; README/ARCHITECTURE updated; `todos.js:25` and
   import references without the Prisma client.
 
 ### Phase 3 — Optional future improvements (only on a real trigger)
+
 - WebP/AVIF: generate sibling keys at sync time with sharp, or turn on Cloudflare transformations
   (`/cdn-cgi/image/format=auto,width=…/`) on the media subdomain (5,000 unique transformations
   per month free; the catalogue needs a few hundred).
@@ -461,13 +486,13 @@ in the existing ADR prose format; README/ARCHITECTURE updated; `todos.js:25` and
 Asked by the user after the main recommendation. Short answer: the client yes, today, for free;
 the Express API only by paying for Containers or by dropping MongoDB. Details:
 
-| Piece | On Cloudflare | Verdict |
-| --- | --- | --- |
-| Vite SPA (`apps/client/dist`) | Workers Static Assets (or Pages): `not_found_handling: "single-page-application"`, custom domain, requests to static assets "free and unlimited" on both plans | **Move now.** Zero code change; removes the Render 5 GB cap from the client entirely |
-| Media (§5) | R2 on the same zone | Already the recommendation; becomes a sibling hostname of the app |
-| Express 5 API on **Workers** (free) | `nodejs_compat` + `enable_nodejs_http_server_modules` (compat date ≥ 2025-09-01) lets `http.createServer` + `httpServerHandler` from `cloudflare:node` run Express itself. `node:net` and `node:tls` (`connect`, `TLSSocket`) exist since 2025, and MongoDB's own engineers showed the Node driver (≥ 6.15) reaching Atlas with SCRAM from a Worker | Runtime and raw driver: possible, community-proven, not vendor-listed (Cloudflare's database pages list no MongoDB; the driver README says removing the Node dependency is still in progress). **This repo's data layer: not supported by any vendor document, re-verified 2026-09-04.** Prisma 6.19 MongoDB connector = Rust query engine (`engine: "classic"`), which workerd cannot run; the Cloudflare deploy guide (v7 and current) lists Neon, PlanetScale, `pg`, libsql, D1 and Prisma Postgres only. Prisma 7 has no MongoDB ("use v6.19") and its WASM compiler fails on workerd (prisma/orm #28657, still open Aug 2026). Prisma 8 (`@prisma/orm-mongo` 8.0.0-rc.8, published 2026-09-02, still a release candidate) is TypeScript on `mongodb` ^7, Node ≥ 24, chained API; it exports `./runtime` only, whereas `@prisma/orm-postgres` also exports `./serverless`, the per-request facade used by Prisma's sole Workers example (`examples/prisma-8-cloudflare-worker`, Postgres + Hyperdrive). No Mongo Workers example, no `mongoServerless`, no issue or roadmap item exists. Remaining caveats even on the raw driver: one connection per request or a Durable Object singleton (≈2 s vs ≈300 ms in field reports), Atlas allow-list `0.0.0.0/0`, `bcrypt` native addon → `bcryptjs`, `express-rate-limit` memory store → KV/DO/rate-limit binding, 10 ms CPU per request on Free |
-| Express 5 API in **Cloudflare Containers** | Workers Paid $5/month; run the existing Node server as a Docker image behind a tiny Worker binding; Prisma + Atlas unchanged; `sleepAfter` scale-to-zero; included 375 vCPU-min / 25 GiB-h / 200 GB-h per month | **Works unchanged**, needs a Dockerfile (none exists) and a Worker shim. Cold starts still exist (container boot), so the keep-alive cron problem is reduced, not gone. Costs $5/month where Render is $0 |
-| Keep the API on Render free | — | **Recommended for now.** `sameSite: "none"` + `secure` cookies and the CORS allowlist already handle a cross-origin client (`auth.controller.ts:52-54`), so client and media can move without touching the server |
+| Piece                                      | On Cloudflare                                                                                                                                                                                                                                                                                                                                       | Verdict                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vite SPA (`apps/client/dist`)              | Workers Static Assets (or Pages): `not_found_handling: "single-page-application"`, custom domain, requests to static assets "free and unlimited" on both plans                                                                                                                                                                                      | **Move now.** Zero code change; removes the Render 5 GB cap from the client entirely                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Media (§5)                                 | R2 on the same zone                                                                                                                                                                                                                                                                                                                                 | Already the recommendation; becomes a sibling hostname of the app                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Express 5 API on **Workers** (free)        | `nodejs_compat` + `enable_nodejs_http_server_modules` (compat date ≥ 2025-09-01) lets `http.createServer` + `httpServerHandler` from `cloudflare:node` run Express itself. `node:net` and `node:tls` (`connect`, `TLSSocket`) exist since 2025, and MongoDB's own engineers showed the Node driver (≥ 6.15) reaching Atlas with SCRAM from a Worker | Runtime and raw driver: possible, community-proven, not vendor-listed (Cloudflare's database pages list no MongoDB; the driver README says removing the Node dependency is still in progress). **This repo's data layer: not supported by any vendor document, re-verified 2026-09-04.** Prisma 6.19 MongoDB connector = Rust query engine (`engine: "classic"`), which workerd cannot run; the Cloudflare deploy guide (v7 and current) lists Neon, PlanetScale, `pg`, libsql, D1 and Prisma Postgres only. Prisma 7 has no MongoDB ("use v6.19") and its WASM compiler fails on workerd (prisma/orm #28657, still open Aug 2026). Prisma 8 (`@prisma/orm-mongo` 8.0.0-rc.8, published 2026-09-02, still a release candidate) is TypeScript on `mongodb` ^7, Node ≥ 24, chained API; it exports `./runtime` only, whereas `@prisma/orm-postgres` also exports `./serverless`, the per-request facade used by Prisma's sole Workers example (`examples/prisma-8-cloudflare-worker`, Postgres + Hyperdrive). No Mongo Workers example, no `mongoServerless`, no issue or roadmap item exists. Remaining caveats even on the raw driver: one connection per request or a Durable Object singleton (≈2 s vs ≈300 ms in field reports), Atlas allow-list `0.0.0.0/0`, `bcrypt` native addon → `bcryptjs`, `express-rate-limit` memory store → KV/DO/rate-limit binding, 10 ms CPU per request on Free |
+| Express 5 API in **Cloudflare Containers** | Workers Paid $5/month; run the existing Node server as a Docker image behind a tiny Worker binding; Prisma + Atlas unchanged; `sleepAfter` scale-to-zero; included 375 vCPU-min / 25 GiB-h / 200 GB-h per month                                                                                                                                     | **Works unchanged**, needs a Dockerfile (none exists) and a Worker shim. Cold starts still exist (container boot), so the keep-alive cron problem is reduced, not gone. Costs $5/month where Render is $0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Keep the API on Render free                | —                                                                                                                                                                                                                                                                                                                                                   | **Recommended for now.** `sameSite: "none"` + `secure` cookies and the CORS allowlist already handle a cross-origin client (`auth.controller.ts:52-54`), so client and media can move without touching the server                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 The user clarified the goal is a **full move** of the web app and the API, with MongoDB staying on
 Atlas. Two shapes satisfy that:
@@ -492,13 +517,13 @@ driver layer. This is a re-platforming to save $5/month, on a path no vendor doc
 D1/SQLite variant exists too, but it drops MongoDB and loses `prisma.$transaction` because D1 has
 no transactions; it is not what the user asked for.)
 
-*Verification trail (2026-09-04), after the user asked whether the Prisma docs show MongoDB on
-Workers:* `prisma.io/docs/prisma-orm/add-to-existing-project/mongodb` (Prisma 8, Node 24+) contains
+_Verification trail (2026-09-04), after the user asked whether the Prisma docs show MongoDB on
+Workers:_ `prisma.io/docs/prisma-orm/add-to-existing-project/mongodb` (Prisma 8, Node 24+) contains
 no mention of Workers, edge, or serverless; `prisma.io/docs/orm/v7/prisma-client/deployment/edge/deploy-to-cloudflare`
 and its current non-v7 twin list no MongoDB; `prisma.io/docs/orm/prisma-client/deployment/edge/overview`
 likewise; Prisma 8's own repo has a Workers example for Postgres only and a "Serverless Deployment
 Guide" scoped to `postgres/serverless`; npm shows `@prisma/orm-mongo` without a `./serverless`
-export. What *has* changed since 2024: workerd gained `node:net`/`node:tls`, so the bare MongoDB
+export. What _has_ changed since 2024: workerd gained `node:net`/`node:tls`, so the bare MongoDB
 driver connects (alexbevi.com 2025-03-25; cloudflare/workerd discussion #2721).
 
 **Effect on the image plan:** none on the architecture; R2 becomes same-account, same-zone as the
@@ -509,12 +534,14 @@ migration first (small, fixes the six live 404s, only `MEDIA_BASE_URL` couples i
 then the hosting move.
 
 ## Sources consulted
+
 Render outbound bandwidth and free-tier docs; Cloudflare R2 pricing and public-bucket docs;
 Cloudflare Images pricing and URL-transform docs; Cloudinary, ImageKit, Bunny, Vercel Blob and
 Supabase pricing pages; ImgBB API docs and Terms of Service; Vite static-asset docs and
 vite-imagetools docs (via Context7); the repository itself (all paths cited above).
 
 ## If approved, the next (non-code) steps
+
 1. Save this document as `docs/research/image-architecture.md`.
 2. Draft `docs/adr/0004-…md` in the repo's ADR prose style.
 3. Open one tracking issue per phase (labels per `docs/agents/triage-labels.md`), superseding the
