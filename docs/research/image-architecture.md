@@ -1,5 +1,7 @@
 # Image Architecture Research — audiophile-ecommerce-v5
 
+> Dated record. Its `todos.js:NN` citations point at a scratch file deleted in #167; the backlog now lives in GitHub Issues and the README roadmap.
+
 ## Context
 
 Every catalogue image in this project is a hard-coded `https://i.ibb.co/...` URL inside two

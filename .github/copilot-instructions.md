@@ -324,15 +324,4 @@ When updating or creating any `.md` documentation files in this repo:
 2. Example: `**Last Updated:** December 17, 2025`
 3. This applies to all documentation files (ERROR_FLOW.md, guides, examples, etc.)
 
----
-
-## Active TODOs
-
-See [todos.js](todos.js) for tracked tasks, including:
-
-- Tune DTO and filter types in ProductService
-- Aggregate queries to reduce database roundtrips in `getRelatedProducts`
-- Move product route endpoint to category route
-- Consider adding config ID to environment variables
-
 **Last Updated:** September 6, 2026

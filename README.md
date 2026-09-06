@@ -108,19 +108,19 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 
 ### Backend
 
-| Technology             | Version | Purpose                            |
-| ---------------------- | ------- | ---------------------------------- |
-| **Node.js**            | 24.5.0  | JavaScript runtime                 |
-| **Express**            | 5.1     | Web framework for REST API         |
-| **TypeScript**         | 5.9     | Type-safe backend code             |
-| **Prisma**             | Latest  | Type-safe ORM with MongoDB support |
-| **MongoDB Atlas**      | Cloud   | Managed cloud database             |
-| **JWT**                | 9.0     | Stateless authentication tokens    |
-| **Zod**                | 4.0     | Request/response validation        |
-| **Helmet**             | 8.1     | Security headers middleware        |
-| **Express Rate Limit** | 8.2     | API rate limiting protection       |
-| **CORS**               | 2.8     | Cross-origin resource sharing      |
-| **Morgan**             | 1.10    | HTTP request logging               |
+| Technology             | Version     | Purpose                                     |
+| ---------------------- | ----------- | ------------------------------------------- |
+| **Node.js**            | 24.5.0      | JavaScript runtime                          |
+| **Express**            | 5.1         | Web framework for REST API                  |
+| **TypeScript**         | 5.9         | Type-safe backend code                      |
+| **Prisma**             | Latest      | Type-safe ORM with MongoDB support          |
+| **MongoDB Atlas**      | Cloud       | Managed cloud database                      |
+| **JWT**                | 9.0         | Stateless authentication tokens             |
+| **Zod**                | 4.0         | Request/response validation                 |
+| **Helmet**             | 8.1         | Security headers middleware                 |
+| **Express Rate Limit** | 8.2         | API rate limiting protection                |
+| **CORS**               | 2.8         | Cross-origin resource sharing               |
+| **pino + pino-http**   | 10.3 / 11.0 | Structured request logging with request ids |
 
 ### Shared Infrastructure
 
@@ -1009,264 +1009,49 @@ pnpm start            # Start production server
 
 ## 🔮 What's Next
 
-### High Priority
+### Roadmap
 
-#### Security & Authentication
+Product features, none of them specced yet:
 
-- [ ] **Forgot Password & Reset Flow**
-  - Implement password reset token generation
-  - Email service integration for reset links
-  - Password reset form with validation
-  - Location: `apps/server/src/controllers/auth.controller.ts`
+- Forgot password & reset flow. The `User` model already has `passwordResetToken` / `passwordResetExpires`; needs an email provider decision. The "Forgot your password?" link in `login-form.tsx` is a dead `href="#"` until this lands.
+- Order confirmation emails (shares the email infrastructure above).
+- Admin dashboard: product CRUD, order fulfilment, user management, analytics. See "Blocked on the admin dashboard" below.
+- Advanced product filtering: price range, features, availability.
+- Product search: full-text, autocomplete, highlighting.
+- Product reviews & ratings.
+- Wishlist.
+- Checkout enhancement: address book, multiple payment methods. (Checkout stays login-only; guest checkout is not planned.)
+- Order tracking: status updates, notifications, tracking numbers.
+- SEO: XML sitemap, Open Graph, product structured data. (React 19 document metadata is already in `components/seo/metadata.tsx`.)
+- Switch to Sonner for toasts.
+- Dark mode.
+- Multi-language support.
+- Social authentication.
+- Payment gateway.
+- Inventory management.
+- Advanced analytics.
+- Dialog component variants for cart, thank-you and navigation.
 
-- [ ] **Password Strength Meter**
-  - Real-time password strength feedback
-  - Visual indicator on signup form
-  - Location: `apps/client/src/features/auth/signup-form.tsx`
+Client work that needs a design or UX pass before it can be specced (from the #162 triage):
 
-- [x] **Show/Hide Password Toggle**
-  - Toggle visibility for password inputs
-  - Location: `apps/client/src/features/auth/login-form.tsx`
+- Auth through React Router middleware and a typed context. Today auth is re-checked in four route loaders plus a `getIsAuthenticated` helper in `features/cart/api/get-cart.ts`. Folds in the central queryClient/auth hook, `useSuspense` in `logged-in-user-dropdown.tsx`, and React Query stale-time tuning for auth. Note: `createBrowserRouter` in `app/router.tsx` does not pass `future.v8_middleware`, so the existing `performanceMiddleware` most likely never runs; verify that first.
+- Surface server validation details on forms. Since #156 the server answers 422 with Zod `details`, and `processAxiosError` in `lib/errors/errors.ts` carries them onto the `AppError`, but no form consumes them. Map them onto TanStack Form field errors, and decide there which messages are exposed at route, feature and form level.
+- Password strength meter on the signup form.
+- Skeleton loaders for images and sections. Run a prototype session first to find where a loading state is missing, then ticket the result. `ui/skeleton.tsx`, `product-skeleton.tsx` and `products-list-skeleton.tsx` already exist.
+- Pattern-circles SVG behind the ZX9 showcase. `assets/pattern-circles.svg` exists and its import is commented out in `showcase-section/index.tsx`.
+- WebP images with a `<picture>` fallback. `ResponsivePicture` already carries the breakpoint sources.
+- Preload critical resources. Fonts already have `preconnect` and `rel=preload`; both hero images already load `eager` with `fetchPriority="high"`. Measure before doing more; the remaining candidate is `react-dom`'s `preload()` for the featured image from the home loader.
+- Auth layout visuals.
 
-#### Checkout & Orders
+### Blocked on the admin dashboard
 
-- [ ] **Server-Side Price Calculation**
-  - Move pricing logic from client to server
-  - Prevent price tampering
-  - Calculate tax and shipping based on location
-  - Location: `apps/server/src/services/order.service.ts`
-  - Context: Currently prices calculated on client (security issue)
+- Replace the `NAME` enum on `Category` with `name: String` + `slug: String @unique`. Touches the Prisma enum, the domain Zod schemas, the `/products/category/:category` route param, `config/paths.ts`, the category route and `seo/metadata.tsx`. Only pays off once categories are created at runtime.
+- `isNewProduct` as a value derived from an arrival date. No such date exists today (only `createdAt`, which is seed time); needs a new field plus a rule such as "less than a year old". Until then the manual flag stays.
+- Cloudinary uploads from the dashboard.
 
-- [ ] **Order Confirmation Emails**
-  - Send order confirmation after checkout
-  - Include order details and tracking info
+### Removed in the #162 triage
 
-#### Admin Features
-
-- [ ] **Admin Dashboard**
-  - Product management (CRUD operations)
-  - Order management and fulfillment
-  - User management
-  - Analytics dashboard
-
-- [ ] **Cloudinary Integration**
-  - Image upload from dashboard
-  - Automatic optimization and transformations
-  - CDN delivery for faster loading
-  - Context: `todos.js:34`
-
-#### Performance Optimizations
-
-- [ ] **WebP Image Format**
-  - Convert all images to WebP for better compression
-  - Fallback to PNG/JPEG for unsupported browsers
-  - Context: `apps/client/todos.ts:103`
-
-- [ ] **Preload Critical Resources**
-  - Implement React preload API
-  - Preload fonts, critical images
-  - Context: `apps/client/todos.ts:102`
-
-- [ ] **Code Splitting**
-  - Split vendor bundles
-  - Lazy load routes
-  - Reduce initial bundle size
-
-- [ ] **Image Lazy Loading**
-  - Implement intersection observer for images
-  - Progressive image loading
-
-### Medium Priority
-
-#### Product Features
-
-- [ ] **Advanced Product Filtering**
-  - Filter by price range
-  - Filter by features and specifications
-  - Filter by availability
-  - Context: Needs query builder utility
-
-- [ ] **Product Search**
-  - Full-text search implementation
-  - Search autocomplete
-  - Search result highlighting
-
-- [ ] **Product Reviews & Ratings**
-  - User review system
-  - Star ratings
-  - Review moderation
-
-- [ ] **Wishlist Feature**
-  - Save products for later
-  - Wishlist management
-  - Share wishlist
-
-#### Cart & Checkout
-
-- [ ] **Cart Optimization**
-  - Send only changed items instead of full cart
-  - Better merge conflict handling
-  - Location: `apps/client/src/lib/cart-sync.ts:24-26`
-
-- [ ] **Checkout Enhancement**
-  - Address book management
-  - Multiple payment methods
-  - Guest checkout option
-
-#### User Experience
-
-- [ ] **Order Tracking**
-  - Real-time order status updates
-  - Email notifications for status changes
-  - Tracking number integration
-
-- [ ] **SEO Improvements**
-  - Implement React 19 Document Metadata
-  - Structured data for products
-  - XML sitemap generation
-  - Open Graph tags
-  - Context: `apps/client/todos.ts:4`
-
-- [ ] **Skeleton Loaders**
-  - Add skeleton screens for loading states
-  - Better perceived performance
-  - Context: `apps/client/todos.ts:74`
-
-- [ ] **Switch to Sonner**
-  - Replace Radix toast with Sonner
-  - Better toast animations and stacking
-  - Context: `apps/client/todos.ts:77`
-
-### Low Priority
-
-#### Features
-
-- [ ] **Dark Mode**
-  - Theme switching
-  - Persistent theme preference
-  - Smooth transitions
-
-- [ ] **Multi-language Support**
-  - i18n implementation
-  - RTL support
-  - Language switcher
-
-- [ ] **Social Authentication**
-  - OAuth with Google
-  - OAuth with GitHub
-  - Link multiple auth providers
-
-- [ ] **Payment Gateway Integration**
-  - Stripe or PayPal integration
-  - Secure payment processing
-  - Webhook handling for payment events
-
-- [ ] **Inventory Management**
-  - Stock tracking
-  - Low stock alerts
-  - Automatic out-of-stock handling
-
-- [ ] **Advanced Analytics**
-  - User behavior tracking
-  - Conversion funnel analysis
-  - A/B testing framework
-
-### Technical Debt & Refactoring
-
-#### Backend
-
-- [ ] **Improve AbstractCrudService Typing**
-  - Constrain Where, Select to match Entity structure
-  - Better type safety with mapped types
-  - Location: `apps/server/src/services/abstract-crud.service.ts`
-  - Context: `todos.js:45-52`
-
-- [ ] **Query Builder Utility**
-  - Centralize filtering, sorting, pagination logic
-  - Reusable across all services
-  - Context: `todos.js:94`
-
-- [ ] **Optimize Related Products Query**
-  - Reduce database roundtrips with aggregation
-  - Location: `apps/server/src/services/product.service.ts:224`
-  - Context: `todos.js:15`
-
-- [ ] **Refactor Category Schema**
-  - Change from NAME enum to runtime-created categories
-  - Better flexibility for content management
-  - Location: `packages/database/prisma/schema/category.prisma`
-  - Context: `todos.js:61-67`
-
-- [ ] **Consolidate Validation Error Codes**
-  - Clear distinction between 400 and 422 errors
-  - Location: `packages/domain/src/error-codes.ts`
-  - Context: `todos.js:55`
-
-- [ ] **Add JSDoc Comments**
-  - Document all service methods
-  - Better IntelliSense in IDEs
-  - Context: `todos.js:99`
-
-- [ ] **Product isNew as Virtual Property**
-  - Calculate based on arrival date
-  - Less than 1 year = new
-  - Context: `todos.js:87`
-
-- [ ] **Handle Product Slugs**
-  - Clarify slug generation strategy
-  - User-provided vs auto-generated
-  - Context: `todos.js:37`
-
-#### Frontend
-
-- [ ] **Refactor Auth with Router Middleware**
-  - Use React Router v7 middleware for auth checks
-  - Remove component-level auth logic
-  - Location: `apps/client/src/features/auth/`
-  - Context: `apps/client/todos.ts:17`
-
-- [ ] **Centralize Cart State Management**
-  - Consider Zustand for local cart state
-  - Better sync logic with server
-  - Context: `apps/client/todos.ts:32-33`
-
-- [ ] **Improve React Query Usage**
-  - Better caching strategies
-  - Optimized stale times
-  - Smarter refetching
-  - Context: `apps/client/todos.ts:18`
-
-- [ ] **Dialog Component Variants**
-  - Create variants for cart, thank you, navigation
-  - Reduce code duplication
-  - Context: `apps/client/todos.ts:76`
-
-- [ ] **Responsive Design Polish**
-  - Improve ErrorBlock responsiveness
-  - Mobile optimizations
-  - Context: `apps/client/todos.ts:75`
-
-- [ ] **Add Error Severity Levels**
-  - Distinguish between critical and non-critical errors
-  - Better error prioritization
-  - Context: `apps/client/todos.ts:55`
-
-#### Database & Data
-
-- [ ] **Standardize Prisma Optional Fields**
-  - Decide between `field? Type` vs `field Type?`
-  - Apply consistently across schema
-  - Location: `packages/database/prisma/schema/product.prisma`
-  - Context: `todos.js:69-80`
-
-- [ ] **Add Null Values to Seed Data**
-  - Test optional fields properly
-  - Context: `todos.js:81`
-
-- [ ] **Refactor Category Prisma Relations**
-  - Add products relation
-  - Implement cascade delete
-  - Context: `todos.js:62`
+Items dropped as done, duplicated or won't-do are listed in the closing comment on [#162](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/162).
 
 ---
 

@@ -214,10 +214,6 @@ Every ticket gets its own branch, named `<type>/<issue#>-<slug>` (e.g. `fix/98-i
 branched off `main` and PR'd back into `main`. Never commit ticket work directly to `main`; the legacy
 `dev` branch is retired. Full rules in `docs/agents/issue-tracker.md`.
 
-## Active TODOs
-
-See [`todos.js`](todos.js) at the repo root for tracked tasks.
-
 ## Agent skills
 
 ### Issue tracker
