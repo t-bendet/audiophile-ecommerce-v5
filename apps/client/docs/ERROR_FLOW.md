@@ -945,6 +945,10 @@ if (query.error) {
 
 This section describes the **proposed future architecture** with React Router v7 middleware for centralized error handling.
 
+Its snippets are sketches, not working code. They call `isAppError`, which is
+module-private inside `errors.ts` and would have to be exported, and they read
+the query client off a `queryClientContext` that v2 would have to add.
+
 ### What Middleware Adds
 
 **React Router v7 Middleware** provides:
@@ -1051,7 +1055,7 @@ Middleware can coordinate retries at the route/navigation level, complementing R
 **Approach 1: Retry route once and invalidate queries**
 
 ```typescript
-export const errorMiddleware: Route.MiddlewareFunction = async (
+export const errorMiddleware: MiddlewareFunction = async (
   { request, context },
   next,
 ) => {
@@ -1095,7 +1099,7 @@ function shouldRetry(error: AppError): boolean {
   ].includes(error.code);
 }
 
-export const errorMiddleware: Route.MiddlewareFunction = async ({}, next) => {
+export const errorMiddleware: MiddlewareFunction = async ({}, next) => {
   try {
     return await next();
   } catch (error) {
@@ -1114,7 +1118,7 @@ export const errorMiddleware: Route.MiddlewareFunction = async ({}, next) => {
 ```typescript
 const circuits = new Map<string, { failures: number; lastFailure: number }>();
 
-export const errorMiddleware: Route.MiddlewareFunction = async (
+export const errorMiddleware: MiddlewareFunction = async (
   { request },
   next,
 ) => {
@@ -1173,7 +1177,7 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
 
   try {
     // Ensure critical data is loaded; throw if it fails
-    await queryClient.ensureQueryData(getProductsQueryOptions());
+    await queryClient.ensureQueryData(getAllProductsQueryOptions());
     return null;
   } catch (error) {
     // Error prevents route load; ErrorBoundary shows error page
@@ -1197,10 +1201,12 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
   const queryClient = context.get(queryClientContext);
 
   // Attempt prefetch but don't block if it fails
-  await queryClient.prefetchQuery(getProductsQueryOptions()).catch((error) => {
-    console.warn("Prefetch failed, component will handle:", error);
-    // Silently continue; component shows loading/retry state
-  });
+  await queryClient
+    .prefetchQuery(getAllProductsQueryOptions())
+    .catch((error) => {
+      console.warn("Prefetch failed, component will handle:", error);
+      // Silently continue; component shows loading/retry state
+    });
 
   return null; // Allow navigation regardless of prefetch result
 };
@@ -1217,21 +1223,23 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
 Prefetch multiple queries; fail on critical, succeed on optional:
 
 ```typescript
-export const loader = async ({ context }: LoaderFunctionArgs) => {
+export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const queryClient = context.get(queryClientContext);
 
   try {
     // Critical: must succeed
-    await queryClient.ensureQueryData(getProductByIdQueryOptions(id));
+    await queryClient.ensureQueryData(getProductByIdQueryOptions(params.id!));
   } catch (error) {
     // Critical prefetch failed; block navigation
     throw error;
   }
 
   // Optional: best-effort, don't block
-  queryClient.prefetchQuery(getRelatedProductsQueryOptions()).catch(() => {
-    console.warn("Related products prefetch failed");
-  });
+  queryClient
+    .prefetchQuery(getRelatedProductsQueryOptions(params.id!))
+    .catch(() => {
+      console.warn("Related products prefetch failed");
+    });
 
   return null;
 };
@@ -1243,10 +1251,16 @@ When using non-blocking prefetch, component receives the query state normally:
 
 ```typescript
 function ProductPage() {
-  const query = useQuery(getProductsQueryOptions());
+  const query = useQuery(getAllProductsQueryOptions());
 
   if (query.isPending) return <LoadingSpinner />;
-  if (query.isError) return <ErrorBlock error={query.error} />;
+  if (query.isError)
+    return (
+      <ErrorBlock
+        title="Products"
+        message={normalizeError(query.error).message}
+      />
+    );
 
   // Data loaded (either from prefetch or background fetch)
   return <ProductList data={query.data} />;
@@ -1286,7 +1300,7 @@ export const errorContext = createContext<ErrorHandler | null>(null);
 **Step 2: Create root middleware**
 
 ```typescript
-export const errorMiddleware: Route.MiddlewareFunction = async (
+export const errorMiddleware: MiddlewareFunction = async (
   { request, context },
   next,
 ) => {
@@ -1312,7 +1326,7 @@ export const errorMiddleware: Route.MiddlewareFunction = async (
 **Step 3: Apply middleware to routes**
 
 ```typescript
-export const routes: Route.Object[] = [
+export const routes: RouteObject[] = [
   {
     path: '/',
     middleware: [errorMiddleware],
@@ -1788,11 +1802,17 @@ export function FormErrorBoundary({ children, onSubmit }: Props) {
   return (
     <ErrorBoundary
       FallbackComponent={({ error }) => {
-        if (isAppError(error) && error.code === ErrorCode.VALIDATION_ERROR) {
+        const normalizedError = normalizeError(error);
+        if (normalizedError.code === ErrorCode.VALIDATION_ERROR) {
           // Pass details to form for field-level rendering
-          return <FormWithErrors error={error} details={error.details} />;
+          return (
+            <FormWithErrors
+              error={normalizedError}
+              details={normalizedError.details}
+            />
+          );
         }
-        return <ErrorBlock error={error} />;
+        return <ErrorBlock title="Form" message={normalizedError.message} />;
       }}
     >
       {children}
