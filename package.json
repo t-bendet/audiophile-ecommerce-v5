@@ -1,10 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "dev": "turbo run dev --parallel",
+    "dev": "pnpm db:up && turbo run dev --parallel",
     "start": "turbo run start --parallel",
     "dev:client": "pnpm --filter \"client\" run dev",
-    "dev:server": "pnpm --filter \"server\" run dev",
+    "dev:server": "pnpm db:up && pnpm --filter \"server\" run dev",
     "prod:client": "pnpm --filter \"client\" run start",
     "prod:server": "pnpm --filter \"server\" run start",
     "build": "turbo run build",
@@ -13,10 +13,15 @@
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
     "db:generate": "turbo run db:generate",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:setup": "pnpm db:up && turbo run db:setup",
+    "db:reset": "pnpm db:up && turbo run db:reset",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "test:db": "pnpm db:up && TEST_DATABASE_URL=\"mongodb://localhost:27017/audiophile-test?replicaSet=rs0&directConnection=true\" turbo run test --filter=server"
   },
   "devDependencies": {
     "prettier": "^3.8.1",

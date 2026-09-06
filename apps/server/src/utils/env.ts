@@ -11,8 +11,8 @@ const msDurationStringCheck = z.custom<ms.StringValue>((val) => {
 type SrvConnectionString =
   `mongodb+srv://${string}:${string}@${string}/${string}?retryWrites=true&w=majority&appName=${string}`;
 
-// A directly addressed host, which is how the in-memory replica set the route
-// tests run against advertises itself.
+// A directly addressed host: the Docker replica set in dev and the in-memory
+// one the route tests boot.
 type DirectConnectionString = `mongodb://${string}`;
 
 type ConnectionString = SrvConnectionString | DirectConnectionString;
@@ -76,8 +76,13 @@ const createEnv = () => {
   ).safeParse(process.env);
 
   if (!parsedEnv.success) {
+    const databaseUrlHint =
+      process.env.NODE_ENV !== "production" &&
+      parsedEnv.error.issues.some((issue) => issue.path[0] === "DATABASE_URL")
+        ? "Missing or invalid DATABASE_URL. Copy apps/server/.env.example to apps/server/.env, then start the local database with `pnpm db:up`.\n"
+        : "";
     throw new Error(
-      `Invalid env provided.
+      `${databaseUrlHint}Invalid env provided.
       The following variables are missing or invalid:
     ${z.prettifyError(parsedEnv.error)}`,
     );

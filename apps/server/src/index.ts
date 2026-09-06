@@ -36,8 +36,13 @@ process.on("uncaughtException", (err) => {
 async function start() {
   try {
     await prisma.$connect();
+    // `$connect` only starts the engine; MongoDB is not reached until a command runs.
+    await prisma.$runCommandRaw({ ping: 1 });
   } catch (err) {
-    logger.fatal({ err }, "database connection failed, shutting down");
+    const hint = env.DATABASE_URL.startsWith("mongodb://localhost")
+      ? " Is the local database running? Start it with `pnpm db:up`."
+      : "";
+    logger.fatal({ err }, `database connection failed, shutting down.${hint}`);
     process.exit(1);
   }
 

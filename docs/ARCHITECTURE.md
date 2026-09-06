@@ -53,9 +53,13 @@ Tokens issued before a password change are rejected even if not expired — with
 | ------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | Schema flexibility | Embedded documents (e.g. `ProductImages` stored inline) avoid join overhead                         | Requires separate `product_images` table + joins  |
 | Data shape         | Products have nested, varied structures (image sets per breakpoint) that map naturally to documents | Would need normalization or JSON columns          |
-| Tradeoff           | No true foreign key constraints, no cross-collection transactions                                   | ACID transactions, enforced referential integrity |
+| Tradeoff           | No true foreign key constraints; multi-document transactions need a replica set                     | ACID transactions, enforced referential integrity |
 
 **Concrete example:** `ProductImages` is a Prisma `type` (embedded document) — responsive image URLs for desktop/tablet/mobile live inside the product document. In SQL you'd need a separate table and joins on every product query.
+
+### One Local Replica Set
+
+Prisma wraps nested writes in transactions, and MongoDB only allows those on a replica set, so even a single local node has to be one. `docker-compose.yml` runs it: MongoDB 8.2 on `localhost:27017`, initiated by its own healthcheck, with `audiophile` for dev and `audiophile-test` for the opt-in test path (`TEST_DATABASE_URL`). Route tests default to an in-memory replica set on the same pinned version, so CI and a fresh clone need no Docker. Atlas is production only. Why the pin is 8.2 rather than Atlas's 8.0 is in `docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md`.
 
 ### Multi-file Prisma Schema
 
@@ -156,4 +160,4 @@ Product catalog data is document-shaped (nested images, included items, category
 
 ---
 
-**Last Updated:** September 3, 2026
+**Last Updated:** September 6, 2026

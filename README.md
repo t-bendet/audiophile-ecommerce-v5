@@ -725,7 +725,7 @@ Ensure you have the following installed:
 
 - **Node.js** 24.5.0 or higher ([Download](https://nodejs.org/))
 - **pnpm** 10.26.2 or higher (`npm install -g pnpm`)
-- **MongoDB** Atlas account or local instance ([Sign Up](https://www.mongodb.com/atlas))
+- **Docker** for the local MongoDB replica set (`pnpm db:up`); MongoDB Atlas only for deployment
 
 ### Installation
 
@@ -749,13 +749,13 @@ Create `.env` files in the following locations:
 **`packages/database/.env`**:
 
 ```env
-DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
+DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 ```
 
 **`apps/server/.env`**:
 
 ```env
-DATABASE_URL=mongodb+srv://[user]:[password]@[cluster].mongodb.net/[database]?retryWrites=true&w=majority&appName=[appName]
+DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 NODE_ENV=development
 JWT_SECRET=your-secret-key-at-least-32-characters-long
 JWT_EXPIRES_IN=90d
@@ -781,13 +781,13 @@ pnpm db:generate
 
 The generator emits ESM-ready imports (`.js` extensions) natively.
 
-5. **Seed the database**:
+5. **Start the database and seed it**:
 
 ```bash
-pnpm db:seed
+pnpm db:setup
 ```
 
-Seeds the database with:
+Starts the Docker replica set (`pnpm db:up`), pushes the schema, regenerates the client and seeds:
 
 - Product categories (Headphones, Earphones, Speakers)
 - Sample products with images and metadata
@@ -796,7 +796,7 @@ Seeds the database with:
 6. **Start development servers**:
 
 ```bash
-# Start both client and server
+# Start both client and server (starts the database container first)
 pnpm dev
 
 # Or start individually
@@ -960,10 +960,15 @@ pnpm dev:server       # Start only the server
 # Building
 pnpm build            # Build all packages and apps with Turborepo caching
 
-# Database
-pnpm db:generate      # Generate Prisma client + fix ESM imports (ALWAYS use this)
+# Database (local Docker replica set)
+pnpm db:up            # Start MongoDB (docker compose up -d --wait); dev runs this itself
+pnpm db:down          # Stop and remove the container (data volume kept)
+pnpm db:generate      # Generate Prisma client (ALWAYS use this after schema changes)
 pnpm db:seed          # Seed database with sample data
 pnpm db:push          # Push schema changes to database (dev only)
+pnpm db:setup         # up + push + generate + seed
+pnpm db:reset         # up + force-reset + generate + seed (wipes dev data)
+pnpm test:db          # Server test suite against the Docker database instead of in-memory
 
 # Code Quality
 pnpm lint             # Run ESLint on all packages
@@ -1442,4 +1447,4 @@ Feel free to use this code for learning, inspiration, or your own projects!
 
 ---
 
-**Last Updated**: February 11, 2026
+**Last Updated**: September 6, 2026

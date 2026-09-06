@@ -6,10 +6,10 @@ import type { TestProject } from "vitest/node";
 
 const run = promisify(execFile);
 
-// Pinned so a run does not silently change engine version; the binary is
-// downloaded once at install time and cached globally after that.
+// Same version as the image in `docker-compose.yml` (docs/adr/0004); the binary
+// is downloaded once at install time and cached globally after that.
 // `.github/workflows/ci.yml` parses this line for its binary cache key.
-const MONGODB_VERSION = "8.2.6";
+const MONGODB_VERSION = "8.2.12";
 
 declare module "vitest" {
   interface ProvidedContext {
@@ -41,8 +41,8 @@ const pushSchema = (databaseUrl: string) =>
     ],
     {
       cwd: fileURLToPath(new URL("../../../..", import.meta.url)),
-      // `prisma.config.ts` loads dotenv, and the package's own `.env` points at
-      // the real cluster. Pointing dotenv at nothing keeps it out of reach
+      // `prisma.config.ts` loads dotenv, and the package's own `.env` could
+      // point anywhere. Pointing dotenv at nothing keeps it out of reach
       // rather than trusting it not to override.
       env: {
         ...process.env,
@@ -53,6 +53,19 @@ const pushSchema = (databaseUrl: string) =>
   );
 
 export default async function setup({ provide }: TestProject) {
+  // Never DATABASE_URL: CI sets that, and a local `.env` could aim it anywhere.
+  const externalDatabaseUrl = process.env.TEST_DATABASE_URL;
+  if (externalDatabaseUrl) {
+    await pushSchema(externalDatabaseUrl).catch((cause: unknown) => {
+      throw new Error(
+        "TEST_DATABASE_URL is set but the schema push to it failed. Is that database running? Start the local one with `pnpm db:up`.",
+        { cause },
+      );
+    });
+    provide("databaseUrl", externalDatabaseUrl);
+    return;
+  }
+
   const replSet = await startDatabase();
   const databaseUrl = replSet.getUri("audiophile-test");
 

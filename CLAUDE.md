@@ -13,10 +13,14 @@ pnpm dev:server        # server only
 # Build
 pnpm build             # all packages + apps (Turbo, respects dependency order)
 
-# Database
+# Database (local Docker replica set, see "Local database")
+pnpm db:up             # start MongoDB (docker compose up -d --wait); dev, db:setup, db:reset and test:db run it first
+pnpm db:down           # stop and remove the container; the data volume survives
 pnpm db:generate       # regenerate the Prisma client after any schema change
-pnpm db:push           # push schema to MongoDB Atlas
+pnpm db:push           # push schema to the local database
 pnpm db:seed           # seed database
+pnpm db:setup          # up + push + generate + seed: a fresh clone's one command after install
+pnpm db:reset          # up + push --force-reset + generate + seed: wipe dev data and start over
 
 # Type-check
 pnpm type-check        # tsc across every workspace via Turbo
@@ -26,6 +30,7 @@ pnpm types:watch       # watch mode across all TS projects
 pnpm lint
 pnpm format
 pnpm test          # domain + server + client vitest suites via Turbo (no network database needed)
+pnpm test:db       # server suite against the Docker database, left in place for Compass (see "Local database")
 ```
 
 ### Running a single workspace
@@ -46,7 +51,7 @@ packages/database  →  packages/domain  →  apps/server
 
 - **`apps/server`**: Express 5 REST API (TypeScript, Node ≥ 24.5)
 - **`apps/client`**: React 19 + React Router v7 + Vite 7 + TailwindCSS 4
-- **`packages/database`**: Prisma client + multi-file schema (`prisma/schema/` by domain), MongoDB Atlas
+- **`packages/database`**: Prisma client + multi-file schema (`prisma/schema/` by domain), MongoDB (Docker replica set locally, Atlas in production)
 - **`packages/domain`**: Single source of truth for shared types, Zod schemas, DTOs, error codes
 - **`packages/config-eslint`** / **`packages/config-typescript`**: Shared configs
 
@@ -83,6 +88,15 @@ Seed with the fixture builders in `test/helpers/database.ts` and call `resetData
 test; protected routes take a real signed JWT via `authCookie(userId)`. Files share one database,
 so `fileParallelism` is off. The mongod binary is fetched once by `pnpm install` and cached
 globally; `global-setup.ts` pins the version it runs.
+
+Setting `TEST_DATABASE_URL` skips the in-memory boot and runs the server suite against that
+database instead (schema pushed, nothing torn down), so a failed run can be inspected in Compass
+afterwards. `pnpm test:db` does this against the Docker database, using its own database name,
+`audiophile-test`. Never point it at `audiophile`: `resetDatabase` truncates every collection it
+knows about. The switch is keyed on
+`TEST_DATABASE_URL` only; `DATABASE_URL` is ignored by the test setup, which is what keeps a local
+`.env` and the `DATABASE_URL` CI sets from redirecting a run. In-memory stays the default, so
+`pnpm test` on a fresh clone and in CI needs no Docker.
 
 ### Validation rules
 
@@ -146,18 +160,42 @@ Used for cross-cutting concerns (auth, logging, timing). Middleware chain runs p
 3. **Every route accepting input must go through `defineHandler`** — never mount `validateSchema` by hand, and never skip it.
 4. **Build order matters**: if types are missing, ensure `packages/database` and `packages/domain` are built before `apps/server`.
 
+## Local database
+
+Dev, seeding, the opt-in test path and Compass all use the one MongoDB in `docker-compose.yml`: a
+single-node replica set (`rs0`) on `localhost:27017`, which Prisma requires because nested writes run
+in transactions. `pnpm db:up` starts it (`docker compose up -d --wait`), and `pnpm dev`,
+`dev:server`, `db:setup`, `db:reset` and `test:db` all run that first, so the container is only ever
+started by hand after a `pnpm db:down`. The `--wait` matters: plain `up -d` returns before the
+healthcheck has initiated the set, and the first schema push then fails. The healthcheck is what
+runs `rs.initiate()`, so the service works when started on its own. `pnpm test` and CI never start
+it.
+
+```
+dev     -> mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
+tests   -> mongodb://localhost:27017/audiophile-test?replicaSet=rs0&directConnection=true   (TEST_DATABASE_URL)
+Compass -> mongodb://localhost:27017
+```
+
+The image tag in `docker-compose.yml` and `MONGODB_VERSION` in `global-setup.ts` are one version;
+bump them together, and only after checking `fastdl.mongodb.org` has the darwin/arm64 binary and
+Docker Hub has the tag. Why it is 8.2 rather than the 8.0 Atlas runs is in
+`docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md`. Port 27017 has to be free, so a
+Homebrew `mongodb-community` service must be stopped first. No local run touches Atlas; its
+connection string belongs only to deployment.
+
 ## Environment Variables
 
 **`packages/database/.env`**
 
 ```
-DATABASE_URL=mongodb+srv://...
+DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 ```
 
 **`apps/server/.env`**
 
 ```
-DATABASE_URL=mongodb+srv://...
+DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 NODE_ENV=development
 JWT_SECRET=<min 32 chars>
 JWT_EXPIRES_IN=90d
