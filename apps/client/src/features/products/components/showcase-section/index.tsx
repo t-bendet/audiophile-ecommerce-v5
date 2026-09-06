@@ -28,7 +28,7 @@ const ShowCaseProductsSection = () => {
   return (
     <>
       <article>
-        <Container classes="bg-primary-500 lg:gap-30 flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center">
+        <Container classes="bg-primary-500 lg:gap-30 relative flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center">
           <section className="lg:max-w-102.5 mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5">
             <ResponsivePicture
               altText={showCaseCover?.images.showCaseImage?.altText || ""}
@@ -60,6 +60,7 @@ const ShowCaseProductsSection = () => {
               <Button variant={"outlineReversed"} asChild>
                 <Link
                   to={paths.product.getHref(showCaseCover?.slug as string)}
+                  className="after:absolute after:inset-0 after:content-['']"
                   onMouseEnter={() =>
                     queryClient.prefetchQuery(
                       getProductBySlugQueryOptions(
@@ -83,7 +84,7 @@ const ShowCaseProductsSection = () => {
         </Container>
       </article>
       <article>
-        <Container classes="grid h-full grid-cols-1 overflow-hidden rounded-sm">
+        <Container classes="relative grid h-full grid-cols-1 overflow-hidden rounded-sm">
           <ResponsivePicture
             altText={showCaseWide?.images.showCaseImage?.altText || ""}
             ariaLabel={showCaseWide?.images.showCaseImage?.ariaLabel || ""}
@@ -106,6 +107,7 @@ const ShowCaseProductsSection = () => {
               <Button variant={"outline"} asChild>
                 <Link
                   to={paths.product.getHref(showCaseWide?.slug as string)}
+                  className="after:absolute after:inset-0 after:content-['']"
                   onMouseEnter={() =>
                     queryClient.prefetchQuery(
                       getProductBySlugQueryOptions(
@@ -130,7 +132,7 @@ const ShowCaseProductsSection = () => {
       </article>
 
       <article>
-        <Container classes="lg: grid grid-cols-1 grid-rows-2 gap-6 md:grid-cols-2 md:grid-rows-1 md:gap-3 lg:gap-7">
+        <Container classes="lg: relative grid grid-cols-1 grid-rows-2 gap-6 md:grid-cols-2 md:grid-rows-1 md:gap-3 lg:gap-7">
           <section className="overflow-hidden rounded-sm">
             <ResponsivePicture
               altText={showCaseGrid?.images.showCaseImage?.altText || ""}
@@ -154,6 +156,7 @@ const ShowCaseProductsSection = () => {
                 <Button variant={"outline"} asChild>
                   <Link
                     to={paths.product.getHref(showCaseGrid?.slug as string)}
+                    className="after:absolute after:inset-0 after:content-['']"
                     onMouseEnter={() =>
                       queryClient.prefetchQuery(
                         getProductBySlugQueryOptions(
