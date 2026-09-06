@@ -1,6 +1,8 @@
 import cartKeys from "@/features/cart/api/cart-keys";
+import { getCartQueryOptions } from "@/features/cart/api/get-cart";
 import { getApi } from "@/lib/api-client";
 import { clearLocalCart, getLocalCart } from "@/lib/cart-storage";
+import { SyncCartResponseSchema } from "@repo/domain";
 import { QueryClient } from "@tanstack/react-query";
 
 /**
@@ -22,14 +24,19 @@ export async function syncLocalCartToServer(
 
   try {
     const api = getApi();
-    await api.post("/cart/sync", {
+    const response = await api.post("/cart/sync", {
       items: localCart.items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
       })),
     });
+
+    const parsed = SyncCartResponseSchema.parse(response.data);
+
     // Clear local cart after successful sync
     clearLocalCart();
+    // Seed the authenticated cart cache so the merged cart is available at once
+    queryClient.setQueryData(getCartQueryOptions(true).queryKey, parsed);
     // Invalidate cart queries to fetch the merged server cart
     await queryClient.invalidateQueries({ queryKey: cartKeys.all });
   } catch (error) {

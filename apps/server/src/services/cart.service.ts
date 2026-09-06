@@ -200,8 +200,8 @@ export class CartService extends AbstractCrudService<
       existingCartItems.map((item) => [item.productId, item]),
     );
 
-    // Process items in parallel using Promise.all
-    const operations: Promise<unknown>[] = [];
+    // Collected unawaited so `$transaction` receives the array form it needs
+    const operations: Prisma.PrismaPromise<unknown>[] = [];
 
     for (const localItem of input.items) {
       // Skip items with invalid products
@@ -233,8 +233,8 @@ export class CartService extends AbstractCrudService<
       }
     }
 
-    // Execute all operations in parallel
-    await Promise.all(operations);
+    // All merge writes land together or not at all
+    await prisma.$transaction(operations);
 
     // Return updated cart
     return this.getOrCreateCart(userId);

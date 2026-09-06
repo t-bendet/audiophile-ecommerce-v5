@@ -1,3 +1,4 @@
+import { prisma } from "@repo/database";
 import { ErrorCode } from "@repo/domain";
 import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -81,6 +82,81 @@ describe("POST /api/v1/cart", () => {
 
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe(ErrorCode.NOT_FOUND);
+  });
+});
+
+describe("POST /api/v1/cart/sync", () => {
+  it("sums the quantities of a product held in both carts", async () => {
+    const user = await createUser();
+    const productA = await createProduct({ price: 100 });
+    const productB = await createProduct({ price: 50 });
+    const cookie = authCookie(user.id);
+
+    await request(app)
+      .post("/api/v1/cart")
+      .set("Cookie", cookie)
+      .send({ productId: productA.id, quantity: 1 });
+
+    const res = await request(app)
+      .post("/api/v1/cart/sync")
+      .set("Cookie", cookie)
+      .send({
+        items: [
+          { productId: productA.id, quantity: 2 },
+          { productId: productB.id, quantity: 1 },
+        ],
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ productId: productA.id, quantity: 3 }),
+        expect.objectContaining({ productId: productB.id, quantity: 1 }),
+      ]),
+    );
+    expect(res.body.data).toMatchObject({ itemCount: 4, subtotal: 350 });
+
+    const persisted = await prisma.cartItem.findMany({
+      where: { cart: { userId: user.id } },
+      select: { productId: true, quantity: true },
+    });
+    expect(persisted).toEqual(
+      expect.arrayContaining([
+        { productId: productA.id, quantity: 3 },
+        { productId: productB.id, quantity: 1 },
+      ]),
+    );
+    expect(persisted).toHaveLength(2);
+  });
+
+  it("ignores an unknown product id and merges the rest", async () => {
+    const user = await createUser();
+    const product = await createProduct({ price: 200 });
+    const cookie = authCookie(user.id);
+
+    const res = await request(app)
+      .post("/api/v1/cart/sync")
+      .set("Cookie", cookie)
+      .send({
+        items: [
+          { productId: product.id, quantity: 2 },
+          { productId: ABSENT_ID, quantity: 5 },
+        ],
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items).toHaveLength(1);
+    expect(res.body.data.items[0]).toMatchObject({
+      productId: product.id,
+      quantity: 2,
+    });
+    expect(res.body.data).toMatchObject({ itemCount: 2, subtotal: 400 });
+
+    const persisted = await prisma.cartItem.findMany({
+      where: { cart: { userId: user.id } },
+      select: { productId: true, quantity: true },
+    });
+    expect(persisted).toEqual([{ productId: product.id, quantity: 2 }]);
   });
 });
 
