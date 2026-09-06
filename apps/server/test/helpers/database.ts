@@ -65,7 +65,7 @@ export const authCookie = (userId: string) => {
   return `jwt=${token}`;
 };
 
-const image = (label: string) => ({
+export const image = (label: string) => ({
   altText: `${label} alt`,
   ariaLabel: `${label} aria`,
   desktopSrc: `https://cdn.example.com/${label}-desktop.jpg`,
@@ -73,7 +73,7 @@ const image = (label: string) => ({
   tabletSrc: `https://cdn.example.com/${label}-tablet.jpg`,
 });
 
-const thumbnail = (label: string) => ({
+export const thumbnail = (label: string) => ({
   altText: `${label} alt`,
   ariaLabel: `${label} aria`,
   src: `https://cdn.example.com/${label}-thumb.jpg`,

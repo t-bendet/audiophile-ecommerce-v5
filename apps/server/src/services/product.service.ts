@@ -15,9 +15,13 @@ import {
   ProductShowCaseProductsDTO,
   ProductUpdateInput,
   ProductWhereInput,
+  slugify,
+  SlugValidator,
 } from "@repo/domain";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
+
+const PRODUCT_SLUG = SlugValidator("Product");
 
 const PRODUCT_UPDATE_FIELDS = [
   "cartLabel",
@@ -87,8 +91,43 @@ export class ProductService extends AbstractCrudService<
     return prisma.product.findUnique({ where: { id } });
   }
 
+  // A derived slug is held to the same format as one the client sends.
+  private assertDerivedSlug(slug: string) {
+    if (PRODUCT_SLUG.safeParse(slug).success) return;
+    throw new AppError(
+      "Could not derive a valid slug from the product name",
+      ErrorCode.VALIDATION_ERROR,
+    );
+  }
+
+  // An explicit slug is left to the unique index (409); only a derived one is de-duplicated.
+  private async resolveCreateSlug(input: ProductCreateInput): Promise<string> {
+    if (input.slug) return input.slug;
+
+    const base = slugify(input.name);
+    this.assertDerivedSlug(base);
+
+    const taken = new Set(
+      (
+        await prisma.product.findMany({
+          where: { slug: { startsWith: base } },
+          select: { slug: true },
+        })
+      ).map((product) => product.slug),
+    );
+
+    let candidate = base;
+    for (let suffix = 2; taken.has(candidate); suffix++) {
+      candidate = `${base}-${suffix}`;
+    }
+
+    this.assertDerivedSlug(candidate);
+    return candidate;
+  }
+
   protected async persistCreate(input: ProductCreateInput) {
-    return prisma.product.create({ data: input });
+    const slug = await this.resolveCreateSlug(input);
+    return prisma.product.create({ data: { ...input, slug } });
   }
 
   protected filterUpdateInput(input: ProductUpdateInput): ProductUpdateInput {
