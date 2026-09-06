@@ -449,79 +449,68 @@ const ContactForm = () => {
 
 ## Error Classification Strategy
 
-Errors are classified early at the API boundary using `classifyHttpError()` function, converting raw HTTP responses into typed `AppError` with semantic `ErrorCode` values.
+Errors are classified early at the API boundary by `normalizeError()`, which delegates axios failures to `processAxiosError()`, converting raw HTTP responses into typed `AppError` with semantic `ErrorCode` values.
 
 **Why classification matters:**
 
 - **Code-first approach**: Server provides semantic error type; we don't guess from status
-- **Fallback strategy**: If server doesn't provide code, we infer from HTTP semantics
+- **No status-code fallback**: a response without a usable `code` becomes `INTERNAL_ERROR, 500`; the status is never consulted
 - **Type safety**: All errors are `AppError` with known `ErrorCode` and `statusCode`
 - **Consistency**: Same classification logic across all endpoints
 
 ### Classification Decision Tree
 
 ```
-Error Received
+normalizeError(error)
     │
-    ├─ Is Axios Error (use isAxiosError())?
-    │   └─ NO → Handle as generic Error
+    ├─ error instanceof AppError?
+    │   └─ YES → return it unchanged (already normalized)
     │
-    └─ YES → Check axios error code
-        │
-        ├─ Network/Transport Errors?
-        │   ├─ ERR_NETWORK → No internet connection
-        │   ├─ ECONNABORTED → Connection aborted
-        │   ├─ ETIMEDOUT → Request timeout
-        │   ├─ ERR_BAD_RESPONSE → Invalid response format
-        │   └─ Result: AppError(EXTERNAL_SERVICE_ERROR, 503)
-        │
-        ├─ Request Errors?
-        │   ├─ ERR_BAD_REQUEST → Malformed request
-        │   ├─ ERR_INVALID_URL → Invalid URL
-        │   ├─ ERR_BAD_OPTION → Invalid axios config
-        │   └─ Result: AppError(BAD_REQUEST, 400)
-        │
-        ├─ Axios Config Errors?
-        │   ├─ ERR_BAD_OPTION_VALUE → Invalid config value
-        │   ├─ ERR_DEPRECATED → Deprecated feature used
-        │   └─ Result: AppError(INTERNAL_ERROR, 500)
-        │
-        ├─ Redirect/Cancellation Errors?
-        │   ├─ ERR_FR_TOO_MANY_REDIRECTS → Too many redirects
-        │   ├─ ERR_CANCELED → Request cancelled
-        │   └─ Result: AppError(OPERATION_FAILED, 500 or skip)
-        │
-        ├─ HTTP Response Exists?
-        │   │
-        │   ├─ Server provided custom code field?
-        │   │   ├─ YES → Map code to ErrorCode enum
-        │   │   │        Examples: "VALIDATION_ERROR", "NOT_FOUND", "UNAUTHORIZED"
-        │   │   │
-        │   │   └─ NO → Fall back to status code
-        │   │
-        │   ├─ Status 422?
-        │   │   └─ AppError(VALIDATION_ERROR, 422)
-        │   │       "Please check your input..."
-        │   │
-        │   ├─ Status 401?
-        │   │   └─ AppError(UNAUTHORIZED, 401)
-        │   │       "Please log in to continue..."
-        │   │
-        │   ├─ Status 403?
-        │   │   └─ AppError(FORBIDDEN, 403)
-        │   │       "You don't have permission..."
-        │   │
-        │   ├─ Status 404?
-        │   │   └─ AppError(NOT_FOUND, 404)
-        │   │       "Resource not found..."
-        │   │
-        │   └─ Status 5xx?
-        │       └─ AppError(INTERNAL_ERROR, 500)
-        │           "Service temporarily unavailable. Retrying..."
-        │
-        └─ No HTTP Response?
-            └─ Already handled by network/transport error check above
+    ├─ isAxiosError(error)?
+    │   └─ YES → processAxiosError(error) → see tree below
+    │
+    ├─ isClientZodError(error)?
+    │   └─ YES → AppError(VALIDATION_ERROR)
+    │            status omitted; derived from ERROR_CODE_TO_STATUS
+    │
+    ├─ error instanceof Error?
+    │   └─ YES → AppError(INTERNAL_ERROR)
+    │
+    ├─ typeof error === "string"?
+    │   └─ YES → AppError(INTERNAL_ERROR)
+    │
+    └─ anything else → AppError(INTERNAL_ERROR, 500)
 ```
+
+`processAxiosError` has exactly three outcomes, checked in this order. There is no `switch` on `error.code` and no status-code ladder:
+
+```
+processAxiosError(error)
+    │
+    ├─ error.code === "ERR_NETWORK"  OR  error.response is absent?
+    │   └─ YES → AppError(EXTERNAL_SERVICE_ERROR, 503)
+    │            "Network connection failed. Please check your
+    │             internet connection."
+    │
+    ├─ error.code === "ERR_BAD_RESPONSE" or "ERR_BAD_REQUEST"?
+    │   │        (a response exists here — branch 1 returned if it did not)
+    │   │
+    │   └─ YES → is error.response.data.error a well-formed AppError?
+    │            isAppError(): code is a known ErrorCode, statusCode is a
+    │            number, message is a string
+    │            │
+    │            ├─ YES → pass the server's error through unchanged:
+    │            │        AppError(message, code, statusCode, details)
+    │            │
+    │            └─ NO → fall through to the catch-all below
+    │
+    └─ everything else → AppError(INTERNAL_ERROR, 500)
+                         "Something went very wrong!"
+```
+
+**The pass-through branch is the only source of semantic codes.** `VALIDATION_ERROR 422`, `NOT_FOUND 404` and `UNAUTHORIZED 401` do reach the client, but they are read out of the response body — the client never derives a code from the HTTP status. A 404 from something that is not our API (a proxy, a CDN error page) carries no `data.error`, fails `isAppError`, and becomes `INTERNAL_ERROR, 500`.
+
+**Every other axios code is unhandled.** Codes such as `ETIMEDOUT` or `ERR_CANCELED` reach the 503 branch only because they usually arrive with no `error.response`; when a response is present they land on the `INTERNAL_ERROR, 500` catch-all.
 
 ### Classification Result
 
@@ -557,27 +546,15 @@ getErrorMessage(error): string
 
 **Axios Error Codes Reference:**
 
-When `isAxiosError(error)` returns true, check `error.code` for:
+`processAxiosError` matches three `error.code` values and ignores the rest:
 
-- **Network/Transport Errors:**
-  - `ERR_NETWORK` - No internet connection or network failure
-  - `ECONNABORTED` - Connection was aborted
-  - `ETIMEDOUT` - Request timeout
-  - `ERR_BAD_RESPONSE` - Server responded with invalid data format
+- `ERR_NETWORK` - no internet connection or network failure → 503 branch
+- `ERR_BAD_RESPONSE` - a 5xx response → pass-through branch
+- `ERR_BAD_REQUEST` - a 4xx response → pass-through branch
 
-- **Request/Configuration Errors:**
-  - `ERR_BAD_REQUEST` - Malformed request syntax
-  - `ERR_INVALID_URL` - URL is invalid
-  - `ERR_BAD_OPTION` - Invalid axios configuration option
-  - `ERR_BAD_OPTION_VALUE` - Invalid value for axios option
+Both pass-through codes only carry the server's error forward when `response.data.error` satisfies `isAppError`; otherwise they fall to the `INTERNAL_ERROR, 500` catch-all, as does every unmatched code (`ECONNABORTED`, `ETIMEDOUT`, `ERR_CANCELED`, `ERR_FR_TOO_MANY_REDIRECTS`, `ERR_INVALID_URL`, `ERR_BAD_OPTION`, `ERR_BAD_OPTION_VALUE`, `ERR_DEPRECATED`, `ERR_NOT_SUPPORT`) that arrives with a response.
 
-- **Axios-Specific Errors:**
-  - `ERR_FR_TOO_MANY_REDIRECTS` - Too many HTTP redirects
-  - `ERR_CANCELED` - Request was cancelled
-  - `ERR_DEPRECATED` - Using deprecated axios feature
-  - `ERR_NOT_SUPPORT` - Unsupported operation for environment
-
-**Code reference:** [apps/client/src/lib/errors.ts](apps/client/src/lib/errors.ts) and [axios documentation](https://axios-http.com/docs/intro)
+**Code reference:** [apps/client/src/lib/errors/errors.ts](apps/client/src/lib/errors/errors.ts) and [axios documentation](https://axios-http.com/docs/intro)
 
 ---
 
