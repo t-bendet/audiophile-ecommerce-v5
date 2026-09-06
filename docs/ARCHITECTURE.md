@@ -154,9 +154,7 @@ Product catalog data is document-shaped (nested images, included items, category
 
 **"What would you change?"**
 
-- Aggregate queries in `getRelatedProducts` to reduce DB roundtrips (currently a tracked TODO).
 - Consider a Redis cache layer for product catalog reads.
-- Move config ID to environment variables.
 
 ---
 

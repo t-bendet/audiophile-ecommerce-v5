@@ -6,8 +6,6 @@ import { ArrowLeft } from "lucide-react";
 import { Link, LoaderFunctionArgs, Outlet, redirect } from "react-router";
 import { Container } from "../ui/container";
 
-// TODO improve styling and add some graphics to make it look better
-
 const AuthLayout = () => {
   useQuery(getAuthStatusQueryOptions());
   return (
