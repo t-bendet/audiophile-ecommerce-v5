@@ -39,7 +39,6 @@ const FeaturedProductSection = () => {
             slug: product.data.slug,
             description: product.data.featuredImageText || "",
           }}
-          classes="relative"
         >
           <ProductCard.NewIndicator classes="text-neutral-50 opacity-50 lg:mb-6" />
           <ProductCard.Title classes="text-3xl lg:text-5xl" />

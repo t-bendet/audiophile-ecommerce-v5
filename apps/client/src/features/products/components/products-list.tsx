@@ -14,7 +14,7 @@ export default function ProductsList({ products }: TProductListProps) {
       {products.map((product, i) => (
         <Section key={product.id}>
           <Container
-            classes={`lg:gap-31 relative flex flex-col gap-8 md:gap-14 lg:flex-row ${i % 2 === 1 ? "lg:flex-row-reverse" : ""}`}
+            classes={`lg:gap-31 flex flex-col gap-8 md:gap-14 lg:flex-row ${i % 2 === 1 ? "lg:flex-row-reverse" : ""}`}
           >
             <ResponsivePicture
               mobileSrc={product.images.introImage.mobileSrc}
