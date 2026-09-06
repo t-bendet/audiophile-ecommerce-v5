@@ -1,6 +1,7 @@
 import { prisma } from "@repo/database";
 import {
   AppError,
+  calculateOrderTotals,
   CreateOrderInput,
   ErrorCode,
   type Meta,
@@ -81,11 +82,9 @@ export class OrderService extends AbstractCrudService<
     }
 
     // Calculate order totals
-    const subtotal = cart.subtotal;
-    const shippingCost = 50; // Fixed shipping cost (can be dynamic later)
-    const taxRate = 0.2; // 20% tax rate
-    const tax = Math.round(subtotal * taxRate);
-    const total = subtotal + shippingCost + tax;
+    const { subtotal, shippingCost, tax, total } = calculateOrderTotals(
+      cart.subtotal,
+    );
 
     // Create order with items in a transaction
     const order = await prisma.$transaction(async (tx) => {

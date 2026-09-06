@@ -13,6 +13,7 @@ import { CartItem } from "@/features/cart/components/cart-item";
 import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { syncLocalCartToServer } from "@/lib/cart-sync";
 import currencyFormatter from "@/utils/formatters";
+import { calculateOrderTotals } from "@repo/domain";
 import { QueryClient } from "@tanstack/react-query";
 import { Link, LoaderFunctionArgs, redirect } from "react-router";
 
@@ -55,10 +56,12 @@ export default function CheckoutPage() {
   const isUpdating = updateCartItem.isPending || removeFromCart.isPending;
 
   // Calculate totals
-  const subtotal = cart?.data.subtotal || 0;
-  const shipping = 50; // Fixed shipping cost in cents
-  const tax = Math.round(subtotal * 0.2); // 20% tax
-  const total = subtotal + shipping + tax;
+  const {
+    subtotal,
+    shippingCost: shipping,
+    tax,
+    total,
+  } = calculateOrderTotals(cart?.data.subtotal || 0);
 
   if (isLoading) {
     return (
