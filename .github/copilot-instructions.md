@@ -304,11 +304,11 @@ Axios is used for making HTTP requests with automatic error classification and r
 **Common patterns:**
 
 - All HTTP requests go through `getApi()` for lazy initialization with interceptors
-- Error responses automatically classified using `classifyHttpError()`
-- 401 errors set `redirectTo` for auth layer handling
+- The interceptor is pure transport: it rejects the raw error, unclassified
+- Classification happens downstream, in `processAxiosError()` — called directly by the React Query `retry` callback, and via `normalizeError()` in boundaries and components
 - 4xx errors shown inline in UI, not as toasts
 - 5xx and network errors show toast notifications
-- All errors thrown as `AppError` to React Query for consistent handling
+- Boundaries and components normalize to `AppError` before rendering; React Query rethrows the raw error
 
 **Key file**: [apps/client/src/lib/api-client.ts](apps/client/src/lib/api-client.ts)
 
