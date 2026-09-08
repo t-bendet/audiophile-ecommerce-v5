@@ -427,9 +427,10 @@ needed; the seed is the migration.
 **Phase 6 — Verify and cut over.** `media:check --remote` clean; a route test asserts no
 `ibb.co` in any DTO; Lighthouse before/after on home and product; watch Render bandwidth.
 
-**Phase 7 — Remove ImgBB.** Grep guard in CI; ADR `docs/adr/0004-images-are-path-keyed-and-published-to-a-bucket.md`
-in the existing ADR prose format; README/ARCHITECTURE updated; `todos.js:25` and issue #162's
-"Switch to Cloudinary" closed or rewritten.
+**Phase 7 — Remove ImgBB.** Grep guard in CI; the ADR (written as
+`docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md`, which folds in the media
+hostname; 0004 is the local replica-set ADR); README/ARCHITECTURE updated; `todos.js:25` and
+issue #162's "Switch to Cloudinary" closed or rewritten.
 
 ---
 
@@ -443,7 +444,7 @@ in the existing ADR prose format; README/ARCHITECTURE updated; `todos.js:25` and
 - `media:sync` (S3 `PutObject` with `Cache-Control: public, max-age=86400, stale-while-revalidate=604800`, `--prune`).
 - `media:check` (references ⇄ files, regex, dimensions) wired into `pnpm test` or a turbo task.
 - Client: consume dimensions, preconnect, `decoding`, gallery `loading`, CSS `height:auto`.
-- ADR 0004 + docs.
+- ADR 0005 + docs.
 
 ### Phase 2 — Developer experience
 
@@ -545,6 +546,7 @@ vite-imagetools docs (via Context7); the repository itself (all paths cited abov
 ## If approved, the next (non-code) steps
 
 1. Save this document as `docs/research/image-architecture.md`.
-2. Draft `docs/adr/0004-…md` in the repo's ADR prose style.
+2. Draft the ADR in the repo's ADR prose style (the media hostname is folded into
+   `docs/adr/0005-…md`; 0004 is the local replica-set ADR).
 3. Open one tracking issue per phase (labels per `docs/agents/triage-labels.md`), superseding the
    "Switch to Cloudinary" line in #162, and file the 6 dead images as a bug now.
