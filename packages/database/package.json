@@ -33,7 +33,7 @@
     "format": "prisma format",
     "lint": "eslint . --max-warnings 0",
     "type-check": "tsc -p tsconfig.json --noEmit",
-    "build": "pnpm db:generate && tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json -w"
   },
   "dependencies": {
