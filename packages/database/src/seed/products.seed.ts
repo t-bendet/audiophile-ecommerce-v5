@@ -10,7 +10,7 @@ export type ProductCreateResult = Prisma.Result<
   "create"
 >;
 
-const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
+export const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
   {
     name: "xx59 headphones",
     slug: "xx59-headphones",
@@ -45,49 +45,64 @@ const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
     ],
     images: {
       primaryImage: {
-        mobileSrc: "https://i.ibb.co/QcbZCLB/image-product.jpg",
-        tabletSrc: "https://i.ibb.co/zZ0dWtM/image-product.jpg",
-        desktopSrc: "https://i.ibb.co/k1NhDKS/image-product.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/xx59-headphones/primary-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/xx59-headphones/primary-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/xx59-headphones/primary-desktop.jpg",
         ariaLabel: "XX59 Headphones primary image",
         altText:
           "White headphones positioned on a white backdrop, showcasing their design.",
       },
       introImage: {
-        mobileSrc: "https://i.ibb.co/GW2sLXQ/image-category-page-preview.jpg",
-        tabletSrc: "https://i.ibb.co/wcdK5gS/image-category-page-preview.jpg",
-        desktopSrc: "https://i.ibb.co/pbrXfT4/image-category-page-preview.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/xx59-headphones/intro-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/xx59-headphones/intro-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/xx59-headphones/intro-desktop.jpg",
         ariaLabel: "XX59 Headphones intro image",
         altText:
           "White headphones positioned on a white backdrop, showcasing their design.",
       },
       featuredImage: null,
       thumbnail: {
-        src: "https://i.ibb.co/7jQ3fVy/image-cart-xx59-headphones.jpg",
+        src: "https://audiophile-media.t-bendet.com/products/xx59-headphones/thumbnail.jpg",
         ariaLabel: "XX59 Headphones thumbnail image",
         altText:
           "White headphones positioned on a white backdrop, showcasing their design - thumbnail.",
       },
       galleryImages: [
         {
-          mobileSrc: "https://i.ibb.co/8BHFV2z/image-gallery-1.jpg",
-          tabletSrc: "https://i.ibb.co/Swz1vsc/image-gallery-1.jpg",
-          desktopSrc: "https://i.ibb.co/StPPyRW/image-gallery-1.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/xx59-headphones/gallery-1-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/xx59-headphones/gallery-1-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/xx59-headphones/gallery-1-desktop.jpg",
           ariaLabel: "XX59 Headphones gallery image 1",
           altText:
             "A woman wearing headphones, holding a cell phone, appears focused and engaged in her listening experience.",
         },
         {
-          mobileSrc: "https://i.ibb.co/8dNKd3z/image-gallery-2.jpg",
-          tabletSrc: "https://i.ibb.co/CPpW92Q/image-gallery-2.jpg",
-          desktopSrc: "https://i.ibb.co/Vq3MhXp/image-gallery-2.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/xx59-headphones/gallery-2-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/xx59-headphones/gallery-2-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/xx59-headphones/gallery-2-desktop.jpg",
           ariaLabel: "XX59 Headphones gallery image 2",
           altText:
             " A stack of colorful books topped with a pair of black headphones, suggesting a blend of reading and listening.",
         },
         {
-          mobileSrc: "https://i.ibb.co/VLHfQwP/image-gallery-3.jpg",
-          tabletSrc: "https://i.ibb.co/X4RhLBK/image-gallery-3.jpg",
-          desktopSrc: "https://i.ibb.co/vh2380K/image-gallery-3.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/xx59-headphones/gallery-3-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/xx59-headphones/gallery-3-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/xx59-headphones/gallery-3-desktop.jpg",
           ariaLabel: "XX59 Headphones gallery image 3",
           altText:
             "A close-up of a hand gripping a white headphone, set against a smooth gray backdrop, highlighting the accessory's features.",
@@ -95,9 +110,12 @@ const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
       ],
       showCaseImage: null,
       relatedProductImage: {
-        mobileSrc: "https://i.ibb.co/H2gYBGK/suggestion-xx59-headphones.jpg",
-        tabletSrc: "https://i.ibb.co/R6hb1zP/suggestion-xx59-headphones.jpg",
-        desktopSrc: "https://i.ibb.co/58cCyPM/suggestion-xx59-headphones.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/xx59-headphones/related-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/xx59-headphones/related-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/xx59-headphones/related-desktop.jpg",
         ariaLabel: "XX59 Headphones related product image",
         altText:
           "White headphones positioned on a white backdrop, showcasing their design - related product.",
@@ -139,17 +157,23 @@ const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
     ],
     images: {
       primaryImage: {
-        mobileSrc: "https://i.ibb.co/QprMpxs/image-product.jpg",
-        tabletSrc: "https://i.ibb.co/99Zm9Rr/image-product.jpg",
-        desktopSrc: "https://i.ibb.co/CVm0C1w/image-product.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/primary-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/primary-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/primary-desktop.jpg",
         ariaLabel: "XX99 Mark I Headphones primary image",
         altText:
           "Stylish black and gold headphones positioned on a white background, emphasizing their elegant design and color scheme.",
       },
       introImage: {
-        mobileSrc: "https://i.ibb.co/XXrzDdZ/image-category-page-preview.jpg",
-        tabletSrc: "https://i.ibb.co/NFFzMbM/image-category-page-preview.jpg",
-        desktopSrc: "https://i.ibb.co/ph6gQpx/image-category-page-preview.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/intro-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/intro-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/intro-desktop.jpg",
         ariaLabel: "XX99 Mark I Headphones intro image",
         altText:
           "Stylish black and gold headphones positioned on a white background, emphasizing their elegant design and color scheme.",
@@ -157,32 +181,41 @@ const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
 
       featuredImage: null,
       thumbnail: {
-        src: "https://i.ibb.co/hZssHbt/image-cart-xx99-mark-one-headphones.jpg",
+        src: "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/thumbnail.jpg",
         ariaLabel: "XX99 Mark I Headphones thumbnail image",
         altText:
           "Stylish black and gold headphones positioned on a white background, emphasizing their elegant design and color scheme. - thumbnail.",
       },
       galleryImages: [
         {
-          mobileSrc: "https://i.ibb.co/sv663Lm/image-gallery-1.jpg",
-          tabletSrc: "https://i.ibb.co/YR2bdLh/image-gallery-1.jpg",
-          desktopSrc: "https://i.ibb.co/LJgkLDL/image-gallery-1.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/gallery-1-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/gallery-1-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/gallery-1-desktop.jpg",
           ariaLabel: "XX99 Mark I Headphones gallery image 1",
           altText:
             "Black and white image featuring a microphone and headphones arranged together on a plain background.",
         },
         {
-          mobileSrc: "https://i.ibb.co/61Zx319/image-gallery-2.jpg",
-          tabletSrc: "https://i.ibb.co/8gR7cjR/image-gallery-2.jpg",
-          desktopSrc: "https://i.ibb.co/5G86BgK/image-gallery-2.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/gallery-2-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/gallery-2-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/gallery-2-desktop.jpg",
           ariaLabel: "XX99 Mark I Headphones gallery image 2",
           altText:
             "A pair of headphones, a stylish watch, and a trendy pair of sneakers arranged together on a flat surface.",
         },
         {
-          mobileSrc: "https://i.ibb.co/c8PzZMH/image-gallery-3.jpg",
-          tabletSrc: "https://i.ibb.co/TTJyD2f/image-gallery-3.jpg",
-          desktopSrc: "https://i.ibb.co/ZdpfbrT/image-gallery-3.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/gallery-3-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/gallery-3-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/gallery-3-desktop.jpg",
           ariaLabel: "XX99 Mark I Headphones gallery image 3",
           altText:
             "A monochrome image featuring a laptop and headphones placed together on a table.",
@@ -191,11 +224,11 @@ const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
       showCaseImage: null,
       relatedProductImage: {
         mobileSrc:
-          "https://i.ibb.co/VD1wcFX/suggestion-xx99-mark-one-headphones.jpg",
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/related-mobile.jpg",
         tabletSrc:
-          "https://i.ibb.co/cDg5h80/suggestion-xx99-mark-one-headphones.jpg",
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/related-tablet.jpg",
         desktopSrc:
-          "https://i.ibb.co/9pLLMqZ/suggestion-xx99-mark-one-headphones.jpg",
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/related-desktop.jpg",
         ariaLabel: "XX99 Mark I Headphones related product image",
         altText:
           "Stylish black and gold headphones positioned on a white background, emphasizing their elegant design and color scheme.",
@@ -241,56 +274,74 @@ const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
     ],
     images: {
       primaryImage: {
-        mobileSrc: "https://i.ibb.co/jVqc5GK/image-product.jpg",
-        tabletSrc: "https://i.ibb.co/FYfVP1W/image-product.jpg",
-        desktopSrc: "https://i.ibb.co/z87sVHt/image-category-page-preview.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/primary-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/primary-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/intro-desktop.jpg",
         ariaLabel: "XX99 Mark II Headphones primary image",
         altText:
           "The XX99 Mark II wireless headphones are presented, emphasizing their contemporary design and high-quality audio features.",
       },
       introImage: {
-        mobileSrc: "https://i.ibb.co/HNDwB2S/image-category-page-preview.jpg",
-        tabletSrc: "https://i.ibb.co/4TV936h/image-category-page-preview.jpg",
-        desktopSrc: "https://i.ibb.co/z87sVHt/image-category-page-preview.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/intro-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/intro-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/intro-desktop.jpg",
         ariaLabel: "XX99 Mark II Headphones intro image",
         altText:
           "The XX99 Mark II wireless headphones are presented, emphasizing their contemporary design and high-quality audio features.",
       },
       featuredImage: {
-        mobileSrc: "https://i.ibb.co/kxCssZK/image-header.jpg",
-        tabletSrc: "https://i.ibb.co/3rh9J1n/image-header.jpg",
-        desktopSrc: "https://i.ibb.co/xMg8rVh/image-hero.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/featured-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/featured-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/featured-desktop.jpg",
         ariaLabel: "XX99 Mark II Headphones featured image",
         altText:
           "The XX99 Mark II wireless headphones are presented, emphasizing their contemporary design and high-quality audio features.",
       },
       thumbnail: {
-        src: "https://i.ibb.co/K0drZF6/image-cart-xx99-mark-two-headphones.jpg",
+        src: "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/thumbnail.jpg",
         ariaLabel: "XX99 Mark II Headphones thumbnail image",
         altText:
           "The XX99 Mark II wireless headphones are presented, emphasizing their contemporary design and high-quality audio features. - thumbnail.",
       },
       galleryImages: [
         {
-          mobileSrc: "https://i.ibb.co/ykmC1KG/image-gallery-1.jpg",
-          tabletSrc: "https://i.ibb.co/HXxnfCg/image-gallery-1.jpg",
-          desktopSrc: "https://i.ibb.co/wWVx6WX/image-gallery-1.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/gallery-1-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/gallery-1-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/gallery-1-desktop.jpg",
           ariaLabel: "XX99 Mark II Headphones gallery image 1",
           altText:
             "Man wearing headphones, looking to the side, with geometric patterned wall in black and white.",
         },
         {
-          mobileSrc: "https://i.ibb.co/MhcygKH/image-gallery-2.jpg",
-          tabletSrc: "https://i.ibb.co/Bz9Bcnv/image-gallery-2.jpg",
-          desktopSrc: "https://i.ibb.co/TT1jvpw/image-gallery-2.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/gallery-2-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/gallery-2-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/gallery-2-desktop.jpg",
           ariaLabel: "XX99 Mark II Headphones gallery image 2",
           altText:
             "A person at a table, wearing headphones and looking at their phone, suggests a blend of relaxation and digital engagement.",
         },
         {
-          mobileSrc: "https://i.ibb.co/ZB1NGtd/image-gallery-3.jpg",
-          tabletSrc: "https://i.ibb.co/PWn8FpM/image-gallery-3.jpg",
-          desktopSrc: "https://i.ibb.co/pbdzG8q/image-gallery-3.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/gallery-3-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/gallery-3-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/gallery-3-desktop.jpg",
           ariaLabel: "XX99 Mark II Headphones gallery image 3",
           altText:
             "A close-up view of black and white headphones resting on a flat surface.",
@@ -298,11 +349,11 @@ const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
       ],
       relatedProductImage: {
         mobileSrc:
-          "https://i.ibb.co/7rFpc0S/suggestion-xx99-mark-two-headphones.jpg",
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/related-mobile.jpg",
         tabletSrc:
-          "https://i.ibb.co/XZjbh9y/suggestion-xx99-mark-two-headphones.jpg",
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/related-tablet.jpg",
         desktopSrc:
-          "https://i.ibb.co/sm47rZ8/suggestion-xx99-mark-two-headphones.jpg",
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/related-desktop.jpg",
         ariaLabel: "XX99 Mark II Headphones related product image",
         altText:
           "The XX99 Mark II wireless headphones are presented, emphasizing their contemporary design and high-quality audio features.",
@@ -315,7 +366,7 @@ const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
   },
 ];
 
-const earphonesProductData: ProductCreateWithoutCategoryInput[] = [
+export const earphonesProductData: ProductCreateWithoutCategoryInput[] = [
   {
     name: "yx1 wireless earphones",
     slug: "yx1-wireless-earphones",
@@ -354,75 +405,97 @@ const earphonesProductData: ProductCreateWithoutCategoryInput[] = [
     ],
     images: {
       primaryImage: {
-        mobileSrc: "https://i.ibb.co/yn2Px06/image-product.jpg",
-        tabletSrc: "https://i.ibb.co/K0DdSQ6/image-product.jpg",
-        desktopSrc: "https://i.ibb.co/HChWspP/image-product.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/primary-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/primary-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/primary-desktop.jpg",
         ariaLabel: "YX1 Wireless Earphones product image",
         altText:
           "A smooth, dark gray spherical object with a subtle groove and a small geometric logo at the center, floating against a light gray background.",
       },
       introImage: {
-        mobileSrc: "https://i.ibb.co/4VgG2yk/image-category-page-preview.jpg",
-        tabletSrc: "https://i.ibb.co/M1HBvBH/image-category-page-preview.jpg",
-        desktopSrc: "https://i.ibb.co/Bg50YkS/image-category-page-preview.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/intro-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/intro-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/intro-desktop.jpg",
         ariaLabel: "YX1 Wireless Earphones product image",
         altText:
           "A smooth, dark gray spherical object with a subtle groove and a small geometric logo at the center, floating against a light gray background.",
       },
       featuredImage: null,
       thumbnail: {
-        src: "https://i.ibb.co/sWDYF9b/image-cart-yx1-earphones.jpg",
+        src: "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/thumbnail.jpg",
         ariaLabel: "YX1 Wireless Earphones thumbnail image",
         altText:
           "A smooth, dark gray spherical object with a subtle groove and a small geometric logo at the center, floating against a light gray background - thumbnail.",
       },
       galleryImages: [
         {
-          mobileSrc: "https://i.ibb.co/nPVYpHY/image-gallery-1.jpg",
-          tabletSrc: "https://i.ibb.co/Ldjy7tp/image-gallery-1.jpg",
-          desktopSrc: "https://i.ibb.co/TgQbNW7/image-gallery-1.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/gallery-1-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/gallery-1-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/gallery-1-desktop.jpg",
           ariaLabel: "YX1 Wireless Earphones gallery image 1",
           altText:
             "Close-up view of the YX1 Wireless Earphones resting on a textured surface, highlighting their sleek and modern design.",
         },
         {
-          mobileSrc: "https://i.ibb.co/vDRz9Jt/image-gallery-2.jpg",
-          tabletSrc: "https://i.ibb.co/2NJg9DF/image-gallery-2.jpg",
-          desktopSrc: "https://i.ibb.co/K9sxvqW/image-gallery-2.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/gallery-2-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/gallery-2-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/gallery-2-desktop.jpg",
           ariaLabel: "YX1 Wireless Earphones gallery image 2",
           altText:
             "YX1 Wireless Earphones displayed on a clean, modern surface, emphasizing their compact and ergonomic design.",
         },
         {
-          mobileSrc: "https://i.ibb.co/JnmNKnf/image-gallery-3.jpg",
-          tabletSrc: "https://i.ibb.co/gmhYVXc/image-gallery-3.jpg",
-          desktopSrc: "https://i.ibb.co/khPfFQk/image-gallery-3.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/gallery-3-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/gallery-3-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/gallery-3-desktop.jpg",
           ariaLabel: "YX1 Wireless Earphones gallery image 3",
           altText:
             "YX1 Wireless Earphones placed on a textured surface, showcasing their sleek and modern design from a unique angle.",
         },
       ],
       showCaseImage: {
-        mobileSrc: "https://i.ibb.co/P93T22W/spotlight-earphones-yx1.jpg",
-        tabletSrc: "https://i.ibb.co/CM1jWGx/spotlight-earphones-yx1.jpg",
-        desktopSrc: "https://i.ibb.co/s9BvSVC/spotlight-earphones-yx1.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/showcase-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/showcase-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/showcase-desktop.jpg",
         ariaLabel: "YX1 Wireless Earphones showcase image",
         altText:
           "YX1 Wireless Earphones displayed prominently on a clean surface, highlighting their sleek and modern design.",
       },
       relatedProductImage: {
-        mobileSrc: "https://i.ibb.co/bgytMWC6/suggestion-earphones-yx1.jpg",
-        tabletSrc: "https://i.ibb.co/yn0Bk7QK/suggestion-earphones-yx1.jpg",
-        desktopSrc: "https://i.ibb.co/7dFt2Cnr/suggestion-earphones-yx1.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/related-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/related-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/related-desktop.jpg",
         ariaLabel: "YX1 Earphones related product image",
-        altText: "test",
+        altText:
+          "A smooth, dark gray spherical object with a subtle groove and a small geometric logo at the center, floating against a light gray background - related product.",
       },
     },
     featuredImageText: null,
   },
 ];
 
-const speakersProductData: ProductCreateWithoutCategoryInput[] = [
+export const speakersProductData: ProductCreateWithoutCategoryInput[] = [
   {
     name: "zx7 speaker",
     slug: "zx7-speaker",
@@ -461,64 +534,85 @@ const speakersProductData: ProductCreateWithoutCategoryInput[] = [
     ],
     images: {
       primaryImage: {
-        mobileSrc: "https://i.ibb.co/RpnzYw7/image-product.jpg",
-        tabletSrc: "https://i.ibb.co/fYt9L6S/image-product.jpg",
-        desktopSrc: "https://i.ibb.co/RP5MRH7/image-product.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/primary-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/primary-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/primary-desktop.jpg",
         ariaLabel: "ZX7 Speaker primary image",
         altText: "A sleek black speaker displayed on a clean white background.",
       },
       introImage: {
-        mobileSrc: "https://i.ibb.co/YBH1ftJ/image-category-page-preview.jpg",
-        tabletSrc: "https://i.ibb.co/02TnHqp/image-category-page-preview.jpg",
-        desktopSrc: "https://i.ibb.co/vjxw4Ld/image-category-page-preview.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/intro-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/intro-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/intro-desktop.jpg",
         ariaLabel: "ZX7 Speaker intro image",
         altText: "A sleek black speaker displayed on a clean white background.",
       },
       featuredImage: null,
       thumbnail: {
-        src: "https://i.ibb.co/48YdKt9/image-cart-zx7-speaker.jpg",
+        src: "https://audiophile-media.t-bendet.com/products/zx7-speaker/thumbnail.jpg",
         ariaLabel: "ZX7 Speaker thumbnail image",
         altText:
           "A sleek black speaker displayed on a clean white background - thumbnail.",
       },
       galleryImages: [
         {
-          mobileSrc: "https://i.ibb.co/NpFFRy2/image-gallery-1.jpg",
-          tabletSrc: "https://i.ibb.co/wJbccf6/image-gallery-1.jpg",
-          desktopSrc: "https://i.ibb.co/8KpQTYw/image-gallery-1.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/zx7-speaker/gallery-1-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/zx7-speaker/gallery-1-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/zx7-speaker/gallery-1-desktop.jpg",
           ariaLabel: "ZX7 Speaker gallery image 1",
           altText:
             "Detailed view of a speaker set against a black background, emphasizing its features and craftsmanship.",
         },
         {
-          mobileSrc: "https://i.ibb.co/8rP3YWZ/image-gallery-2.jpg",
-          tabletSrc: "https://i.ibb.co/JjZ6rNt/image-gallery-2.jpg",
-          desktopSrc: "https://i.ibb.co/BC6Qhyv/image-gallery-2.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/zx7-speaker/gallery-2-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/zx7-speaker/gallery-2-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/zx7-speaker/gallery-2-desktop.jpg",
           ariaLabel: "ZX7 Speaker gallery image 2",
           altText:
             "A man working at a desk with two screens and a keyboard, engaged in his tasks.",
         },
         {
-          mobileSrc: "https://i.ibb.co/W5H2fb2/image-gallery-3.jpg",
-          tabletSrc: "https://i.ibb.co/P4QpkbL/image-gallery-3.jpg",
-          desktopSrc: "https://i.ibb.co/xsxjCCH/image-gallery-3.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/zx7-speaker/gallery-3-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/zx7-speaker/gallery-3-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/zx7-speaker/gallery-3-desktop.jpg",
           ariaLabel: "ZX7 Speaker gallery image 3",
           altText:
             "A black speaker placed on a table against a clean white background.",
         },
       ],
       showCaseImage: {
-        mobileSrc: "https://i.ibb.co/8Yx9XdD/spotlight-speaker-zx7.jpg",
-        tabletSrc: "https://i.ibb.co/pvC6yyV/spotlight-speaker-zx7.jpg",
-        desktopSrc: "https://i.ibb.co/zStT1C3/spotlight-speaker-zx7.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/showcase-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/showcase-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/showcase-desktop.jpg",
         ariaLabel: "ZX7 Speaker showcase image",
         altText:
           "A monochrome image featuring a speaker resting on a table, emphasizing its shape and surroundings.",
       },
       relatedProductImage: {
-        mobileSrc: "https://i.ibb.co/936QtTm/suggestion-zx7-speaker.jpg",
-        tabletSrc: "https://i.ibb.co/7kq9drn/suggestion-zx7-speaker.jpg",
-        desktopSrc: "https://i.ibb.co/gynNLFC/suggestion-zx7-speaker.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/related-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/related-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/zx7-speaker/related-desktop.jpg",
         ariaLabel: "ZX7 Speaker suggested product image",
         altText:
           "A sleek black speaker displayed on a clean white background - related product.",
@@ -564,66 +658,87 @@ const speakersProductData: ProductCreateWithoutCategoryInput[] = [
     ],
     images: {
       primaryImage: {
-        mobileSrc: "https://i.ibb.co/BCsCYRh/image-product.jpg",
-        tabletSrc: "https://i.ibb.co/9Wy9CJc/image-product.jpg",
-        desktopSrc: "https://i.ibb.co/9p2xjfW/image-product.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/primary-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/primary-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/primary-desktop.jpg",
         ariaLabel: "ZX9 Speaker primary image",
         altText:
           "A stylish black speaker topped with a white dome, emphasizing a minimalist design approach.",
       },
       introImage: {
-        mobileSrc: "https://i.ibb.co/X7M3Xmt/image-category-page-preview.jpg",
-        tabletSrc: "https://i.ibb.co/tsRGQbY/image-category-page-preview.jpg",
-        desktopSrc: "https://i.ibb.co/5vk9NRG/image-category-page-preview.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/intro-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/intro-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/intro-desktop.jpg",
         ariaLabel: "ZX9 Speaker intro image",
         altText:
           "A stylish black speaker topped with a white dome, emphasizing a minimalist design approach.",
       },
       featuredImage: null,
       thumbnail: {
-        src: "https://i.ibb.co/w0p3n9K/image-cart-zx9-speaker.jpg",
+        src: "https://audiophile-media.t-bendet.com/products/zx9-speaker/thumbnail.jpg",
         ariaLabel: "ZX9 Speaker thumbnail image",
         altText:
           "A stylish black speaker topped with a white dome, emphasizing a minimalist design approach. - thumbnail.",
       },
       galleryImages: [
         {
-          mobileSrc: "https://i.ibb.co/SBnHtMC/image-gallery-1.jpg",
-          tabletSrc: "https://i.ibb.co/Tr0ZfwX/image-gallery-1.jpg",
-          desktopSrc: "https://i.ibb.co/V2b4Kyz/image-gallery-1.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/zx9-speaker/gallery-1-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/zx9-speaker/gallery-1-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/zx9-speaker/gallery-1-desktop.jpg",
           ariaLabel: "ZX9 Speaker gallery image 1",
           altText:
             " A black speaker with a contrasting white dome on top, highlighting its contemporary aesthetic.",
         },
         {
-          mobileSrc: "https://i.ibb.co/d2YsMw1/image-gallery-2.jpg",
-          tabletSrc: "https://i.ibb.co/HqRC0fr/image-gallery-2.jpg",
-          desktopSrc: "https://i.ibb.co/Xpg3cbt/image-gallery-2.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/zx9-speaker/gallery-2-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/zx9-speaker/gallery-2-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/zx9-speaker/gallery-2-desktop.jpg",
           ariaLabel: "ZX9 Speaker gallery image 2",
           altText:
             "A monochrome image of a room showcasing a classic stereo system on a shelf, with minimalistic decor surrounding it.",
         },
         {
-          mobileSrc: "https://i.ibb.co/LPCq2TR/image-gallery-3.jpg",
-          tabletSrc: "https://i.ibb.co/kSvHPNT/image-gallery-3.jpg",
-          desktopSrc: "https://i.ibb.co/hswPCmn/image-gallery-3.jpg",
+          mobileSrc:
+            "https://audiophile-media.t-bendet.com/products/zx9-speaker/gallery-3-mobile.jpg",
+          tabletSrc:
+            "https://audiophile-media.t-bendet.com/products/zx9-speaker/gallery-3-tablet.jpg",
+          desktopSrc:
+            "https://audiophile-media.t-bendet.com/products/zx9-speaker/gallery-3-desktop.jpg",
           ariaLabel: "ZX9 Speaker gallery image 3",
           altText:
             " Two speakers with contrasting white and black covers positioned side by side on a surface.",
         },
       ],
       showCaseImage: {
-        mobileSrc: "https://i.ibb.co/K9h7Q9g/spotlight-speaker-zx9.png",
-        tabletSrc: "https://i.ibb.co/sH744pm/spotlight-speaker-zx9.png",
-        desktopSrc: "https://i.ibb.co/FnrB0yJ/spotlight-speaker-zx9.png",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/showcase-mobile.png",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/showcase-tablet.png",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/showcase-desktop.png",
         ariaLabel: "ZX9 Speaker showcase image",
         altText:
           "A stylish black speaker topped with a white dome, emphasizing a minimalist design approach.",
       },
       relatedProductImage: {
-        mobileSrc: "https://i.ibb.co/XCmMRy0/suggestion-zx9-speaker.jpg",
-        tabletSrc: "https://i.ibb.co/frQFffg/suggestion-zx9-speaker.jpg",
-        desktopSrc: "https://i.ibb.co/GJ1SX7K/suggestion-zx9-speaker.jpg",
+        mobileSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/related-mobile.jpg",
+        tabletSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/related-tablet.jpg",
+        desktopSrc:
+          "https://audiophile-media.t-bendet.com/products/zx9-speaker/related-desktop.jpg",
         ariaLabel: "ZX9 Speaker related product image",
         altText:
           "A stylish black speaker topped with a white dome, emphasizing a minimalist design approach. - suggested product.",

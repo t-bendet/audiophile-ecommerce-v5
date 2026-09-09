@@ -9,6 +9,16 @@
       "types": "./dist/src/index.d.ts",
       "import": "./dist/src/index.js",
       "default": "./dist/src/index.js"
+    },
+    "./seed/categories": {
+      "types": "./dist/src/seed/categories.seed.d.ts",
+      "import": "./dist/src/seed/categories.seed.js",
+      "default": "./dist/src/seed/categories.seed.js"
+    },
+    "./seed/products": {
+      "types": "./dist/src/seed/products.seed.d.ts",
+      "import": "./dist/src/seed/products.seed.js",
+      "default": "./dist/src/seed/products.seed.js"
     }
   },
   "scripts": {

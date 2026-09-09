@@ -37,3 +37,7 @@ packages/database/dist
 packages/database/generated
 
 dist
+
+# untracked working area for asset imports (see packages/media)
+.scratch
+scratch
