@@ -36,7 +36,7 @@ DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnectio
 
 | Command            | Description                           |
 | ------------------ | ------------------------------------- |
-| `pnpm build`       | Generate client + compile TypeScript  |
+| `pnpm build`       | Compile TypeScript                    |
 | `pnpm build:watch` | Watch mode for TypeScript compilation |
 | `pnpm dev`         | Alias for `db:generate`               |
 
