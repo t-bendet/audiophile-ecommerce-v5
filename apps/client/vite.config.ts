@@ -13,24 +13,31 @@ const API_PROXY_TARGET =
 export default defineConfig({
   plugins: [react(), tsconfigPaths(), svgr(), tailwindcss()],
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom", "react-router"],
-          query: ["@tanstack/react-query"],
-          radix: [
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-navigation-menu",
-            "@radix-ui/react-tooltip",
-            "@radix-ui/react-toast",
-          ],
-          icons: ["lucide-react"],
-          util: [
-            "axios",
-            "zod",
-            "clsx",
-            "class-variance-authority",
-            "tailwind-merge",
+        // `test` matches resolved module paths, not package specifiers.
+        codeSplitting: {
+          groups: [
+            {
+              name: "react",
+              test: /node_modules\/(react|react-dom|react-router)\//,
+            },
+            {
+              name: "query",
+              test: /node_modules\/@tanstack\/react-query\//,
+            },
+            {
+              name: "radix",
+              test: /node_modules\/@radix-ui\/react-(dialog|navigation-menu|tooltip|toast)\//,
+            },
+            {
+              name: "icons",
+              test: /node_modules\/lucide-react\//,
+            },
+            {
+              name: "util",
+              test: /node_modules\/(axios|zod|clsx|class-variance-authority|tailwind-merge)\//,
+            },
           ],
         },
       },

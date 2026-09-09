@@ -11,6 +11,6 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "eslint": "^9.39.2"
+    "eslint": "^10.10.0"
   }
 }
