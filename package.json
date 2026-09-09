@@ -24,9 +24,9 @@
     "test:db": "pnpm db:up && TEST_DATABASE_URL=\"mongodb://localhost:27017/audiophile-test?replicaSet=rs0&directConnection=true\" turbo run test --filter=server"
   },
   "devDependencies": {
-    "prettier": "^3.8.1",
+    "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.6.14",
-    "turbo": "^2.8.10",
+    "turbo": "^2.10.12",
     "typescript": "5.9.3"
   },
   "engines": {

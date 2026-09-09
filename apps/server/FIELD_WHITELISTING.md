@@ -416,9 +416,7 @@ describe("CategoryService - Field Whitelisting", () => {
 
     const maliciousInput = {
       name: "HEADPHONES",
-      thumbnail: {
-        /* valid data */
-      },
+      thumbnail: {/* valid data */},
       id: "hacker-id", // ❌ Should be filtered
       createdAt: new Date(), // ❌ Should be filtered
       v: 999, // ❌ Should be filtered

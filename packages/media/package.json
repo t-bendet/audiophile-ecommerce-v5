@@ -19,9 +19,9 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^24.1.0",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.4.2",
     "eslint": "^9.39.2",
-    "tsx": "^4.20.6",
+    "tsx": "^4.23.13",
     "typescript": "5.9.3",
     "vitest": "^4.1.11"
   }
