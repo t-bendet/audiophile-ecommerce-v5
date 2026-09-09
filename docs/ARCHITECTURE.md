@@ -2,11 +2,13 @@
 
 ## Monorepo Structure (Turborepo + pnpm)
 
-Three workspaces with enforced build ordering:
+Three workspaces with enforced build ordering, plus a leaf package nothing imports:
 
 ```
 packages/database → packages/domain → apps/server
                                     → apps/client
+
+packages/media                                  (catalogue image originals + R2 scripts)
 ```
 
 **Why Turborepo over Nx/bare pnpm?** Turborepo is lightweight and opinionated — `dependsOn: ["^build"]` handles build order automatically. Remote caching is built-in. Nx adds more complexity (plugins, project graph config) that isn't needed here.

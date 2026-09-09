@@ -10,11 +10,11 @@ export type ReadOutput = Prisma.Result<
 
 export type CategoryName = $Enums.NAME;
 
-const categoryData: CategoryCreateInput[] = [
+export const categoryData: CategoryCreateInput[] = [
   {
     name: "Headphones",
     thumbnail: {
-      src: "https://i.ibb.co/6r3M9v9/image-category-thumbnail-headphones.png",
+      src: "https://audiophile-media.t-bendet.com/categories/headphones/thumbnail.png",
       altText: "Headphones",
       ariaLabel: "Headphones thumbnail",
     },
@@ -27,7 +27,7 @@ const categoryData: CategoryCreateInput[] = [
   {
     name: "Earphones",
     thumbnail: {
-      src: "https://i.ibb.co/9Z0BpQC/image-category-thumbnail-earphones.png",
+      src: "https://audiophile-media.t-bendet.com/categories/earphones/thumbnail.png",
       altText: "Earphones",
       ariaLabel: "Earphones thumbnail",
     },
@@ -40,7 +40,7 @@ const categoryData: CategoryCreateInput[] = [
   {
     name: "Speakers",
     thumbnail: {
-      src: "https://i.ibb.co/xfMTGtm/image-category-thumbnail-speakers.png",
+      src: "https://audiophile-media.t-bendet.com/categories/speakers/thumbnail.png",
       altText: "Speakers",
       ariaLabel: "Speakers thumbnail",
     },
