@@ -279,7 +279,7 @@ export const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
         tabletSrc:
           "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/primary-tablet.jpg",
         desktopSrc:
-          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/intro-desktop.jpg",
+          "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/primary-desktop.jpg",
         ariaLabel: "XX99 Mark II Headphones primary image",
         altText:
           "The XX99 Mark II wireless headphones are presented, emphasizing their contemporary design and high-quality audio features.",

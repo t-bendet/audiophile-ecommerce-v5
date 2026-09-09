@@ -6,6 +6,11 @@
  *
  * `fromStarterPack: false` marks a key with no Frontend Mentor original — its
  * bytes came from ImgBB, so verification is a round trip, not a comparison.
+ *
+ * One key is deliberately absent: XX99 Mark II's `primary-desktop.jpg` had no
+ * correct predecessor, because the seed's desktop primary URL pointed at the
+ * category-page preview by mistake. It is a fix, not a migration, so there is
+ * nothing to verify it against.
  */
 export type LegacyOrigin = {
   key: string;

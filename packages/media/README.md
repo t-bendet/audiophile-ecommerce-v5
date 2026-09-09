@@ -20,10 +20,12 @@ categories/<slug>/thumbnail.<ext>
 `tablet` or `desktop`. The client's best-gear hero is UI chrome, not catalogue
 content, and stays in `apps/client`.
 
-One key is shared: XX99 Mark II's `primaryImage.desktopSrc` and
-`introImage.desktopSrc` have always pointed at the same image, so both reference
-`products/xx99-mark-two-headphones/intro-desktop.jpg`. The starter pack's
-separate `desktop/image-product.jpg` for that product is unused.
+There are 129 files for 128 pre-migration ImgBB URLs. XX99 Mark II's
+`primaryImage.desktopSrc` used to point at the same URL as its
+`introImage.desktopSrc` — the category-page preview rather than the product
+shot. That was a slip when the images were first uploaded, confirmed by the
+maintainer, so `primary-desktop.jpg` now holds the starter pack's real
+`desktop/image-product.jpg` and the two roles no longer share a file.
 
 ## Scripts
 
