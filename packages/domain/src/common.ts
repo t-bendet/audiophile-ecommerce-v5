@@ -93,10 +93,7 @@ export type ErrorResponse = {
  * Union of all possible response types
  */
 export type ApiResponse<T = unknown> =
-  | SingleItemResponse<T>
-  | ListResponse<T>
-  | EmptyResponse
-  | ErrorResponse;
+  SingleItemResponse<T> | ListResponse<T> | EmptyResponse | ErrorResponse;
 
 // ===== Helper Functions =====
 

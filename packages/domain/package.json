@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@repo/database": "workspace:*",
-    "zod": "^4.0.13"
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
