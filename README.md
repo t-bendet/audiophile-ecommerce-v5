@@ -138,6 +138,7 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 packages/
 ├── database/         # Prisma client, schema, migrations, seed data
 ├── domain/           # Shared types, DTOs, Zod schemas, error codes
+├── media/            # Catalogue image originals + R2 import/sync/check scripts
 ├── config-eslint/    # Shared ESLint configurations
 └── config-typescript/# Shared TypeScript base configs
 ```
@@ -174,6 +175,9 @@ audiophile-ecommerce-v5/
 │   │   ├── prisma/schema/   # Multi-file domain schemas
 │   │   └── src/seed/        # Database seed scripts
 │   ├── domain/              # Shared types, DTOs, validation
+│   ├── media/               # Catalogue images served from audiophile-media.t-bendet.com
+│   │   ├── assets/          # The originals, one file per bucket key
+│   │   └── src/scripts/     # media:import, media:sync
 │   ├── config-eslint/       # Shared linting configs
 │   └── config-typescript/   # Shared TS configs
 │

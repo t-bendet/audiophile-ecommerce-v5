@@ -6,8 +6,6 @@ export const MEDIA_BASE_URL = "https://audiophile-media.t-bendet.com";
 /** The repo-owned originals, one file per bucket key. */
 export const ASSETS_DIR = fileURLToPath(new URL("../assets/", import.meta.url));
 
-export const urlForKey = (key: string) => `${MEDIA_BASE_URL}/${key}`;
-
 export const keyForUrl = (url: string) => {
   const prefix = `${MEDIA_BASE_URL}/`;
   if (!url.startsWith(prefix))
@@ -15,12 +13,11 @@ export const keyForUrl = (url: string) => {
   return url.slice(prefix.length);
 };
 
+// Only what `assets/` actually holds; a new format has to be added here, which
+// is the point - an unrecognised extension should stop the sync, not guess.
 const CONTENT_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
   ".png": "image/png",
-  ".svg": "image/svg+xml",
-  ".webp": "image/webp",
 };
 
 export const contentTypeForKey = (key: string) => {

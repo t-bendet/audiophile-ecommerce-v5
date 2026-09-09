@@ -6,7 +6,7 @@
   "scripts": {
     "media:import": "tsx src/scripts/import.ts",
     "media:sync": "tsx src/scripts/sync.ts",
-    "media:check": "vitest run",
+    "media:check": "vitest run test/check.test.ts",
     "lint": "eslint . --max-warnings 0",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"

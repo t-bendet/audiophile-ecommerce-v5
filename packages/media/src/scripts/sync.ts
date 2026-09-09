@@ -1,5 +1,6 @@
 import {
   DeleteObjectsCommand,
+  HeadObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
@@ -56,6 +57,19 @@ const listBucket = async (client: S3Client, bucket: string) => {
   return etags;
 };
 
+// Matching bytes are not enough to skip: a change to CACHE_CONTROL has to reach
+// objects that are otherwise untouched, so confirm the stored header too.
+const headerIsCurrent = async (
+  client: S3Client,
+  bucket: string,
+  key: string,
+) => {
+  const head = await client.send(
+    new HeadObjectCommand({ Bucket: bucket, Key: key }),
+  );
+  return head.CacheControl === CACHE_CONTROL;
+};
+
 const deleteAll = async (client: S3Client, bucket: string, keys: string[]) => {
   // DeleteObjects takes at most 1000 keys per call.
   for (let i = 0; i < keys.length; i += 1000) {
@@ -89,7 +103,10 @@ const main = async () => {
 
   for (const key of localKeys) {
     const bytes = await readFile(path.join(ASSETS_DIR, key));
-    if (remoteEtags.get(key) === etagOf(bytes)) {
+    if (
+      remoteEtags.get(key) === etagOf(bytes) &&
+      (await headerIsCurrent(client, bucket, key))
+    ) {
       skipped++;
       continue;
     }

@@ -46,7 +46,9 @@ pnpm --filter client run dev
 
 ```
 packages/database  →  packages/domain  →  apps/server
-                   →  packages/media   →  apps/client
+                                       →  apps/client
+
+packages/media                                            (leaf: assets + scripts, nothing imports it)
 ```
 
 - **`apps/server`**: Express 5 REST API (TypeScript, Node ≥ 24.5)

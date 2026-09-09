@@ -5,6 +5,5 @@ export {
   MEDIA_BASE_URL,
   contentTypeForKey,
   keyForUrl,
-  urlForKey,
 } from "./keys.js";
 export { seedImageUrls, seedReferencedKeys } from "./seed-references.js";

@@ -7,11 +7,10 @@ import { LEGACY_ORIGINS, type LegacyOrigin } from "../legacy-imgbb.js";
 /**
  * `media:import --verify` — refetch every image ImgBB still holds and compare
  * it, byte for byte, with the copy this repo now owns. It reports; it never
- * writes. A `differs` row means the live image was edited after upload, so the
- * repo copy would silently revert it: that is a question for the maintainer.
+ * writes.
  */
 
-type Outcome = "identical" | "differs" | "lost" | "imported-from-imgbb";
+type Outcome = "matches" | "differs" | "lost";
 
 type Row = { origin: LegacyOrigin; outcome: Outcome; detail?: string };
 
@@ -31,17 +30,13 @@ const verify = async (origin: LegacyOrigin): Promise<Row> => {
   const live = sha256(new Uint8Array(await response.arrayBuffer()));
   const local = sha256(await readFile(path.join(ASSETS_DIR, origin.key)));
 
-  if (live !== local)
-    return {
-      origin,
-      outcome: "differs",
-      detail: `live ${live.slice(0, 12)} vs repo ${local.slice(0, 12)}`,
-    };
-
-  return {
-    origin,
-    outcome: origin.fromStarterPack ? "identical" : "imported-from-imgbb",
-  };
+  return live === local
+    ? { origin, outcome: "matches" }
+    : {
+        origin,
+        outcome: "differs",
+        detail: `live ${live.slice(0, 12)} vs repo ${local.slice(0, 12)}`,
+      };
 };
 
 const inBatches = async (origins: readonly LegacyOrigin[]) => {
@@ -57,21 +52,32 @@ const inBatches = async (origins: readonly LegacyOrigin[]) => {
 const report = (rows: readonly Row[]) => {
   const of = (outcome: Outcome) =>
     rows.filter((row) => row.outcome === outcome);
+  const matches = of("matches");
+  const lost = of("lost");
+  const differs = of("differs");
+  // These have no Frontend Mentor original, so a match is a round trip rather
+  // than a comparison: ImgBB is where their bytes came from.
+  const noOriginal = matches.filter((row) => !row.origin.fromStarterPack);
 
   console.log(
     `Checked ${rows.length} keys against their pre-migration URLs.\n`,
   );
-  console.log(`  identical to the starter pack : ${of("identical").length}`);
+  console.log(`  byte-identical to the repo copy : ${matches.length}`);
   console.log(
-    `  imported from ImgBB           : ${of("imported-from-imgbb").length}`,
+    `    ...of those, imported from ImgBB for want of an original : ${noOriginal.length}`,
   );
-  console.log(`  lost by ImgBB (404)           : ${of("lost").length}`);
-  console.log(`  DIFFERENT from the repo copy  : ${of("differs").length}\n`);
+  console.log(`  lost by ImgBB (404)             : ${lost.length}`);
+  console.log(`  DIFFERENT from the repo copy    : ${differs.length}\n`);
 
-  for (const outcome of ["differs", "lost", "imported-from-imgbb"] as const) {
-    const matching = of(outcome);
+  const sections: [string, readonly Row[]][] = [
+    ["differs", differs],
+    ["lost", lost],
+    ["imported from ImgBB", noOriginal],
+  ];
+
+  for (const [heading, matching] of sections) {
     if (matching.length === 0) continue;
-    console.log(`${outcome}:`);
+    console.log(`${heading}:`);
     for (const { origin, detail } of matching) {
       console.log(
         `  ${origin.key}  <-  ${origin.imgbbUrl}${detail ? `  (${detail})` : ""}`,
@@ -80,7 +86,7 @@ const report = (rows: readonly Row[]) => {
     console.log("");
   }
 
-  return of("differs").length;
+  return differs.length;
 };
 
 const main = async () => {

@@ -10,12 +10,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import app from "../src/app.js";
 import { resetDatabase } from "./helpers/database.js";
 
-/**
- * The catalogue literals the production seed inserts, served through the real
- * app. Stage 1 of the Cloudflare move (#204) put every image on the media host,
- * so this is what stops an ibb.co URL — or any other host — coming back.
- */
-
+// Spelled out rather than imported from @repo/media: the point is to pin the
+// host independently of whatever the seed derives it from.
 const MEDIA_PREFIX = "https://audiophile-media.t-bendet.com/";
 
 const CATALOGUE: readonly (readonly [NAME, typeof headphonesProductData])[] = [
@@ -68,15 +64,15 @@ beforeEach(async () => {
 
 describe("catalogue image URLs", () => {
   it.for([
-    ["/api/v1/products", 126],
-    ["/api/v1/categories", 3],
-  ] as const)("serves %s from the media host", async ([path, expected]) => {
+    ["/api/v1/products", CATALOGUE.map(([, products]) => products)],
+    ["/api/v1/categories", categoryData],
+  ] as const)("serves %s from the media host", async ([path, seeded]) => {
     const res = await request(app).get(path);
 
     expect(res.status).toBe(200);
 
     const urls = imageUrls(res.body.data);
-    expect(urls).toHaveLength(expected);
+    expect(urls).toHaveLength(imageUrls(seeded).length);
     expect(urls.filter((url) => !url.startsWith(MEDIA_PREFIX))).toEqual([]);
     expect(urls.filter((url) => url.includes("ibb.co"))).toEqual([]);
   });
