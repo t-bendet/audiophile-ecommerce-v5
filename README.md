@@ -4,7 +4,7 @@
 
 **A production-ready, full-stack e-commerce platform for premium audio equipment**
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
 [![React Router](https://img.shields.io/badge/React_Router-v8-CA4245?style=flat&logo=react-router&logoColor=white)](https://reactrouter.com/)
 [![TanStack Query](https://img.shields.io/badge/TanStack_Query-v5-FF4154?style=flat&logo=react-query&logoColor=white)](https://tanstack.com/query)
@@ -94,31 +94,31 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 
 | Technology         | Version | Purpose                                    |
 | ------------------ | ------- | ------------------------------------------ |
-| **React**          | 19.1    | UI library with latest improvements        |
+| **React**          | 19.3    | UI library with latest improvements        |
 | **React Router**   | v8.3    | File-based routing with middleware support |
-| **TypeScript**     | 5.8     | Type safety throughout the application     |
-| **Vite**           | 7.0     | Lightning-fast build tool and dev server   |
-| **TailwindCSS**    | 4.1     | Utility-first styling framework            |
-| **TanStack Query** | v5.83   | Server state management with caching       |
-| **TanStack Form**  | v1.27   | Type-safe form handling                    |
-| **Axios**          | 1.11    | HTTP client with interceptors              |
-| **Zod**            | 4.0     | Runtime validation and type inference      |
+| **TypeScript**     | 5.9     | Type safety throughout the application     |
+| **Vite**           | 8.2     | Lightning-fast build tool and dev server   |
+| **TailwindCSS**    | 4.3     | Utility-first styling framework            |
+| **TanStack Query** | v5.102  | Server state management with caching       |
+| **TanStack Form**  | v1.33   | Type-safe form handling                    |
+| **Axios**          | 1.20    | HTTP client with interceptors              |
+| **Zod**            | 4.5     | Runtime validation and type inference      |
 | **Radix UI**       | Latest  | Accessible, unstyled component primitives  |
-| **Lucide React**   | 0.533   | Beautiful icon library                     |
+| **Lucide React**   | 1.43    | Beautiful icon library                     |
 
 ### Backend
 
 | Technology             | Version     | Purpose                                     |
 | ---------------------- | ----------- | ------------------------------------------- |
 | **Node.js**            | 24.5.0      | JavaScript runtime                          |
-| **Express**            | 5.1         | Web framework for REST API                  |
+| **Express**            | 5.2         | Web framework for REST API                  |
 | **TypeScript**         | 5.9         | Type-safe backend code                      |
-| **Prisma**             | Latest      | Type-safe ORM with MongoDB support          |
+| **Prisma**             | 6.19        | Type-safe ORM with MongoDB support          |
 | **MongoDB Atlas**      | Cloud       | Managed cloud database                      |
 | **JWT**                | 9.0         | Stateless authentication tokens             |
-| **Zod**                | 4.0         | Request/response validation                 |
-| **Helmet**             | 8.1         | Security headers middleware                 |
-| **Express Rate Limit** | 8.2         | API rate limiting protection                |
+| **Zod**                | 4.5         | Request/response validation                 |
+| **Helmet**             | 8.3         | Security headers middleware                 |
+| **Express Rate Limit** | 8.7         | API rate limiting protection                |
 | **CORS**               | 2.8         | Cross-origin resource sharing               |
 | **pino + pino-http**   | 10.3 / 11.0 | Structured request logging with request ids |
 
