@@ -63,14 +63,13 @@ ticket (#210) closes. Until then Render is production, and each stage of the mov
 and is reversible by a DNS change.
 
 The container instance is `basic`. #209 measured the real image (Node 24, the Express bundle, the
-generated Prisma client with its Rust engine) in Docker on 2026-09-11, natively on arm64 and under
-the resource limits of each instance type. Resident memory settled at 110 MB with the products and
-categories routes warm, so memory alone would allow lite with about 140 MiB of headroom. CPU does
-not: under lite's 1/16 vCPU the server took 12.7 s from `docker run` to a `200` on `/api/v1/health`
-and a burst of thirty product requests degraded to 2 s each, against 1.6 s and 5 ms under basic's
-1/4 vCPU, and 0.4 s unconstrained. The one-to-three-second cold start the spec accepts is only met
-by basic, so basic it is; the extra cost is about 65 cents a month at three hours awake a day. The
-measurement used a hard CPU quota; if the platform turns out to let lite burst at boot, this line
-can be revisited with the same routine.
+generated Prisma client with its Rust engine) in Docker on 2026-09-11, natively on arm64 under each
+instance type's limits. Resident memory settled at 110 MB with the products and categories routes
+warm, so memory alone would allow lite with about 140 MiB of headroom. CPU does not: under lite's
+1/16 vCPU the server took 12.7 s from `docker run` to a `200` on `/api/v1/health` and a burst of
+thirty product requests degraded to 2 s each, against 1.6 s and 5 ms under basic's 1/4 vCPU. Only
+basic meets the one-to-three-second cold start the spec accepts, at a difference the research
+document's cost table puts at about 65 cents a month. The quota was a hard local one; if the
+platform lets lite burst at boot, the same routine can revisit this line.
 
 The media hostname is recorded here rather than in the separate ADR the image research proposed.

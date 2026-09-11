@@ -10,8 +10,7 @@ interface Env {
 }
 
 export class ApiContainer extends Container<Env> {
-  // The server listens only after its database ping succeeds, so an open port is
-  // the same readiness as /api/v1/health.
+  // The server listens only after its database ping, so an open port equals a passing /api/v1/health.
   defaultPort = 8000;
 
   constructor(ctx: ConstructorParameters<typeof Container<Env>>[0], env: Env) {

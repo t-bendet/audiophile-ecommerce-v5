@@ -1,8 +1,6 @@
 # syntax=docker/dockerfile:1
 # Build from the repo root: `docker build -f apps/server/Dockerfile .`
-ARG NODE_VERSION=24
-
-FROM node:${NODE_VERSION}-bookworm-slim AS base
+FROM node:24-bookworm-slim AS base
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
     TURBO_TELEMETRY_DISABLED=1 \
     PNPM_HOME=/pnpm
@@ -31,8 +29,7 @@ FROM base AS runner
 ENV NODE_ENV=production \
     PORT=8000
 COPY --from=pruner /app/out/json/ .
-# Named filters: `server...` would also install the lint and tsconfig packages' own
-# dependencies. No scripts: bcrypt ships prebuilt binaries and the Prisma engine comes from the builder.
+# `server...` would also install the lint and tsconfig packages' deps; bcrypt needs no scripts, it ships prebuilt.
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --prod --frozen-lockfile --ignore-scripts \
       --filter server --filter @repo/database --filter @repo/domain

@@ -1,7 +1,4 @@
-# `wrangler dev` reads .dev.vars; these override the vars in wrangler.jsonc.
-# The image carries no pino-pretty, so `development` cannot run in it; `test`
-# behaves like production but accepts the local mongodb:// URL. The container
-# reaches the Docker replica set through the host, not localhost.
+# Read by `wrangler dev`, overriding wrangler.jsonc vars. The image has no pino-pretty, so not `development`.
 NODE_ENV=test
 LOG_LEVEL=info
 DATABASE_URL=mongodb://host.docker.internal:27017/audiophile?replicaSet=rs0&directConnection=true
