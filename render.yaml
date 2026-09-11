@@ -36,9 +36,7 @@ services:
         sync: false
 
   # ==============================================
-  # Retired client site (#208): the store is served from Cloudflare at
-  # https://audiophile.t-bendet.com. This service only redirects the old
-  # hostname there; it goes away with this file in #210.
+  # Old client hostname: redirects to audiophile.t-bendet.com (#208)
   # ==============================================
   - type: web
     name: audiophile-client
@@ -47,6 +45,7 @@ services:
     buildCommand: echo "nothing to build - render/moved is committed"
     staticPublishPath: render/moved
     pullRequestPreviewsEnabled: false
+    # Render's rules skip the domain root, so render/moved handles "/"
     routes:
       - type: redirect
         source: "/*"

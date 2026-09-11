@@ -22,7 +22,8 @@
     "deploy": {
       "dependsOn": ["build"],
       "cache": false,
-      "outputs": []
+      "outputs": [],
+      "passThroughEnv": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]
     },
     "type-check": {
       "dependsOn": ["^build", "db:generate"],

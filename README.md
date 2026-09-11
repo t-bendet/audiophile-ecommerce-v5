@@ -777,7 +777,7 @@ VITE_APP_API_URL=/api/v1
 VITE_APP_API_PROXY_TARGET=http://localhost:8000
 ```
 
-> **🔒 Security Note**: Never commit `.env` files to version control. Use strong, unique secrets in production.
+> **🔒 Security Note**: Never commit `.env` files to version control; the one committed file, `apps/client/.env.production`, holds only the public API URL. Use strong, unique secrets in production.
 
 4. **Generate Prisma client**:
 
@@ -1073,7 +1073,7 @@ The client is served from Cloudflare Workers Static Assets at `audiophile.t-bend
 
 ### Client on Cloudflare Workers
 
-`apps/client/wrangler.jsonc` serves the Vite `dist` directory as Workers Static Assets with `not_found_handling: "single-page-application"`, so a deep link such as `/products/yx1-earphones` returns the app shell. `apps/client/public/_headers` carries the security headers the Render static site used to set. The API base URL is baked in at build time from `apps/client/.env.production`, which points at the Render API's absolute `/api/v1` URL until #210.
+`apps/client/wrangler.jsonc` serves the Vite `dist` directory as Workers Static Assets with `not_found_handling: "single-page-application"`, so a deep link such as `/products/yx1-earphones` returns the app shell. `apps/client/public/_headers` sets `X-Content-Type-Options` and `X-Frame-Options` on every response, as the Render static site did. The API base URL is baked in at build time from `apps/client/.env.production`, which points at the Render API's absolute `/api/v1` URL until #210.
 
 ```bash
 pnpm deploy:client                       # build domain + client, then `wrangler deploy` to production
