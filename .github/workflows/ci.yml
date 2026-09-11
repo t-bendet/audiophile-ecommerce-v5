@@ -65,3 +65,21 @@ jobs:
         timeout-minutes: 10
 
       - run: pnpm format:check
+
+  image:
+    name: Server image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Builds the image the container Worker deploys; nothing is pushed.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

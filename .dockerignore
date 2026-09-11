@@ -1,0 +1,20 @@
+# Build context for apps/server/Dockerfile: turbo prune needs every workspace's
+# package.json, so the client and media packages keep only that file.
+.git
+.github
+.turbo
+.wrangler
+docs
+render
+node_modules
+**/node_modules
+**/dist
+**/.env*
+**/.dev.vars*
+**/*.tsbuildinfo
+**/worker-configuration.d.ts
+packages/database/generated
+apps/client/*
+!apps/client/package.json
+packages/media/*
+!packages/media/package.json
