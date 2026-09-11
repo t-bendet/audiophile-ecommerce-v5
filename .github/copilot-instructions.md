@@ -171,16 +171,11 @@ Details and the version pin rationale: `CLAUDE.md` ("Local database") and `docs/
 
 ## Client App Conventions
 
-### React Router v7 Middleware
+### React Router v8 Middleware
 
 **Documentation**: https://reactrouter.com/how-to/middleware
 
-The client uses React Router v7 with middleware support for:
-
-- Authentication checks before route rendering
-- Request/response logging and timing
-- Error classification and handling
-- Context sharing between routes
+The client has one middleware: `apps/client/src/app/middleware/performance.ts`, which times a navigation and logs it in DEV, wired once in `apps/client/src/app/router.tsx`. Auth is not middleware — it lives in route loaders and `apps/client/src/app/routes/auth/redirect-to-login.tsx`. The patterns below are what React Router's middleware supports, not code that exists in this repo.
 
 **Key concepts:**
 

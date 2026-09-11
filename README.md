@@ -6,7 +6,7 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
-[![React Router](https://img.shields.io/badge/React_Router-v7-CA4245?style=flat&logo=react-router&logoColor=white)](https://reactrouter.com/)
+[![React Router](https://img.shields.io/badge/React_Router-v8-CA4245?style=flat&logo=react-router&logoColor=white)](https://reactrouter.com/)
 [![TanStack Query](https://img.shields.io/badge/TanStack_Query-v5-FF4154?style=flat&logo=react-query&logoColor=white)](https://tanstack.com/query)
 [![Node.js](https://img.shields.io/badge/Node.js-24.5.0-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5-000000?style=flat&logo=express&logoColor=white)](https://expressjs.com/)
@@ -95,7 +95,7 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 | Technology         | Version | Purpose                                    |
 | ------------------ | ------- | ------------------------------------------ |
 | **React**          | 19.1    | UI library with latest improvements        |
-| **React Router**   | v7.11   | File-based routing with middleware support |
+| **React Router**   | v8.3    | File-based routing with middleware support |
 | **TypeScript**     | 5.8     | Type safety throughout the application     |
 | **Vite**           | 7.0     | Lightning-fast build tool and dev server   |
 | **TailwindCSS**    | 4.1     | Utility-first styling framework            |
@@ -154,7 +154,7 @@ audiophile-ecommerce-v5/
 ├── apps/
 │   ├── client/              # React + Vite frontend
 │   │   ├── src/
-│   │   │   ├── app/routes/  # React Router v7 routes
+│   │   │   ├── app/routes/  # React Router v8 routes
 │   │   │   ├── features/    # Feature modules (auth, cart, products)
 │   │   │   ├── components/  # Shared UI components
 │   │   │   ├── lib/         # Utilities (api-client, react-query)
@@ -479,9 +479,9 @@ export async function loader({ context }) {
 - Better error handling
 - Better perceived performance
 
-### 8. **React Router v7 Middleware**
+### 8. **React Router v8 Middleware**
 
-Authentication and logging at the route level:
+Cross-cutting concerns at the route level. The client runs one middleware today — `app/middleware/performance.ts`, which times a navigation in DEV; auth lives in route loaders. What the middleware API supports:
 
 ```typescript
 // Authentication middleware
@@ -871,7 +871,7 @@ docs/
 ```
 apps/client/src/
 ├── app/
-│   ├── routes/            # React Router v7 routes
+│   ├── routes/            # React Router v8 routes
 │   │   ├── home/
 │   │   ├── auth/
 │   │   │   ├── login.tsx

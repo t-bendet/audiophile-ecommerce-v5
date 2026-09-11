@@ -943,7 +943,7 @@ if (query.error) {
 
 ## Target State (v2 with Middleware)
 
-This section describes the **proposed future architecture** with React Router v7 middleware for centralized error handling.
+This section describes the **proposed future architecture** with React Router v8 middleware for centralized error handling.
 
 Its snippets are sketches, not working code. They call `isAppError`, which is
 module-private inside `errors.ts` and would have to be exported, and they read
@@ -951,7 +951,7 @@ the query client off a `queryClientContext` that v2 would have to add.
 
 ### What Middleware Adds
 
-**React Router v7 Middleware** provides:
+**React Router v8 Middleware** provides:
 
 1. **Centralized Error Context** - Shared error state across routes
 2. **Request/Response Interception** - Process all errors in one place
