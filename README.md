@@ -15,7 +15,7 @@
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Turborepo](https://img.shields.io/badge/Turborepo-Monorepo-EF4444?style=flat&logo=turborepo&logoColor=white)](https://turbo.build/)
 
-[Live Demo](https://audiophile-client-i8rq.onrender.com) · [API Docs](https://audiophile-server.onrender.com/api/v1/health) · [Report Bug](https://github.com/t-bendet/audiophile-ecommerce-v5/issues)
+[Live Demo](https://audiophile.t-bendet.com) · [API Docs](https://audiophile-server-mhie.onrender.com/api/v1/health) · [Report Bug](https://github.com/t-bendet/audiophile-ecommerce-v5/issues)
 
 </div>
 
@@ -42,10 +42,10 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 
 ### Live Demo
 
-- **Client**: [audiophile-client.onrender.com](https://audiophile-client-i8rq.onrender.com)
-- **API**: [audiophile-server.onrender.com](https://audiophile-server.onrender.com)
+- **Client**: [audiophile.t-bendet.com](https://audiophile.t-bendet.com)
+- **API**: [audiophile-server-mhie.onrender.com](https://audiophile-server-mhie.onrender.com/api/v1/health)
 
-> **Note**: Hosted on Render's free tier - may take 30-60 seconds for initial load due to cold starts.
+> **Note**: The API is still on Render's free tier - the first request after a quiet period may take 30-60 seconds while it wakes up.
 
 ---
 
@@ -124,13 +124,14 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 
 ### Shared Infrastructure
 
-| Technology    | Purpose                                                |
-| ------------- | ------------------------------------------------------ |
-| **Turborepo** | Monorepo build orchestration with distributed caching  |
-| **pnpm**      | Fast, efficient package manager with workspace support |
-| **ESLint**    | Code quality and consistency                           |
-| **Prettier**  | Code formatting                                        |
-| **Render**    | Cloud hosting platform (free tier)                     |
+| Technology     | Purpose                                                |
+| -------------- | ------------------------------------------------------ |
+| **Turborepo**  | Monorepo build orchestration with distributed caching  |
+| **pnpm**       | Fast, efficient package manager with workspace support |
+| **ESLint**     | Code quality and consistency                           |
+| **Prettier**   | Code formatting                                        |
+| **Cloudflare** | Client hosting (Workers Static Assets)                 |
+| **Render**     | API hosting (free tier, until #210)                    |
 
 ### Monorepo Packages
 
@@ -772,7 +773,8 @@ VITE_APP_PORT=5173
 **`apps/client/.env`**:
 
 ```env
-VITE_APP_API_URL=http://localhost:8000
+VITE_APP_API_URL=/api/v1
+VITE_APP_API_PROXY_TARGET=http://localhost:8000
 ```
 
 > **🔒 Security Note**: Never commit `.env` files to version control. Use strong, unique secrets in production.
@@ -1061,44 +1063,45 @@ Items dropped as done, duplicated or won't-do are listed in the closing comment 
 
 ## 🚢 Deployment
 
-The application is deployed on [Render](https://render.com) using the `render.yaml` blueprint for GitOps-style continuous deployment.
+The client is served from Cloudflare Workers Static Assets at `audiophile.t-bendet.com`. The API still runs on Render from the `render.yaml` blueprint until it moves under the same hostname (#210; see ADR 0005).
 
 ### Current Deployment
 
-- **Client**: [audiophile-client-i8rq.onrender.com](https://audiophile-client-i8rq.onrender.com)
-- **Server**: [audiophile-server.onrender.com](https://audiophile-server.onrender.com)
-- **Tier**: FREE (may experience cold starts after inactivity)
+- **Client**: [audiophile.t-bendet.com](https://audiophile.t-bendet.com) - Cloudflare Workers Static Assets
+- **Server**: [audiophile-server-mhie.onrender.com](https://audiophile-server-mhie.onrender.com/api/v1/health) - Render free tier, cold starts after inactivity
+- **Old client URL**: `audiophile-client-i8rq.onrender.com` redirects to the new hostname
+
+### Client on Cloudflare Workers
+
+`apps/client/wrangler.jsonc` serves the Vite `dist` directory as Workers Static Assets with `not_found_handling: "single-page-application"`, so a deep link such as `/products/yx1-earphones` returns the app shell. `apps/client/public/_headers` carries the security headers the Render static site used to set. The API base URL is baked in at build time from `apps/client/.env.production`, which points at the Render API's absolute `/api/v1` URL until #210.
+
+```bash
+pnpm deploy:client                       # build domain + client, then `wrangler deploy` to production
+pnpm --filter client run deploy:preview  # upload the build as a version without deploying; prints its preview URL
+pnpm --filter client exec wrangler dev   # serve the last build locally with the SPA fallback
+```
+
+`deploy` and `deploy:preview` need a Cloudflare login (`wrangler login`) or `CLOUDFLARE_API_TOKEN` in the environment.
+
+**Workers preview URLs replace Render PR previews.** Render no longer builds a preview per pull request. A branch preview is a Workers version: `deploy:preview` uploads the current build and prints a `<version>-audiophile.<subdomain>.workers.dev` URL that serves it without touching production. Until the API is same-origin (#210), a preview origin is not on Render's `ALLOWED_ORIGINS`, so a preview renders the shell but the browser blocks its API calls; check API-backed flows on `audiophile.t-bendet.com`. Running previews from CI is #211.
 
 ### Deploy Your Own Instance
 
 1. **Fork this repository**
 
-2. **Create a Render account**
-   - Sign up at [render.com](https://render.com)
+2. **API on Render**
+   - Sign up at [render.com](https://render.com), click "New" → "Blueprint" and select your fork; Render auto-detects `render.yaml`
+   - The blueprint's `audiophile-client` service is only a redirect for the old hostname; delete it from your copy
+   - Set the server's environment variables in the Render dashboard:
+     - `DATABASE_URL`: your MongoDB Atlas connection string
+     - `JWT_SECRET`: auto-generated by Render
+     - `ALLOWED_ORIGINS`: your client origin (e.g. `https://audiophile.example.com`)
+   - Pushes to `main` redeploy the server
 
-3. **Connect your repository**
-   - Go to Render dashboard
-   - Click "New" → "Blueprint"
-   - Connect your GitHub account
-   - Select your forked repository
-   - Render will auto-detect `render.yaml`
-
-4. **Set environment variables**
-
-   In Render dashboard, add these environment variables:
-
-   **Server (audiophile-server)**:
-   - `DATABASE_URL`: Your MongoDB Atlas connection string
-   - `JWT_SECRET`: Auto-generated by Render
-   - `ALLOWED_ORIGINS`: Your client URL (e.g., `https://your-client.onrender.com`)
-
-   **Client (audiophile-client)**:
-   - `VITE_APP_API_URL`: Your server URL (e.g., `https://your-server.onrender.com`)
-
-5. **Deploy**
-   - Render will automatically build and deploy both services
-   - Subsequent pushes to `main` branch trigger automatic deployments
-   - Pull requests generate preview deployments (client only)
+3. **Client on Cloudflare**
+   - Point `VITE_APP_API_URL` in `apps/client/.env.production` at your server's `/api/v1`
+   - `pnpm deploy:client`
+   - Add a custom domain to the Worker in the Cloudflare dashboard and put that origin in `ALLOWED_ORIGINS`
 
 ### Render Configuration
 
@@ -1114,13 +1117,15 @@ services:
     startCommand: node apps/server/dist/index.js
     healthCheckPath: /api/v1/health
 
-  # React Client (Static Site)
+  # Old client hostname: redirects to audiophile.t-bendet.com
   - type: web
     name: audiophile-client
     runtime: static
-    buildCommand: pnpm install && pnpm turbo run build --filter=client...
-    staticPublishPath: apps/client/dist
-    pullRequestPreviewsEnabled: true
+    staticPublishPath: render/moved
+    routes:
+      - type: redirect
+        source: "/*"
+        destination: "https://audiophile.t-bendet.com/*"
 ```
 
 ### MongoDB Atlas Setup
@@ -1132,11 +1137,11 @@ services:
 
 ### Deployment Features
 
-- ✅ Automatic deployments from `main` branch
-- ✅ Pull request previews (client)
+- ✅ Automatic API deployments from `main` (Render)
+- ✅ One-command client deploy; branch previews as Workers preview URLs
 - ✅ Health checks for server uptime monitoring
-- ✅ Security headers configured
-- ✅ SPA routing handled with rewrite rules
+- ✅ Security headers: Helmet on the API, `_headers` on the client
+- ✅ SPA routing via the Workers Static Assets `single-page-application` fallback
 - ✅ Build caching with Turborepo
 - ✅ Environment variable management
 
@@ -1209,7 +1214,7 @@ Feel free to use this code for learning, inspiration, or your own projects!
 
 - GitHub: [@t-bendet](https://github.com/t-bendet)
 - Project Link: [github.com/t-bendet/audiophile-ecommerce-v5](https://github.com/t-bendet/audiophile-ecommerce-v5)
-- Live Demo: [audiophile-client-i8rq.onrender.com](https://audiophile-client-i8rq.onrender.com)
+- Live Demo: [audiophile.t-bendet.com](https://audiophile.t-bendet.com)
 
 ---
 
@@ -1230,7 +1235,7 @@ Feel free to use this code for learning, inspiration, or your own projects!
 
 ⭐ Star this repo if you find it helpful!
 
-[Live Demo](https://audiophile-client-i8rq.onrender.com) · [Report Issue](https://github.com/t-bendet/audiophile-ecommerce-v5/issues) · [Request Feature](https://github.com/t-bendet/audiophile-ecommerce-v5/issues)
+[Live Demo](https://audiophile.t-bendet.com) · [Report Issue](https://github.com/t-bendet/audiophile-ecommerce-v5/issues) · [Request Feature](https://github.com/t-bendet/audiophile-ecommerce-v5/issues)
 
 </div>
 

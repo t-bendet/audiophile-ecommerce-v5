@@ -19,6 +19,11 @@
       "outputs": [],
       "persistent": true
     },
+    "deploy": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "outputs": []
+    },
     "type-check": {
       "dependsOn": ["^build", "db:generate"],
       "cache": true,
