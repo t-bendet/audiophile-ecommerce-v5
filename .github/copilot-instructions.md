@@ -26,7 +26,7 @@ Turbo automatically handles build order:
 2. `packages/domain` depends on `@repo/database` types
 3. `apps/server` depends on both `@repo/database` and `@repo/domain`
 
-**Critical**: Always run `pnpm db:generate` after schema changes, NOT just `prisma generate` (the custom script is essential for ESM compatibility).
+**Critical**: Always run `pnpm db:generate` after schema changes.
 
 ---
 
@@ -161,7 +161,7 @@ Details and the version pin rationale: `CLAUDE.md` ("Local database") and `docs/
 
 ## Common Pitfalls
 
-1. **Missing `.js` extensions**: If you see import errors from Prisma-generated code, run `pnpm db:generate` (NOT just `prisma generate`)
+1. **Missing `.js` extensions**: If you see import errors from Prisma-generated code, run `pnpm db:generate`
 2. **Validation errors ignored**: All route handlers that accept input MUST use `validateSchema` middleware
 3. **Unhandled async errors**: All async route handlers MUST be wrapped in `catchAsync`
 4. **Generic AbstractCrudService confusion**: Only 4 type params now (Entity, CreateInput, UpdateInput, DTO). Query building is NOT abstracted - implement it in `persistFindMany` with private helpers

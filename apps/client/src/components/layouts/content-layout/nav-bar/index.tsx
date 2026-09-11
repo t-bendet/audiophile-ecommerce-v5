@@ -34,6 +34,7 @@ export const Navbar = () => {
             ) : (
               <Link
                 to={paths.home.path}
+                aria-label="Home"
                 className="hover:*:*:stroke-primary-400 focus-visible:*:*:stroke-primary-500 mr-auto pl-4"
               >
                 <HomeIcon />
