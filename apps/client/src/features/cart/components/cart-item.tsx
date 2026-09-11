@@ -58,6 +58,7 @@ export function CartItem({
             size="sm"
             onClick={() => onRemove(item.productId, item.id)}
             disabled={isUpdating}
+            aria-label="Remove item"
             className="h-6 w-6 p-0 text-neutral-500 hover:text-red-600 sm:h-8 sm:w-8"
           >
             <X className="h-2 w-2" />

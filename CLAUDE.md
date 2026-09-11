@@ -52,7 +52,7 @@ packages/media                                            (leaf: assets + script
 ```
 
 - **`apps/server`**: Express 5 REST API (TypeScript, Node ≥ 24.5)
-- **`apps/client`**: React 19 + React Router v7 + Vite 8 + TailwindCSS 4
+- **`apps/client`**: React 19 + React Router v8 + Vite 8 + TailwindCSS 4
 - **`packages/database`**: Prisma client + multi-file schema (`prisma/schema/` by domain), MongoDB (Docker replica set locally, Atlas in production)
 - **`packages/domain`**: Single source of truth for shared types, Zod schemas, DTOs, error codes
 - **`packages/media`**: Catalogue image originals under `assets/`, plus the import / sync / check scripts for the R2 bucket behind `audiophile-media.t-bendet.com`. See its README.
@@ -152,9 +152,9 @@ Retry policy (`apps/client/src/lib/react-query.ts`): 4xx → no retry; 5xx / net
 
 All requests go through `getApi()` (lazy Axios init with interceptors). Errors are auto-classified to `AppError` with semantic `ErrorCode` values. 4xx errors surface inline in UI; 5xx / network errors show toast notifications.
 
-### React Router v7 middleware
+### React Router v8 middleware
 
-Used for cross-cutting concerns (auth, logging, timing). Middleware chain runs parent→child going down, child→parent coming up. `next()` never throws — errors before `next()` bubble to the highest route with a loader; errors after `next()` bubble from the throwing route.
+Used for dev-only navigation timing — the client's one middleware, `apps/client/src/app/middleware/performance.ts`. Middleware chain runs parent→child going down, child→parent coming up. `next()` never throws — errors before `next()` bubble to the highest route with a loader; errors after `next()` bubble from the throwing route.
 
 ## Critical Pitfalls
 

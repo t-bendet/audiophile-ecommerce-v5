@@ -26,7 +26,7 @@ Turbo automatically handles build order:
 2. `packages/domain` depends on `@repo/database` types
 3. `apps/server` depends on both `@repo/database` and `@repo/domain`
 
-**Critical**: Always run `pnpm db:generate` after schema changes, NOT just `prisma generate` (the custom script is essential for ESM compatibility).
+**Critical**: Always run `pnpm db:generate` after schema changes.
 
 ---
 
@@ -161,7 +161,7 @@ Details and the version pin rationale: `CLAUDE.md` ("Local database") and `docs/
 
 ## Common Pitfalls
 
-1. **Missing `.js` extensions**: If you see import errors from Prisma-generated code, run `pnpm db:generate` (NOT just `prisma generate`)
+1. **Missing `.js` extensions**: If you see import errors from Prisma-generated code, run `pnpm db:generate`
 2. **Validation errors ignored**: All route handlers that accept input MUST use `validateSchema` middleware
 3. **Unhandled async errors**: All async route handlers MUST be wrapped in `catchAsync`
 4. **Generic AbstractCrudService confusion**: Only 4 type params now (Entity, CreateInput, UpdateInput, DTO). Query building is NOT abstracted - implement it in `persistFindMany` with private helpers
@@ -171,16 +171,11 @@ Details and the version pin rationale: `CLAUDE.md` ("Local database") and `docs/
 
 ## Client App Conventions
 
-### React Router v7 Middleware
+### React Router v8 Middleware
 
 **Documentation**: https://reactrouter.com/how-to/middleware
 
-The client uses React Router v7 with middleware support for:
-
-- Authentication checks before route rendering
-- Request/response logging and timing
-- Error classification and handling
-- Context sharing between routes
+The client has one middleware: `apps/client/src/app/middleware/performance.ts`, which times a navigation and logs it in DEV, wired once in `apps/client/src/app/router.tsx`. Auth is not middleware — it lives in route loaders and `apps/client/src/app/routes/auth/redirect-to-login.tsx`. The patterns below are what React Router's middleware supports, not code that exists in this repo.
 
 **Key concepts:**
 

@@ -85,13 +85,13 @@ Shared between server and client:
 
 ---
 
-## Frontend: React Router v7 + TanStack Query + Axios
+## Frontend: React Router v8 + TanStack Query + Axios
 
-### React Router v7 (framework/data mode)
+### React Router v8 (framework/data mode)
 
 - All routes are **lazy-loaded** — no bundle bloat on initial load.
 - `clientLoader(queryClient)` pattern — route loaders prefetch data into the TanStack Query cache before the component renders. No loading spinners on navigation.
-- Middleware chain (v7 feature) for cross-cutting concerns (auth, performance timing) without HOC wrapper hell.
+- Middleware chain for cross-cutting concerns without HOC wrapper hell — one middleware today, `app/middleware/performance.ts`, timing a navigation in DEV. Auth is not middleware: it lives in route loaders.
 
 ### TanStack Query
 

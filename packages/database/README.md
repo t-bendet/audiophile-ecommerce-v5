@@ -24,13 +24,13 @@ DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnectio
 
 ### Individual Commands
 
-| Command            | Description                                  |
-| ------------------ | -------------------------------------------- |
-| `pnpm db:generate` | Generate Prisma client (with ESM import fix) |
-| `pnpm db:push`     | Sync schema to database                      |
-| `pnpm db:seed`     | Run seed scripts                             |
-| `pnpm studio`      | Open Prisma Studio GUI                       |
-| `pnpm format`      | Format Prisma schema files                   |
+| Command            | Description                |
+| ------------------ | -------------------------- |
+| `pnpm db:generate` | Generate Prisma client     |
+| `pnpm db:push`     | Sync schema to database    |
+| `pnpm db:seed`     | Run seed scripts           |
+| `pnpm studio`      | Open Prisma Studio GUI     |
+| `pnpm format`      | Format Prisma schema files |
 
 ### Build Commands
 
