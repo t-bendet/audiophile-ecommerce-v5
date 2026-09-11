@@ -36,29 +36,17 @@ services:
         sync: false
 
   # ==============================================
-  # Vite React Client (Static Site - FREE)
+  # Old client hostname: redirects to audiophile.t-bendet.com (#208)
   # ==============================================
   - type: web
     name: audiophile-client
     runtime: static
     branch: main
-    buildCommand: pnpm install --frozen-lockfile && pnpm turbo run build --filter=client...
-    staticPublishPath: apps/client/dist
-    pullRequestPreviewsEnabled: true
-    headers:
-      - path: "/*"
-        name: X-Content-Type-Options
-        value: "nosniff"
-      - path: "/*"
-        name: X-Frame-Options
-        value: "DENY"
-      - path: "/*"
-        name: X-XSS-Protection
-        value: "1; mode=block"
+    buildCommand: echo "nothing to build - render/moved is committed"
+    staticPublishPath: render/moved
+    pullRequestPreviewsEnabled: false
+    # Render's rules skip the domain root, so render/moved handles "/"
     routes:
-      - type: rewrite
+      - type: redirect
         source: "/*"
-        destination: /index.html
-    envVars:
-      - key: VITE_APP_API_URL
-        sync: false
+        destination: "https://audiophile.t-bendet.com/*"
