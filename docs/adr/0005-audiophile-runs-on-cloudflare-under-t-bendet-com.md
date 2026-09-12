@@ -63,13 +63,17 @@ ticket (#210) closes. Until then Render is production, and each stage of the mov
 and is reversible by a DNS change.
 
 The container instance is `basic`. #209 measured the real image (Node 24, the Express bundle, the
-generated Prisma client with its Rust engine) in Docker on 2026-09-11, natively on arm64 under each
-instance type's limits. Resident memory settled at 110 MB with the products and categories routes
-warm, so memory alone would allow lite with about 140 MiB of headroom. CPU does not: under lite's
-1/16 vCPU the server took 12.7 s from `docker run` to a `200` on `/api/v1/health` and a burst of
-thirty product requests degraded to 2 s each, against 1.6 s and 5 ms under basic's 1/4 vCPU. Only
-basic meets the one-to-three-second cold start the spec accepts, at a difference the research
-document's cost table puts at about 65 cents a month. The quota was a hard local one; if the
-platform lets lite burst at boot, the same routine can revisit this line.
+generated Prisma client with its Rust engine) twice: locally in Docker under each instance type's
+limits, and on the platform after the first deploy on 2026-09-12. On the platform the container
+reports 184 MiB resident with the products and categories routes warm, which would leave lite
+about 70 MiB short of an out-of-memory kill; basic's 1 GiB removes that risk. CPU settles it as
+well: locally under lite's 1/16 vCPU the server took 12.7 s from `docker run` to a `200` on
+`/api/v1/health` and a burst of thirty product requests degraded to 2 s each, against 1.6 s and
+5 ms under basic's 1/4 vCPU. On basic, a request to the sleeping container answered in 3.8 s and
+3.9 s across two cycles, 3.0 s and 2.8 s of which was the server's own boot to its database ping
+and the rest the platform waking the instance; warm requests take 0.2 s for health and 0.6 s for
+products, the Atlas round trip. That is just above the one-to-three-second cold start the spec
+accepts and several times better than lite would manage, at a difference the research document's
+cost table puts at about 65 cents a month.
 
 The media hostname is recorded here rather than in the separate ADR the image research proposed.
