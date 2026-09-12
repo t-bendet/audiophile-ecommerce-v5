@@ -189,8 +189,8 @@ connection string belongs only to deployment.
 
 ## Environment Variables
 
-Local development uses `.env` files, one per workspace; every one of them has a committed
-`.env.example` to copy. Production has no `.env` file at all — see "Deployment" below.
+Local development uses `.env` files, one per workspace, each with a committed `.env.example`
+beside it. Production has no `.env` file at all — see "Deployment" below.
 
 **`packages/database/.env`**
 
@@ -204,8 +204,8 @@ DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnectio
 DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 NODE_ENV=development
 JWT_SECRET=<min 32 chars>
-JWT_EXPIRES_IN=90d
-JWT_COOKIE_EXPIRES_IN=20000
+JWT_EXPIRES_IN=7d
+JWT_COOKIE_EXPIRES_IN=7
 PORT=8000
 LOG_LEVEL=debug
 ```
@@ -223,7 +223,7 @@ VITE_APP_API_PROXY_TARGET=http://localhost:8000
 ```
 
 `VITE_APP_API_URL` is baked into the bundle at build time. `apps/client/.env.production` is
-committed and holds the same same-origin `/api/v1`, because the Worker serves the API under the app's
+committed and holds that same `/api/v1`, because the Worker serves the API under the app's own
 hostname.
 
 **`packages/media/.env`**
@@ -235,7 +235,7 @@ R2_SECRET_ACCESS_KEY=
 R2_BUCKET=audiophile-media
 ```
 
-An R2 Object Read & Write token for `pnpm media:sync`. It belongs to the developer publishing
+An R2 Object Read & Write token for `pnpm --filter @repo/media media:sync`. It belongs to the developer publishing
 images, never to the deployed application.
 
 ## Deployment

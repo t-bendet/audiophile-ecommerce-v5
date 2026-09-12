@@ -747,8 +747,8 @@ DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnectio
 DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 NODE_ENV=development
 JWT_SECRET=your-secret-key-at-least-32-characters-long
-JWT_EXPIRES_IN=90d
-JWT_COOKIE_EXPIRES_IN=20000
+JWT_EXPIRES_IN=7d
+JWT_COOKIE_EXPIRES_IN=7
 PORT=8000
 ```
 
@@ -759,7 +759,7 @@ VITE_APP_API_URL=/api/v1
 VITE_APP_API_PROXY_TARGET=http://localhost:8000
 ```
 
-**`packages/media/.env`** (only to publish images to R2 with `pnpm media:sync`):
+**`packages/media/.env`** (only to publish images to R2 with `pnpm --filter @repo/media media:sync`):
 
 ```env
 R2_ACCOUNT_ID=
@@ -1036,7 +1036,7 @@ Client work that needs a design or UX pass before it can be specced (from the #1
 - Password strength meter on the signup form.
 - Skeleton loaders for images and sections. Run a prototype session first to find where a loading state is missing, then ticket the result. `ui/skeleton.tsx`, `product-skeleton.tsx` and `products-list-skeleton.tsx` already exist.
 - Pattern-circles SVG behind the ZX9 showcase. `assets/pattern-circles.svg` exists and its import is commented out in `showcase-section/index.tsx`.
-- WebP images with a `<picture>` fallback. `ResponsivePicture` already carries the breakpoint sources.
+- WebP or AVIF variants. Now a media package job: generate them beside the originals, put them in the manifest and publish them with the rest; `ResponsivePicture` already carries the breakpoint sources and would only consume them. #189 left it out of scope with no trigger yet.
 - Preload critical resources. Fonts already have `preconnect` and `rel=preload`; both hero images already load `eager` with `fetchPriority="high"`. Measure before doing more; the remaining candidate is `react-dom`'s `preload()` for the featured image from the home loader.
 - Auth layout visuals.
 
@@ -1044,7 +1044,7 @@ Client work that needs a design or UX pass before it can be specced (from the #1
 
 - Replace the `NAME` enum on `Category` with `name: String` + `slug: String @unique`. Touches the Prisma enum, the domain Zod schemas, the `/products/category/:category` route param, `config/paths.ts`, the category route and `seo/metadata.tsx`. Only pays off once categories are created at runtime.
 - `isNewProduct` as a value derived from an arrival date. No such date exists today (only `createdAt`, which is seed time); needs a new field plus a rule such as "less than a year old". Until then the manual flag stays.
-- Image uploads from the dashboard. Images are files in `packages/media` today, published to R2 by `pnpm media:sync`; a dashboard upload would have to write to the bucket and to the catalogue's storage keys in one step.
+- Image uploads from the dashboard. Images are files in `packages/media` today, published to R2 by `pnpm --filter @repo/media media:sync`; a dashboard upload would have to write to the bucket and to the catalogue's storage keys in one step.
 
 ### Removed in the #162 triage
 
@@ -1061,7 +1061,7 @@ One Cloudflare Worker serves the whole application at `audiophile.t-bendet.com`:
 - **Application**: [audiophile.t-bendet.com](https://audiophile.t-bendet.com) - one Worker, static assets plus the API container
 - **API health**: [audiophile.t-bendet.com/api/v1/health](https://audiophile.t-bendet.com/api/v1/health) - answered by the container
 - **Images**: [audiophile-media.t-bendet.com](https://audiophile-media.t-bendet.com) - the R2 bucket behind the catalogue, published by `packages/media`
-- **Old client URL**: `audiophile-client-i8rq.onrender.com`, the pre-move hostname, redirects here so that links on a sent CV keep working (#208). It is a one-page static redirect configured on that legacy host, not from this repo; `render/moved/index.html` is the page it publishes
+- **Old client URL**: `audiophile-client-i8rq.onrender.com`, the pre-move hostname, redirects here so that links on a sent CV keep working (#208). The redirect is configured on that legacy host rather than by anything in this repo; the page it publishes, `render/moved/index.html`, stays committed for it
 
 ### The Worker
 
@@ -1088,7 +1088,7 @@ The server's environment is split between the Worker's `vars` and its secrets; n
 | `DATABASE_URL`          | `wrangler secret put DATABASE_URL` | the Atlas `mongodb+srv://` string |
 | `JWT_SECRET`            | `wrangler secret put JWT_SECRET`   | at least 32 characters            |
 
-`PORT` is not passed: the Dockerfile sets it to `8000`, which is the `defaultPort` the Worker's container class reaches. The client's one build-time variable, `VITE_APP_API_URL`, is committed in `apps/client/.env.production` as the same-origin `/api/v1`. The media package's R2 credentials belong to the developer running `pnpm media:sync`, never to the deployment; they live in `packages/media/.env` (see its `.env.example`).
+`PORT` is not passed: the Dockerfile sets it to `8000`, which is the `defaultPort` the Worker's container class reaches. The client's one build-time variable, `VITE_APP_API_URL`, is committed in `apps/client/.env.production` as the same-origin `/api/v1`. The media package's R2 credentials belong to the developer running `pnpm --filter @repo/media media:sync`, never to the deployment; they live in `packages/media/.env` (see its `.env.example`).
 
 **There is no per-pull-request preview.** Cloudflare does not generate preview URLs for a Worker that uses Durable Objects, which the container binding is. #211 left it that way — a preview build runs `wrangler versions upload`, which updates neither the image nor the container instances, so it would not exercise the API. Check a branch with `wrangler dev`, which runs the assets and the container together, and check the merged result on `audiophile.t-bendet.com`.
 
@@ -1116,7 +1116,7 @@ Workers Builds can do this too — Cloudflare runs Dockerfile builds in its own 
    - Add a custom domain to the Worker in the Cloudflare dashboard; no origin list is needed, since the app and its API share the hostname
 
 3. **Product images**
-   - Create an R2 bucket with a custom domain, put an Object Read & Write token for it in `packages/media/.env` (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`) and run `pnpm media:sync`; see `packages/media/README.md`
+   - Create an R2 bucket with a custom domain, put an Object Read & Write token for it in `packages/media/.env` (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`) and run `pnpm --filter @repo/media media:sync`; see `packages/media/README.md`
 
 4. **Deploys from your fork**
    - Add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets, and every push to `main` deploys through the workflow's `deploy` job
@@ -1126,7 +1126,7 @@ Workers Builds can do this too — Cloudflare runs Dockerfile builds in its own 
 1. Create a free cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas)
 2. Create a database user with read/write access
 3. Allow network access from anywhere (`0.0.0.0/0`): the container has no fixed egress IP to allowlist, so the database user's credentials are the access control
-4. Put the `mongodb+srv://` connection string on the Worker with `wrangler secret put DATABASE_URL`; the server's env schema rejects anything else in production
+4. Put the connection string on the Worker with `wrangler secret put DATABASE_URL`. In production the server's env schema takes a `mongodb+srv://` string and nothing else, down to the `?retryWrites=true&w=majority&appName=<name>` query Atlas hands out, so copy it as given
 
 ### Deployment Features
 
@@ -1234,4 +1234,4 @@ Feel free to use this code for learning, inspiration, or your own projects!
 
 ---
 
-**Last Updated**: September 6, 2026
+**Last Updated**: September 12, 2026
