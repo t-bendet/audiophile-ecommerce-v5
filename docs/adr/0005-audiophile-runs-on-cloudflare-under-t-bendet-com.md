@@ -62,8 +62,14 @@ hashes and serves it.
 ticket (#210) closes. Until then Render is production, and each stage of the move leaves it working
 and is reversible by a DNS change.
 
-The container instance size is not decided here. #209 measures the resident memory and cold start
-of the real image and fills in this line: lite if the measurement leaves headroom under 256 MiB,
-otherwise basic.
+The container instance is `basic`. #209 measured the real image (Node 24, the Express bundle, the
+generated Prisma client with its Rust engine) in Docker on 2026-09-11, natively on arm64 under each
+instance type's limits. Resident memory settled at 110 MB with the products and categories routes
+warm, so memory alone would allow lite with about 140 MiB of headroom. CPU does not: under lite's
+1/16 vCPU the server took 12.7 s from `docker run` to a `200` on `/api/v1/health` and a burst of
+thirty product requests degraded to 2 s each, against 1.6 s and 5 ms under basic's 1/4 vCPU. Only
+basic meets the one-to-three-second cold start the spec accepts, at a difference the research
+document's cost table puts at about 65 cents a month. The quota was a hard local one; if the
+platform lets lite burst at boot, the same routine can revisit this line.
 
 The media hostname is recorded here rather than in the separate ADR the image research proposed.

@@ -8,8 +8,11 @@
     "dev": "nodemon --exec tsx src/index.ts",
     "build": "tsup",
     "build:tsc": "NODE_OPTIONS='--max-old-space-size=8192' tsc -p tsconfig.build.json",
-    "type-check": "tsc -p tsconfig.json --noEmit",
+    "type-check": "tsc -p tsconfig.json --noEmit && pnpm type-check:worker",
+    "type-check:worker": "wrangler types worker/worker-configuration.d.ts --include-env=false && tsc -p worker/tsconfig.json --noEmit",
     "start": "node dist/index.js",
+    "deploy": "wrangler deploy",
+    "dev:worker": "wrangler dev",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run"
   },
@@ -30,6 +33,7 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@cloudflare/containers": "^0.3.7",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/cookie-parser": "^1.4.10",
@@ -48,7 +52,8 @@
     "tsup": "^8.5.1",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.0",
+    "wrangler": "^4.131.0"
   },
   "keywords": [],
   "author": "",

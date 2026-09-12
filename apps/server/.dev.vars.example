@@ -1,0 +1,5 @@
+# Read by `wrangler dev`, overriding wrangler.jsonc vars. The image has no pino-pretty, so not `development`.
+NODE_ENV=test
+LOG_LEVEL=info
+DATABASE_URL=mongodb://host.docker.internal:27017/audiophile?replicaSet=rs0&directConnection=true
+JWT_SECRET=AtLeast32CharactersLongSecretKeyForJWTs

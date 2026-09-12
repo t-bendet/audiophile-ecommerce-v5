@@ -44,3 +44,7 @@ dist
 
 # wrangler local state
 .wrangler
+
+# wrangler local secrets and generated runtime types
+.dev.vars
+worker-configuration.d.ts
