@@ -27,6 +27,16 @@ import { getTokenFromRequest } from "../middlewares/auth.middleware.js";
  */
 
 /**
+ * The attributes of the auth cookie, shared by the routes that set it and the
+ * one that clears it - a browser only drops a cookie when they match.
+ */
+const authCookieOptions = (req: Request): CookieOptions => ({
+  httpOnly: true,
+  secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+  sameSite: "lax",
+});
+
+/**
  * Helper function to create token and send response
  * Handles cookie setting and response formatting
  */
@@ -37,18 +47,12 @@ const createAndSendAuthCookie = (
   req: Request,
   res: Response,
 ) => {
-  const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
-
-  const cookieOptions: CookieOptions = {
+  res.cookie("jwt", token, {
+    ...authCookieOptions(req),
     expires: new Date(
       Date.now() + Number(env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     ),
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: "lax",
-  };
-
-  res.cookie("jwt", token, cookieOptions);
+  });
 
   // Token sent via HTTP-only cookie, response contains only user data
   res.status(statusCode).json(createSingleItemResponse(user));
@@ -84,13 +88,7 @@ export const login: ValidatedHandler = defineHandler(
  * Clears JWT cookie
  */
 export const logout = (req: Request, res: Response) => {
-  const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
-
-  res.clearCookie("jwt", {
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: "lax",
-  });
+  res.clearCookie("jwt", authCookieOptions(req));
   res.status(200).json(createEmptyResponse());
 };
 

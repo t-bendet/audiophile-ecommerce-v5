@@ -692,8 +692,7 @@ Based on recent commits and the current branch (`fix/lighthouse-a11y-bp-seo`):
 - ✅ Added rate limiting for order creation
 - ✅ Refactored cookie options for secure handling in production
 - ✅ Added Helmet middleware for security headers
-- ✅ Enhanced CORS configuration with origin validation
-- ✅ Proper middleware ordering (CORS → Rate Limit → Security → Body Parsing)
+- ✅ Proper middleware ordering (Logging → Security → Rate Limit → Body Parsing)
 - ✅ Rate-limit rejections return the standard error envelope (`TOO_MANY_REQUESTS`, 429) instead of an ad-hoc body
 
 **Lighthouse Optimizations** (In Progress):
@@ -1062,14 +1061,13 @@ One Cloudflare Worker serves the whole application at `audiophile.t-bendet.com`:
 - The API base URL is baked into the client build from `apps/client/.env.production`, which is the same-origin default `/api/v1`. Cookies and requests are same-origin, so the server carries no CORS middleware.
 
 ```bash
-pnpm deploy:app                          # build everything, then `wrangler deploy` to production
-pnpm --filter server run deploy:preview  # upload the build as a version without deploying; prints its preview URL
-pnpm --filter server exec wrangler dev   # serve the last build and the container locally
+pnpm deploy:app                         # build everything, then `wrangler deploy` to production
+pnpm --filter server exec wrangler dev  # serve the last build and the container locally
 ```
 
 `deploy` and `deploy:preview` need a Cloudflare login (`wrangler login`) or `CLOUDFLARE_API_TOKEN` in the environment, and `wrangler dev` needs Docker running for the container. The Worker's secrets (`DATABASE_URL`, `JWT_SECRET`) are set on the Worker itself, not in a `.env` file.
 
-**Workers preview URLs replace Render PR previews.** Render no longer builds a preview per pull request. A branch preview is a Workers version: `deploy:preview` uploads the current build and prints a `<version>-audiophile.<subdomain>.workers.dev` URL that serves it without touching production. A preview version serves its own assets and shares the production container, so API-backed flows work on it. Running previews from CI is #211.
+**There is no per-pull-request preview.** Render stopped building one when the client moved (#208), and the Workers preview URLs that replaced it ended with this merge: Cloudflare does not generate them for a Worker that uses Durable Objects, which the container binding is. Check a branch with `wrangler dev`, which runs the assets and the container together, and check the merged result on `audiophile.t-bendet.com`. A preview deployment story, if there is to be one, belongs to #211.
 
 ### Deploy Your Own Instance
 

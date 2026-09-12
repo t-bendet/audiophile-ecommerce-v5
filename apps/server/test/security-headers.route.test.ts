@@ -9,10 +9,8 @@ import app from "../src/app.js";
 // to sit ahead of anything that can reject a request before helmet runs.
 
 describe("security headers on short-circuited requests", () => {
-  it("still sets helmet headers when validation rejects the body", async () => {
-    const res = await request(app)
-      .post("/api/v1/auth/login")
-      .send({ email: "not-an-email" });
+  it("still sets helmet headers when validation rejects the query", async () => {
+    const res = await request(app).get("/api/v1/products?limit=not-a-number");
 
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);

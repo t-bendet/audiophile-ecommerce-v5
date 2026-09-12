@@ -10,7 +10,7 @@ interface Env {
   JWT_COOKIE_EXPIRES_IN: string;
 }
 
-const API_PATH = /^\/api(\/|$)/;
+const isApiPath = (pathname: string) => /^\/api(\/|$)/.test(pathname);
 
 export class ApiContainer extends Container<Env> {
   // The server listens only after its database ping, so an open port equals a passing /api/v1/health.
@@ -32,15 +32,12 @@ export default {
   fetch(request, env) {
     const url = new URL(request.url);
 
-    // `run_worker_first` sends only API paths here; this keeps anything else
-    // that reaches the Worker on the assets path rather than the API's 404.
-    if (!API_PATH.test(url.pathname)) {
+    // Second lock on the rule: an asset request never gets the API's 404.
+    if (!isApiPath(url.pathname)) {
       return env.ASSETS.fetch(request);
     }
 
-    // The container is reached over plain HTTP, so the Express app learns the
-    // browser's scheme from this header, which is what puts `Secure` on the
-    // auth cookie.
+    // Reached over plain HTTP, so only this header can set `Secure` cookies.
     const forwarded = new Request(request, {
       headers: new Headers(request.headers),
     });
