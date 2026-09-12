@@ -1065,9 +1065,22 @@ pnpm deploy:app                         # build everything, then `wrangler deplo
 pnpm --filter server exec wrangler dev  # serve the last build and the container locally
 ```
 
-`deploy` and `deploy:preview` need a Cloudflare login (`wrangler login`) or `CLOUDFLARE_API_TOKEN` in the environment, and `wrangler dev` needs Docker running for the container. The Worker's secrets (`DATABASE_URL`, `JWT_SECRET`) are set on the Worker itself, not in a `.env` file.
+A deploy by hand needs a Cloudflare login (`wrangler login`) or `CLOUDFLARE_API_TOKEN` in the environment, and `wrangler dev` needs Docker running for the container. The Worker's secrets (`DATABASE_URL`, `JWT_SECRET`) are set on the Worker itself, not in a `.env` file.
 
-**There is no per-pull-request preview.** Render stopped building one when the client moved (#208), and the Workers preview URLs that replaced it ended with this merge: Cloudflare does not generate them for a Worker that uses Durable Objects, which the container binding is. Check a branch with `wrangler dev`, which runs the assets and the container together, and check the merged result on `audiophile.t-bendet.com`. A preview deployment story, if there is to be one, belongs to #211.
+**There is no per-pull-request preview.** Render stopped building one when the client moved (#208), and the Workers preview URLs that replaced it ended with that merge: Cloudflare does not generate them for a Worker that uses Durable Objects, which the container binding is. #211 left it that way — a preview build runs `wrangler versions upload`, which updates neither the image nor the container instances, so it would not exercise the API. Check a branch with `wrangler dev`, which runs the assets and the container together, and check the merged result on `audiophile.t-bendet.com`.
+
+### Continuous Deployment
+
+A push to `main` deploys; `pnpm deploy:app` from a laptop is the fallback, not the route. The `deploy` job in `.github/workflows/ci.yml` waits for the `verify` and `image` jobs, so a red build never ships, and then runs `pnpm deploy:app` on the runner: Turbo builds the client and the server, and `wrangler deploy` builds the container image with the runner's Docker and sends the image, the Worker and the assets up together. Pull requests still build the Dockerfile without pushing it, and never deploy.
+
+It needs two repository secrets:
+
+| Secret                  | Value                                                                                                                                                                                                              |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `CLOUDFLARE_API_TOKEN`  | An API token from the **Edit Cloudflare Workers** template, scoped to the account. The template covers it as it stands: Workers Containers for the rollout, and the R2 permission the managed image registry uses. |
+| `CLOUDFLARE_ACCOUNT_ID` | The account ID from the Cloudflare dashboard.                                                                                                                                                                      |
+
+Workers Builds can do this too — Cloudflare runs Dockerfile builds in its own build environment — and was rejected: its configuration lives in the dashboard rather than the repository, and the build it starts does not wait for CI, so a push with failing tests would deploy. The reasoning is in [ADR 0005](docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md). This section is a note ahead of the deployment documentation rewrite (#212).
 
 ### Deploy Your Own Instance
 
@@ -1097,8 +1110,8 @@ server service is switched off. The blueprint goes away with the documentation r
 
 ### Deployment Features
 
-- ✅ Automatic API deployments from `main` (Render)
-- ✅ One-command client deploy; branch previews as Workers preview URLs
+- ✅ Automatic deployment from `main`, gated on CI (GitHub Actions, then `wrangler deploy`)
+- ✅ One command, `pnpm deploy:app`, for the same deploy by hand; no branch previews
 - ✅ Health checks for server uptime monitoring
 - ✅ Security headers: Helmet on the API, `_headers` on the client
 - ✅ SPA routing via the Workers Static Assets `single-page-application` fallback

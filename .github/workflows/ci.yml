@@ -75,7 +75,7 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      # Builds the image the container Worker deploys; nothing is pushed.
+      # Builds the image the container Worker deploys; nothing is pushed. Main's run seeds the cache PRs restore from.
       - uses: docker/build-push-action@v6
         with:
           context: .
@@ -83,3 +83,36 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy
+    if: github.event_name == 'push'
+    needs: [verify, image]
+    runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts refuses to load without it; nothing here connects.
+      DATABASE_URL: mongodb://localhost:27017/audiophile
+      # No test runs here, so the binary download is dead weight.
+      MONGOMS_DISABLE_POSTINSTALL: "1"
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+        timeout-minutes: 10
+
+      # A bad token fails here, in seconds, not after the image build.
+      - run: pnpm --filter server exec wrangler whoami
+
+      # Builds everything, then `wrangler deploy`: image, Worker and assets.
+      - run: pnpm deploy:app
+        timeout-minutes: 30

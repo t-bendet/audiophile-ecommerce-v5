@@ -51,6 +51,16 @@ Upgrading Prisma with the rest of the dependencies was rejected. `prisma@latest`
 drops MongoDB. Prisma 8 becomes its own effort once it is generally available; its prize is
 dropping the Rust engine, which is what would let the container fit the smallest instance.
 
+Workers Builds was rejected as the deployment pipeline, and the answer to the research document's
+second open question is GitHub Actions (#211). Workers Builds is capable: Cloudflare documents that
+Dockerfile builds run in its build environment, and that a Worker with containers should deploy from
+its production branch with `wrangler deploy` so the image and the container instances update, while
+the `wrangler versions upload` it runs on other branches does neither. It loses on two counts. Its
+build configuration lives in the dashboard, so a fresh clone cannot read how the application ships;
+and the build it starts is independent of the repository's checks, so a push to `main` whose tests
+fail would deploy anyway. A job in the existing workflow has the checks as its `needs` and is
+reviewed with the code that changes it.
+
 Moving the hero image to the bucket with the catalogue was rejected. Nothing in the database
 refers to it, so a bucket URL for it would be a string in a component either way, and Vite already
 hashes and serves it.
@@ -76,5 +86,13 @@ and the rest the platform waking the instance; warm requests take 0.2 s for heal
 products, the Atlas round trip. That is just above the one-to-three-second cold start the spec
 accepts and several times better than lite would manage, at a difference the research document's
 cost table puts at about 65 cents a month.
+
+A push to `main` deploys. The `deploy` job in `.github/workflows/ci.yml` needs the `verify` and
+`image` jobs, runs on the push event only, and calls `pnpm deploy:app`: Turbo builds the client and
+the server, then `wrangler deploy` builds the container image with the runner's Docker and sends the
+image, the Worker and the assets up together. It needs two repository secrets,
+`CLOUDFLARE_API_TOKEN` from the _Edit Cloudflare Workers_ template, whose R2 permission is what the
+managed image registry uses, and `CLOUDFLARE_ACCOUNT_ID`. Pull requests are unchanged: they build the
+Dockerfile without pushing it, and they do not deploy.
 
 The media hostname is recorded here rather than in the separate ADR the image research proposed.
