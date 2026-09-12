@@ -1,8 +1,17 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "audiophile-api",
+  "name": "audiophile",
   "main": "worker/index.ts",
   "compatibility_date": "2026-09-01",
+  "preview_urls": true,
+  "assets": {
+    "directory": "../client/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // API paths reach the Worker before any asset lookup, so they can never
+    // fall through to the SPA shell.
+    "run_worker_first": ["/api", "/api/*"],
+  },
   "containers": [
     {
       "class_name": "ApiContainer",

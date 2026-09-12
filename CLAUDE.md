@@ -209,7 +209,7 @@ LOG_LEVEL=debug
 
 `LOG_LEVEL` is optional; unset it defaults per environment — `debug` in development, `info` in production, `silent` in test.
 
-`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses. `test` is set by the vitest configs and behaves like `production` (logger silent, no localhost CORS origin, sanitized errors).
+`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses. `test` is set by the vitest configs and behaves like `production` (logger silent, sanitized errors).
 
 ## Git workflow
 

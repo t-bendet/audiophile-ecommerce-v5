@@ -8,7 +8,7 @@ import {
   ErrorCode,
   UserDTO,
 } from "@repo/domain";
-import { Request, RequestHandler, Response } from "express";
+import { CookieOptions, Request, RequestHandler, Response } from "express";
 import { authService } from "../services/auth.service.js";
 import catchAsync from "../utils/catchAsync.js";
 import { defineHandler, ValidatedHandler } from "../utils/define-handler.js";
@@ -37,23 +37,15 @@ const createAndSendAuthCookie = (
   req: Request,
   res: Response,
 ) => {
-  const isProduction = env.NODE_ENV === "production";
   const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
 
-  const cookieOptions: {
-    expires: Date;
-    httpOnly: boolean;
-    secure: boolean;
-    sameSite: "strict" | "lax" | "none";
-  } = {
+  const cookieOptions: CookieOptions = {
     expires: new Date(
       Date.now() + Number(env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
     secure: isSecure,
-    // Cross-origin cookies require sameSite: 'none' and secure: true
-    // In development, use 'lax' to avoid issues with localhost
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "lax",
   };
 
   res.cookie("jwt", token, cookieOptions);
@@ -92,13 +84,12 @@ export const login: ValidatedHandler = defineHandler(
  * Clears JWT cookie
  */
 export const logout = (req: Request, res: Response) => {
-  const isProduction = env.NODE_ENV === "production";
   const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
 
   res.clearCookie("jwt", {
     httpOnly: true,
     secure: isSecure,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "lax",
   });
   res.status(200).json(createEmptyResponse());
 };

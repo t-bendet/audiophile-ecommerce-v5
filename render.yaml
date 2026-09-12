@@ -32,8 +32,6 @@ services:
         value: "7d"
       - key: JWT_COOKIE_EXPIRES_IN
         value: "7"
-      - key: ALLOWED_ORIGINS
-        sync: false
 
   # ==============================================
   # Old client hostname: redirects to audiophile.t-bendet.com (#208)
