@@ -123,14 +123,16 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 
 ### Shared Infrastructure
 
-| Technology     | Purpose                                                |
-| -------------- | ------------------------------------------------------ |
-| **Turborepo**  | Monorepo build orchestration with distributed caching  |
-| **pnpm**       | Fast, efficient package manager with workspace support |
-| **ESLint**     | Code quality and consistency                           |
-| **Prettier**   | Code formatting                                        |
-| **Cloudflare** | Client hosting (Workers Static Assets)                 |
-| **Render**     | API hosting (free tier, until #210)                    |
+| Technology                | Purpose                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| **Turborepo**             | Monorepo build orchestration with distributed caching                          |
+| **pnpm**                  | Fast, efficient package manager with workspace support                         |
+| **ESLint**                | Code quality and consistency                                                   |
+| **Prettier**              | Code formatting                                                                |
+| **Cloudflare Workers**    | One Worker: static assets plus the API container, on `audiophile.t-bendet.com` |
+| **Cloudflare Containers** | The Express server, unchanged, in a `basic` instance                           |
+| **Cloudflare R2**         | Catalogue images on `audiophile-media.t-bendet.com`                            |
+| **GitHub Actions**        | CI on every pull request, deploy on every push to `main`                       |
 
 ### Monorepo Packages
 
@@ -184,8 +186,7 @@ audiophile-ecommerce-v5/
 ├── docs/                    # Project documentation
 ├── .github/                 # GitHub Actions & instructions
 ├── turbo.json              # Turborepo configuration
-├── pnpm-workspace.yaml     # Workspace configuration
-└── render.yaml             # Deployment configuration
+└── pnpm-workspace.yaml     # Workspace configuration
 ```
 
 ---
@@ -758,6 +759,15 @@ VITE_APP_API_URL=/api/v1
 VITE_APP_API_PROXY_TARGET=http://localhost:8000
 ```
 
+**`packages/media/.env`** (only to publish images to R2 with `pnpm media:sync`):
+
+```env
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET=audiophile-media
+```
+
 > **🔒 Security Note**: Never commit `.env` files to version control; the one committed file, `apps/client/.env.production`, holds only the public API URL. Use strong, unique secrets in production.
 
 4. **Generate Prisma client**:
@@ -1034,7 +1044,7 @@ Client work that needs a design or UX pass before it can be specced (from the #1
 
 - Replace the `NAME` enum on `Category` with `name: String` + `slug: String @unique`. Touches the Prisma enum, the domain Zod schemas, the `/products/category/:category` route param, `config/paths.ts`, the category route and `seo/metadata.tsx`. Only pays off once categories are created at runtime.
 - `isNewProduct` as a value derived from an arrival date. No such date exists today (only `createdAt`, which is seed time); needs a new field plus a rule such as "less than a year old". Until then the manual flag stays.
-- Cloudinary uploads from the dashboard.
+- Image uploads from the dashboard. Images are files in `packages/media` today, published to R2 by `pnpm media:sync`; a dashboard upload would have to write to the bucket and to the catalogue's storage keys in one step.
 
 ### Removed in the #162 triage
 
@@ -1044,19 +1054,20 @@ Items dropped as done, duplicated or won't-do are listed in the closing comment 
 
 ## 🚢 Deployment
 
-One Cloudflare Worker serves the whole application at `audiophile.t-bendet.com`: `/api/*` goes to the Express server in a Cloudflare Container, everything else is the Vite build. `render.yaml` is still in the repo until the docs ticket removes it (#212; see ADR 0005), but nothing of the application runs on Render.
+One Cloudflare Worker serves the whole application at `audiophile.t-bendet.com`: `/api/*` goes to the Express server in a Cloudflare Container, everything else is the Vite build. Product images come from an R2 bucket on `audiophile-media.t-bendet.com`, and the database is MongoDB Atlas. Nothing else hosts any part of the application; the move is recorded in [ADR 0005](docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md).
 
 ### Current Deployment
 
 - **Application**: [audiophile.t-bendet.com](https://audiophile.t-bendet.com) - one Worker, static assets plus the API container
 - **API health**: [audiophile.t-bendet.com/api/v1/health](https://audiophile.t-bendet.com/api/v1/health) - answered by the container
-- **Old client URL**: `audiophile-client-i8rq.onrender.com` redirects to the new hostname
+- **Images**: [audiophile-media.t-bendet.com](https://audiophile-media.t-bendet.com) - the R2 bucket behind the catalogue, published by `packages/media`
+- **Old client URL**: `audiophile-client-i8rq.onrender.com`, the pre-move hostname, redirects here so that links on a sent CV keep working (#208). It is a one-page static redirect configured on that legacy host, not from this repo; `render/moved/index.html` is the page it publishes
 
 ### The Worker
 
 `apps/server/wrangler.jsonc` configures the single deployed Worker:
 
-- `assets` serves the client's `dist` directory with `not_found_handling: "single-page-application"`, so a deep link such as `/products/yx1-earphones` returns the app shell. `apps/client/public/_headers` sets `X-Content-Type-Options` and `X-Frame-Options` on every response, as the Render static site did.
+- `assets` serves the client's `dist` directory with `not_found_handling: "single-page-application"`, so a deep link such as `/products/yx1-earphones` returns the app shell. `apps/client/public/_headers` sets `X-Content-Type-Options` and `X-Frame-Options` on every response.
 - `run_worker_first` lists the API paths, so `/api/*` reaches `apps/server/worker/index.ts` before any asset lookup and is forwarded to the container. An unknown API path returns the server's JSON 404 rather than the SPA shell.
 - The API base URL is baked into the client build from `apps/client/.env.production`, which is the same-origin default `/api/v1`. Cookies and requests are same-origin, so the server carries no CORS middleware.
 
@@ -1065,9 +1076,21 @@ pnpm deploy:app                         # build everything, then `wrangler deplo
 pnpm --filter server exec wrangler dev  # serve the last build and the container locally
 ```
 
-A deploy by hand needs a Cloudflare login (`wrangler login`) or `CLOUDFLARE_API_TOKEN` in the environment, and `wrangler dev` needs Docker running for the container. The Worker's secrets (`DATABASE_URL`, `JWT_SECRET`) are set on the Worker itself, not in a `.env` file.
+A deploy by hand needs a Cloudflare login (`wrangler login`) or `CLOUDFLARE_API_TOKEN` in the environment, and `wrangler dev` needs Docker running for the container.
 
-**There is no per-pull-request preview.** Render stopped building one when the client moved (#208), and the Workers preview URLs that replaced it ended with that merge: Cloudflare does not generate them for a Worker that uses Durable Objects, which the container binding is. #211 left it that way — a preview build runs `wrangler versions upload`, which updates neither the image nor the container instances, so it would not exercise the API. Check a branch with `wrangler dev`, which runs the assets and the container together, and check the merged result on `audiophile.t-bendet.com`.
+The server's environment is split between the Worker's `vars` and its secrets; no `.env` file is deployed. `apps/server/wrangler.jsonc` holds the three non-secret values, and the Worker passes all five into the container:
+
+| Variable                | Where it lives                     | Value in production               |
+| ----------------------- | ---------------------------------- | --------------------------------- |
+| `NODE_ENV`              | `vars` in `wrangler.jsonc`         | `production`                      |
+| `JWT_EXPIRES_IN`        | `vars` in `wrangler.jsonc`         | `7d`                              |
+| `JWT_COOKIE_EXPIRES_IN` | `vars` in `wrangler.jsonc`         | `7`                               |
+| `DATABASE_URL`          | `wrangler secret put DATABASE_URL` | the Atlas `mongodb+srv://` string |
+| `JWT_SECRET`            | `wrangler secret put JWT_SECRET`   | at least 32 characters            |
+
+`PORT` is not passed: the Dockerfile sets it to `8000`, which is the `defaultPort` the Worker's container class reaches. The client's one build-time variable, `VITE_APP_API_URL`, is committed in `apps/client/.env.production` as the same-origin `/api/v1`. The media package's R2 credentials belong to the developer running `pnpm media:sync`, never to the deployment; they live in `packages/media/.env` (see its `.env.example`).
+
+**There is no per-pull-request preview.** Cloudflare does not generate preview URLs for a Worker that uses Durable Objects, which the container binding is. #211 left it that way — a preview build runs `wrangler versions upload`, which updates neither the image nor the container instances, so it would not exercise the API. Check a branch with `wrangler dev`, which runs the assets and the container together, and check the merged result on `audiophile.t-bendet.com`.
 
 ### Continuous Deployment
 
@@ -1080,7 +1103,7 @@ It needs two repository secrets:
 | `CLOUDFLARE_API_TOKEN`  | An API token from the **Edit Cloudflare Workers** template, scoped to the account. The template covers it as it stands: Workers Containers for the rollout, and the R2 permission the managed image registry uses. |
 | `CLOUDFLARE_ACCOUNT_ID` | The account ID from the Cloudflare dashboard.                                                                                                                                                                      |
 
-Workers Builds can do this too — Cloudflare runs Dockerfile builds in its own build environment — and was rejected: its configuration lives in the dashboard rather than the repository, and the build it starts does not wait for CI, so a push with failing tests would deploy. The reasoning is in [ADR 0005](docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md). This section is a note ahead of the deployment documentation rewrite (#212).
+Workers Builds can do this too — Cloudflare runs Dockerfile builds in its own build environment — and was rejected: its configuration lives in the dashboard rather than the repository, and the build it starts does not wait for CI, so a push with failing tests would deploy. The reasoning is in [ADR 0005](docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md).
 
 ### Deploy Your Own Instance
 
@@ -1088,25 +1111,22 @@ Workers Builds can do this too — Cloudflare runs Dockerfile builds in its own 
 
 2. **Cloudflare account**
    - A Workers Paid plan, which is what Containers require, and `wrangler login` locally
-   - Set the Worker's secrets: `wrangler secret put DATABASE_URL` and `wrangler secret put JWT_SECRET` from `apps/server`
+   - Set the Worker's secrets from `apps/server`: `wrangler secret put DATABASE_URL` and `wrangler secret put JWT_SECRET`. The non-secret values (`NODE_ENV`, `JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN`) are already in `wrangler.jsonc`
    - `pnpm deploy:app` builds the client and the container image and deploys both behind one Worker
    - Add a custom domain to the Worker in the Cloudflare dashboard; no origin list is needed, since the app and its API share the hostname
 
 3. **Product images**
-   - Create an R2 bucket with a custom domain and run the media package's sync script; see `packages/media/README.md`
+   - Create an R2 bucket with a custom domain, put an Object Read & Write token for it in `packages/media/.env` (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`) and run `pnpm media:sync`; see `packages/media/README.md`
 
-### Render Configuration
-
-`render.yaml` is still in the repo but nothing of the application runs on it any more. Its only live
-service is the static redirect that sends the old client hostname to `audiophile.t-bendet.com`; the
-server service is switched off. The blueprint goes away with the documentation rewrite (#212).
+4. **Deploys from your fork**
+   - Add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets, and every push to `main` deploys through the workflow's `deploy` job
 
 ### MongoDB Atlas Setup
 
 1. Create a free cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas)
 2. Create a database user with read/write access
-3. Add Render's IP ranges to IP whitelist (or use `0.0.0.0/0` for development)
-4. Copy connection string to `DATABASE_URL` environment variable
+3. Allow network access from anywhere (`0.0.0.0/0`): the container has no fixed egress IP to allowlist, so the database user's credentials are the access control
+4. Put the `mongodb+srv://` connection string on the Worker with `wrangler secret put DATABASE_URL`; the server's env schema rejects anything else in production
 
 ### Deployment Features
 
@@ -1116,7 +1136,7 @@ server service is switched off. The blueprint goes away with the documentation r
 - ✅ Security headers: Helmet on the API, `_headers` on the client
 - ✅ SPA routing via the Workers Static Assets `single-page-application` fallback
 - ✅ Build caching with Turborepo
-- ✅ Environment variable management
+- ✅ Worker `vars` for the plain values, Worker secrets for `DATABASE_URL` and `JWT_SECRET`
 
 ---
 

@@ -143,6 +143,38 @@ attempts burn the login quota.
 
 ---
 
+## Deployment: one Cloudflare Worker
+
+```
+audiophile.t-bendet.com
+  ├── /api/*  → Worker (apps/server/worker/index.ts) → Cloudflare Container (Express, basic) → Atlas
+  └── /*      → Workers Static Assets (apps/client/dist, SPA fallback)
+
+audiophile-media.t-bendet.com → R2 bucket (packages/media publishes it)
+```
+
+`run_worker_first` in `apps/server/wrangler.jsonc` is what keeps the two apart: an API path reaches
+the Worker before any asset lookup, so an unknown `/api` route returns the server's JSON 404 rather
+than the SPA shell, and every other path is an asset. One hostname is also what makes the auth
+cookie same-origin, which is why the server carries neither CORS middleware nor a `sameSite: "none"`
+branch. Why Cloudflare, why a container rather than plain Workers, and why the hostnames are
+first-level subdomains is in `docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md`.
+
+The server reads its environment from the Worker, never from a deployed file: `NODE_ENV`,
+`JWT_EXPIRES_IN` and `JWT_COOKIE_EXPIRES_IN` are `vars` in `wrangler.jsonc`, `DATABASE_URL` and
+`JWT_SECRET` are Worker secrets, and `ApiContainer` passes all five into the container, whose `PORT`
+comes from the Dockerfile. The client's only build-time variable, `VITE_APP_API_URL`, is the
+same-origin `/api/v1` committed in `apps/client/.env.production`.
+
+A push to `main` deploys. The `deploy` job in `.github/workflows/ci.yml` needs `verify` and `image`,
+then runs `pnpm deploy:app`: Turbo builds both apps and `wrangler deploy` sends the container image,
+the Worker and the assets up together, authenticated by the `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` repository secrets. There are no pull-request previews — Cloudflare does not
+issue them for a Worker with Durable Objects, which the container binding is — so a branch is checked
+with `wrangler dev`, which runs the assets and the container locally.
+
+---
+
 ## Interview Talking Points
 
 **"Why not just use NestJS?"**
@@ -160,4 +192,4 @@ Product catalog data is document-shaped (nested images, included items, category
 
 ---
 
-**Last Updated:** September 6, 2026
+**Last Updated:** September 12, 2026
