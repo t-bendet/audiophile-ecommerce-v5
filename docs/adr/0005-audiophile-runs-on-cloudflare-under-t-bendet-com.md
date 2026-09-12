@@ -58,9 +58,10 @@ hashes and serves it.
 ## Consequences
 
 `render.yaml` and the deployment docs (the README deployment section, `docs/ARCHITECTURE.md`, the
-`CLAUDE.md` environment section and every `.env.example`) stay authoritative until the API cutover
-ticket (#210) closes. Until then Render is production, and each stage of the move leaves it working
-and is reversible by a DNS change.
+`CLAUDE.md` environment section and every `.env.example`) stayed authoritative until the API cutover
+ticket (#210) closed, and each stage until then left Render working and was reversible by a DNS
+change. With the cutover done nothing of the application runs on Render; removing `render.yaml` and
+rewriting the deployment docs for Cloudflare alone is #212.
 
 The container instance is `basic`. #209 measured the real image (Node 24, the Express bundle, the
 generated Prisma client with its Rust engine) twice: locally in Docker under each instance type's

@@ -15,7 +15,7 @@
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Turborepo](https://img.shields.io/badge/Turborepo-Monorepo-EF4444?style=flat&logo=turborepo&logoColor=white)](https://turbo.build/)
 
-[Live Demo](https://audiophile.t-bendet.com) · [API Docs](https://audiophile-server-mhie.onrender.com/api/v1/health) · [Report Bug](https://github.com/t-bendet/audiophile-ecommerce-v5/issues)
+[Live Demo](https://audiophile.t-bendet.com) · [API Docs](https://audiophile.t-bendet.com/api/v1/health) · [Report Bug](https://github.com/t-bendet/audiophile-ecommerce-v5/issues)
 
 </div>
 
@@ -43,9 +43,9 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 ### Live Demo
 
 - **Client**: [audiophile.t-bendet.com](https://audiophile.t-bendet.com)
-- **API**: [audiophile-server-mhie.onrender.com](https://audiophile-server-mhie.onrender.com/api/v1/health)
+- **API**: [audiophile.t-bendet.com/api/v1/health](https://audiophile.t-bendet.com/api/v1/health)
 
-> **Note**: The API is still on Render's free tier - the first request after a quiet period may take 30-60 seconds while it wakes up.
+> **Note**: The API runs in a Cloudflare Container that sleeps when idle - the first request after a quiet period takes a few seconds while it wakes up.
 
 ---
 
@@ -70,7 +70,7 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
   - Rate limiting on critical endpoints (login, signup, orders)
   - JWT authentication with secure cookie storage
   - Input validation at multiple layers
-  - CORS protection with origin whitelisting
+  - Same-origin API under `/api/*`, so no cross-origin cookie and no origin allowlist
 
 - 🚀 **Performance**
   - TanStack Query caching with smart refetch strategies
@@ -119,7 +119,6 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 | **Zod**                | 4.5         | Request/response validation                 |
 | **Helmet**             | 8.3         | Security headers middleware                 |
 | **Express Rate Limit** | 8.7         | API rate limiting protection                |
-| **CORS**               | 2.8         | Cross-origin resource sharing               |
 | **pino + pino-http**   | 10.3 / 11.0 | Structured request logging with request ids |
 
 ### Shared Infrastructure
@@ -658,22 +657,7 @@ app.use(helmet()); // Adds security headers
 // Strict-Transport-Security: max-age=15552000
 ```
 
-**CORS Protection**:
-
-```typescript
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true, // Allow cookies
-  }),
-);
-```
+**Same-origin API**: the app and its API share `audiophile.t-bendet.com`, so there is no CORS middleware and no origin allowlist to keep in sync. In development the Vite proxy forwards `/api` to the server, which is same-origin too.
 
 **JWT Authentication**:
 
@@ -681,9 +665,9 @@ app.use(
 // Secure cookies
 res.cookie("jwt", token, {
   httpOnly: true, // No JavaScript access
-  secure: true, // HTTPS only in production
-  sameSite: "strict", // CSRF protection
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  secure: isSecure, // set when the request arrived over HTTPS
+  sameSite: "lax", // CSRF protection; same-origin API needs nothing wider
+  expires: ..., // JWT_COOKIE_EXPIRES_IN days
 });
 ```
 
@@ -708,8 +692,7 @@ Based on recent commits and the current branch (`fix/lighthouse-a11y-bp-seo`):
 - ✅ Added rate limiting for order creation
 - ✅ Refactored cookie options for secure handling in production
 - ✅ Added Helmet middleware for security headers
-- ✅ Enhanced CORS configuration with origin validation
-- ✅ Proper middleware ordering (CORS → Rate Limit → Security → Body Parsing)
+- ✅ Proper middleware ordering (Logging → Security → Rate Limit → Body Parsing)
 - ✅ Rate-limit rejections return the standard error envelope (`TOO_MANY_REQUESTS`, 429) instead of an ad-hoc body
 
 **Lighthouse Optimizations** (In Progress):
@@ -766,8 +749,6 @@ JWT_SECRET=your-secret-key-at-least-32-characters-long
 JWT_EXPIRES_IN=90d
 JWT_COOKIE_EXPIRES_IN=20000
 PORT=8000
-ALLOWED_ORIGINS=http://localhost:5173
-VITE_APP_PORT=5173
 ```
 
 **`apps/client/.env`**:
@@ -1063,70 +1044,49 @@ Items dropped as done, duplicated or won't-do are listed in the closing comment 
 
 ## 🚢 Deployment
 
-The client is served from Cloudflare Workers Static Assets at `audiophile.t-bendet.com`. The API still runs on Render from the `render.yaml` blueprint until it moves under the same hostname (#210; see ADR 0005).
+One Cloudflare Worker serves the whole application at `audiophile.t-bendet.com`: `/api/*` goes to the Express server in a Cloudflare Container, everything else is the Vite build. `render.yaml` is still in the repo until the docs ticket removes it (#212; see ADR 0005), but nothing of the application runs on Render.
 
 ### Current Deployment
 
-- **Client**: [audiophile.t-bendet.com](https://audiophile.t-bendet.com) - Cloudflare Workers Static Assets
-- **Server**: [audiophile-server-mhie.onrender.com](https://audiophile-server-mhie.onrender.com/api/v1/health) - Render free tier, cold starts after inactivity
+- **Application**: [audiophile.t-bendet.com](https://audiophile.t-bendet.com) - one Worker, static assets plus the API container
+- **API health**: [audiophile.t-bendet.com/api/v1/health](https://audiophile.t-bendet.com/api/v1/health) - answered by the container
 - **Old client URL**: `audiophile-client-i8rq.onrender.com` redirects to the new hostname
 
-### Client on Cloudflare Workers
+### The Worker
 
-`apps/client/wrangler.jsonc` serves the Vite `dist` directory as Workers Static Assets with `not_found_handling: "single-page-application"`, so a deep link such as `/products/yx1-earphones` returns the app shell. `apps/client/public/_headers` sets `X-Content-Type-Options` and `X-Frame-Options` on every response, as the Render static site did. The API base URL is baked in at build time from `apps/client/.env.production`, which points at the Render API's absolute `/api/v1` URL until #210.
+`apps/server/wrangler.jsonc` configures the single deployed Worker:
+
+- `assets` serves the client's `dist` directory with `not_found_handling: "single-page-application"`, so a deep link such as `/products/yx1-earphones` returns the app shell. `apps/client/public/_headers` sets `X-Content-Type-Options` and `X-Frame-Options` on every response, as the Render static site did.
+- `run_worker_first` lists the API paths, so `/api/*` reaches `apps/server/worker/index.ts` before any asset lookup and is forwarded to the container. An unknown API path returns the server's JSON 404 rather than the SPA shell.
+- The API base URL is baked into the client build from `apps/client/.env.production`, which is the same-origin default `/api/v1`. Cookies and requests are same-origin, so the server carries no CORS middleware.
 
 ```bash
-pnpm deploy:client                       # build domain + client, then `wrangler deploy` to production
-pnpm --filter client run deploy:preview  # upload the build as a version without deploying; prints its preview URL
-pnpm --filter client exec wrangler dev   # serve the last build locally with the SPA fallback
+pnpm deploy:app                         # build everything, then `wrangler deploy` to production
+pnpm --filter server exec wrangler dev  # serve the last build and the container locally
 ```
 
-`deploy` and `deploy:preview` need a Cloudflare login (`wrangler login`) or `CLOUDFLARE_API_TOKEN` in the environment.
+`deploy` and `deploy:preview` need a Cloudflare login (`wrangler login`) or `CLOUDFLARE_API_TOKEN` in the environment, and `wrangler dev` needs Docker running for the container. The Worker's secrets (`DATABASE_URL`, `JWT_SECRET`) are set on the Worker itself, not in a `.env` file.
 
-**Workers preview URLs replace Render PR previews.** Render no longer builds a preview per pull request. A branch preview is a Workers version: `deploy:preview` uploads the current build and prints a `<version>-audiophile.<subdomain>.workers.dev` URL that serves it without touching production. Until the API is same-origin (#210), a preview origin is not on Render's `ALLOWED_ORIGINS`, so a preview renders the shell but the browser blocks its API calls; check API-backed flows on `audiophile.t-bendet.com`. Running previews from CI is #211.
+**There is no per-pull-request preview.** Render stopped building one when the client moved (#208), and the Workers preview URLs that replaced it ended with this merge: Cloudflare does not generate them for a Worker that uses Durable Objects, which the container binding is. Check a branch with `wrangler dev`, which runs the assets and the container together, and check the merged result on `audiophile.t-bendet.com`. A preview deployment story, if there is to be one, belongs to #211.
 
 ### Deploy Your Own Instance
 
 1. **Fork this repository**
 
-2. **API on Render**
-   - Sign up at [render.com](https://render.com), click "New" → "Blueprint" and select your fork; Render auto-detects `render.yaml`
-   - The blueprint's `audiophile-client` service is only a redirect for the old hostname; delete it from your copy
-   - Set the server's environment variables in the Render dashboard:
-     - `DATABASE_URL`: your MongoDB Atlas connection string
-     - `JWT_SECRET`: auto-generated by Render
-     - `ALLOWED_ORIGINS`: your client origin (e.g. `https://audiophile.example.com`)
-   - Pushes to `main` redeploy the server
+2. **Cloudflare account**
+   - A Workers Paid plan, which is what Containers require, and `wrangler login` locally
+   - Set the Worker's secrets: `wrangler secret put DATABASE_URL` and `wrangler secret put JWT_SECRET` from `apps/server`
+   - `pnpm deploy:app` builds the client and the container image and deploys both behind one Worker
+   - Add a custom domain to the Worker in the Cloudflare dashboard; no origin list is needed, since the app and its API share the hostname
 
-3. **Client on Cloudflare**
-   - Point `VITE_APP_API_URL` in `apps/client/.env.production` at your server's `/api/v1`
-   - `pnpm deploy:client`
-   - Add a custom domain to the Worker in the Cloudflare dashboard and put that origin in `ALLOWED_ORIGINS`
+3. **Product images**
+   - Create an R2 bucket with a custom domain and run the media package's sync script; see `packages/media/README.md`
 
 ### Render Configuration
 
-```yaml
-# render.yaml (simplified)
-services:
-  # Express API Server
-  - type: web
-    name: audiophile-server
-    runtime: node
-    plan: free
-    buildCommand: pnpm install && pnpm turbo run build --filter=server...
-    startCommand: node apps/server/dist/index.js
-    healthCheckPath: /api/v1/health
-
-  # Old client hostname: redirects to audiophile.t-bendet.com
-  - type: web
-    name: audiophile-client
-    runtime: static
-    staticPublishPath: render/moved
-    routes:
-      - type: redirect
-        source: "/*"
-        destination: "https://audiophile.t-bendet.com/*"
-```
+`render.yaml` is still in the repo but nothing of the application runs on it any more. Its only live
+service is the static redirect that sends the old client hostname to `audiophile.t-bendet.com`; the
+server service is switched off. The blueprint goes away with the documentation rewrite (#212).
 
 ### MongoDB Atlas Setup
 

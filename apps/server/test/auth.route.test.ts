@@ -32,6 +32,7 @@ describe("POST /api/v1/auth/signup", () => {
     });
     expect(res.body.data.password).toBeUndefined();
     expect(res.headers["set-cookie"]?.[0]).toMatch(/^jwt=.+HttpOnly/i);
+    expect(res.headers["set-cookie"]?.[0]).toMatch(/SameSite=Lax/i);
   });
 
   // The unique index this leans on only exists because the global setup pushes
@@ -68,6 +69,8 @@ describe("POST /api/v1/auth/login", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data).toMatchObject({ id: user.id, email: user.email });
+    expect(res.headers["set-cookie"]?.[0]).toMatch(/^jwt=.+HttpOnly/i);
+    expect(res.headers["set-cookie"]?.[0]).toMatch(/SameSite=Lax/i);
   });
 
   it("rejects a wrong password without saying which field was wrong", async () => {

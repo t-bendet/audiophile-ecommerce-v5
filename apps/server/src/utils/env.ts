@@ -60,9 +60,7 @@ const createEnv = () => {
       .min(32, "JWT_SECRET must be at least 32 characters for security"),
     JWT_EXPIRES_IN: msDurationStringCheck,
     JWT_COOKIE_EXPIRES_IN: z.coerce.number().positive(),
-    ALLOWED_ORIGINS: z.string().optional(),
     LOG_LEVEL: LogLevelSchema.optional(),
-    VITE_APP_PORT: z.coerce.number().int().min(1000).max(65535).optional(),
   });
 
   const parsedEnv = EnvSchema.refine(

@@ -124,16 +124,16 @@ Protected route → auth middleware extracts token
 
 ## Security Layers (OWASP-aware)
 
-| Layer                   | What it does                                        |
-| ----------------------- | --------------------------------------------------- |
-| Helmet                  | Security headers (XSS, clickjacking, MIME sniffing) |
-| CORS allowlist          | Explicit origin list, not `*`                       |
-| Rate limiting (global)  | 500 req / 15 min per IP on `/api`                   |
-| Rate limiting (route)   | login 10/15min, signup 5/hr, order create 20/hr     |
-| Body size limit         | 10kb cap — prevents request flooding                |
-| Zod `.strict()`         | Rejects extra fields (mass assignment prevention)   |
-| DTO mapping             | Sensitive fields never leave the service layer      |
-| JWT `passwordChangedAt` | Revokes old tokens without a blacklist              |
+| Layer                   | What it does                                            |
+| ----------------------- | ------------------------------------------------------- |
+| Helmet                  | Security headers (XSS, clickjacking, MIME sniffing)     |
+| Same-origin API         | App and API share a hostname, so no cross-origin cookie |
+| Rate limiting (global)  | 500 req / 15 min per IP on `/api`                       |
+| Rate limiting (route)   | login 10/15min, signup 5/hr, order create 20/hr         |
+| Body size limit         | 10kb cap — prevents request flooding                    |
+| Zod `.strict()`         | Rejects extra fields (mass assignment prevention)       |
+| DTO mapping             | Sensitive fields never leave the service layer          |
+| JWT `passwordChangedAt` | Revokes old tokens without a blacklist                  |
 
 Rate-limit rejections are not special-cased: the limiter hands an
 `AppError(TOO_MANY_REQUESTS)` to `next()`, so a 429 comes back in the same

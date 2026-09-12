@@ -2,12 +2,15 @@ import { Container, getContainer } from "@cloudflare/containers";
 
 interface Env {
   API_CONTAINER: DurableObjectNamespace<ApiContainer>;
+  ASSETS: Fetcher;
   NODE_ENV: string;
   DATABASE_URL: string;
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
   JWT_COOKIE_EXPIRES_IN: string;
 }
+
+const isApiPath = (pathname: string) => /^\/api(\/|$)/.test(pathname);
 
 export class ApiContainer extends Container<Env> {
   // The server listens only after its database ping, so an open port equals a passing /api/v1/health.
@@ -27,6 +30,19 @@ export class ApiContainer extends Container<Env> {
 
 export default {
   fetch(request, env) {
-    return getContainer(env.API_CONTAINER).fetch(request);
+    const url = new URL(request.url);
+
+    // Second lock on the rule: an asset request never gets the API's 404.
+    if (!isApiPath(url.pathname)) {
+      return env.ASSETS.fetch(request);
+    }
+
+    // Reached over plain HTTP, so only this header can set `Secure` cookies.
+    const forwarded = new Request(request, {
+      headers: new Headers(request.headers),
+    });
+    forwarded.headers.set("x-forwarded-proto", url.protocol.replace(":", ""));
+
+    return getContainer(env.API_CONTAINER).fetch(forwarded);
   },
 } satisfies ExportedHandler<Env>;

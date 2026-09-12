@@ -162,9 +162,6 @@ importers:
       vitest:
         specifier: ^5.0.0
         version: 5.0.0(@types/node@24.13.4)(vite@8.2.2(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13))
-      wrangler:
-        specifier: ^4.131.0
-        version: 4.131.0(@types/node@24.13.4)
 
   apps/server:
     dependencies:
@@ -177,9 +174,6 @@ importers:
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
-      cors:
-        specifier: ^2.8.6
-        version: 2.8.6
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -223,9 +217,6 @@ importers:
       '@types/cookie-parser':
         specifier: ^1.4.10
         version: 1.4.10(@types/express@5.0.6)
-      '@types/cors':
-        specifier: ^2.8.19
-        version: 2.8.19
       '@types/express':
         specifier: ^5.0.3
         version: 5.0.6
@@ -2330,9 +2321,6 @@ packages:
   '@types/cookiejar@2.1.5':
     resolution: {integrity: sha512-he+DHOWReW0nghN24E1WUqM0efK4kI9oTqDm6XmK8ZPe2djZ90BSNdGnIyCLzCPw7/pogPlGbzI2wHGGmi4O/Q==}
 
-  '@types/cors@2.8.19':
-    resolution: {integrity: sha512-mFNylyeyqN93lfe/9CSxOGREz8cpzAhH+E93xJ4xWQf62V8sQ/24reV2nyzUWM6H6Xji+GGHpkbLe7pVoUEskg==}
-
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
 
@@ -2777,10 +2765,6 @@ packages:
 
   cookiejar@2.1.4:
     resolution: {integrity: sha512-LDx6oHrK+PhzLKJU9j5S7/Y3jM/mUHvD/DeI1WQmJn652iPC5Y4TBzC9l+5OMOXlyTTA+SmVUPm0HQUwpD5Jqw==}
-
-  cors@2.8.6:
-    resolution: {integrity: sha512-tJtZBBHA6vjIAaF6EnIaq6laBBP9aq/Y3ouVJjEfoHbRBcHBAHYcMh/w8LDrk2PvIMMq8gmopa5D4V8RmbrxGw==}
-    engines: {node: '>= 0.10'}
 
   cosmiconfig@8.3.6:
     resolution: {integrity: sha512-kcZ6+W5QzcJ3P1Mt+83OUv/oHFqZHIx8DuxG6eZ5RGMERoLqp4BuGjhHLYGK+Kf5XVkQvqBSmAy/nGWN3qDgEA==}
@@ -6273,10 +6257,6 @@ snapshots:
 
   '@types/cookiejar@2.1.5': {}
 
-  '@types/cors@2.8.19':
-    dependencies:
-      '@types/node': 24.13.4
-
   '@types/deep-eql@4.0.2': {}
 
   '@types/esrecurse@4.3.1': {}
@@ -6731,11 +6711,6 @@ snapshots:
   cookie@1.1.1: {}
 
   cookiejar@2.1.4: {}
-
-  cors@2.8.6:
-    dependencies:
-      object-assign: 4.1.1
-      vary: 1.1.2
 
   cosmiconfig@8.3.6(typescript@5.9.3):
     dependencies:
