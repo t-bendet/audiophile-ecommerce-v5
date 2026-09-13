@@ -13,6 +13,7 @@
     "types:watch": "tsc -b -w",
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
+    "db:sync": "turbo run db:sync",
     "db:generate": "turbo run db:generate",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",

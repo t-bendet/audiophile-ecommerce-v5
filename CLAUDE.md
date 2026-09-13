@@ -18,7 +18,8 @@ pnpm db:up             # start MongoDB (docker compose up -d --wait); dev, db:se
 pnpm db:down           # stop and remove the container; the data volume survives
 pnpm db:generate       # regenerate the Prisma client after any schema change
 pnpm db:push           # push schema to the local database
-pnpm db:seed           # seed database
+pnpm db:seed           # DROPS the database, then seeds it: local only (see "Seeding vs syncing")
+pnpm db:sync           # upsert the catalogue onto whatever DATABASE_URL names: safe on production
 pnpm db:setup          # up + push + generate + seed: a fresh clone's one command after install
 pnpm db:reset          # up + push --force-reset + generate + seed: wipe dev data and start over
 
@@ -163,6 +164,42 @@ Used for dev-only navigation timing — the client's one middleware, `apps/clien
 3. **Every route accepting input must go through `defineHandler`** — never mount `validateSchema` by hand, and never skip it.
 4. **Build order matters**: if types are missing, ensure `packages/database` and `packages/domain` are built before `apps/server`.
 
+## Seeding vs syncing
+
+Two scripts write the catalogue, and the difference matters because one of them is safe to point
+at Atlas and the other is not.
+
+`pnpm db:seed` (`src/seed/index.ts`) runs `dropDatabase` and then `create`s everything: six demo
+users, the categories, the products, the config. It is the local "give me a clean database"
+command and `db:reset` builds on it. Never point it at production - it deletes every user, cart
+and order, and because every product is re-created with a fresh `_id`, it also dangles the
+`productId` in any order that survived.
+
+`pnpm db:sync` (`src/seed/catalogue-sync.ts`) writes only what the repo owns - 3 categories, 6
+products, 1 config - as upserts on the unique keys those models already carry (`Category.name`,
+`Product.slug`, `Config.name`). A document keeps its `_id`, so carts and order history keep
+resolving; nothing is deleted, so a product dropped from the repo is left in place rather than
+cascading away cart items; no user is touched. Running it twice changes nothing, which is what
+makes it safe to attach to a deploy.
+
+Use it whenever a schema shape changes - that is the migration:
+
+```bash
+DATABASE_URL='mongodb+srv://...' pnpm db:sync
+```
+
+`dotenv` never overrides an already-set variable, so the prefix wins over `packages/database/.env`
+and no production credential has to be written to a file.
+
+CI runs it for you: the `sync-catalogue` job in `.github/workflows/ci.yml` needs `deploy` and runs
+`db:sync` against the `DATABASE_URL` repository secret. Without that secret the job logs a warning
+and skips, so the catalogue simply stays a manual step rather than failing a good deploy.
+
+One thing the sync cannot fix: while a shape is changing, new code cannot read old rows and old
+code cannot read new rows, so there is a window between the Worker going live and the sync
+finishing. It is under a minute; closing it entirely would mean shipping a reader that accepts
+both shapes, migrating, then removing the old branch.
+
 ## Local database
 
 Dev, seeding, the opt-in test path and Compass all use the one MongoDB in `docker-compose.yml`: a
@@ -257,8 +294,10 @@ while `DATABASE_URL` and `JWT_SECRET` are Worker secrets (`wrangler secret put <
 
 A push to `main` deploys: the `deploy` job in `.github/workflows/ci.yml` needs the `verify` and
 `image` jobs and then runs `pnpm deploy:app`, which builds everything and hands the image, the
-Worker and the assets to `wrangler deploy`. It needs the repository secrets
-`CLOUDFLARE_API_TOKEN` (Edit Cloudflare Workers template) and `CLOUDFLARE_ACCOUNT_ID`. Deploying by
+Worker and the assets to `wrangler deploy`. A `sync-catalogue` job then runs `pnpm db:sync`
+against Atlas, so a catalogue change ships without a manual reseed. It needs the repository
+secrets `CLOUDFLARE_API_TOKEN` (Edit Cloudflare Workers template), `CLOUDFLARE_ACCOUNT_ID`, and
+`DATABASE_URL` (the Atlas connection string; without it the sync job warns and skips). Deploying by
 hand is the same `pnpm deploy:app` after `wrangler login`. There are no pull-request previews;
 check a branch with `pnpm --filter server exec wrangler dev`, which needs Docker.
 
