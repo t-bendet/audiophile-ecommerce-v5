@@ -1,3 +1,4 @@
+import { prisma } from "@repo/database";
 import { ErrorCode } from "@repo/domain";
 import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -7,10 +8,12 @@ import {
   authCookie,
   createAdmin,
   createCategory,
+  createConfig,
   createProduct,
   image,
   resetDatabase,
   resolvedImage,
+  resolvedResponsiveImage,
   thumbnail,
 } from "./helpers/database.js";
 
@@ -33,10 +36,10 @@ const productBody = (categoryId: string, name: string) => ({
   images: {
     featuredImage: null,
     showCaseImage: null,
-    galleryImages: [image(`${name}-gallery`)],
-    introImage: image(`${name}-intro`),
-    primaryImage: image(`${name}-primary`),
-    relatedProductImage: image(`${name}-related`),
+    galleryImages: [image("test-product", "gallery-1")],
+    introImage: image("test-product", "intro"),
+    primaryImage: image("test-product", "primary"),
+    relatedProductImage: image("test-product", "related"),
     thumbnail: productThumbnail,
   },
 });
@@ -325,6 +328,131 @@ describe("product thumbnail validation", () => {
         images: {
           ...product.images,
           thumbnail: { altText: "ZX9", image },
+        },
+      });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
+  });
+});
+
+describe("responsive images on the wire", () => {
+  it("resolves every slot of a single product", async () => {
+    const product = await createProduct();
+
+    const res = await request(app).get(`/api/v1/products/${product.id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.images).toMatchObject({
+      primaryImage: resolvedResponsiveImage(product.images.primaryImage),
+      introImage: resolvedResponsiveImage(product.images.introImage),
+      relatedProductImage: resolvedResponsiveImage(
+        product.images.relatedProductImage,
+      ),
+      galleryImages: product.images.galleryImages.map(resolvedResponsiveImage),
+    });
+  });
+
+  it("resolves the related product image", async () => {
+    const product = await createProduct();
+    const related = await createProduct({ categoryId: product.categoryId });
+
+    const res = await request(app).get(
+      `/api/v1/products/related-products/${product.id}`,
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(1);
+    expect(res.body.data[0].images.relatedProductImage).toEqual(
+      resolvedResponsiveImage(related.images.relatedProductImage),
+    );
+  });
+
+  it("resolves the showcase image in every slot", async () => {
+    const config = await createConfig();
+    const slots = {
+      showCaseCover: config.showCaseCoverId,
+      showCaseWide: config.showCaseWideId,
+      showCaseGrid: config.showCaseGridId,
+    };
+
+    const res = await request(app).get("/api/v1/products/show-case");
+
+    expect(res.status).toBe(200);
+    for (const [slot, id] of Object.entries(slots)) {
+      const product = await prisma.product.findUniqueOrThrow({ where: { id } });
+      expect(res.body.data[slot].images.showCaseImage).toEqual(
+        resolvedResponsiveImage(product.images.showCaseImage!),
+      );
+    }
+  });
+
+  it("resolves the featured image", async () => {
+    const config = await createConfig();
+    const featured = await prisma.product.findUniqueOrThrow({
+      where: { id: config.featuredProductId },
+    });
+
+    const res = await request(app).get("/api/v1/products/featured");
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.images.featuredImage).toEqual(
+      resolvedResponsiveImage(featured.images.featuredImage!),
+    );
+  });
+});
+
+describe("product responsive image validation", () => {
+  const primary = image("test-product", "primary");
+  const badVariants = [
+    [
+      "a URL in place of a key",
+      {
+        ...primary.mobile,
+        key: `https://audiophile-media.t-bendet.com/${primary.mobile.key}`,
+      },
+    ],
+    ["a missing dimension", { key: primary.mobile.key, width: 654 }],
+  ] as const;
+
+  it.for(badVariants)("rejects %s on create", async ([, mobile]) => {
+    const admin = await createAdmin();
+    const category = await createCategory();
+    const body = productBody(category.id, "ZX9 Speaker");
+
+    const res = await request(app)
+      .post("/api/v1/products")
+      .set("Cookie", authCookie(admin.id))
+      .send({
+        ...body,
+        images: {
+          ...body.images,
+          primaryImage: { ...primary, mobile },
+        },
+      });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.VALIDATION_ERROR,
+      details: expect.arrayContaining([
+        expect.objectContaining({
+          path: expect.arrayContaining(["images", "primaryImage", "mobile"]),
+        }),
+      ]),
+    });
+  });
+
+  it.for(badVariants)("rejects %s on update", async ([, mobile]) => {
+    const admin = await createAdmin();
+    const product = await createProduct();
+
+    const res = await request(app)
+      .patch(`/api/v1/products/${product.id}`)
+      .set("Cookie", authCookie(admin.id))
+      .send({
+        images: {
+          ...product.images,
+          primaryImage: { ...product.images.primaryImage, mobile },
         },
       });
 

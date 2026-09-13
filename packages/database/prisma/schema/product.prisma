@@ -31,19 +31,11 @@ type ProductIncludedItems {
 }
 
 type ProductImages {
-  featuredImage       ProductImagesProperties?
-  galleryImages       ProductImagesProperties[]
-  introImage          ProductImagesProperties
-  primaryImage        ProductImagesProperties
-  showCaseImage       ProductImagesProperties?
+  featuredImage       ResponsiveImage?
+  galleryImages       ResponsiveImage[]
+  introImage          ResponsiveImage
+  primaryImage        ResponsiveImage
+  showCaseImage       ResponsiveImage?
   thumbnail           SingleImage
-  relatedProductImage ProductImagesProperties
-}
-
-type ProductImagesProperties {
-  altText    String
-  ariaLabel  String
-  desktopSrc String
-  mobileSrc  String
-  tabletSrc  String
+  relatedProductImage ResponsiveImage
 }

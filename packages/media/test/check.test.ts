@@ -5,12 +5,10 @@ import { describe, expect, it } from "vitest";
 import { listAssetKeys } from "../src/assets.js";
 import { auditAssets } from "../src/audit.js";
 import { checkMedia, describeMediaCheck } from "../src/check.js";
-import { MEDIA_BASE_URL } from "../src/keys.js";
 import { buildManifest, writeManifest } from "../src/manifest.js";
 import {
   collectImageReferences,
   seedImageReferences,
-  seedImageUrls,
   seedReferencedKeys,
 } from "../src/seed-references.js";
 import { EARPHONES, emptyTreeOf, imageTreeOf } from "./helpers.js";
@@ -25,22 +23,13 @@ describe("the real assets tree", () => {
     expect(describeMediaCheck(result)).toBe("");
   });
 
-  it("asks for the keys a migrated entity states, not only the URLs", () => {
+  it("states a size for every key it asks for", () => {
     const references = seedImageReferences();
 
     expect(references.length).toBeGreaterThan(0);
-    expect(seedReferencedKeys()).toEqual(
-      expect.arrayContaining(references.map(({ key }) => key)),
-    );
-  });
-
-  it("serves every seed image from the media host", () => {
-    const urls = seedImageUrls();
-
-    expect(urls.length).toBeGreaterThan(0);
-    expect(urls.filter((url) => !url.startsWith(`${MEDIA_BASE_URL}/`))).toEqual(
-      [],
-    );
+    expect(seedReferencedKeys()).toEqual([
+      ...new Set(references.map(({ key }) => key)),
+    ]);
   });
 });
 
@@ -167,7 +156,7 @@ describe("collectImageReferences", () => {
           },
         },
       ],
-      legacy: { src: "https://example.test/still-a-url.jpg" },
+      caption: { text: "not an image at all" },
     };
 
     expect(collectImageReferences(seedShape, [])).toEqual([

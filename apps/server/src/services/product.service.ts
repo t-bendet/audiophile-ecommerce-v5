@@ -1,4 +1,4 @@
-import { NAME, prisma } from "@repo/database";
+import { NAME, prisma, type ResponsiveImage } from "@repo/database";
 import {
   AppError,
   ErrorCode,
@@ -18,7 +18,7 @@ import {
   slugify,
   SlugValidator,
 } from "@repo/domain";
-import { toSingleImageDTO } from "../utils/media.js";
+import { toResponsiveImageDTO, toSingleImageDTO } from "../utils/media.js";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
@@ -41,6 +41,19 @@ const PRODUCT_UPDATE_FIELDS = [
   "images",
 ] as const satisfies readonly (keyof ProductUpdateInput)[];
 
+const resolveShowCase = <
+  T extends { images: { showCaseImage: ResponsiveImage | null } },
+>({
+  images,
+  ...product
+}: T) => ({
+  ...product,
+  images: {
+    showCaseImage:
+      images.showCaseImage && toResponsiveImageDTO(images.showCaseImage),
+  },
+});
+
 export class ProductService extends AbstractCrudService<
   Product,
   ProductCreateInput,
@@ -51,11 +64,19 @@ export class ProductService extends AbstractCrudService<
   protected toDTO(entity: Product): ProductDTO {
     // A `fields` selection can leave the row without images to resolve.
     if (!entity.images) return entity as unknown as ProductDTO;
+    const images = entity.images;
     return {
       ...entity,
       images: {
-        ...entity.images,
-        thumbnail: toSingleImageDTO(entity.images.thumbnail),
+        featuredImage:
+          images.featuredImage && toResponsiveImageDTO(images.featuredImage),
+        galleryImages: images.galleryImages.map(toResponsiveImageDTO),
+        introImage: toResponsiveImageDTO(images.introImage),
+        primaryImage: toResponsiveImageDTO(images.primaryImage),
+        showCaseImage:
+          images.showCaseImage && toResponsiveImageDTO(images.showCaseImage),
+        thumbnail: toSingleImageDTO(images.thumbnail),
+        relatedProductImage: toResponsiveImageDTO(images.relatedProductImage),
       },
     };
   }
@@ -195,7 +216,10 @@ export class ProductService extends AbstractCrudService<
     }
 
     return {
-      data: products,
+      data: products.map((product) => ({
+        ...product,
+        images: { introImage: toResponsiveImageDTO(product.images.introImage) },
+      })),
       meta: {
         page: 1,
         limit: products.length,
@@ -284,7 +308,14 @@ export class ProductService extends AbstractCrudService<
       relatedProducts.push(...additionalProducts);
     }
     return {
-      data: relatedProducts,
+      data: relatedProducts.map((product) => ({
+        ...product,
+        images: {
+          relatedProductImage: toResponsiveImageDTO(
+            product.images.relatedProductImage,
+          ),
+        },
+      })),
       meta: {
         page: 1,
         limit: relatedProducts.length,
@@ -349,9 +380,9 @@ export class ProductService extends AbstractCrudService<
     }
 
     return {
-      showCaseCover: config.showCaseCover,
-      showCaseWide: config.showCaseWide,
-      showCaseGrid: config.showCaseGrid,
+      showCaseCover: resolveShowCase(config.showCaseCover),
+      showCaseWide: resolveShowCase(config.showCaseWide),
+      showCaseGrid: resolveShowCase(config.showCaseGrid),
     };
   }
 
@@ -400,14 +431,19 @@ export class ProductService extends AbstractCrudService<
       );
     }
 
-    if (!config.featuredProduct.images?.featuredImage) {
+    const { images, ...featured } = config.featuredProduct;
+
+    if (!images?.featuredImage) {
       throw new AppError(
         "Featured product missing featured image",
         ErrorCode.INTERNAL_ERROR,
       );
     }
 
-    return config.featuredProduct;
+    return {
+      ...featured,
+      images: { featuredImage: toResponsiveImageDTO(images.featuredImage) },
+    };
   }
 }
 

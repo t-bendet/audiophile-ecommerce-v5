@@ -30,17 +30,13 @@ const ShowCaseProductsSection = () => {
       <article>
         <Container classes="bg-primary-500 lg:gap-30 flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center">
           <section className="lg:max-w-102.5 mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5">
-            <ResponsivePicture
-              altText={showCaseCover?.images.showCaseImage?.altText || ""}
-              ariaLabel={showCaseCover?.images.showCaseImage?.ariaLabel || ""}
-              mobileSrc={showCaseCover?.images.showCaseImage?.mobileSrc || ""}
-              tabletSrc={showCaseCover?.images.showCaseImage?.tabletSrc || ""}
-              desktopSrc={showCaseCover?.images.showCaseImage?.desktopSrc || ""}
-              classes="mx-auto"
-              width={756}
-              height={918}
-              loading="lazy"
-            />
+            {showCaseCover?.images.showCaseImage && (
+              <ResponsivePicture
+                {...showCaseCover.images.showCaseImage}
+                classes="mx-auto"
+                loading="lazy"
+              />
+            )}
           </section>
           <section className="max-w-[30ch] text-center md:max-w-[35ch] lg:max-w-[40ch] lg:p-6 lg:text-left">
             <header>
@@ -84,18 +80,14 @@ const ShowCaseProductsSection = () => {
       </article>
       <article>
         <Container classes="grid h-full grid-cols-1 overflow-hidden rounded-sm">
-          <ResponsivePicture
-            altText={showCaseWide?.images.showCaseImage?.altText || ""}
-            ariaLabel={showCaseWide?.images.showCaseImage?.ariaLabel || ""}
-            mobileSrc={showCaseWide?.images.showCaseImage?.mobileSrc || ""}
-            tabletSrc={showCaseWide?.images.showCaseImage?.tabletSrc || ""}
-            desktopSrc={showCaseWide?.images.showCaseImage?.desktopSrc || ""}
-            classes="w-full"
-            pictureClasses="col-span-full row-span-full"
-            width={1110}
-            height={320}
-            loading="lazy"
-          />
+          {showCaseWide?.images.showCaseImage && (
+            <ResponsivePicture
+              {...showCaseWide.images.showCaseImage}
+              classes="w-full"
+              pictureClasses="col-span-full row-span-full"
+              loading="lazy"
+            />
+          )}
           <div className="z-10 col-span-full row-span-full ml-6 self-center md:ml-16 lg:ml-24">
             <header>
               <h2 className="text-2xl font-bold uppercase tracking-[0.07em] text-neutral-900">
@@ -132,16 +124,12 @@ const ShowCaseProductsSection = () => {
       <article>
         <Container classes="lg: grid grid-cols-1 grid-rows-2 gap-6 md:grid-cols-2 md:grid-rows-1 md:gap-3 lg:gap-7">
           <section className="overflow-hidden rounded-sm">
-            <ResponsivePicture
-              altText={showCaseGrid?.images.showCaseImage?.altText || ""}
-              ariaLabel={showCaseGrid?.images.showCaseImage?.ariaLabel || ""}
-              mobileSrc={showCaseGrid?.images.showCaseImage?.mobileSrc || ""}
-              tabletSrc={showCaseGrid?.images.showCaseImage?.tabletSrc || ""}
-              desktopSrc={showCaseGrid?.images.showCaseImage?.desktopSrc || ""}
-              width={540}
-              height={320}
-              loading="lazy"
-            />
+            {showCaseGrid?.images.showCaseImage && (
+              <ResponsivePicture
+                {...showCaseGrid.images.showCaseImage}
+                loading="lazy"
+              />
+            )}
           </section>
           <section className="flex items-center overflow-hidden rounded-sm bg-neutral-200">
             <div className="ml-6 md:ml-10 lg:ml-24">

@@ -599,10 +599,24 @@ model Product {
 }
 
 type ProductImages {
-  primaryImage    ProductImagesProperties
-  galleryImages   ProductImagesProperties[]
-  thumbnail       ProductsImagesThumbnail
-  // More image variants...
+  primaryImage    ResponsiveImage
+  galleryImages   ResponsiveImage[]
+  thumbnail       SingleImage
+  // More image slots...
+}
+
+// A bucket key and the file's pixel size; the host is joined at the API boundary.
+type ImageVariant {
+  key    String
+  width  Int
+  height Int
+}
+
+type ResponsiveImage {
+  altText String
+  mobile  ImageVariant
+  tablet  ImageVariant
+  desktop ImageVariant
 }
 ```
 
@@ -611,7 +625,7 @@ Benefits of embedded images:
 - Single query to fetch product + all images
 - No N+1 query problems
 - Type-safe image access
-- Flexible structure
+- Every variant carries its own size, so the client reserves the box before it loads
 
 ### 11. **Security-First Approach**
 

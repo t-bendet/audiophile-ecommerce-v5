@@ -16,17 +16,9 @@ const FeaturedProductSection = () => {
   return (
     <>
       <ResponsivePicture
-        mobileSrc={product.data.images.featuredImage.mobileSrc}
-        tabletSrc={product.data.images.featuredImage.tabletSrc}
-        desktopSrc={product.data.images.featuredImage.desktopSrc}
-        altText={product.data.images.featuredImage.altText}
-        ariaLabel={
-          product.data.images.featuredImage.ariaLabel + "background image"
-        }
+        {...product.data.images.featuredImage}
         pictureClasses="col-span-full row-span-full"
         classes="h-full w-full object-cover object-bottom mix-blend-difference"
-        width={2880}
-        height={1458}
         loading="eager"
         fetchPriority="high"
       />

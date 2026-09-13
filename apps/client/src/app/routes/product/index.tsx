@@ -40,7 +40,7 @@ const Product = () => {
       <Metadata
         title={product.fullLabel.join(" ")}
         description={product.description}
-        image={product.images.primaryImage.desktopSrc}
+        image={product.images.primaryImage.desktop.src}
         type="product"
       />
       <Container classes="lg:mt-19 mb-6 mt-4 md:mb-8 md:mt-8 lg:mb-14">
@@ -59,14 +59,8 @@ const Product = () => {
         <Section classes="max-sm:mb-22">
           <Container classes="md:gap-x-17 lg:gap-x-31 flex flex-col gap-y-8 md:flex-row">
             <ResponsivePicture
-              mobileSrc={product.images.primaryImage.mobileSrc}
-              tabletSrc={product.images.primaryImage.tabletSrc}
-              desktopSrc={product.images.primaryImage.desktopSrc}
-              altText={product.images.primaryImage.altText}
-              ariaLabel={product.images.primaryImage.ariaLabel}
+              {...product.images.primaryImage}
               pictureClasses="rounded-sm"
-              width={1080}
-              height={1120}
               loading="eager"
               fetchPriority="high"
             />
@@ -126,37 +120,22 @@ const Product = () => {
         <Section>
           <Container classes="grid grid-cols-1 grid-rows-2 gap-5 md:grid-cols-[40%__60%] lg:gap-8">
             <ResponsivePicture
-              mobileSrc={product.images.galleryImages[0].mobileSrc}
-              tabletSrc={product.images.galleryImages[0].tabletSrc}
-              desktopSrc={product.images.galleryImages[0].desktopSrc}
-              altText={product.images.galleryImages[0].altText}
-              ariaLabel={product.images.galleryImages[0].ariaLabel}
+              {...product.images.galleryImages[0]}
               pictureClasses="rounded-sm md:col-span-1 md:row-span-1"
               classes="h-full rounded-sm"
-              width={654}
-              height={348}
+              loading="lazy"
             />
             <ResponsivePicture
-              mobileSrc={product.images.galleryImages[1].mobileSrc}
-              tabletSrc={product.images.galleryImages[1].tabletSrc}
-              desktopSrc={product.images.galleryImages[1].desktopSrc}
-              altText={product.images.galleryImages[1].altText}
-              ariaLabel={product.images.galleryImages[1].ariaLabel}
+              {...product.images.galleryImages[1]}
               pictureClasses="rounded-sm md:col-start-1 md:row-start-2"
               classes="h-full rounded-sm"
-              width={654}
-              height={348}
+              loading="lazy"
             />
             <ResponsivePicture
-              mobileSrc={product.images.galleryImages[2].mobileSrc}
-              tabletSrc={product.images.galleryImages[2].tabletSrc}
-              desktopSrc={product.images.galleryImages[2].desktopSrc}
-              altText={product.images.galleryImages[2].altText}
-              ariaLabel={product.images.galleryImages[2].ariaLabel}
+              {...product.images.galleryImages[2]}
               pictureClasses="rounded-sm md:col-start-2 md:row-span-2 "
               classes="h-full rounded-sm"
-              width={635}
-              height={592}
+              loading="lazy"
             />
           </Container>
         </Section>

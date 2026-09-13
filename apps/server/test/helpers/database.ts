@@ -3,6 +3,7 @@ import {
   type Category,
   type ImageVariant,
   type NAME,
+  type ResponsiveImage,
   type SingleImage,
 } from "@repo/database";
 import jwt from "jsonwebtoken";
@@ -83,12 +84,24 @@ export const tamperedAuthCookie = (userId: string) => {
   return `jwt=${token}`;
 };
 
-export const image = (label: string) => ({
-  altText: `${label} alt`,
-  ariaLabel: `${label} aria`,
-  desktopSrc: `https://cdn.example.com/${label}-desktop.jpg`,
-  mobileSrc: `https://cdn.example.com/${label}-mobile.jpg`,
-  tabletSrc: `https://cdn.example.com/${label}-tablet.jpg`,
+/** A persisted responsive image: one key per breakpoint, each its own size. */
+export const image = (slug: string, role: string) => ({
+  altText: `${slug} ${role} alt`,
+  mobile: {
+    key: `products/${slug}/${role}-mobile.jpg`,
+    width: 654,
+    height: 654,
+  },
+  tablet: {
+    key: `products/${slug}/${role}-tablet.jpg`,
+    width: 562,
+    height: 960,
+  },
+  desktop: {
+    key: `products/${slug}/${role}-desktop.jpg`,
+    width: 1080,
+    height: 1120,
+  },
 });
 
 /** A persisted single image: a bucket key and the size of the file behind it. */
@@ -116,13 +129,31 @@ export const resolvedImage = ({ altText, image }: SingleImage) => ({
   ...resolvedVariant(image),
 });
 
+/** Three resolved variants under one description. */
+export const resolvedResponsiveImage = ({
+  altText,
+  mobile,
+  tablet,
+  desktop,
+}: ResponsiveImage) => ({
+  altText,
+  mobile: resolvedVariant(mobile),
+  tablet: resolvedVariant(tablet),
+  desktop: resolvedVariant(desktop),
+});
+
 export const createCategory = (name: NAME = "Headphones"): Promise<Category> =>
   prisma.category.create({
     data: { name, thumbnail: singleImage(name.toLowerCase()) },
   });
 
 export const createProduct = async (
-  overrides: { categoryId?: string; price?: number; slug?: string } = {},
+  overrides: {
+    categoryId?: string;
+    price?: number;
+    slug?: string;
+    featuredImageText?: string;
+  } = {},
 ) => {
   const categoryId = overrides.categoryId ?? (await sharedCategoryId());
   const label = unique("product");
@@ -138,14 +169,16 @@ export const createProduct = async (
       price: overrides.price ?? 1000,
       fullLabel: [label],
       featuresText: [`${label} feature`],
-      featuredImageText: null,
-      showCaseImageText: null,
+      featuredImageText: overrides.featuredImageText ?? null,
+      showCaseImageText: `${label} showcase text`,
       includedItems: [{ item: "Cable", quantity: 1 }],
       images: {
-        galleryImages: [image(`${label}-gallery`)],
-        introImage: image(`${label}-intro`),
-        primaryImage: image(`${label}-primary`),
-        relatedProductImage: image(`${label}-related`),
+        galleryImages: [image(label, "gallery-1")],
+        introImage: image(label, "intro"),
+        primaryImage: image(label, "primary"),
+        relatedProductImage: image(label, "related"),
+        featuredImage: image(label, "featured"),
+        showCaseImage: image(label, "showcase"),
         thumbnail: thumbnail(label),
       },
     },
@@ -156,7 +189,8 @@ export const createProduct = async (
 export const createConfig = async () => {
   const categoryId = await sharedCategoryId();
   const [featured, cover, grid, wide] = await Promise.all([
-    createProduct({ categoryId }),
+    // The featured slot is served only when the product carries its own text.
+    createProduct({ categoryId, featuredImageText: "featured text" }),
     createProduct({ categoryId }),
     createProduct({ categoryId }),
     createProduct({ categoryId }),

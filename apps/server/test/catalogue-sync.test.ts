@@ -1,7 +1,7 @@
 import { prisma } from "@repo/database";
 import { syncCatalogue } from "@repo/database/seed/catalogue-sync";
 import { beforeEach, describe, expect, it } from "vitest";
-import { createUser, resetDatabase } from "./helpers/database.js";
+import { createUser, image, resetDatabase } from "./helpers/database.js";
 
 // `db:sync` writes to production, so what keeps it safe is pinned here: it
 // upserts on existing unique keys, so nothing it touches changes `_id`, and a
@@ -149,27 +149,9 @@ describe("syncCatalogue", () => {
         includedItems: [{ item: "Cable", quantity: 1 }],
         images: {
           galleryImages: [],
-          introImage: {
-            altText: "a",
-            ariaLabel: "a",
-            desktopSrc: "d",
-            mobileSrc: "m",
-            tabletSrc: "t",
-          },
-          primaryImage: {
-            altText: "a",
-            ariaLabel: "a",
-            desktopSrc: "d",
-            mobileSrc: "m",
-            tabletSrc: "t",
-          },
-          relatedProductImage: {
-            altText: "a",
-            ariaLabel: "a",
-            desktopSrc: "d",
-            mobileSrc: "m",
-            tabletSrc: "t",
-          },
+          introImage: image("retired", "intro"),
+          primaryImage: image("retired", "primary"),
+          relatedProductImage: image("retired", "related"),
           thumbnail: {
             altText: "a",
             image: {
