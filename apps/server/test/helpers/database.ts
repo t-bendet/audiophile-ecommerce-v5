@@ -1,4 +1,10 @@
-import { prisma, type Category, type NAME } from "@repo/database";
+import {
+  prisma,
+  type Category,
+  type ImageVariant,
+  type NAME,
+  type SingleImage,
+} from "@repo/database";
 import jwt from "jsonwebtoken";
 import { env } from "../../src/utils/env.js";
 
@@ -98,21 +104,17 @@ export const thumbnail = (slug: string) => ({
 });
 
 /** What a stored image becomes on the wire: the key joined onto the host. */
-export const resolvedVariant = ({
-  key,
-  width,
-  height,
-}: ReturnType<typeof singleImage>["image"]) => ({
+export const resolvedVariant = ({ key, width, height }: ImageVariant) => ({
   src: `https://audiophile-media.t-bendet.com/${key}`,
   width,
   height,
 });
 
 /** The same, with the alt text the field carries alongside it. */
-export const resolvedImage = ({
+export const resolvedImage = ({ altText, image }: SingleImage) => ({
   altText,
-  image,
-}: ReturnType<typeof singleImage>) => ({ altText, ...resolvedVariant(image) });
+  ...resolvedVariant(image),
+});
 
 export const createCategory = (name: NAME = "Headphones"): Promise<Category> =>
   prisma.category.create({

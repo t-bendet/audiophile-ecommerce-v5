@@ -14,7 +14,7 @@ import {
   thumbnail,
 } from "./helpers/database.js";
 
-const productThumbnail = thumbnail("zx7-speaker");
+const productThumbnail = thumbnail("test-product");
 
 /** A complete create body; every unique field is keyed off `name`. */
 const productBody = (categoryId: string, name: string) => ({

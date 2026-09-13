@@ -1,29 +1,26 @@
-import { CartItemDTO, CartItemDTOSchema, ImageVariantDTO } from "@repo/domain";
+import { CartItemDTOSchema, ImageVariantDTO } from "@repo/domain";
 import * as z from "zod";
 
-export interface LocalCartItem extends Omit<CartItemDTO, "id"> {
-  id?: string; // Optional for local items
-}
+// The cart a signed-out shopper keeps in localStorage: a server cart item
+// without the id the server assigns.
+const LocalCartItemSchema = CartItemDTOSchema.omit({ id: true }).extend({
+  id: z.string().optional(),
+});
 
-export interface LocalCart {
-  items: LocalCartItem[];
-  itemCount: number;
-  subtotal: number;
-}
+const LocalCartSchema = z.object({
+  items: z.array(LocalCartItemSchema),
+  itemCount: z.number().int().nonnegative(),
+  subtotal: z.number().int().nonnegative(),
+});
+
+export type LocalCartItem = z.infer<typeof LocalCartItemSchema>;
+export type LocalCart = z.infer<typeof LocalCartSchema>;
 
 const EmptyLocalCart: LocalCart = {
   items: [],
   itemCount: 0,
   subtotal: 0,
 };
-
-const LocalCartSchema = z.object({
-  items: z.array(
-    CartItemDTOSchema.omit({ id: true }).extend({ id: z.string().optional() }),
-  ),
-  itemCount: z.number().int().nonnegative(),
-  subtotal: z.number().int().nonnegative(),
-});
 
 const CART_STORAGE_KEY = "audiophile_cart";
 
