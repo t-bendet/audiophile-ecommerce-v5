@@ -53,6 +53,7 @@ export default function ProductActions(props: {
     }
 
     const product = productData.data;
+    const { src, width, height } = product.images.thumbnail;
 
     addToCart.mutate(
       {
@@ -61,7 +62,7 @@ export default function ProductActions(props: {
         cartLabel: product.cartLabel,
         productSlug: product.slug,
         productPrice: product.price,
-        productImage: product.images.thumbnail.src,
+        productImage: { src, width, height },
       },
       {
         onSuccess: () => {

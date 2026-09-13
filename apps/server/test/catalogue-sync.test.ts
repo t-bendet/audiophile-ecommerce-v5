@@ -170,7 +170,14 @@ describe("syncCatalogue", () => {
             mobileSrc: "m",
             tabletSrc: "t",
           },
-          thumbnail: { altText: "a", ariaLabel: "a", src: "s" },
+          thumbnail: {
+            altText: "a",
+            image: {
+              key: "products/retired/thumbnail.jpg",
+              width: 150,
+              height: 150,
+            },
+          },
         },
       },
     });

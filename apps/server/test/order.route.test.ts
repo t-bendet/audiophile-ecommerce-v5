@@ -8,6 +8,7 @@ import {
   createProduct,
   createUser,
   resetDatabase,
+  resolvedVariant,
 } from "./helpers/database.js";
 
 const checkout = {
@@ -46,7 +47,7 @@ const orderFromCart = async (userId: string, price: number) => {
     .set("Cookie", cookie)
     .send(checkout);
 
-  return { cookie, res };
+  return { cookie, product, res };
 };
 
 beforeEach(resetDatabase);
@@ -71,6 +72,16 @@ describe("POST /api/v1/orders", () => {
 
     const cart = await request(app).get("/api/v1/cart").set("Cookie", cookie);
     expect(cart.body.data.items).toEqual([]);
+  });
+
+  it("carries the product thumbnail resolved to the media host", async () => {
+    const user = await createUser();
+    const { product, res } = await orderFromCart(user.id, 1000);
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.items[0].productImage).toEqual(
+      resolvedVariant(product.images.thumbnail.image),
+    );
   });
 
   it("refuses to order from an empty cart", async () => {

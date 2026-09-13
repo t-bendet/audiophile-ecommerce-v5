@@ -18,6 +18,7 @@ import {
   slugify,
   SlugValidator,
 } from "@repo/domain";
+import { toSingleImageDTO } from "../utils/media.js";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
@@ -48,7 +49,15 @@ export class ProductService extends AbstractCrudService<
   ProductQueryParams
 > {
   protected toDTO(entity: Product): ProductDTO {
-    return entity;
+    // A `fields` selection can leave the row without images to resolve.
+    if (!entity.images) return entity as unknown as ProductDTO;
+    return {
+      ...entity,
+      images: {
+        ...entity.images,
+        thumbnail: toSingleImageDTO(entity.images.thumbnail),
+      },
+    };
   }
 
   // ===== Private Query Builders =====

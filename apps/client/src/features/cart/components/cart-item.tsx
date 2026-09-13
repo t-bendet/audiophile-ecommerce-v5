@@ -27,11 +27,11 @@ export function CartItem({
     <div className="flex items-center gap-6 py-4 text-neutral-900">
       {/* Product Image */}
       <img
-        src={item.productImage}
+        src={item.productImage.src}
         alt={item.cartLabel}
         className="h-16 w-16 rounded object-cover"
-        width={64}
-        height={64}
+        width={item.productImage.width}
+        height={item.productImage.height}
       />
 
       {/* Product Details */}

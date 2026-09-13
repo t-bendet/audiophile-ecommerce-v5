@@ -1,4 +1,10 @@
-import { prisma, type Category, type NAME } from "@repo/database";
+import {
+  prisma,
+  type Category,
+  type ImageVariant,
+  type NAME,
+  type SingleImage,
+} from "@repo/database";
 import jwt from "jsonwebtoken";
 import { env } from "../../src/utils/env.js";
 
@@ -85,16 +91,29 @@ export const image = (label: string) => ({
   tabletSrc: `https://cdn.example.com/${label}-tablet.jpg`,
 });
 
-export const thumbnail = (label: string) => ({
-  altText: `${label} alt`,
-  ariaLabel: `${label} aria`,
-  src: `https://cdn.example.com/${label}-thumb.jpg`,
-});
-
 /** A persisted single image: a bucket key and the size of the file behind it. */
 export const singleImage = (slug: string) => ({
   altText: `${slug} alt`,
   image: { key: `categories/${slug}/thumbnail.png`, width: 438, height: 422 },
+});
+
+/** The same shape under the products prefix; `slug` is a bucket path segment. */
+export const thumbnail = (slug: string) => ({
+  altText: `${slug} alt`,
+  image: { key: `products/${slug}/thumbnail.jpg`, width: 150, height: 150 },
+});
+
+/** What a stored image becomes on the wire: the key joined onto the host. */
+export const resolvedVariant = ({ key, width, height }: ImageVariant) => ({
+  src: `https://audiophile-media.t-bendet.com/${key}`,
+  width,
+  height,
+});
+
+/** The same, with the alt text the field carries alongside it. */
+export const resolvedImage = ({ altText, image }: SingleImage) => ({
+  altText,
+  ...resolvedVariant(image),
 });
 
 export const createCategory = (name: NAME = "Headphones"): Promise<Category> =>

@@ -14,6 +14,7 @@ import {
   SingleItemResponse,
   SingleItemResponseSchema,
 } from "./common.js";
+import { ImageVariantDTOSchema } from "./image.js";
 import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics) =====
@@ -112,7 +113,7 @@ export const OrderItemDTOSchema = z.object({
   productId: IdValidator(),
   productName: z.string(),
   productSlug: z.string(),
-  productImage: z.url(),
+  productImage: ImageVariantDTOSchema,
   quantity: z.number().int().positive(),
   price: z.number().int().positive(),
   subtotal: z.number().int().nonnegative(),

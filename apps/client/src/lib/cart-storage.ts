@@ -1,14 +1,20 @@
-import { CartItemDTO } from "@repo/domain";
+import { CartItemDTOSchema, ImageVariantDTO } from "@repo/domain";
+import * as z from "zod";
 
-export interface LocalCartItem extends Omit<CartItemDTO, "id"> {
-  id?: string; // Optional for local items
-}
+// The cart a signed-out shopper keeps in localStorage: a server cart item
+// without the id the server assigns.
+const LocalCartItemSchema = CartItemDTOSchema.omit({ id: true }).extend({
+  id: z.string().optional(),
+});
 
-export interface LocalCart {
-  items: LocalCartItem[];
-  itemCount: number;
-  subtotal: number;
-}
+const LocalCartSchema = z.object({
+  items: z.array(LocalCartItemSchema),
+  itemCount: z.number().int().nonnegative(),
+  subtotal: z.number().int().nonnegative(),
+});
+
+export type LocalCartItem = z.infer<typeof LocalCartItemSchema>;
+export type LocalCart = z.infer<typeof LocalCartSchema>;
 
 const EmptyLocalCart: LocalCart = {
   items: [],
@@ -32,8 +38,9 @@ export function getLocalCart(): LocalCart {
       return { ...EmptyLocalCart };
     }
 
-    const parsed = JSON.parse(stored);
-    return parsed as LocalCart;
+    // A cart stored before the thumbnail became a key cannot be rendered.
+    const parsed = LocalCartSchema.safeParse(JSON.parse(stored));
+    return parsed.success ? parsed.data : { ...EmptyLocalCart };
   } catch (error) {
     if (import.meta.env.DEV) {
       console.error("Error reading cart from localStorage:", error);
@@ -77,7 +84,7 @@ export function addToLocalCart(
   cartLabel: string,
   productSlug: string,
   productPrice: number,
-  productImage: string,
+  productImage: ImageVariantDTO,
   quantity: number,
 ): LocalCart {
   const cart = getLocalCart();

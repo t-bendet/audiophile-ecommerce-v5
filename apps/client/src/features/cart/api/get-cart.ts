@@ -17,6 +17,7 @@ import {
   ClearCartResponseSchema,
   GetCartResponse,
   GetCartResponseSchema,
+  ImageVariantDTO,
   RemoveFromCartResponse,
   RemoveFromCartResponseSchema,
   UpdateCartItemInput,
@@ -98,7 +99,7 @@ type TAddToCartInput = AddToCartInput & {
   cartLabel: string;
   productSlug: string;
   productPrice: number;
-  productImage: string;
+  productImage: ImageVariantDTO;
 };
 
 const addToLocalCartFn = async ({

@@ -18,6 +18,7 @@ import {
   type PaymentStatus,
   PAYMENT_STATUS,
 } from "@repo/domain";
+import { toImageVariantDTO } from "../utils/media.js";
 import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 import { cartService } from "./cart.service.js";
@@ -39,7 +40,7 @@ export class OrderService extends AbstractCrudService<
       productId: item.productId,
       productName: item.product.cartLabel,
       productSlug: item.product.slug,
-      productImage: item.product.images.thumbnail.src,
+      productImage: toImageVariantDTO(item.product.images.thumbnail.image),
       quantity: item.quantity,
       price: item.price,
       subtotal: item.price * item.quantity,
