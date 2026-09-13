@@ -116,3 +116,46 @@ jobs:
       # Builds everything, then `wrangler deploy`: image, Worker and assets.
       - run: pnpm deploy:app
         timeout-minutes: 30
+
+  # The catalogue the repo owns, onto Atlas, once the new server is live. Every
+  # write is an upsert on a unique key: no drop, no delete, no user touched.
+  sync-catalogue:
+    name: Sync catalogue
+    if: github.event_name == 'push'
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    env:
+      ATLAS_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      MONGOMS_DISABLE_POSTINSTALL: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+        timeout-minutes: 10
+
+      # Without the secret the catalogue is still reseeded by hand, so say so
+      # rather than failing a deploy that otherwise succeeded.
+      - name: Check for the Atlas connection string
+        id: secret
+        run: |
+          if [ -z "$ATLAS_DATABASE_URL" ]; then
+            echo "::warning::DATABASE_URL is not set; skipping the catalogue sync."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync the catalogue
+        if: steps.secret.outputs.present == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pnpm db:generate && pnpm db:sync
+        timeout-minutes: 10

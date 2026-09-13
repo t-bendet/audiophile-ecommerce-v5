@@ -53,6 +53,10 @@
       "cache": false,
       "env": ["DATABASE_URL"]
     },
+    "db:sync": {
+      "cache": false,
+      "env": ["DATABASE_URL"]
+    },
     "db:deploy": {
       "cache": false,
       "env": ["DATABASE_URL"]
