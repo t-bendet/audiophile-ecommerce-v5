@@ -189,6 +189,9 @@ connection string belongs only to deployment.
 
 ## Environment Variables
 
+Local development uses `.env` files, one per workspace, each with a committed `.env.example`
+beside it. Production has no `.env` file at all — see "Deployment" below.
+
 **`packages/database/.env`**
 
 ```
@@ -201,8 +204,8 @@ DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnectio
 DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 NODE_ENV=development
 JWT_SECRET=<min 32 chars>
-JWT_EXPIRES_IN=90d
-JWT_COOKIE_EXPIRES_IN=20000
+JWT_EXPIRES_IN=7d
+JWT_COOKIE_EXPIRES_IN=7
 PORT=8000
 LOG_LEVEL=debug
 ```
@@ -210,6 +213,49 @@ LOG_LEVEL=debug
 `LOG_LEVEL` is optional; unset it defaults per environment — `debug` in development, `info` in production, `silent` in test.
 
 `NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses. `test` is set by the vitest configs and behaves like `production` (logger silent, sanitized errors).
+
+**`apps/client/.env`**
+
+```
+VITE_APP_PORT=5173
+VITE_APP_API_URL=/api/v1
+VITE_APP_API_PROXY_TARGET=http://localhost:8000
+```
+
+`VITE_APP_API_URL` is baked into the bundle at build time. `apps/client/.env.production` is
+committed and holds that same `/api/v1`, because the Worker serves the API under the app's own
+hostname.
+
+**`packages/media/.env`**
+
+```
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET=audiophile-media
+```
+
+An R2 Object Read & Write token for `pnpm --filter @repo/media media:sync`. It belongs to the developer publishing
+images, never to the deployed application.
+
+## Deployment
+
+One Cloudflare Worker (`apps/server/wrangler.jsonc`) serves the whole application at
+`audiophile.t-bendet.com`: `run_worker_first` sends `/api/*` to the Express server in a Cloudflare
+Container, everything else is the client's `dist` as Workers Static Assets. Images are in R2 on
+`audiophile-media.t-bendet.com`, the database is MongoDB Atlas.
+
+The server's environment in production comes from the Worker, not a file: `NODE_ENV`,
+`JWT_EXPIRES_IN` and `JWT_COOKIE_EXPIRES_IN` are `vars` in `wrangler.jsonc`, while `DATABASE_URL`
+and `JWT_SECRET` are Worker secrets (`wrangler secret put <NAME>` from `apps/server`). The Worker
+passes all five into the container; `PORT` comes from the Dockerfile.
+
+A push to `main` deploys: the `deploy` job in `.github/workflows/ci.yml` needs the `verify` and
+`image` jobs and then runs `pnpm deploy:app`, which builds everything and hands the image, the
+Worker and the assets to `wrangler deploy`. It needs the repository secrets
+`CLOUDFLARE_API_TOKEN` (Edit Cloudflare Workers template) and `CLOUDFLARE_ACCOUNT_ID`. Deploying by
+hand is the same `pnpm deploy:app` after `wrangler login`. There are no pull-request previews;
+check a branch with `pnpm --filter server exec wrangler dev`, which needs Docker.
 
 ## Git workflow
 
