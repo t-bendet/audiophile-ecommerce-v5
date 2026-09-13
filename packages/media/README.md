@@ -30,15 +30,31 @@ maintainer, so `primary-desktop.jpg` now holds the starter pack's real
 ## Scripts
 
 ```bash
-pnpm --filter @repo/media media:check            # missing / orphaned files (also a vitest test)
+pnpm --filter @repo/media media:check            # missing / orphaned files, stale manifest, wrong dimensions
+pnpm --filter @repo/media media:check --write    # regenerate manifest.json from the tree
 pnpm --filter @repo/media media:import --verify  # network: compare the repo copies to ImgBB
 pnpm --filter @repo/media media:sync             # upload changed objects to R2
 pnpm --filter @repo/media media:sync --prune     # ...and delete keys that no longer exist here
 ```
 
 `media:check` reads the seed literals and the assets tree and fails when a
-referenced file is missing or a file is unreferenced. It runs under vitest, so
-`pnpm test` and CI enforce it without network or Docker.
+referenced file is missing, a file is unreferenced, the manifest is behind the
+tree, or a reference states a size the file does not have. The same checks run
+under vitest, so `pnpm test` and CI enforce them without network or Docker.
+
+## The manifest
+
+`manifest.json` lists every file under `assets/` by key with its bytes, sha256
+and pixel size. It is committed so that adding, replacing or resizing an image
+shows up in a diff, and it is the dimensions source the check holds references
+to. It is a report and a test fixture, never a runtime dependency: nothing the
+server or client ships reads it.
+
+Add or replace a file, then `media:check --write`; regenerating from an
+unchanged tree reproduces the file byte for byte, so a dirty `manifest.json`
+after `--write` means the tree really did change. The dimension check is per
+reference: a seed image still written as a URL is checked for existence only,
+and starts having its size verified the day it carries `{ key, width, height }`.
 
 `media:import --verify` is the one-off migration audit: it refetches every
 pre-migration ImgBB URL (frozen in `src/legacy-imgbb.ts`) and compares sha256

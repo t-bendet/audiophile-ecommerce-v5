@@ -6,7 +6,7 @@
   "scripts": {
     "media:import": "tsx src/scripts/import.ts",
     "media:sync": "tsx src/scripts/sync.ts",
-    "media:check": "vitest run test/check.test.ts",
+    "media:check": "tsx src/scripts/check.ts",
     "lint": "eslint . --max-warnings 0",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
@@ -21,6 +21,7 @@
     "@types/node": "^24.13.4",
     "dotenv": "^17.4.2",
     "eslint": "^10.10.0",
+    "image-size": "^2.0.2",
     "tsx": "^4.23.13",
     "typescript": "5.9.3",
     "vitest": "^5.0.0"

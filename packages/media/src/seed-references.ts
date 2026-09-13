@@ -4,6 +4,7 @@ import {
   headphonesProductData,
   speakersProductData,
 } from "@repo/database/seed/products";
+import type { ImageReference } from "./check.js";
 import { keyForUrl } from "./keys.js";
 
 /**
@@ -43,3 +44,46 @@ export const seedImageUrls = () =>
 export const seedReferencedKeys = () => [
   ...new Set(seedImageUrls().map(keyForUrl)),
 ];
+
+/**
+ * Any `{ key, width, height }` anywhere in the seed literals. Empty until an
+ * entity migrates off URL literals, which is what makes the dimension check
+ * switch itself on per entity rather than per release.
+ */
+export const collectImageReferences = (
+  value: unknown,
+  found: ImageReference[],
+) => {
+  if (Array.isArray(value)) {
+    for (const item of value) collectImageReferences(item, found);
+    return found;
+  }
+  if (value === null || typeof value !== "object") return found;
+
+  const { key, width, height } = value as Partial<ImageReference>;
+  if (
+    typeof key === "string" &&
+    typeof width === "number" &&
+    typeof height === "number"
+  ) {
+    found.push({ key, width, height });
+    return found;
+  }
+
+  for (const nested of Object.values(value)) {
+    collectImageReferences(nested, found);
+  }
+  return found;
+};
+
+/** The dimensions the seed states, for `media:check` to hold to the files. */
+export const seedImageReferences = () =>
+  collectImageReferences(
+    [
+      categoryData,
+      headphonesProductData,
+      earphonesProductData,
+      speakersProductData,
+    ],
+    [],
+  );
