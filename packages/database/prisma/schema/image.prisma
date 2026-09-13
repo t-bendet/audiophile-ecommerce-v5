@@ -1,0 +1,11 @@
+// `key` is a bucket path, never a URL: the host is joined at the API boundary.
+type ImageVariant {
+  key    String
+  width  Int
+  height Int
+}
+
+type SingleImage {
+  altText String
+  image   ImageVariant
+}

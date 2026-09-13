@@ -91,9 +91,15 @@ export const thumbnail = (label: string) => ({
   src: `https://cdn.example.com/${label}-thumb.jpg`,
 });
 
+/** A persisted single image: a bucket key and the size of the file behind it. */
+export const singleImage = (slug: string) => ({
+  altText: `${slug} alt`,
+  image: { key: `categories/${slug}/thumbnail.png`, width: 438, height: 422 },
+});
+
 export const createCategory = (name: NAME = "Headphones"): Promise<Category> =>
   prisma.category.create({
-    data: { name, thumbnail: thumbnail(name.toLowerCase()) },
+    data: { name, thumbnail: singleImage(name.toLowerCase()) },
   });
 
 export const createProduct = async (

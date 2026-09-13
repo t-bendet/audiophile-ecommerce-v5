@@ -10,13 +10,17 @@ export type ReadOutput = Prisma.Result<
 
 export type CategoryName = $Enums.NAME;
 
+// Dimensions are the files' real pixel sizes, held to them by `media:check`.
 export const categoryData: CategoryCreateInput[] = [
   {
     name: "Headphones",
     thumbnail: {
-      src: "https://audiophile-media.t-bendet.com/categories/headphones/thumbnail.png",
       altText: "Headphones",
-      ariaLabel: "Headphones thumbnail",
+      image: {
+        key: "categories/headphones/thumbnail.png",
+        width: 438,
+        height: 422,
+      },
     },
     // products: {
     //   createMany: {
@@ -27,9 +31,12 @@ export const categoryData: CategoryCreateInput[] = [
   {
     name: "Earphones",
     thumbnail: {
-      src: "https://audiophile-media.t-bendet.com/categories/earphones/thumbnail.png",
       altText: "Earphones",
-      ariaLabel: "Earphones thumbnail",
+      image: {
+        key: "categories/earphones/thumbnail.png",
+        width: 438,
+        height: 380,
+      },
     },
     // products: {
     //   createMany: {
@@ -40,9 +47,12 @@ export const categoryData: CategoryCreateInput[] = [
   {
     name: "Speakers",
     thumbnail: {
-      src: "https://audiophile-media.t-bendet.com/categories/speakers/thumbnail.png",
       altText: "Speakers",
-      ariaLabel: "Speakers thumbnail",
+      image: {
+        key: "categories/speakers/thumbnail.png",
+        width: 438,
+        height: 408,
+      },
     },
     // products: {
     //   createMany: {

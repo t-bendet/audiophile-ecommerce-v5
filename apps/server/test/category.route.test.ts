@@ -9,13 +9,18 @@ import {
   createProduct,
   createUser,
   resetDatabase,
+  singleImage,
 } from "./helpers/database.js";
 
-const thumbnail = {
-  altText: "Speakers",
-  ariaLabel: "Speakers",
-  src: "https://cdn.example.com/speakers.jpg",
-};
+const thumbnail = singleImage("speakers");
+
+/** What the API returns for a stored thumbnail: the key joined onto the host. */
+const resolved = ({ altText, image }: ReturnType<typeof singleImage>) => ({
+  altText,
+  src: `https://audiophile-media.t-bendet.com/${image.key}`,
+  width: image.width,
+  height: image.height,
+});
 
 beforeEach(resetDatabase);
 
@@ -41,9 +46,12 @@ describe("GET /api/v1/categories/:id", () => {
     const res = await request(app).get(`/api/v1/categories/${category.id}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.data).toMatchObject({
+    expect(res.body.data).toEqual({
       id: category.id,
-      thumbnail: category.thumbnail,
+      name: "Headphones",
+      createdAt: category.createdAt.toISOString(),
+      v: category.v,
+      thumbnail: resolved(category.thumbnail),
     });
   });
 
@@ -90,7 +98,10 @@ describe("POST /api/v1/categories", () => {
       .send({ name: "Speakers", thumbnail });
 
     expect(res.status).toBe(201);
-    expect(res.body.data).toMatchObject({ name: "Speakers", thumbnail });
+    expect(res.body.data).toMatchObject({
+      name: "Speakers",
+      thumbnail: resolved(thumbnail),
+    });
   });
 
   it("refuses a non-admin", async () => {
@@ -103,6 +114,69 @@ describe("POST /api/v1/categories", () => {
 
     expect(res.status).toBe(403);
     expect(res.body.error.code).toBe(ErrorCode.FORBIDDEN);
+  });
+});
+
+describe("POST /api/v1/categories validation", () => {
+  const reject = async (image: unknown) => {
+    const admin = await createAdmin();
+
+    const res = await request(app)
+      .post("/api/v1/categories")
+      .set("Cookie", authCookie(admin.id))
+      .send({ name: "Speakers", thumbnail: { altText: "Speakers", image } });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
+    return res.body.error.details;
+  };
+
+  it("rejects a URL in place of a key", async () => {
+    const details = await reject({
+      ...thumbnail.image,
+      key: `https://audiophile-media.t-bendet.com/${thumbnail.image.key}`,
+    });
+
+    expect(details).toContainEqual(
+      expect.objectContaining({ path: ["body", "thumbnail", "image", "key"] }),
+    );
+  });
+
+  it("rejects a missing dimension", async () => {
+    const details = await reject({
+      key: thumbnail.image.key,
+      width: thumbnail.image.width,
+    });
+
+    expect(details).toContainEqual(
+      expect.objectContaining({
+        path: ["body", "thumbnail", "image", "height"],
+      }),
+    );
+  });
+});
+
+describe("PATCH /api/v1/categories/:id", () => {
+  it.for([
+    [
+      "a URL in place of a key",
+      {
+        ...thumbnail.image,
+        key: `https://audiophile-media.t-bendet.com/${thumbnail.image.key}`,
+      },
+    ],
+    ["a missing dimension", { key: thumbnail.image.key, width: 438 }],
+  ] as const)("rejects %s", async ([, image]) => {
+    const admin = await createAdmin();
+    const category = await createCategory();
+
+    const res = await request(app)
+      .patch(`/api/v1/categories/${category.id}`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ thumbnail: { altText: "Speakers", image } });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
   });
 });
 

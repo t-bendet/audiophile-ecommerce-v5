@@ -24,6 +24,7 @@ export default defineConfig({
       JWT_SECRET: "test-secret-that-is-at-least-32-characters",
       JWT_EXPIRES_IN: "90d",
       JWT_COOKIE_EXPIRES_IN: "1",
+      MEDIA_BASE_URL: "https://audiophile-media.t-bendet.com",
     },
   },
 });

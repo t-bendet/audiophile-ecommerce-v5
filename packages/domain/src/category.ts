@@ -1,8 +1,4 @@
-import type {
-  Prisma,
-  Category as PrismaCategory,
-  CategoriesThumbnail,
-} from "@repo/database";
+import type { Prisma, Category as PrismaCategory } from "@repo/database";
 import { z } from "zod";
 import type {
   EmptyResponse,
@@ -17,6 +13,11 @@ import {
   ListResponseSchema,
   SingleItemResponseSchema,
 } from "./common.js";
+import {
+  SingleImageDTOSchema,
+  SingleImageSchema,
+  type SingleImageDTO,
+} from "./image.js";
 import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics )=====
@@ -34,14 +35,6 @@ export const NAME = ["Headphones", "Earphones", "Speakers"] as const;
 export type NAME = (typeof NAME)[number];
 export type CategoryProductsCreateManyInput =
   Prisma.ProductCreateManyCategoryInputEnvelope["data"];
-
-// * =====  Common Schemas =====
-
-export const CategoryThumbnailSchema = z.object({
-  altText: z.string().min(1, "Alt text is required"),
-  ariaLabel: z.string().min(1, "Aria label is required"),
-  src: z.url("Src must be a valid URL"),
-}) satisfies z.Schema<CategoriesThumbnail>;
 
 // * ===== RequestSchemas =====
 
@@ -75,7 +68,7 @@ export const CategoryGetByIdRequestSchema = createRequestSchema({
 export const CategoryCreateRequestSchema = createRequestSchema({
   body: z.object({
     name: z.enum(NAME),
-    thumbnail: CategoryThumbnailSchema,
+    thumbnail: SingleImageSchema,
   }) satisfies z.ZodType<CategoryCreateInput>,
 });
 
@@ -85,7 +78,7 @@ export const CategoryUpdateByIdRequestSchema = createRequestSchema({
   body: z
     .object({
       name: z.enum(NAME).optional(),
-      thumbnail: CategoryThumbnailSchema.optional(),
+      thumbnail: SingleImageSchema.optional(),
     })
     .strict() satisfies z.ZodType<CategoryUpdateInput>,
 });
@@ -97,13 +90,18 @@ export const CategoryDeleteByIdRequestSchema = createRequestSchema({
 
 // * =====  DTO Schemas ( base and others if needed)=====
 
+// The entity with its stored image resolved to a URL; nothing else moves.
+type ResolvedCategory = Omit<Category, "thumbnail"> & {
+  thumbnail: SingleImageDTO;
+};
+
 export const CategoryDTOSchema = z.object({
   name: z.enum(NAME),
   id: IdValidator("Category"),
   createdAt: z.coerce.date(),
   v: z.number(),
-  thumbnail: CategoryThumbnailSchema,
-}) satisfies z.ZodType<Category>;
+  thumbnail: SingleImageDTOSchema,
+}) satisfies z.ZodType<ResolvedCategory>;
 
 // * =====  DTO Types (if needed)=====
 
@@ -114,22 +112,22 @@ export type CategoryDTO = z.infer<typeof CategoryDTOSchema>;
 // List response (array + pagination)
 export const CategoryGetAllResponseSchema =
   ListResponseSchema(CategoryDTOSchema);
-export type CategoryGetAllResponse = ListResponse<Category>;
+export type CategoryGetAllResponse = ListResponse<CategoryDTO>;
 
 // Detail/Get response (single DTO)
 export const CategoryGetByIdResponseSchema =
   SingleItemResponseSchema(CategoryDTOSchema);
-export type CategoryGetByIdResponse = SingleItemResponse<Category>;
+export type CategoryGetByIdResponse = SingleItemResponse<CategoryDTO>;
 
 // Create response (single DTO)
 export const CategoryCreateResponseSchema =
   SingleItemResponseSchema(CategoryDTOSchema);
-export type CategoryCreateResponse = SingleItemResponse<Category>;
+export type CategoryCreateResponse = SingleItemResponse<CategoryDTO>;
 
 // Update response (single DTO)
 export const CategoryUpdateByIdResponseSchema =
   SingleItemResponseSchema(CategoryDTOSchema);
-export type CategoryUpdateByIdResponse = SingleItemResponse<Category>;
+export type CategoryUpdateByIdResponse = SingleItemResponse<CategoryDTO>;
 
 // Delete response (no content)
 export const CategoryDeleteByIdResponseSchema = EmptyResponseSchema;

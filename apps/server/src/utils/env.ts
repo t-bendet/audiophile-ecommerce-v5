@@ -60,6 +60,11 @@ const createEnv = () => {
       .min(32, "JWT_SECRET must be at least 32 characters for security"),
     JWT_EXPIRES_IN: msDurationStringCheck,
     JWT_COOKIE_EXPIRES_IN: z.coerce.number().positive(),
+    // The host every catalogue image key resolves against; the trailing slash
+    // is the join's, so the value must not carry one.
+    MEDIA_BASE_URL: z
+      .url("MEDIA_BASE_URL must be an absolute URL")
+      .refine((url) => !url.endsWith("/"), "MEDIA_BASE_URL must not end in /"),
     LOG_LEVEL: LogLevelSchema.optional(),
   });
 
