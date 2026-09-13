@@ -8,7 +8,7 @@ import { env } from "./env.js";
 
 // The one place a persisted key meets the media host; nothing below the API
 // boundary sees a URL.
-const toImageVariantDTO = ({
+export const toImageVariantDTO = ({
   key,
   width,
   height,

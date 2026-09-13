@@ -68,10 +68,13 @@ export const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
       },
       featuredImage: null,
       thumbnail: {
-        src: "https://audiophile-media.t-bendet.com/products/xx59-headphones/thumbnail.jpg",
-        ariaLabel: "XX59 Headphones thumbnail image",
         altText:
           "White headphones positioned on a white backdrop, showcasing their design - thumbnail.",
+        image: {
+          key: "products/xx59-headphones/thumbnail.jpg",
+          width: 150,
+          height: 150,
+        },
       },
       galleryImages: [
         {
@@ -181,10 +184,13 @@ export const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
 
       featuredImage: null,
       thumbnail: {
-        src: "https://audiophile-media.t-bendet.com/products/xx99-mark-one-headphones/thumbnail.jpg",
-        ariaLabel: "XX99 Mark I Headphones thumbnail image",
         altText:
           "Stylish black and gold headphones positioned on a white background, emphasizing their elegant design and color scheme. - thumbnail.",
+        image: {
+          key: "products/xx99-mark-one-headphones/thumbnail.jpg",
+          width: 150,
+          height: 150,
+        },
       },
       galleryImages: [
         {
@@ -307,10 +313,13 @@ export const headphonesProductData: ProductCreateWithoutCategoryInput[] = [
           "The XX99 Mark II wireless headphones are presented, emphasizing their contemporary design and high-quality audio features.",
       },
       thumbnail: {
-        src: "https://audiophile-media.t-bendet.com/products/xx99-mark-two-headphones/thumbnail.jpg",
-        ariaLabel: "XX99 Mark II Headphones thumbnail image",
         altText:
           "The XX99 Mark II wireless headphones are presented, emphasizing their contemporary design and high-quality audio features. - thumbnail.",
+        image: {
+          key: "products/xx99-mark-two-headphones/thumbnail.jpg",
+          width: 150,
+          height: 150,
+        },
       },
       galleryImages: [
         {
@@ -428,10 +437,13 @@ export const earphonesProductData: ProductCreateWithoutCategoryInput[] = [
       },
       featuredImage: null,
       thumbnail: {
-        src: "https://audiophile-media.t-bendet.com/products/yx1-wireless-earphones/thumbnail.jpg",
-        ariaLabel: "YX1 Wireless Earphones thumbnail image",
         altText:
           "A smooth, dark gray spherical object with a subtle groove and a small geometric logo at the center, floating against a light gray background - thumbnail.",
+        image: {
+          key: "products/yx1-wireless-earphones/thumbnail.jpg",
+          width: 150,
+          height: 150,
+        },
       },
       galleryImages: [
         {
@@ -555,10 +567,13 @@ export const speakersProductData: ProductCreateWithoutCategoryInput[] = [
       },
       featuredImage: null,
       thumbnail: {
-        src: "https://audiophile-media.t-bendet.com/products/zx7-speaker/thumbnail.jpg",
-        ariaLabel: "ZX7 Speaker thumbnail image",
         altText:
           "A sleek black speaker displayed on a clean white background - thumbnail.",
+        image: {
+          key: "products/zx7-speaker/thumbnail.jpg",
+          width: 150,
+          height: 150,
+        },
       },
       galleryImages: [
         {
@@ -681,10 +696,13 @@ export const speakersProductData: ProductCreateWithoutCategoryInput[] = [
       },
       featuredImage: null,
       thumbnail: {
-        src: "https://audiophile-media.t-bendet.com/products/zx9-speaker/thumbnail.jpg",
-        ariaLabel: "ZX9 Speaker thumbnail image",
         altText:
           "A stylish black speaker topped with a white dome, emphasizing a minimalist design approach. - thumbnail.",
+        image: {
+          key: "products/zx9-speaker/thumbnail.jpg",
+          width: 150,
+          height: 150,
+        },
       },
       galleryImages: [
         {

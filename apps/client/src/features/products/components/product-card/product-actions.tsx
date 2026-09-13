@@ -61,7 +61,11 @@ export default function ProductActions(props: {
         cartLabel: product.cartLabel,
         productSlug: product.slug,
         productPrice: product.price,
-        productImage: product.images.thumbnail.src,
+        productImage: {
+          src: product.images.thumbnail.src,
+          width: product.images.thumbnail.width,
+          height: product.images.thumbnail.height,
+        },
       },
       {
         onSuccess: () => {

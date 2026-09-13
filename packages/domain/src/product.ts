@@ -1,8 +1,4 @@
-import type {
-  Prisma,
-  Product as PrismaProduct,
-  ProductsImagesThumbnail,
-} from "@repo/database";
+import type { Prisma, Product as PrismaProduct } from "@repo/database";
 import { z } from "zod";
 import { NAME } from "./category.js";
 import type { ExtendedQueryParams } from "./common.js";
@@ -16,6 +12,11 @@ import {
   SingleItemResponse,
   SingleItemResponseSchema,
 } from "./common.js";
+import {
+  SingleImageDTOSchema,
+  SingleImageSchema,
+  type SingleImageDTO,
+} from "./image.js";
 import { IdValidator } from "./shared.js";
 import { SlugValidator } from "./slug.js";
 
@@ -37,14 +38,6 @@ export type ProductScalarFieldEnum = Prisma.ProductScalarFieldEnum;
 
 // * =====  Common Schemas =====
 
-export const ProductsImagesThumbnailSchema = z
-  .object({
-    altText: z.string().min(1, "Alt text is required"),
-    ariaLabel: z.string().min(1, "Aria label is required"),
-    src: z.url("Src must be a valid URL"),
-  })
-  .strict() satisfies z.Schema<ProductsImagesThumbnail>;
-
 export const ProductImagesPropertiesSchema = z
   .object({
     altText: z.string().min(1, "Alt text is required"),
@@ -61,8 +54,13 @@ export const ProductImagesObjectSchema = z.object({
   introImage: ProductImagesPropertiesSchema,
   primaryImage: ProductImagesPropertiesSchema,
   showCaseImage: ProductImagesPropertiesSchema.nullable(),
-  thumbnail: ProductsImagesThumbnailSchema,
+  thumbnail: SingleImageSchema,
   relatedProductImage: ProductImagesPropertiesSchema,
+});
+
+// What the API returns: the stored thumbnail key joined onto the media host.
+export const ProductImagesObjectDTOSchema = ProductImagesObjectSchema.extend({
+  thumbnail: SingleImageDTOSchema,
 });
 
 const ProductPropertiesSchema = z
@@ -185,7 +183,14 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 
 // * =====  DTO Schemas ( base and others if needed)=====
 
-export const ProductDTOSchema = ProductPropertiesSchema;
+// The entity with its stored thumbnail resolved to a URL; nothing else moves.
+type ResolvedProduct = Omit<Product, "images"> & {
+  images: Omit<Product["images"], "thumbnail"> & { thumbnail: SingleImageDTO };
+};
+
+export const ProductDTOSchema = ProductPropertiesSchema.extend({
+  images: ProductImagesObjectDTOSchema,
+}) satisfies z.ZodType<ResolvedProduct>;
 
 export const ProductsByCategoryNameSchema = ProductPropertiesSchema.pick({
   id: true,

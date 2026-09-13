@@ -7,6 +7,7 @@ import {
   SingleItemResponse,
   SingleItemResponseSchema,
 } from "./common.js";
+import { ImageVariantDTOSchema } from "./image.js";
 import { IdValidator } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics) =====
@@ -29,7 +30,7 @@ export const CartItemDTOSchema = z.object({
   cartLabel: z.string(),
   productSlug: z.string(),
   productPrice: z.number().int().positive(),
-  productImage: z.url(),
+  productImage: ImageVariantDTOSchema,
   quantity: z.number().int().positive(),
   subtotal: z.number().int().nonnegative(),
 });

@@ -9,6 +9,7 @@ import {
   createProduct,
   createUser,
   resetDatabase,
+  resolvedVariant,
 } from "./helpers/database.js";
 
 beforeEach(resetDatabase);
@@ -55,6 +56,21 @@ describe("POST /api/v1/cart", () => {
       productPrice: 300,
       quantity: 2,
     });
+  });
+
+  it("carries the product thumbnail resolved to the media host", async () => {
+    const user = await createUser();
+    const product = await createProduct();
+
+    const res = await request(app)
+      .post("/api/v1/cart")
+      .set("Cookie", authCookie(user.id))
+      .send({ productId: product.id, quantity: 1 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items[0].productImage).toEqual(
+      resolvedVariant(product.images.thumbnail.image),
+    );
   });
 
   it("rejects a malformed product id", async () => {

@@ -9,18 +9,11 @@ import {
   createProduct,
   createUser,
   resetDatabase,
+  resolvedImage,
   singleImage,
 } from "./helpers/database.js";
 
 const thumbnail = singleImage("speakers");
-
-/** What the API returns for a stored thumbnail: the key joined onto the host. */
-const resolved = ({ altText, image }: ReturnType<typeof singleImage>) => ({
-  altText,
-  src: `https://audiophile-media.t-bendet.com/${image.key}`,
-  width: image.width,
-  height: image.height,
-});
 
 beforeEach(resetDatabase);
 
@@ -51,7 +44,7 @@ describe("GET /api/v1/categories/:id", () => {
       name: "Headphones",
       createdAt: category.createdAt.toISOString(),
       v: category.v,
-      thumbnail: resolved(category.thumbnail),
+      thumbnail: resolvedImage(category.thumbnail),
     });
   });
 
@@ -100,7 +93,7 @@ describe("POST /api/v1/categories", () => {
     expect(res.status).toBe(201);
     expect(res.body.data).toMatchObject({
       name: "Speakers",
-      thumbnail: resolved(thumbnail),
+      thumbnail: resolvedImage(thumbnail),
     });
   });
 

@@ -8,6 +8,7 @@ import {
   ErrorCode,
   SyncCartInput,
 } from "@repo/domain";
+import { toImageVariantDTO } from "../utils/media.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const cartWithProductsInclude = {
@@ -51,7 +52,7 @@ export class CartService extends AbstractCrudService<
       cartLabel: item.product.cartLabel,
       productSlug: item.product.slug,
       productPrice: item.product.price,
-      productImage: item.product.images.thumbnail.src,
+      productImage: toImageVariantDTO(item.product.images.thumbnail.image),
       quantity: item.quantity,
       subtotal: item.product.price * item.quantity,
     }));

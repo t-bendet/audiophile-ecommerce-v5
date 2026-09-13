@@ -36,7 +36,7 @@ type ProductImages {
   introImage          ProductImagesProperties
   primaryImage        ProductImagesProperties
   showCaseImage       ProductImagesProperties?
-  thumbnail           ProductsImagesThumbnail
+  thumbnail           SingleImage
   relatedProductImage ProductImagesProperties
 }
 
@@ -46,10 +46,4 @@ type ProductImagesProperties {
   desktopSrc String
   mobileSrc  String
   tabletSrc  String
-}
-
-type ProductsImagesThumbnail {
-  altText   String
-  ariaLabel String
-  src       String
 }

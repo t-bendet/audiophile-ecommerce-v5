@@ -10,8 +10,11 @@ import {
   createProduct,
   image,
   resetDatabase,
+  resolvedImage,
   thumbnail,
 } from "./helpers/database.js";
+
+const productThumbnail = thumbnail("zx7-speaker");
 
 /** A complete create body; every unique field is keyed off `name`. */
 const productBody = (categoryId: string, name: string) => ({
@@ -34,7 +37,7 @@ const productBody = (categoryId: string, name: string) => ({
     introImage: image(`${name}-intro`),
     primaryImage: image(`${name}-primary`),
     relatedProductImage: image(`${name}-related`),
-    thumbnail: thumbnail(name),
+    thumbnail: productThumbnail,
   },
 });
 
@@ -65,6 +68,9 @@ describe("GET /api/v1/products/:id", () => {
       slug: product.slug,
       price: 1499,
     });
+    expect(res.body.data.images.thumbnail).toEqual(
+      resolvedImage(product.images.thumbnail),
+    );
   });
 
   // Exercises the real Express app end to end: the malformed id is rejected by
@@ -211,6 +217,21 @@ describe("POST /api/v1/products", () => {
     expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
   });
 
+  it("returns the created thumbnail resolved to the media host", async () => {
+    const admin = await createAdmin();
+    const category = await createCategory();
+
+    const res = await request(app)
+      .post("/api/v1/products")
+      .set("Cookie", authCookie(admin.id))
+      .send(productBody(category.id, "YX1 Wireless Earphones"));
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.images.thumbnail).toEqual(
+      resolvedImage(productThumbnail),
+    );
+  });
+
   it("returns DUPLICATE_ENTRY for an explicit slug already in use", async () => {
     const admin = await createAdmin();
     const existing = await createProduct({ slug: "zx9-speaker" });
@@ -258,5 +279,56 @@ describe("PATCH /api/v1/products/:id", () => {
       name: "XX99 Mark Two",
       slug: "xx99-mark-one",
     });
+  });
+});
+
+describe("product thumbnail validation", () => {
+  const badImages = [
+    [
+      "a URL in place of a key",
+      {
+        ...productThumbnail.image,
+        key: `https://audiophile-media.t-bendet.com/${productThumbnail.image.key}`,
+      },
+    ],
+    [
+      "a missing dimension",
+      { key: productThumbnail.image.key, width: productThumbnail.image.width },
+    ],
+  ] as const;
+
+  it.for(badImages)("rejects %s on create", async ([, image]) => {
+    const admin = await createAdmin();
+    const category = await createCategory();
+    const body = productBody(category.id, "ZX9 Speaker");
+
+    const res = await request(app)
+      .post("/api/v1/products")
+      .set("Cookie", authCookie(admin.id))
+      .send({
+        ...body,
+        images: { ...body.images, thumbnail: { altText: "ZX9", image } },
+      });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
+  });
+
+  it.for(badImages)("rejects %s on update", async ([, image]) => {
+    const admin = await createAdmin();
+    const product = await createProduct();
+
+    const res = await request(app)
+      .patch(`/api/v1/products/${product.id}`)
+      .set("Cookie", authCookie(admin.id))
+      .send({
+        images: {
+          ...product.images,
+          thumbnail: { altText: "ZX9", image },
+        },
+      });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
   });
 });
