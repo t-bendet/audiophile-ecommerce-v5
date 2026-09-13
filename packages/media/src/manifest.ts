@@ -16,25 +16,22 @@ export type ManifestEntry = {
 /** Every file under `assets/` by bucket key, in key order. */
 export type Manifest = Record<string, ManifestEntry>;
 
-/**
- * The committed report `media:check --write` regenerates: what the tree holds,
- * visible in a diff. A fixture and an audit trail, never a runtime input.
- */
+/** The committed report `media:check --write` regenerates. */
 export const MANIFEST_PATH = fileURLToPath(
   new URL("../manifest.json", import.meta.url),
 );
 
-const entryOf = (key: string, bytes: Uint8Array): ManifestEntry => {
+const entryOf = (key: string, contents: Uint8Array): ManifestEntry => {
   let size;
   try {
-    size = imageSize(bytes);
+    size = imageSize(contents);
   } catch (cause) {
     throw new Error(`Could not read the pixel size of ${key}`, { cause });
   }
 
   return {
-    bytes: bytes.byteLength,
-    sha256: createHash("sha256").update(bytes).digest("hex"),
+    bytes: contents.byteLength,
+    sha256: createHash("sha256").update(contents).digest("hex"),
     width: size.width,
     height: size.height,
   };

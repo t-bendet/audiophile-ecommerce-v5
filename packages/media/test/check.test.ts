@@ -1,10 +1,11 @@
-import { copyFile, mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { listAssetKeys } from "../src/assets.js";
-import { auditAssets, checkMedia, describeMediaCheck } from "../src/check.js";
-import { ASSETS_DIR, MEDIA_BASE_URL } from "../src/keys.js";
+import { auditAssets } from "../src/audit.js";
+import { checkMedia, describeMediaCheck } from "../src/check.js";
+import { MEDIA_BASE_URL } from "../src/keys.js";
 import { buildManifest, writeManifest } from "../src/manifest.js";
 import {
   collectImageReferences,
@@ -12,31 +13,7 @@ import {
   seedImageUrls,
   seedReferencedKeys,
 } from "../src/seed-references.js";
-
-/** A throwaway assets tree holding empty files at the given keys. */
-const treeOf = async (keys: readonly string[]) => {
-  const dir = await mkdtemp(path.join(tmpdir(), "media-check-"));
-  for (const key of keys) {
-    const file = path.join(dir, ...key.split("/"));
-    await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, "");
-  }
-  return dir;
-};
-
-/** The same, holding a copy of one real image (438 x 380) at every key. */
-const imageTreeOf = async (keys: readonly string[], root?: string) => {
-  const dir = root ?? (await treeOf([]));
-  for (const key of keys) {
-    const file = path.join(dir, ...key.split("/"));
-    await mkdir(path.dirname(file), { recursive: true });
-    await copyFile(
-      path.join(ASSETS_DIR, "categories/earphones/thumbnail.png"),
-      file,
-    );
-  }
-  return dir;
-};
+import { EARPHONES, emptyTreeOf, imageTreeOf } from "./helpers.js";
 
 describe("the real assets tree", () => {
   it("backs every image the seed references, with nothing left over", async () => {
@@ -60,7 +37,7 @@ describe("the real assets tree", () => {
 
 describe("checkMedia", () => {
   it("reports a referenced file that is not there", async () => {
-    const dir = await treeOf(["products/zx7-speaker/thumbnail.jpg"]);
+    const dir = await emptyTreeOf(["products/zx7-speaker/thumbnail.jpg"]);
 
     const result = checkMedia(await listAssetKeys(dir), [
       "products/zx7-speaker/thumbnail.jpg",
@@ -76,7 +53,7 @@ describe("checkMedia", () => {
   });
 
   it("reports a file nothing references", async () => {
-    const dir = await treeOf([
+    const dir = await emptyTreeOf([
       "products/zx7-speaker/thumbnail.jpg",
       "products/zx7-speaker/orphan.jpg",
     ]);
@@ -94,7 +71,7 @@ describe("checkMedia", () => {
   });
 
   it("ignores the dotfiles macOS leaves in image folders", async () => {
-    const dir = await treeOf([
+    const dir = await emptyTreeOf([
       "products/zx7-speaker/thumbnail.jpg",
       "products/zx7-speaker/.DS_Store",
     ]);
@@ -106,10 +83,10 @@ describe("checkMedia", () => {
 });
 
 describe("checkMedia with a dimensions source", () => {
-  const key = "categories/earphones/thumbnail.png";
+  const key = EARPHONES;
 
   it("reports a reference whose size is not the file's", async () => {
-    const dir = await imageTreeOf([key]);
+    const dir = await imageTreeOf({ [key]: EARPHONES });
 
     const result = checkMedia(await listAssetKeys(dir), [key], {
       references: [{ key, width: 438, height: 999 }],
@@ -129,7 +106,7 @@ describe("checkMedia with a dimensions source", () => {
   });
 
   it("passes when the reference is the file's real size", async () => {
-    const dir = await imageTreeOf([key]);
+    const dir = await imageTreeOf({ [key]: EARPHONES });
 
     const result = checkMedia(await listAssetKeys(dir), [key], {
       references: [{ key, width: 438, height: 380 }],
@@ -140,7 +117,7 @@ describe("checkMedia with a dimensions source", () => {
   });
 
   it("leaves a reference with no file to the missing report", async () => {
-    const dir = await imageTreeOf([]);
+    const dir = await imageTreeOf({});
 
     const result = checkMedia(await listAssetKeys(dir), [key], {
       references: [{ key, width: 438, height: 999 }],
@@ -155,7 +132,7 @@ describe("checkMedia with a dimensions source", () => {
   });
 
   it("checks nothing when no dimensions source is given", async () => {
-    const dir = await imageTreeOf([key]);
+    const dir = await imageTreeOf({ [key]: EARPHONES });
 
     expect(checkMedia(await listAssetKeys(dir), [key]).mismatched).toEqual([]);
   });
@@ -190,26 +167,29 @@ describe("collectImageReferences", () => {
     ]);
   });
 
-  it("ignores an object that carries a key without dimensions", () => {
-    expect(
-      collectImageReferences({ image: { key: "products/a/b.jpg" } }, []),
-    ).toEqual([]);
+  it("refuses a key that states no dimensions, rather than skipping it", () => {
+    expect(() =>
+      collectImageReferences(
+        { image: { key: "products/a/b.jpg", width: 1 } },
+        [],
+      ),
+    ).toThrow("products/a/b.jpg is referenced without a width and a height");
   });
 });
 
 describe("auditAssets", () => {
-  const key = "categories/earphones/thumbnail.png";
+  const key = EARPHONES;
   const pixels = { width: 438, height: 380 };
 
   /**
    * A temp copy of the package layout: an assets tree and, beside it, the
    * manifest a `--write` would have committed for it.
    */
-  const auditable = async (keys: readonly string[]) => {
+  const auditable = async (files: Readonly<Record<string, string>>) => {
     const root = await mkdtemp(path.join(tmpdir(), "media-audit-"));
     const dir = path.join(root, "assets");
     await mkdir(dir, { recursive: true });
-    await imageTreeOf(keys, dir);
+    await imageTreeOf(files, dir);
 
     const manifestFile = path.join(root, "manifest.json");
     await writeManifest(await buildManifest(dir), manifestFile);
@@ -217,7 +197,7 @@ describe("auditAssets", () => {
   };
 
   it("says nothing about a tree that is in order", async () => {
-    const { dir, manifestFile } = await auditable([key]);
+    const { dir, manifestFile } = await auditable({ [key]: EARPHONES });
 
     const { report } = await auditAssets({
       referencedKeys: [key],
@@ -230,7 +210,7 @@ describe("auditAssets", () => {
   });
 
   it("fails on a manifest the tree has moved past", async () => {
-    const { dir, manifestFile } = await auditable([key]);
+    const { dir, manifestFile } = await auditable({ [key]: EARPHONES });
     const added = "categories/earphones/thumbnail-2x.png";
     await copyFile(
       path.join(dir, ...key.split("/")),
@@ -248,7 +228,7 @@ describe("auditAssets", () => {
   });
 
   it("fails on a referenced file that is not there", async () => {
-    const { dir, manifestFile } = await auditable([key]);
+    const { dir, manifestFile } = await auditable({ [key]: EARPHONES });
 
     const { report } = await auditAssets({
       referencedKeys: [key, "categories/speakers/thumbnail.png"],
@@ -261,7 +241,7 @@ describe("auditAssets", () => {
   });
 
   it("fails on a file nothing references", async () => {
-    const { dir, manifestFile } = await auditable([key]);
+    const { dir, manifestFile } = await auditable({ [key]: EARPHONES });
 
     const { report } = await auditAssets({
       referencedKeys: [],
@@ -274,7 +254,7 @@ describe("auditAssets", () => {
   });
 
   it("fails on a reference whose dimensions are not the file's", async () => {
-    const { dir, manifestFile } = await auditable([key]);
+    const { dir, manifestFile } = await auditable({ [key]: EARPHONES });
 
     const { report } = await auditAssets({
       referencedKeys: [key],

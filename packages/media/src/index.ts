@@ -2,8 +2,6 @@ export { listAssetKeys } from "./assets.js";
 export {
   checkMedia,
   describeMediaCheck,
-  type DimensionMismatch,
-  type DimensionsSource,
   type ImageReference,
   type MediaCheck,
   type Pixels,
@@ -17,17 +15,11 @@ export {
 export {
   MANIFEST_PATH,
   buildManifest,
-  checkManifest,
-  describeManifestCheck,
   readManifest,
-  serializeManifest,
-  writeManifest,
   type Manifest,
-  type ManifestCheck,
   type ManifestEntry,
 } from "./manifest.js";
 export {
-  collectImageReferences,
   seedImageReferences,
   seedImageUrls,
   seedReferencedKeys,

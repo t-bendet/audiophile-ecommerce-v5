@@ -1,13 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-  copyFile,
-  mkdtemp,
-  mkdir,
-  readFile,
-  stat,
-  writeFile,
-} from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { ASSETS_DIR } from "../src/keys.js";
@@ -19,21 +11,7 @@ import {
   serializeManifest,
   type Manifest,
 } from "../src/manifest.js";
-
-/** Two real files, so the pixel sizes under test are not fabricated. */
-const EARPHONES = "categories/earphones/thumbnail.png"; // 438 x 380
-const HEADPHONES = "categories/headphones/thumbnail.png"; // 438 x 422
-
-/** A throwaway assets tree holding copies of real images at the given keys. */
-const treeOf = async (files: Readonly<Record<string, string>>) => {
-  const dir = await mkdtemp(path.join(tmpdir(), "media-manifest-"));
-  for (const [key, source] of Object.entries(files)) {
-    const file = path.join(dir, ...key.split("/"));
-    await mkdir(path.dirname(file), { recursive: true });
-    await copyFile(path.join(ASSETS_DIR, source), file);
-  }
-  return dir;
-};
+import { EARPHONES, HEADPHONES, imageTreeOf } from "./helpers.js";
 
 describe("the committed manifest", () => {
   it("is what the assets tree regenerates, byte for byte", async () => {
@@ -45,7 +23,7 @@ describe("the committed manifest", () => {
 
 describe("buildManifest", () => {
   it("records the bytes, hash and pixel size of every file", async () => {
-    const dir = await treeOf({ "categories/a/thumbnail.png": EARPHONES });
+    const dir = await imageTreeOf({ "categories/a/thumbnail.png": EARPHONES });
     const source = await readFile(path.join(ASSETS_DIR, EARPHONES));
 
     expect(await buildManifest(dir)).toEqual({
@@ -59,7 +37,7 @@ describe("buildManifest", () => {
   });
 
   it("lists keys in sorted order whatever the tree hands back", async () => {
-    const dir = await treeOf({
+    const dir = await imageTreeOf({
       "categories/z/thumbnail.png": EARPHONES,
       "categories/a/thumbnail.png": HEADPHONES,
     });
@@ -71,7 +49,7 @@ describe("buildManifest", () => {
   });
 
   it("names the file it cannot read a pixel size from", async () => {
-    const dir = await treeOf({});
+    const dir = await imageTreeOf({});
     const file = path.join(dir, "categories", "a", "thumbnail.png");
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, "not an image");
@@ -84,7 +62,7 @@ describe("buildManifest", () => {
 
 describe("serializeManifest", () => {
   it("ends with a newline and indents two spaces", async () => {
-    const dir = await treeOf({ "categories/a/thumbnail.png": EARPHONES });
+    const dir = await imageTreeOf({ "categories/a/thumbnail.png": EARPHONES });
 
     const text = serializeManifest(await buildManifest(dir));
 
@@ -95,7 +73,7 @@ describe("serializeManifest", () => {
   });
 
   it("is reproducible from the same tree", async () => {
-    const dir = await treeOf({
+    const dir = await imageTreeOf({
       "categories/z/thumbnail.png": EARPHONES,
       "categories/a/thumbnail.png": HEADPHONES,
     });

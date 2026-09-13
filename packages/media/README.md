@@ -52,9 +52,12 @@ server or client ships reads it.
 
 Add or replace a file, then `media:check --write`; regenerating from an
 unchanged tree reproduces the file byte for byte, so a dirty `manifest.json`
-after `--write` means the tree really did change. The dimension check is per
-reference: a seed image still written as a URL is checked for existence only,
-and starts having its size verified the day it carries `{ key, width, height }`.
+after `--write` means the tree really did change.
+
+The dimension check is per reference: a seed image still written as a URL is
+checked for existence only, and starts having its size verified the day it
+carries `{ key, width, height }`. A key that states only one dimension, or
+none, is an error rather than a reference the check quietly skips.
 
 `media:import --verify` is the one-off migration audit: it refetches every
 pre-migration ImgBB URL (frozen in `src/legacy-imgbb.ts`) and compares sha256

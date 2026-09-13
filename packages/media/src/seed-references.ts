@@ -46,9 +46,9 @@ export const seedReferencedKeys = () => [
 ];
 
 /**
- * Any `{ key, width, height }` anywhere in the seed literals. Empty until an
- * entity migrates off URL literals, which is what makes the dimension check
- * switch itself on per entity rather than per release.
+ * Any `{ key, width, height }` anywhere in the seed literals - empty until an
+ * entity migrates off URL literals. A key without both dimensions throws
+ * rather than going unchecked, so a half-migrated entity cannot pass quietly.
  */
 export const collectImageReferences = (
   value: unknown,
@@ -61,11 +61,10 @@ export const collectImageReferences = (
   if (value === null || typeof value !== "object") return found;
 
   const { key, width, height } = value as Partial<ImageReference>;
-  if (
-    typeof key === "string" &&
-    typeof width === "number" &&
-    typeof height === "number"
-  ) {
+  if (typeof key === "string") {
+    if (typeof width !== "number" || typeof height !== "number")
+      throw new Error(`${key} is referenced without a width and a height`);
+
     found.push({ key, width, height });
     return found;
   }

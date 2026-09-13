@@ -1,11 +1,3 @@
-import {
-  buildManifest,
-  checkManifest,
-  describeManifestCheck,
-  readManifest,
-  type Manifest,
-} from "./manifest.js";
-
 export type Pixels = { width: number; height: number };
 
 /** What a reference claims about the file behind a bucket key. */
@@ -17,11 +9,7 @@ export type DimensionMismatch = {
   actual: Pixels;
 };
 
-/**
- * What the references claim, against the files' real pixel sizes (the
- * manifest). Optional: an entity's references only carry dimensions once it
- * has migrated off URL literals.
- */
+/** What the references claim, against the files' real pixel sizes. */
 export type DimensionsSource = {
   references: readonly ImageReference[];
   actual: Readonly<Record<string, Pixels>>;
@@ -82,39 +70,3 @@ export const describeMediaCheck = ({
         `but the file is ${describePixels(actual)}`,
     ),
   ].join("\n");
-
-/**
- * Everything `media:check` holds the tree to: the seed's references, the
- * dimensions those references state, and the committed manifest. `report` is
- * empty when the tree is sound.
- */
-export const auditAssets = async ({
-  referencedKeys,
-  references,
-  dir,
-  manifestFile,
-}: {
-  referencedKeys: readonly string[];
-  references: readonly ImageReference[];
-  dir?: string;
-  manifestFile?: string;
-}): Promise<{ manifest: Manifest; report: string }> => {
-  const manifest = await buildManifest(dir);
-
-  return {
-    manifest,
-    report: [
-      describeMediaCheck(
-        checkMedia(Object.keys(manifest), referencedKeys, {
-          references,
-          actual: manifest,
-        }),
-      ),
-      describeManifestCheck(
-        checkManifest(await readManifest(manifestFile), manifest),
-      ),
-    ]
-      .filter((section) => section !== "")
-      .join("\n"),
-  };
-};

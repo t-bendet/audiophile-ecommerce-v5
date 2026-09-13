@@ -1,4 +1,4 @@
-import { auditAssets } from "../check.js";
+import { auditAssets } from "../audit.js";
 import { buildManifest, writeManifest } from "../manifest.js";
 import { seedImageReferences, seedReferencedKeys } from "../seed-references.js";
 
