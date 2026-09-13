@@ -41,7 +41,7 @@ const PRODUCT_UPDATE_FIELDS = [
   "images",
 ] as const satisfies readonly (keyof ProductUpdateInput)[];
 
-const resolveShowCase = <
+const resolveShowCaseImage = <
   T extends { images: { showCaseImage: ResponsiveImage | null } },
 >({
   images,
@@ -380,9 +380,9 @@ export class ProductService extends AbstractCrudService<
     }
 
     return {
-      showCaseCover: resolveShowCase(config.showCaseCover),
-      showCaseWide: resolveShowCase(config.showCaseWide),
-      showCaseGrid: resolveShowCase(config.showCaseGrid),
+      showCaseCover: resolveShowCaseImage(config.showCaseCover),
+      showCaseWide: resolveShowCaseImage(config.showCaseWide),
+      showCaseGrid: resolveShowCaseImage(config.showCaseGrid),
     };
   }
 

@@ -10,10 +10,10 @@ import {
   createCategory,
   createConfig,
   createProduct,
-  image,
   resetDatabase,
   resolvedImage,
   resolvedResponsiveImage,
+  responsiveImage,
   thumbnail,
 } from "./helpers/database.js";
 
@@ -36,10 +36,10 @@ const productBody = (categoryId: string, name: string) => ({
   images: {
     featuredImage: null,
     showCaseImage: null,
-    galleryImages: [image("test-product", "gallery-1")],
-    introImage: image("test-product", "intro"),
-    primaryImage: image("test-product", "primary"),
-    relatedProductImage: image("test-product", "related"),
+    galleryImages: [responsiveImage("test-product", "gallery-1")],
+    introImage: responsiveImage("test-product", "intro"),
+    primaryImage: responsiveImage("test-product", "primary"),
+    relatedProductImage: responsiveImage("test-product", "related"),
     thumbnail: productThumbnail,
   },
 });
@@ -403,7 +403,7 @@ describe("responsive images on the wire", () => {
 });
 
 describe("product responsive image validation", () => {
-  const primary = image("test-product", "primary");
+  const primary = responsiveImage("test-product", "primary");
   const badVariants = [
     [
       "a URL in place of a key",

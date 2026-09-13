@@ -1,4 +1,9 @@
-import type { Prisma, Product as PrismaProduct } from "@repo/database";
+import type {
+  Prisma,
+  Product as PrismaProduct,
+  ResponsiveImage,
+  SingleImage,
+} from "@repo/database";
 import { z } from "zod";
 import { NAME } from "./category.js";
 import type { ExtendedQueryParams } from "./common.js";
@@ -182,19 +187,20 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 
 // * =====  DTO Schemas ( base and others if needed)=====
 
-// The entity with every stored key resolved to a URL; nothing else moves.
-type ResolvedProductImages = {
-  featuredImage: ResponsiveImageDTO | null;
-  galleryImages: ResponsiveImageDTO[];
-  introImage: ResponsiveImageDTO;
-  primaryImage: ResponsiveImageDTO;
-  showCaseImage: ResponsiveImageDTO | null;
-  thumbnail: SingleImageDTO;
-  relatedProductImage: ResponsiveImageDTO;
-};
+// The entity with every stored key resolved to a URL; nothing else moves. It is
+// derived from the persisted shape, so a new image slot lands here on its own.
+type Resolved<T> = T extends readonly (infer Item)[]
+  ? Resolved<Item>[]
+  : T extends SingleImage
+    ? SingleImageDTO
+    : T extends ResponsiveImage
+      ? ResponsiveImageDTO
+      : T;
 
 type ResolvedProduct = Omit<Product, "images"> & {
-  images: ResolvedProductImages;
+  images: {
+    [Slot in keyof Product["images"]]: Resolved<Product["images"][Slot]>;
+  };
 };
 
 export const ProductDTOSchema = ProductPropertiesSchema.extend({

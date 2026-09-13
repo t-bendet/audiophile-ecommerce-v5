@@ -20,10 +20,9 @@ categories/<slug>/thumbnail.<ext>
 `tablet` or `desktop`. The client's best-gear hero is UI chrome, not catalogue
 content, and stays in `apps/client`.
 
-There are 129 files for 128 pre-migration ImgBB URLs. XX99 Mark II's
-`primaryImage.desktopSrc` used to point at the same URL as its
-`introImage.desktopSrc` — the category-page preview rather than the product
-shot. That was a slip when the images were first uploaded, confirmed by the
+There are 129 files for 128 pre-migration ImgBB URLs. XX99 Mark II's desktop
+primary image used to point at the same URL as its desktop intro image — the
+category-page preview rather than the product shot. That was a slip when the images were first uploaded, confirmed by the
 maintainer, so `primary-desktop.jpg` now holds the starter pack's real
 `desktop/image-product.jpg` and the two roles no longer share a file.
 

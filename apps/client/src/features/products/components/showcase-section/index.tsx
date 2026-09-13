@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { paths } from "@/config/paths";
+import { AppError, ErrorCode } from "@repo/domain";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
@@ -25,18 +26,28 @@ const ShowCaseProductsSection = () => {
   );
   const queryClient = useQueryClient();
   const { showCaseCover, showCaseGrid, showCaseWide } = productResponse.data;
+
+  if (
+    !showCaseCover?.images.showCaseImage ||
+    !showCaseWide?.images.showCaseImage ||
+    !showCaseGrid?.images.showCaseImage
+  ) {
+    throw new AppError(
+      "A showcase product does not have a showcase image.",
+      ErrorCode.COMPONENT_COMPOSITION_ERROR,
+    );
+  }
+
   return (
     <>
       <article>
-        <Container classes="bg-primary-500 lg:gap-30 flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center">
-          <section className="lg:max-w-102.5 mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5">
-            {showCaseCover?.images.showCaseImage && (
-              <ResponsivePicture
-                {...showCaseCover.images.showCaseImage}
-                classes="mx-auto"
-                loading="lazy"
-              />
-            )}
+        <Container classes="bg-primary-500 flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center lg:gap-30">
+          <section className="mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5 lg:max-w-102.5">
+            <ResponsivePicture
+              {...showCaseCover.images.showCaseImage}
+              classes="mx-auto"
+              loading="lazy"
+            />
           </section>
           <section className="max-w-[30ch] text-center md:max-w-[35ch] lg:max-w-[40ch] lg:p-6 lg:text-left">
             <header>
@@ -80,17 +91,15 @@ const ShowCaseProductsSection = () => {
       </article>
       <article>
         <Container classes="grid h-full grid-cols-1 overflow-hidden rounded-sm">
-          {showCaseWide?.images.showCaseImage && (
-            <ResponsivePicture
-              {...showCaseWide.images.showCaseImage}
-              classes="w-full"
-              pictureClasses="col-span-full row-span-full"
-              loading="lazy"
-            />
-          )}
+          <ResponsivePicture
+            {...showCaseWide.images.showCaseImage}
+            classes="w-full"
+            pictureClasses="col-span-full row-span-full"
+            loading="lazy"
+          />
           <div className="z-10 col-span-full row-span-full ml-6 self-center md:ml-16 lg:ml-24">
             <header>
-              <h2 className="text-2xl font-bold uppercase tracking-[0.07em] text-neutral-900">
+              <h2 className="text-2xl font-bold tracking-[0.07em] text-neutral-900 uppercase">
                 {showCaseWide?.shortLabel}
               </h2>
             </header>
@@ -124,17 +133,15 @@ const ShowCaseProductsSection = () => {
       <article>
         <Container classes="lg: grid grid-cols-1 grid-rows-2 gap-6 md:grid-cols-2 md:grid-rows-1 md:gap-3 lg:gap-7">
           <section className="overflow-hidden rounded-sm">
-            {showCaseGrid?.images.showCaseImage && (
-              <ResponsivePicture
-                {...showCaseGrid.images.showCaseImage}
-                loading="lazy"
-              />
-            )}
+            <ResponsivePicture
+              {...showCaseGrid.images.showCaseImage}
+              loading="lazy"
+            />
           </section>
           <section className="flex items-center overflow-hidden rounded-sm bg-neutral-200">
             <div className="ml-6 md:ml-10 lg:ml-24">
               <header>
-                <h2 className="text-2xl font-bold uppercase tracking-[0.07em] text-neutral-900">
+                <h2 className="text-2xl font-bold tracking-[0.07em] text-neutral-900 uppercase">
                   {showCaseGrid?.shortLabel}
                 </h2>
               </header>

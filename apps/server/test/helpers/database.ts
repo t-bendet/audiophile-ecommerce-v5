@@ -85,7 +85,7 @@ export const tamperedAuthCookie = (userId: string) => {
 };
 
 /** A persisted responsive image: one key per breakpoint, each its own size. */
-export const image = (slug: string, role: string) => ({
+export const responsiveImage = (slug: string, role: string) => ({
   altText: `${slug} ${role} alt`,
   mobile: {
     key: `products/${slug}/${role}-mobile.jpg`,
@@ -170,15 +170,15 @@ export const createProduct = async (
       fullLabel: [label],
       featuresText: [`${label} feature`],
       featuredImageText: overrides.featuredImageText ?? null,
-      showCaseImageText: `${label} showcase text`,
+      showCaseImageText: null,
       includedItems: [{ item: "Cable", quantity: 1 }],
       images: {
-        galleryImages: [image(label, "gallery-1")],
-        introImage: image(label, "intro"),
-        primaryImage: image(label, "primary"),
-        relatedProductImage: image(label, "related"),
-        featuredImage: image(label, "featured"),
-        showCaseImage: image(label, "showcase"),
+        galleryImages: [responsiveImage(label, "gallery-1")],
+        introImage: responsiveImage(label, "intro"),
+        primaryImage: responsiveImage(label, "primary"),
+        relatedProductImage: responsiveImage(label, "related"),
+        featuredImage: responsiveImage(label, "featured"),
+        showCaseImage: responsiveImage(label, "showcase"),
         thumbnail: thumbnail(label),
       },
     },

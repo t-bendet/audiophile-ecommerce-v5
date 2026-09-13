@@ -265,7 +265,7 @@ const ProductByCategorySchema = z.object({
   isNewProduct: z.boolean(),
   images: z.object({
     introImage: z.object({
-      mobileSrc: z.string(),
+      mobile: z.object({ src: z.url(), width: z.int(), height: z.int() }),
       // ...
     }),
   }),
