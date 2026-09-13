@@ -207,8 +207,13 @@ JWT_SECRET=<min 32 chars>
 JWT_EXPIRES_IN=7d
 JWT_COOKIE_EXPIRES_IN=7
 PORT=8000
+MEDIA_BASE_URL=https://audiophile-media.t-bendet.com
 LOG_LEVEL=debug
 ```
+
+`MEDIA_BASE_URL` is the host every catalogue image key resolves against, required in every
+environment. It is the one place a stored key meets a host: `apps/server/src/utils/media.ts` joins
+them at the API boundary, and nothing below it ever sees a URL.
 
 `LOG_LEVEL` is optional; unset it defaults per environment — `debug` in development, `info` in production, `silent` in test.
 
@@ -246,9 +251,9 @@ Container, everything else is the client's `dist` as Workers Static Assets. Imag
 `audiophile-media.t-bendet.com`, the database is MongoDB Atlas.
 
 The server's environment in production comes from the Worker, not a file: `NODE_ENV`,
-`JWT_EXPIRES_IN` and `JWT_COOKIE_EXPIRES_IN` are `vars` in `wrangler.jsonc`, while `DATABASE_URL`
-and `JWT_SECRET` are Worker secrets (`wrangler secret put <NAME>` from `apps/server`). The Worker
-passes all five into the container; `PORT` comes from the Dockerfile.
+`JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN` and `MEDIA_BASE_URL` are `vars` in `wrangler.jsonc`,
+while `DATABASE_URL` and `JWT_SECRET` are Worker secrets (`wrangler secret put <NAME>` from
+`apps/server`). The Worker passes all six into the container; `PORT` comes from the Dockerfile.
 
 A push to `main` deploys: the `deploy` job in `.github/workflows/ci.yml` needs the `verify` and
 `image` jobs and then runs `pnpm deploy:app`, which builds everything and hands the image, the

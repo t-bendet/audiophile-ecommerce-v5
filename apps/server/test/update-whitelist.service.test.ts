@@ -16,6 +16,7 @@ import {
   createProduct,
   createUser,
   resetDatabase,
+  singleImage,
 } from "./helpers/database.js";
 
 // The whitelists are protected hooks, so each case drives the public `update`
@@ -28,18 +29,22 @@ beforeEach(resetDatabase);
 describe("CategoryService.update", () => {
   it("writes the whitelisted fields", async () => {
     const category = await createCategory("Headphones");
-    const thumbnail = {
-      altText: "speakers alt",
-      ariaLabel: "speakers aria",
-      src: "https://cdn.example.com/speakers-thumb.jpg",
-    };
+    const thumbnail = singleImage("speakers");
 
     const dto = await categoryService.update(category.id, {
       name: "Speakers",
       thumbnail,
     });
 
-    expect(dto).toMatchObject({ name: "Speakers", thumbnail });
+    expect(dto).toMatchObject({
+      name: "Speakers",
+      thumbnail: {
+        altText: thumbnail.altText,
+        src: `https://audiophile-media.t-bendet.com/${thumbnail.image.key}`,
+        width: thumbnail.image.width,
+        height: thumbnail.image.height,
+      },
+    });
   });
 
   it("drops createdAt and v", async () => {

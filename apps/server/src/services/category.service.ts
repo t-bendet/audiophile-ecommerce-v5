@@ -8,6 +8,7 @@ import type {
   NAME,
 } from "@repo/domain";
 import { CATEGORY_QUERY_FIELDS } from "@repo/domain";
+import { toSingleImageDTO } from "../utils/media.js";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
@@ -24,7 +25,9 @@ export class CategoryService extends AbstractCrudService<
   CategoryQueryParams
 > {
   protected toDTO(entity: Category): CategoryDTO {
-    return entity;
+    // A `fields` selection can leave the row without a thumbnail to resolve.
+    if (!entity.thumbnail) return entity as unknown as CategoryDTO;
+    return { ...entity, thumbnail: toSingleImageDTO(entity.thumbnail) };
   }
 
   protected async persistFindMany(

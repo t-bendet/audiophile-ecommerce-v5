@@ -10,11 +10,6 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
   const { data: categoriesResponse } = useSuspenseQuery(
     getCategoriesQueryOptions(),
   );
-  const categorySizes = {
-    Headphones: { width: 438, height: 422 },
-    Earphones: { width: 438, height: 380 },
-    Speakers: { width: 438, height: 408 },
-  } as const;
   return (
     <nav onClick={clickHandler}>
       <ul className="flex flex-col gap-4 text-neutral-900 md:flex-row md:justify-around lg:gap-8">
@@ -24,12 +19,11 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
             key={category.id}
           >
             <img
-              width={categorySizes[category.name].width}
-              height={categorySizes[category.name].height}
+              width={category.thumbnail.width}
+              height={category.thumbnail.height}
               src={category.thumbnail.src}
               alt={category.thumbnail.altText}
-              aria-label={category.thumbnail.ariaLabel}
-              className="max-w-1/3 md:max-w-2/3 lg:max-w-5/6 z-10 col-start-1 col-end-2 row-start-1 row-end-3"
+              className="z-10 col-start-1 col-end-2 row-start-1 row-end-3 max-w-1/3 md:max-w-2/3 lg:max-w-5/6"
             />
             <div className="col-start-1 col-end-2 row-start-2 row-end-4 w-full rounded-md bg-neutral-200"></div>
             <div className="col-start-1 col-end-2 row-start-3 row-end-4 w-full text-center">

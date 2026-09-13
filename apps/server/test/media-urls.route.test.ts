@@ -39,23 +39,35 @@ const seedCatalogue = async () => {
   }
 };
 
-/** Every `src` / `*Src` string anywhere in a response body. */
-const imageUrls = (value: unknown, found: string[] = []): string[] => {
+const collectStrings = (
+  value: unknown,
+  matches: (name: string) => boolean,
+  found: string[] = [],
+): string[] => {
   if (Array.isArray(value)) {
-    for (const item of value) imageUrls(item, found);
+    for (const item of value) collectStrings(item, matches, found);
     return found;
   }
   if (value === null || typeof value !== "object") return found;
 
   for (const [name, nested] of Object.entries(value)) {
     if (typeof nested === "string") {
-      if (name === "src" || name.endsWith("Src")) found.push(nested);
+      if (matches(name)) found.push(nested);
     } else {
-      imageUrls(nested, found);
+      collectStrings(nested, matches, found);
     }
   }
   return found;
 };
+
+const isUrlField = (name: string) => name === "src" || name.endsWith("Src");
+
+/** Every `src` / `*Src` string anywhere in a response body. */
+const imageUrls = (value: unknown) => collectStrings(value, isUrlField);
+
+/** What a seed literal asks for: a URL before migration, a key after. */
+const imageReferences = (value: unknown) =>
+  collectStrings(value, (name) => isUrlField(name) || name === "key");
 
 beforeEach(async () => {
   await resetDatabase();
@@ -72,7 +84,7 @@ describe("catalogue image URLs", () => {
     expect(res.status).toBe(200);
 
     const urls = imageUrls(res.body.data);
-    expect(urls).toHaveLength(imageUrls(seeded).length);
+    expect(urls).toHaveLength(imageReferences(seeded).length);
     expect(urls.filter((url) => !url.startsWith(MEDIA_PREFIX))).toEqual([]);
     expect(urls.filter((url) => url.includes("ibb.co"))).toEqual([]);
   });

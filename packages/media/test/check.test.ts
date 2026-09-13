@@ -25,6 +25,15 @@ describe("the real assets tree", () => {
     expect(describeMediaCheck(result)).toBe("");
   });
 
+  it("asks for the keys a migrated entity states, not only the URLs", () => {
+    const references = seedImageReferences();
+
+    expect(references.length).toBeGreaterThan(0);
+    expect(seedReferencedKeys()).toEqual(
+      expect.arrayContaining(references.map(({ key }) => key)),
+    );
+  });
+
   it("serves every seed image from the media host", () => {
     const urls = seedImageUrls();
 

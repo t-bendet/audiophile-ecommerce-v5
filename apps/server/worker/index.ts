@@ -8,6 +8,7 @@ interface Env {
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
   JWT_COOKIE_EXPIRES_IN: string;
+  MEDIA_BASE_URL: string;
 }
 
 const isApiPath = (pathname: string) => /^\/api(\/|$)/.test(pathname);
@@ -24,6 +25,7 @@ export class ApiContainer extends Container<Env> {
       JWT_SECRET: env.JWT_SECRET,
       JWT_EXPIRES_IN: env.JWT_EXPIRES_IN,
       JWT_COOKIE_EXPIRES_IN: env.JWT_COOKIE_EXPIRES_IN,
+      MEDIA_BASE_URL: env.MEDIA_BASE_URL,
     };
   }
 }

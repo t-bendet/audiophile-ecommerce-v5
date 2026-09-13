@@ -11,3 +11,4 @@ export * from "./app-error.js";
 export * from "./cart.js";
 export * from "./order.js";
 export * from "./pricing.js";
+export * from "./image.js";

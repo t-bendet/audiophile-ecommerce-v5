@@ -25,6 +25,13 @@ describe("env", () => {
     await expect(loadEnv()).rejects.toThrow(/Missing or invalid DATABASE_URL/);
   });
 
+  it("names MEDIA_BASE_URL when it is empty", async () => {
+    vi.stubEnv("MEDIA_BASE_URL", "");
+    await expect(loadEnv()).rejects.toThrow(
+      /MEDIA_BASE_URL must be an absolute URL/,
+    );
+  });
+
   it("still lists every other invalid variable", async () => {
     vi.stubEnv("JWT_SECRET", "short");
     await expect(loadEnv()).rejects.toThrow(/JWT_SECRET/);
