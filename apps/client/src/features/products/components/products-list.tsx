@@ -17,14 +17,8 @@ export default function ProductsList({ products }: TProductListProps) {
             classes={`lg:gap-31 flex flex-col gap-8 md:gap-14 lg:flex-row ${i % 2 === 1 ? "lg:flex-row-reverse" : ""}`}
           >
             <ResponsivePicture
-              mobileSrc={product.images.introImage.mobileSrc}
-              tabletSrc={product.images.introImage.tabletSrc}
-              desktopSrc={product.images.introImage.desktopSrc}
-              altText={product.images.introImage.altText}
-              ariaLabel={product.images.introImage.ariaLabel}
+              {...product.images.introImage}
               pictureClasses="rounded-sm"
-              width={1080}
-              height={1120}
               loading={i === 0 ? "eager" : "lazy"}
               fetchPriority={i === 0 ? "high" : "auto"}
             />

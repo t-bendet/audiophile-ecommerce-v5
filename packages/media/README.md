@@ -20,10 +20,9 @@ categories/<slug>/thumbnail.<ext>
 `tablet` or `desktop`. The client's best-gear hero is UI chrome, not catalogue
 content, and stays in `apps/client`.
 
-There are 129 files for 128 pre-migration ImgBB URLs. XX99 Mark II's
-`primaryImage.desktopSrc` used to point at the same URL as its
-`introImage.desktopSrc` — the category-page preview rather than the product
-shot. That was a slip when the images were first uploaded, confirmed by the
+There are 129 files for 128 pre-migration ImgBB URLs. XX99 Mark II's desktop
+primary image used to point at the same URL as its desktop intro image — the
+category-page preview rather than the product shot. That was a slip when the images were first uploaded, confirmed by the
 maintainer, so `primary-desktop.jpg` now holds the starter pack's real
 `desktop/image-product.jpg` and the two roles no longer share a file.
 
@@ -54,10 +53,10 @@ Add or replace a file, then `media:check --write`; regenerating from an
 unchanged tree reproduces the file byte for byte, so a dirty `manifest.json`
 after `--write` means the tree really did change.
 
-The dimension check is per reference: a seed image still written as a URL is
-checked for existence only, and starts having its size verified the day it
-carries `{ key, width, height }`. A key that states only one dimension, or
-none, is an error rather than a reference the check quietly skips.
+The dimension check is per reference, and every reference in the seed is now a
+`{ key, width, height }`, so all 129 are held to their file's pixel size. A key
+that states only one dimension, or none, is an error rather than a reference the
+check quietly skips.
 
 `media:import --verify` is the one-off migration audit: it refetches every
 pre-migration ImgBB URL (frozen in `src/legacy-imgbb.ts`) and compares sha256

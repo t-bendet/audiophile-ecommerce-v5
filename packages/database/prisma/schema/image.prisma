@@ -9,3 +9,10 @@ type SingleImage {
   altText String
   image   ImageVariant
 }
+
+type ResponsiveImage {
+  altText String
+  mobile  ImageVariant
+  tablet  ImageVariant
+  desktop ImageVariant
+}

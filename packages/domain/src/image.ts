@@ -1,4 +1,8 @@
-import type { ImageVariant, SingleImage } from "@repo/database";
+import type {
+  ImageVariant,
+  ResponsiveImage,
+  SingleImage,
+} from "@repo/database";
 import { z } from "zod";
 
 /**
@@ -31,12 +35,24 @@ export const ImageVariantSchema = z
   })
   .strict() satisfies z.ZodType<ImageVariant>;
 
+const AltTextSchema = z.string().min(1, "Alt text is required");
+
 export const SingleImageSchema = z
   .object({
-    altText: z.string().min(1, "Alt text is required"),
+    altText: AltTextSchema,
     image: ImageVariantSchema,
   })
   .strict() satisfies z.ZodType<SingleImage>;
+
+// One description for three crops; the breakpoints differ only in the file.
+export const ResponsiveImageSchema = z
+  .object({
+    altText: AltTextSchema,
+    mobile: ImageVariantSchema,
+    tablet: ImageVariantSchema,
+    desktop: ImageVariantSchema,
+  })
+  .strict() satisfies z.ZodType<ResponsiveImage>;
 
 // * ===== DTO Schemas (what the API returns) =====
 
@@ -51,11 +67,21 @@ export const ImageVariantDTOSchema = z
 // One image flattens into the field that holds it, so a thumbnail stays
 // `thumbnail.src` for the client.
 export const SingleImageDTOSchema = ImageVariantDTOSchema.extend({
-  altText: z.string().min(1, "Alt text is required"),
+  altText: AltTextSchema,
 }).strict();
+
+export const ResponsiveImageDTOSchema = z
+  .object({
+    altText: AltTextSchema,
+    mobile: ImageVariantDTOSchema,
+    tablet: ImageVariantDTOSchema,
+    desktop: ImageVariantDTOSchema,
+  })
+  .strict();
 
 export type ImageVariantDTO = z.infer<typeof ImageVariantDTOSchema>;
 export type SingleImageDTO = z.infer<typeof SingleImageDTOSchema>;
+export type ResponsiveImageDTO = z.infer<typeof ResponsiveImageDTOSchema>;
 
 // * ===== Resolution =====
 

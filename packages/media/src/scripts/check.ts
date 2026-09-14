@@ -36,8 +36,7 @@ const main = async () => {
 
   console.log(
     `${Object.keys(manifest).length} files, manifest current, ` +
-      `${references.length} of ${referencedKeys.length} references checked ` +
-      "against their file's pixel size.",
+      `${references.length} references checked against their file's pixel size.`,
   );
 };
 

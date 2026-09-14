@@ -17,14 +17,8 @@ const RelatedProducts = ({ id }: { id: string }) => {
       {productsResponse.data.map((product) => (
         <article key={product.id} className="space-y-8">
           <ResponsivePicture
-            mobileSrc={product.images.relatedProductImage.mobileSrc}
-            tabletSrc={product.images.relatedProductImage.tabletSrc}
-            desktopSrc={product.images.relatedProductImage.desktopSrc}
-            altText={product.images.relatedProductImage.altText}
+            {...product.images.relatedProductImage}
             classes="h-auto w-full md:mb-10"
-            ariaLabel={product.images.relatedProductImage.ariaLabel}
-            width={700}
-            height={636}
             loading="lazy"
           />
           <h3 className="tracking-300 text-center text-xl font-bold uppercase">

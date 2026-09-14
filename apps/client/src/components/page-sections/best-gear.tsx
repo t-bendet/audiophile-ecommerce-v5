@@ -8,14 +8,11 @@ export const BestGearSection = () => {
   return (
     <Container classes="flex flex-col items-center justify-between gap-10 md:gap-16 lg:flex-row-reverse lg:gap-4">
       <ResponsivePicture
-        mobileSrc={bestGearMobileImg}
-        tabletSrc={bestGearTabletImg}
-        desktopSrc={bestGearDesktopImg}
-        ariaLabel="Best Gear"
         altText="Best Gear"
+        mobile={{ src: bestGearMobileImg, width: 654, height: 600 }}
+        tablet={{ src: bestGearTabletImg, width: 1378, height: 600 }}
+        desktop={{ src: bestGearDesktopImg, width: 540, height: 588 }}
         classes="rounded-xl"
-        width={540}
-        height={588}
       />
       <div className="text-center text-neutral-900 md:max-w-xl lg:max-w-md lg:text-left">
         <h3 className="tracking-300 mb-8 text-2xl font-bold uppercase md:text-4xl">

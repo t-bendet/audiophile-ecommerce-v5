@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
 import { paths } from "@/config/paths";
+import { AppError, ErrorCode } from "@repo/domain";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
@@ -25,20 +26,26 @@ const ShowCaseProductsSection = () => {
   );
   const queryClient = useQueryClient();
   const { showCaseCover, showCaseGrid, showCaseWide } = productResponse.data;
+
+  if (
+    !showCaseCover?.images.showCaseImage ||
+    !showCaseWide?.images.showCaseImage ||
+    !showCaseGrid?.images.showCaseImage
+  ) {
+    throw new AppError(
+      "A showcase product does not have a showcase image.",
+      ErrorCode.COMPONENT_COMPOSITION_ERROR,
+    );
+  }
+
   return (
     <>
       <article>
         <Container classes="bg-primary-500 lg:gap-30 flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center">
           <section className="lg:max-w-102.5 mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5">
             <ResponsivePicture
-              altText={showCaseCover?.images.showCaseImage?.altText || ""}
-              ariaLabel={showCaseCover?.images.showCaseImage?.ariaLabel || ""}
-              mobileSrc={showCaseCover?.images.showCaseImage?.mobileSrc || ""}
-              tabletSrc={showCaseCover?.images.showCaseImage?.tabletSrc || ""}
-              desktopSrc={showCaseCover?.images.showCaseImage?.desktopSrc || ""}
+              {...showCaseCover.images.showCaseImage}
               classes="mx-auto"
-              width={756}
-              height={918}
               loading="lazy"
             />
           </section>
@@ -85,15 +92,9 @@ const ShowCaseProductsSection = () => {
       <article>
         <Container classes="grid h-full grid-cols-1 overflow-hidden rounded-sm">
           <ResponsivePicture
-            altText={showCaseWide?.images.showCaseImage?.altText || ""}
-            ariaLabel={showCaseWide?.images.showCaseImage?.ariaLabel || ""}
-            mobileSrc={showCaseWide?.images.showCaseImage?.mobileSrc || ""}
-            tabletSrc={showCaseWide?.images.showCaseImage?.tabletSrc || ""}
-            desktopSrc={showCaseWide?.images.showCaseImage?.desktopSrc || ""}
+            {...showCaseWide.images.showCaseImage}
             classes="w-full"
             pictureClasses="col-span-full row-span-full"
-            width={1110}
-            height={320}
             loading="lazy"
           />
           <div className="z-10 col-span-full row-span-full ml-6 self-center md:ml-16 lg:ml-24">
@@ -133,13 +134,7 @@ const ShowCaseProductsSection = () => {
         <Container classes="lg: grid grid-cols-1 grid-rows-2 gap-6 md:grid-cols-2 md:grid-rows-1 md:gap-3 lg:gap-7">
           <section className="overflow-hidden rounded-sm">
             <ResponsivePicture
-              altText={showCaseGrid?.images.showCaseImage?.altText || ""}
-              ariaLabel={showCaseGrid?.images.showCaseImage?.ariaLabel || ""}
-              mobileSrc={showCaseGrid?.images.showCaseImage?.mobileSrc || ""}
-              tabletSrc={showCaseGrid?.images.showCaseImage?.tabletSrc || ""}
-              desktopSrc={showCaseGrid?.images.showCaseImage?.desktopSrc || ""}
-              width={540}
-              height={320}
+              {...showCaseGrid.images.showCaseImage}
               loading="lazy"
             />
           </section>

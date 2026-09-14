@@ -10,6 +10,7 @@ import {
   createUser,
   resetDatabase,
   resolvedImage,
+  resolvedResponsiveImage,
   singleImage,
 } from "./helpers/database.js";
 
@@ -69,6 +70,9 @@ describe("GET /api/v1/categories/:category/products", () => {
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0].id).toBe(product.id);
+    expect(res.body.data[0].images.introImage).toEqual(
+      resolvedResponsiveImage(product.images.introImage),
+    );
   });
 
   it("rejects a category name outside the enum", async () => {

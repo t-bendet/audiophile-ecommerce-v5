@@ -1,4 +1,9 @@
-import type { Prisma, Product as PrismaProduct } from "@repo/database";
+import type {
+  Prisma,
+  Product as PrismaProduct,
+  ResponsiveImage,
+  SingleImage,
+} from "@repo/database";
 import { z } from "zod";
 import { NAME } from "./category.js";
 import type { ExtendedQueryParams } from "./common.js";
@@ -13,8 +18,11 @@ import {
   SingleItemResponseSchema,
 } from "./common.js";
 import {
+  ResponsiveImageDTOSchema,
+  ResponsiveImageSchema,
   SingleImageDTOSchema,
   SingleImageSchema,
+  type ResponsiveImageDTO,
   type SingleImageDTO,
 } from "./image.js";
 import { IdValidator } from "./shared.js";
@@ -38,29 +46,25 @@ export type ProductScalarFieldEnum = Prisma.ProductScalarFieldEnum;
 
 // * =====  Common Schemas =====
 
-export const ProductImagesPropertiesSchema = z
-  .object({
-    altText: z.string().min(1, "Alt text is required"),
-    ariaLabel: z.string().min(1, "Aria label is required"),
-    desktopSrc: z.url("Desktop src must be a valid URL"),
-    mobileSrc: z.url("Mobile src must be a valid URL"),
-    tabletSrc: z.url("Tablet src must be a valid URL"),
-  })
-  .strict();
-
 export const ProductImagesObjectSchema = z.object({
-  featuredImage: ProductImagesPropertiesSchema.nullable(),
-  galleryImages: z.array(ProductImagesPropertiesSchema),
-  introImage: ProductImagesPropertiesSchema,
-  primaryImage: ProductImagesPropertiesSchema,
-  showCaseImage: ProductImagesPropertiesSchema.nullable(),
+  featuredImage: ResponsiveImageSchema.nullable(),
+  galleryImages: z.array(ResponsiveImageSchema),
+  introImage: ResponsiveImageSchema,
+  primaryImage: ResponsiveImageSchema,
+  showCaseImage: ResponsiveImageSchema.nullable(),
   thumbnail: SingleImageSchema,
-  relatedProductImage: ProductImagesPropertiesSchema,
+  relatedProductImage: ResponsiveImageSchema,
 });
 
-// What the API returns: the stored thumbnail key joined onto the media host.
-export const ProductImagesObjectDTOSchema = ProductImagesObjectSchema.extend({
+// What the API returns: every stored key joined onto the media host.
+export const ProductImagesObjectDTOSchema = z.object({
+  featuredImage: ResponsiveImageDTOSchema.nullable(),
+  galleryImages: z.array(ResponsiveImageDTOSchema),
+  introImage: ResponsiveImageDTOSchema,
+  primaryImage: ResponsiveImageDTOSchema,
+  showCaseImage: ResponsiveImageDTOSchema.nullable(),
   thumbnail: SingleImageDTOSchema,
+  relatedProductImage: ResponsiveImageDTOSchema,
 });
 
 const ProductPropertiesSchema = z
@@ -183,9 +187,20 @@ export const ProductDeleteByIdRequestSchema = createRequestSchema({
 
 // * =====  DTO Schemas ( base and others if needed)=====
 
-// The entity with its stored thumbnail resolved to a URL; nothing else moves.
+// The entity with every stored key resolved to a URL; nothing else moves. It is
+// derived from the persisted shape, so a new image slot lands here on its own.
+type Resolved<T> = T extends readonly (infer Item)[]
+  ? Resolved<Item>[]
+  : T extends SingleImage
+    ? SingleImageDTO
+    : T extends ResponsiveImage
+      ? ResponsiveImageDTO
+      : T;
+
 type ResolvedProduct = Omit<Product, "images"> & {
-  images: Omit<Product["images"], "thumbnail"> & { thumbnail: SingleImageDTO };
+  images: {
+    [Slot in keyof Product["images"]]: Resolved<Product["images"][Slot]>;
+  };
 };
 
 export const ProductDTOSchema = ProductPropertiesSchema.extend({
@@ -201,7 +216,7 @@ export const ProductsByCategoryNameSchema = ProductPropertiesSchema.pick({
 })
   .extend({
     images: z.object({
-      introImage: ProductImagesPropertiesSchema,
+      introImage: ResponsiveImageDTOSchema,
     }),
   })
   .strict();
@@ -214,7 +229,7 @@ export const ProductRelatedProductsDTOSchema = ProductPropertiesSchema.pick({
 })
   .extend({
     images: z.object({
-      relatedProductImage: ProductImagesPropertiesSchema,
+      relatedProductImage: ResponsiveImageDTOSchema,
     }),
   })
   .strict();
@@ -230,7 +245,7 @@ export const ProductShowCaseProductsSchema = z.record(
   })
     .extend({
       images: z.object({
-        showCaseImage: ProductImagesPropertiesSchema.nullable(),
+        showCaseImage: ResponsiveImageDTOSchema.nullable(),
       }),
     })
     .strict()
@@ -249,7 +264,7 @@ export const ProductFeaturedProductsSchema = ProductPropertiesSchema.pick({
 })
   .extend({
     images: z.object({
-      featuredImage: ProductImagesPropertiesSchema.nullable(),
+      featuredImage: ResponsiveImageDTOSchema.nullable(),
     }),
   })
   .strict();

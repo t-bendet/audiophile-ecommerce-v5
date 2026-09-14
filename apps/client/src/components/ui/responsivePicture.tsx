@@ -1,42 +1,56 @@
 import { cn } from "@/lib/cn";
+import type { ResponsiveImageDTO } from "@repo/domain";
 
-type TResponsivePicture = {
-  mobileSrc: string;
-  tabletSrc: string;
-  desktopSrc: string;
-  ariaLabel: string;
-  altText: string;
+type TResponsivePicture = ResponsiveImageDTO & {
   classes?: string;
   pictureClasses?: string;
   mobileCustomMediaQuery?: string;
   tabletCustomMediaQuery?: string;
-  width?: number;
-  height?: number;
   loading?: "eager" | "lazy";
   fetchPriority?: "high" | "low" | "auto";
 };
 
-export const ResponsivePicture = (props: TResponsivePicture) => {
+export const ResponsivePicture = ({
+  altText,
+  mobile,
+  tablet,
+  desktop,
+  classes,
+  pictureClasses,
+  mobileCustomMediaQuery,
+  tabletCustomMediaQuery,
+  loading,
+  fetchPriority,
+}: TResponsivePicture) => {
   return (
-    <picture className={cn("overflow-hidden", props.pictureClasses)}>
+    <picture className={cn("overflow-hidden", pictureClasses)}>
+      {/* Each source states its own size, so the box is reserved per breakpoint. */}
       <source
-        media={props.mobileCustomMediaQuery || "(max-width: 767px)"}
-        srcSet={props.mobileSrc}
+        media={mobileCustomMediaQuery || "(max-width: 767px)"}
+        srcSet={mobile.src}
+        width={mobile.width}
+        height={mobile.height}
       />
       <source
-        media={props.tabletCustomMediaQuery || "(max-width: 1023px)"}
-        srcSet={props.tabletSrc}
+        media={tabletCustomMediaQuery || "(max-width: 1023px)"}
+        srcSet={tablet.src}
+        width={tablet.width}
+        height={tablet.height}
       />
-      <source srcSet={props.desktopSrc} />
+      <source
+        srcSet={desktop.src}
+        width={desktop.width}
+        height={desktop.height}
+      />
       <img
-        src={props.mobileSrc}
-        aria-label={props.ariaLabel}
-        alt={props.altText}
-        className={cn("overflow-hidden", props.classes)}
-        width={props.width}
-        height={props.height}
-        loading={props.loading}
-        fetchPriority={props.fetchPriority}
+        src={mobile.src}
+        alt={altText}
+        className={cn("overflow-hidden", classes)}
+        width={mobile.width}
+        height={mobile.height}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        decoding="async"
       />
     </picture>
   );
