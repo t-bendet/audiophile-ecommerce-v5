@@ -1022,6 +1022,8 @@ pnpm start            # Start production server
 
 ### Roadmap
 
+A complete test suite
+
 Product features, none of them specced yet:
 
 - Forgot password & reset flow. The `User` model already has `passwordResetToken` / `passwordResetExpires`; needs an email provider decision. The "Forgot your password?" link in `login-form.tsx` is a dead `href="#"` until this lands.
