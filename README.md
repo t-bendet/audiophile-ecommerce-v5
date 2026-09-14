@@ -727,7 +727,7 @@ Based on recent commits and the current branch (`fix/lighthouse-a11y-bp-seo`):
 Ensure you have the following installed:
 
 - **Node.js** 24.5.0 or higher ([Download](https://nodejs.org/))
-- **pnpm** 10.26.2 or higher (`npm install -g pnpm`)
+- **pnpm** 10.30.0 or higher (`npm install -g pnpm`)
 - **Docker** for the local MongoDB replica set (`pnpm db:up`); MongoDB Atlas only for deployment
 
 ### Installation
