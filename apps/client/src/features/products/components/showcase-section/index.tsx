@@ -41,8 +41,8 @@ const ShowCaseProductsSection = () => {
   return (
     <>
       <article>
-        <Container classes="bg-primary-500 flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center lg:gap-30">
-          <section className="mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5 lg:max-w-102.5">
+        <Container classes="bg-primary-500 lg:gap-30 flex flex-col items-center gap-8 overflow-hidden rounded-sm pt-24 lg:flex-row lg:items-start lg:justify-center">
+          <section className="lg:max-w-102.5 mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5">
             <ResponsivePicture
               {...showCaseCover.images.showCaseImage}
               classes="mx-auto"
@@ -99,7 +99,7 @@ const ShowCaseProductsSection = () => {
           />
           <div className="z-10 col-span-full row-span-full ml-6 self-center md:ml-16 lg:ml-24">
             <header>
-              <h2 className="text-2xl font-bold tracking-[0.07em] text-neutral-900 uppercase">
+              <h2 className="text-2xl font-bold uppercase tracking-[0.07em] text-neutral-900">
                 {showCaseWide?.shortLabel}
               </h2>
             </header>
@@ -141,7 +141,7 @@ const ShowCaseProductsSection = () => {
           <section className="flex items-center overflow-hidden rounded-sm bg-neutral-200">
             <div className="ml-6 md:ml-10 lg:ml-24">
               <header>
-                <h2 className="text-2xl font-bold tracking-[0.07em] text-neutral-900 uppercase">
+                <h2 className="text-2xl font-bold uppercase tracking-[0.07em] text-neutral-900">
                   {showCaseGrid?.shortLabel}
                 </h2>
               </header>
