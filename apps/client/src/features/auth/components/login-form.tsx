@@ -47,10 +47,9 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
     onSubmit: async ({ value }) => {
       login(value, {
         onSuccess: async () => {
-          const redirectTo = searchParams.get("redirectTo");
-          redirectTo
-            ? navigate(redirectTo)
-            : navigate(paths.account.root.getHref());
+          navigate(
+            searchParams.get("redirectTo") ?? paths.account.root.getHref(),
+          );
         },
         onError: async (error) => {
           const normalizedError = normalizeError(error);

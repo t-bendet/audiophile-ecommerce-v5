@@ -3,7 +3,7 @@ import { QuantitySelector } from "@/components/ui/quantity-selector";
 import { paths } from "@/config/paths";
 import { useAddToCart } from "@/features/cart/api/get-cart";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
-import { useProductCardContext } from "@/features/products/components/product-card/index";
+import { useProductCardContext } from "@/features/products/components/product-card/context";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/cn";
 import { AppError, ErrorCode } from "@repo/domain";

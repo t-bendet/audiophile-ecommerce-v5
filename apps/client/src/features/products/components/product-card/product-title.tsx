@@ -1,4 +1,4 @@
-import { useProductCardContext } from "@/features/products/components/product-card/index";
+import { useProductCardContext } from "@/features/products/components/product-card/context";
 import { cn } from "@/lib/cn";
 import { Fragment } from "react/jsx-runtime";
 

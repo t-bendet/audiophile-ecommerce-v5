@@ -58,9 +58,9 @@ export const AuthUpdatePasswordRequestSchema = z.object({
     }),
 });
 
-export interface AuthUpdateUserPasswordRequest extends z.infer<
+export type AuthUpdateUserPasswordRequest = z.infer<
   typeof AuthUpdatePasswordRequestSchema.shape.body
-> {}
+>;
 
 // * =====   Response Schemas & Types ( For Frontend)=====
 

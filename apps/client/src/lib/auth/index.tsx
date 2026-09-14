@@ -86,7 +86,10 @@ export const getUserQueryOptions = () =>
 
 // ** Logout User
 
-type TPostLogoutUser = TMutationHandler<AuthLogoutResponse, {}>;
+type TPostLogoutUser = TMutationHandler<
+  AuthLogoutResponse,
+  Record<string, never>
+>;
 
 const logoutUser: TPostLogoutUser = async () => {
   const api = getApi();

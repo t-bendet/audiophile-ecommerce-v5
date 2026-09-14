@@ -18,7 +18,8 @@ export default [
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": [
         "warn",
-        { allowConstantExport: true },
+        // clientLoader is the router's own route-module export, not a component.
+        { allowConstantExport: true, allowExportNames: ["clientLoader"] },
       ],
       "turbo/no-undeclared-env-vars": [
         "error",
