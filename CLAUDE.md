@@ -219,8 +219,9 @@ Three places name it, and they are not redundant - each answers a different ques
 
 CI reads `.nvmrc` through `node-version-file` in all three `actions/setup-node` steps, so the
 workflow holds no version literal of its own. Raising the major means editing `.nvmrc` and the
-Dockerfile together - Docker cannot read `.nvmrc`. The `engines` floor is deliberately open and
-moves only when something actually needs a newer runtime; see #240.
+Dockerfile together - Docker cannot read `.nvmrc` - and `.github/scripts/assert-node-version.sh`
+fails every job if you edit one and forget the other, so the pair cannot drift. The `engines` floor
+is deliberately open and moves only when something actually needs a newer runtime; see #240.
 
 ## Local database
 
