@@ -39,8 +39,11 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: pnpm
+
+      - name: Assert Node matches .nvmrc
+        run: bash .github/scripts/assert-node-version.sh
 
       # A postinstall hook downloads the binary, so restore before install.
       - name: Cache MongoDB binary
@@ -104,8 +107,11 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: pnpm
+
+      - name: Assert Node matches .nvmrc
+        run: bash .github/scripts/assert-node-version.sh
 
       - run: pnpm install --frozen-lockfile
         timeout-minutes: 10
@@ -135,8 +141,11 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: pnpm
+
+      - name: Assert Node matches .nvmrc
+        run: bash .github/scripts/assert-node-version.sh
 
       - run: pnpm install --frozen-lockfile
         timeout-minutes: 10

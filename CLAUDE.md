@@ -207,6 +207,21 @@ code cannot read new rows, so there is a window between the Worker going live an
 finishing. It is under a minute; closing it entirely would mean shipping a reader that accepts
 both shapes, migrating, then removing the old branch.
 
+## Node version
+
+Three places name it, and they are not redundant - each answers a different question:
+
+| Where                              | Says       | Question it answers                     |
+| ---------------------------------- | ---------- | --------------------------------------- |
+| `.nvmrc`                           | `24`       | which major CI and a local shell run on |
+| `apps/server/Dockerfile`           | `24`       | which major the deployed container runs |
+| root `package.json` `engines.node` | `>=24.5.0` | the floor a contributor must clear      |
+
+CI reads `.nvmrc` through `node-version-file` in all three `actions/setup-node` steps, so the
+workflow holds no version literal of its own. Raising the major means editing `.nvmrc` and the
+Dockerfile together - Docker cannot read `.nvmrc`. The `engines` floor is deliberately open and
+moves only when something actually needs a newer runtime; see #240.
+
 ## Local database
 
 Dev, seeding, the opt-in test path and Compass all use the one MongoDB in `docker-compose.yml`: a
