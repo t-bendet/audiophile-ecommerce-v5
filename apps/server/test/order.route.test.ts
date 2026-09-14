@@ -33,19 +33,28 @@ const checkout = {
   paymentMethod: "e-Money",
 };
 
+/** Every caller reads the order this returns, so the setup asserts itself. */
+const expectStatus = (res: request.Response, status: number, step: string) =>
+  expect(
+    res.status,
+    `${step} returned ${res.status}: ${JSON.stringify(res.body)}`,
+  ).toBe(status);
+
 const orderFromCart = async (userId: string, price: number) => {
   const product = await createProduct({ price });
   const cookie = authCookie(userId);
 
-  await request(app)
+  const added = await request(app)
     .post("/api/v1/cart")
     .set("Cookie", cookie)
     .send({ productId: product.id, quantity: 1 });
+  expectStatus(added, 200, "POST /cart");
 
   const res = await request(app)
     .post("/api/v1/orders")
     .set("Cookie", cookie)
     .send(checkout);
+  expectStatus(res, 201, "POST /orders");
 
   return { cookie, product, res };
 };

@@ -102,6 +102,13 @@ knows about. The switch is keyed on
 `.env` and the `DATABASE_URL` CI sets from redirecting a run. In-memory stays the default, so
 `pnpm test` on a fresh clone and in CI needs no Docker.
 
+A random server test failing locally with a status nothing in this repo returns - `405` above all -
+is a squatter, not a bug in your change. `wrangler dev` can outlive the shell that started it, and
+the `workerd` it leaves behind holds ephemeral-range ports and answers `405` to any method on any
+path; supertest binds a fresh ephemeral port per request, so one occasionally lands there instead of
+on the app. Find it with `lsof -nP -iTCP -sTCP:LISTEN | grep -i workerd`, kill it, and re-run before
+diagnosing anything else. CI never sees this.
+
 ### Validation rules
 
 - Use `.strict()` on all Zod input schemas (rejects unknown fields)
