@@ -9,7 +9,7 @@
     "prod": "vite preview",
     "start": "vite preview",
     "type-check": "tsc -b",
-    "lint": "eslint . --max-warnings 17",
+    "lint": "eslint . --max-warnings 0",
     "test": "vitest run"
   },
   "dependencies": {

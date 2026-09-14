@@ -1,38 +1,19 @@
+import {
+  ProductCardContext,
+  type ProductDetails,
+} from "@/features/products/components/product-card/context";
 import ProductActions from "@/features/products/components/product-card/product-actions";
 import ProductDescription from "@/features/products/components/product-card/product-description";
 import ProductNewIndicator from "@/features/products/components/product-card/product-new-indicator";
 import ProductPrice from "@/features/products/components/product-card/product-price";
 import ProductTitle from "@/features/products/components/product-card/product-title";
 import { cn } from "@/lib/cn";
-import { AppError, ErrorCode } from "@repo/domain";
-import React, { createContext, useContext } from "react";
-
-type ProductDetails = {
-  isNewProduct: boolean;
-  fullLabel: string[];
-  description: string;
-  price?: number; // Optional, if price is not always available
-  slug: string;
-  id: string;
-};
+import React from "react";
 
 interface ProductCardProps {
   children: React.ReactNode;
   classes?: string;
   product: ProductDetails;
-}
-
-const ProductCardContext = createContext<ProductDetails | null>(null);
-
-export function useProductCardContext() {
-  const ctx = useContext(ProductCardContext);
-  if (!ctx) {
-    throw new AppError(
-      "ProductCard-related components must be wrapped by <ProductCard/>.",
-      ErrorCode.COMPONENT_COMPOSITION_ERROR,
-    );
-  }
-  return ctx;
 }
 
 export default function ProductCard({

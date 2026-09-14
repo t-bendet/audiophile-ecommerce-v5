@@ -51,11 +51,9 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
     onSubmit: async ({ value }) => {
       signup(value, {
         onSuccess: async () => {
-          // Check for redirectTo param (from protected route redirect)
-          const redirectTo = searchParams.get("redirectTo");
-          redirectTo
-            ? navigate(redirectTo)
-            : navigate(paths.account.root.getHref());
+          navigate(
+            searchParams.get("redirectTo") ?? paths.account.root.getHref(),
+          );
         },
         async onError(error) {
           const normalizedError = normalizeError(error);

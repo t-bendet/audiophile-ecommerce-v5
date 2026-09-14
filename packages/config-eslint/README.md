@@ -25,13 +25,25 @@ are nominal and lint would never fail on its own. Enforcement comes from each
 package's budget instead:
 
 ```json
-"lint": "eslint . --max-warnings 28"
+"lint": "eslint . --max-warnings 0"
 ```
 
 The number is that package's **exact** current warning count, so it carries no
 slack: a new warning pushes the count over budget and fails the build, while the
 existing backlog stays visible instead of being silenced. Lower the number as
 warnings are burned off; never raise it.
+
+Every package has been at `0` since #244, so the budget is now a line to hold
+rather than a backlog to work down.
+
+## Warnings in CI
+
+`actions/setup-node` registers GitHub's `tsc`, `eslint-stylish` and `eslint-compact`
+problem matchers on every run, unconditionally and without the workflow asking. The
+stylish matcher parses the `pnpm lint` step's stdout, so any warning that survives
+the budget is rendered as an annotation on the Verify job even though the step
+itself passes. GitHub caps the display at ten annotations per level per step, so a
+larger backlog reads as exactly "10 warnings" - count the log, not the annotations.
 
 ## Unused bindings
 
