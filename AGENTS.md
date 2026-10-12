@@ -166,6 +166,18 @@ All requests go through `getApi()` (lazy Axios init with interceptors). Errors a
 
 Used for dev-only navigation timing — the client's one middleware, `apps/client/src/app/middleware/performance.ts`. Middleware chain runs parent→child going down, child→parent coming up. `next()` never throws — errors before `next()` bubble to the highest route with a loader; errors after `next()` bubble from the throwing route.
 
+## End-to-end tests
+
+`apps/e2e` holds the Playwright smoke suite and `pnpm test:e2e` is all of it: the Docker database
+up, `audiophile-e2e` seeded and pushed, both apps built, the suite run. Playwright starts the
+compiled server on `8001` and `vite preview` on `4173` itself and never reuses a running one, so a
+`pnpm dev` session on `8000`/`5173` is neither tested nor disturbed.
+
+The server under test runs with `NODE_ENV=test`, which stands the rate limiters down, so no spec
+can see a 429; the vitest suite owns that behaviour. Specs import `test` and `expect` from
+`tests/fixtures.ts` and nothing else from the monorepo. `apps/e2e/README.md` has the fixtures, the
+locator policy, what the suite covers and the CI job.
+
 ## Critical Pitfalls
 
 1. **Regenerate with `pnpm db:generate` after any schema change** — the `prisma-client` generator is configured with `importFileExtension = "js"` (plus `runtime = "nodejs"`, `moduleFormat = "esm"`), so generated imports carry `.js` natively. No post-processing step is involved any more.
