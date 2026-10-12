@@ -117,7 +117,7 @@ diagnosing anything else. CI never sees this.
 
 ### Code comments
 
-Default to no comments — names and structure should carry the meaning; rationale belongs in docs/CONTEXT.md, not inline.
+Default to no comments — names and structure should carry the meaning; rationale belongs in `GLOSSARY.md` or `docs/adr/`, not inline.
 
 Add one only when:
 
@@ -342,4 +342,4 @@ The five canonical triage roles, each label named after its role. See `docs/agen
 
 ### Domain docs
 
-Single-context: `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
