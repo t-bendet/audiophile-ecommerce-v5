@@ -48,7 +48,7 @@ nothing else can proceed until it returns). Give it:
 
 - the full issue body and relevant comments, pasted in — it cannot see this conversation
 - the branch it is already on, and that it must **not** commit, push, merge, or switch branches
-- the repo conventions it must follow (point it at `CLAUDE.md`)
+- the repo conventions it must follow (point it at `AGENTS.md`)
 - an instruction to report what it changed and anything it deliberately left out
 
 ### 4. Verify

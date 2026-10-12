@@ -155,7 +155,7 @@ Dev, seeding and the opt-in test path (`TEST_DATABASE_URL`) use the single-node 
 2. `pnpm db:setup` at the repo root: starts the container (`pnpm db:up`, which is `docker compose up -d --wait`), pushes the schema, regenerates the client and seeds
 3. `pnpm dev` starts the container itself; `pnpm db:down` stops it, `pnpm db:reset` wipes and reseeds, `pnpm test:db` runs the server suite against it
 
-Details and the version pin rationale: `CLAUDE.md` ("Local database") and `docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md`.
+Details and the version pin rationale: `AGENTS.md` ("Local database") and `docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md`.
 
 ---
 
