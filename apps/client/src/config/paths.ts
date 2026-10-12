@@ -14,21 +14,9 @@ export const paths = {
     getHref: (slug: string) => `/product/${slug}`,
   },
   checkout: {
-    cart: {
-      path: "/cart",
-      getHref: () => "/cart",
-    },
     checkout: {
       path: "/checkout",
       getHref: () => "/checkout",
-    },
-    payment: {
-      path: "/checkout/payment",
-      getHref: () => "/checkout/payment",
-    },
-    orderConfirmation: {
-      path: "/checkout/confirmation/:orderId",
-      getHref: (orderId: string) => `/checkout/confirmation/${orderId}`,
     },
   },
   auth: {
