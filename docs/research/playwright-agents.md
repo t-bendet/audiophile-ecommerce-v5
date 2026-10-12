@@ -14,10 +14,10 @@ agent definitions are a thin layer (three Markdown files, one `.mcp.json`) that 
 regenerate. What the agents need to be useful — fixtures, a seed spec importing them, a running
 `webServer`, seeded users — is exactly the harness. The only cost of splitting is one extra PR.
 
-| Option                                                  | For                                                                                                                                                                                                          | Against                                                                                                                                                                                                                                                                                                                                                                                           |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A. `init-agents` + `init-skills` in the first ticket    | Docs present the agents as built in ("out of the box"), not experimental; generated files are small and inspectable; the planner can explore the app the moment `webServer` works.                           | `init-agents` cannot run before the config exists, so it is step N, not step 1, either way. The default seed spec it writes is a bare `@playwright/test` import inside `test.describe` — it must be hand-edited to import `./fixtures`. `.mcp.json` is overwritten whole on every regeneration. Two unproven things (harness, agent loop) fail together, and the healer edits tests unattended. |
-| B. Harness first (per `playwright-e2e.md`), agents next | One ticket proves config, auth setup, seeding, CI on their own; the agents ticket is then one command plus two edits and is easy to review and to revert; the seed-file edit and `.mcp.json` merge are explicit. | One more PR; the first flows are written by hand (or by the main Claude session with `@playwright/mcp`), without the planner's exploration.                                                                                                                                                                                                                                                      |
+| Option                                                  | For                                                                                                                                                                                                              | Against                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A. `init-agents` + `init-skills` in the first ticket    | Docs present the agents as built in ("out of the box"), not experimental; generated files are small and inspectable; the planner can explore the app the moment `webServer` works.                               | `init-agents` cannot run before the config exists, so it is step N, not step 1, either way. The default seed spec it writes is a bare `@playwright/test` import inside `test.describe` — it must be hand-edited to import `./fixtures`. `.mcp.json` is overwritten whole on every regeneration. Two unproven things (harness, agent loop) fail together, and the healer edits tests unattended. |
+| B. Harness first (per `playwright-e2e.md`), agents next | One ticket proves config, auth setup, seeding, CI on their own; the agents ticket is then one command plus two edits and is easy to review and to revert; the seed-file edit and `.mcp.json` merge are explicit. | One more PR; the first flows are written by hand (or by the main Claude session with `@playwright/mcp`), without the planner's exploration.                                                                                                                                                                                                                                                     |
 
 Concretely for the second ticket: commit `.claude/agents/*.md` and `.mcp.json` as generated,
 replace the generated `seed.spec.ts` body with one that imports from `./fixtures` (the page's own
@@ -54,9 +54,9 @@ The seed file: `findSeedFile` scans the project's files for any basename contain
 leaves an existing one alone; otherwise it writes `<testDir>/seed.spec.ts` with exactly:
 
 ```ts
-import { test, expect } from '@playwright/test';
-test.describe('Test group', () => {
-  test('seed', async ({ page }) => {
+import { test, expect } from "@playwright/test";
+test.describe("Test group", () => {
+  test("seed", async ({ page }) => {
     // generate code here.
   });
 });
@@ -84,7 +84,7 @@ From `generateAgents.ts` and the three `*.agent.md` files at tag v1.64.0:
   `browser_verify_*` + `generator_setup_page`/`generator_read_log`/`generator_write_test`; healer
   gets `test_list`/`test_run`/`test_debug`, `browser_generate_locator` and edit tools.
 - `.mcp.json`: `JSON.stringify({ mcpServers: { 'playwright-test': { command: 'npx', args:
-  ['playwright', 'run-test-mcp-server'] } } })` — **written unconditionally, no merge** (the VS
+['playwright', 'run-test-mcp-server'] } } })` — **written unconditionally, no merge** (the VS
   Code generator merges `.vscode/mcp.json`; the Claude one does not). The shared `writeFile`
   helper has no existence check, so the three agent files are overwritten too.
 - `.claude/prompts/*.md` only with `--prompts`.
