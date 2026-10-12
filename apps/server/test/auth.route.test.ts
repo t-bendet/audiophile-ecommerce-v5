@@ -86,6 +86,21 @@ describe("POST /api/v1/auth/login", () => {
       message: "Incorrect email or password",
     });
   });
+
+  // Twelve is past `loginLimiter`'s quota of 10 failures.
+  it("never answers a burst past the login quota with a 429", async () => {
+    const user = await createUser({ email: "margaret@example.com" });
+
+    const attempts = await Promise.all(
+      Array.from({ length: 12 }, () =>
+        request(app)
+          .post("/api/v1/auth/login")
+          .send({ email: user.email, password: "wrong-password" }),
+      ),
+    );
+
+    expect(attempts.map((res) => res.status)).toEqual(Array(12).fill(401));
+  });
 });
 
 describe("PATCH /api/v1/auth/updateMyPassword", () => {
