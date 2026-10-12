@@ -9,3 +9,5 @@ playwright/.auth/
 playwright-report/
 test-results/
 blob-report/
+.playwright-mcp/
+.playwright-cli/

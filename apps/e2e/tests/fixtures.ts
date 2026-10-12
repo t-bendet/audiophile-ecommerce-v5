@@ -1,7 +1,12 @@
 import { randomUUID } from "node:crypto";
+import { join } from "node:path";
 import { expect, test as base, type APIRequestContext } from "@playwright/test";
 
-export const STORAGE_STATE = "playwright/.auth/user.json";
+// Absolute, because the Playwright agents run the suite from the repo root.
+export const STORAGE_STATE = join(
+  import.meta.dirname,
+  "../playwright/.auth/user.json",
+);
 
 export const SEEDED_SHOPPER = {
   email: "doe@example.com",

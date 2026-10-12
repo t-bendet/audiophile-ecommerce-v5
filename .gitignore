@@ -48,6 +48,10 @@ apps/e2e/playwright-report
 apps/e2e/test-results
 apps/e2e/blob-report
 
+# playwright agent scratch: the test MCP server's output dir and the trace CLI's extraction dir
+.playwright-mcp
+.playwright-cli
+
 # wrangler local state
 .wrangler
 
