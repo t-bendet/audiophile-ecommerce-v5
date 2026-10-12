@@ -87,10 +87,58 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true
+      # No vitest runs here, so the binary download is dead weight.
+      MONGOMS_DISABLE_POSTINSTALL: "1"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Assert Node matches .nvmrc
+        run: bash .github/scripts/assert-node-version.sh
+
+      - run: pnpm install --frozen-lockfile
+        timeout-minutes: 10
+
+      # The same compose file local development uses; its healthcheck initiates the replica set.
+      - run: pnpm db:up
+
+      # The Prisma client is generated, not committed.
+      - run: pnpm db:generate
+
+      - run: pnpm build
+
+      # The seed drops the database, so the push that rebuilds its indexes comes second.
+      - run: pnpm db:seed && pnpm db:push
+
+      # One browser with its OS packages; restoring a cache costs as much as downloading.
+      - run: pnpm --filter e2e exec playwright install chromium --with-deps
+
+      - run: pnpm --filter e2e run e2e
+
+      # A green run's report is worth keeping too; a cancelled one has nothing in it.
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: apps/e2e/playwright-report/
+          retention-days: 30
+
   deploy:
     name: Deploy
     if: github.event_name == 'push'
-    needs: [verify, image]
+    needs: [verify, image, e2e]
     runs-on: ubuntu-latest
     env:
       # prisma.config.ts refuses to load without it; nothing here connects.

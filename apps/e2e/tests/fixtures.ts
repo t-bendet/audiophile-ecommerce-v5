@@ -33,15 +33,24 @@ export type ShowCaseProducts = {
 export type FeaturedProduct = {
   id: string;
   slug: string;
-  fullLabel: string;
+  fullLabel: string[];
 };
 
 export type CatalogueProduct = {
   id: string;
   slug: string;
   name: string;
-  fullLabel: string;
+  cartLabel: string;
+  fullLabel: string[];
   price: number;
+};
+
+export type CategoryName = "Headphones" | "Earphones" | "Speakers";
+
+export type CategoryProduct = {
+  id: string;
+  slug: string;
+  fullLabel: string[];
 };
 
 export type Catalogue = {
@@ -49,6 +58,7 @@ export type Catalogue = {
   featuredProduct: () => Promise<FeaturedProduct>;
   products: () => Promise<CatalogueProduct[]>;
   productBySlug: (slug: string) => Promise<CatalogueProduct>;
+  productsByCategory: (category: CategoryName) => Promise<CategoryProduct[]>;
 };
 
 type Fixtures = {
@@ -96,9 +106,11 @@ export const test = base.extend<Fixtures>({
 
   signUpFreshShopper: async ({ context }, use) => {
     await use(async () => {
+      // `User.name` is unique too, and capped at 30 characters.
+      const id = randomUUID();
       const shopper: Shopper = {
-        name: "e2e shopper",
-        email: `e2e-${randomUUID()}@example.com`,
+        name: `e2e shopper ${id.slice(0, 8)}`,
+        email: `e2e-${id}@example.com`,
         password: "11111111",
       };
       await writeData(context.request, "post", "/api/v1/auth/signup", {
@@ -124,6 +136,11 @@ export const test = base.extend<Fixtures>({
       products: () => readData<CatalogueProduct[]>(request, "/api/v1/products"),
       productBySlug: (slug) =>
         readData<CatalogueProduct>(request, `/api/v1/products/slug/${slug}`),
+      productsByCategory: (category) =>
+        readData<CategoryProduct[]>(
+          request,
+          `/api/v1/categories/${category}/products`,
+        ),
     });
   },
 });
