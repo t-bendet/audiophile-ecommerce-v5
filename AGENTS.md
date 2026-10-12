@@ -363,3 +363,9 @@ The five canonical triage roles, each label named after its role. See `docs/agen
 ### Domain docs
 
 Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Playwright agents
+
+The planner, generator and healer in `.claude/agents/`, the `playwright-trace` skill and the
+`playwright-test` MCP server in `.mcp.json` all belong to the E2E suite. Both initialisers overwrite
+silently; what to re-apply after regenerating is in `apps/e2e/README.md`.

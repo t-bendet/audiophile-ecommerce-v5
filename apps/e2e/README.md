@@ -82,6 +82,50 @@ there should not be one.
 - **Nothing below the browser.** No database reads, no imports of server or client code, no
   assertions on request counts or component names.
 
+## Agents
+
+Three Playwright agents live at the repo root rather than here, because that is where Claude Code
+looks: the planner walks the running app and writes a plan into `specs/`, the generator turns one
+plan item into a spec, and the healer debugs a failing one. All three drive the Playwright test MCP
+server declared in `.mcp.json`, which `.claude/settings.json` pre-allows so the healer does not
+stop on a permission prompt mid-run. `.agents/skills/playwright-trace` reads a trace from the
+command line when a failure needs more than the HTML report.
+
+`tests/seed.spec.ts` is how they get a page: the planner and the generator run that one test and
+take over the browser it leaves behind, so it has to stay collectable by the `chromium` project —
+which is also why it runs as part of a normal suite.
+
+The server's working directory is the repo root, so a path an agent hands it is the same path every
+other tool here takes, and its scratch files land in a git-ignored `.playwright-mcp/`. It is started
+through `apps/e2e/node_modules/@playwright/test/cli.js` with an explicit `--config` instead of the
+`npx playwright` the initialiser writes, because `playwright` is a dependency of this workspace and
+does not resolve from the root of a pnpm monorepo. That root working directory is also why
+`STORAGE_STATE` is an absolute path: relative artifact paths follow the process, and a run the
+agents start would otherwise drop `playwright/.auth/user.json` beside the lockfile.
+
+### Regenerating them
+
+After a Playwright upgrade, both initialisers are worth re-running — and both overwrite silently,
+with no diff and no prompt:
+
+```bash
+node apps/e2e/node_modules/@playwright/test/cli.js init-agents --loop claude --config apps/e2e/playwright.config.ts
+node apps/e2e/node_modules/@playwright/test/cli.js init-skills --loop claude
+```
+
+Run them from the repo root. From here they write a second `.claude/agents/` and `.mcp.json` under
+`apps/e2e/`, which Claude Code never reads. Then re-apply, because the regeneration drops all four:
+
+1. **`model: inherit`** in each of the three agent definitions. The initialiser writes `model: sonnet`.
+2. **The planner's pointer at the router.** `apps/client/src/app/router.tsx` is the source of routes,
+   not `apps/client/src/config/paths.ts`.
+3. **The `.mcp.json` command**, and any MCP server entry beyond `playwright-test` — the only one it
+   writes, into a file it replaces wholesale.
+4. **The trace skill's relocation.** Move `.claude/skills/playwright-trace` to `.agents/skills/`,
+   symlink it back with `ln -s ../../.agents/skills/playwright-trace .claude/skills/playwright-trace`,
+   rewrite `npx playwright trace` to `pnpm --filter e2e exec playwright trace`, and delete the
+   `playwright-cli` and `playwright-component-testing` skills installed alongside it.
+
 ## What it covers
 
 Home showcase, a category listing, a guest add-to-cart through the mini-cart, the checkout redirect
