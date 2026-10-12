@@ -23,7 +23,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "test:db": "pnpm db:up && TEST_DATABASE_URL=\"mongodb://localhost:27017/audiophile-test?replicaSet=rs0&directConnection=true\" turbo run test --filter=server"
+    "test:db": "pnpm db:up && TEST_DATABASE_URL=\"mongodb://localhost:27017/audiophile-test?replicaSet=rs0&directConnection=true\" turbo run test --filter=server",
+    "test:e2e": "pnpm db:up && DATABASE_URL=\"mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true\" turbo run db:seed && DATABASE_URL=\"mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true\" turbo run db:push && turbo run e2e"
   },
   "devDependencies": {
     "prettier": "^3.9.6",

@@ -5,3 +5,7 @@ generated/
 coverage/
 .turbo/
 pnpm-lock.yaml
+playwright/.auth/
+playwright-report/
+test-results/
+blob-report/

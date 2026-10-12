@@ -42,6 +42,12 @@ dist
 /.scratch
 /scratch
 
+# playwright
+apps/e2e/playwright/.auth
+apps/e2e/playwright-report
+apps/e2e/test-results
+apps/e2e/blob-report
+
 # wrangler local state
 .wrangler
 

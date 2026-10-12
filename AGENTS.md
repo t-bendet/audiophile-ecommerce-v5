@@ -32,6 +32,7 @@ pnpm lint
 pnpm format
 pnpm test          # domain + media + server + client vitest suites via Turbo (no network database needed)
 pnpm test:db       # server suite against the Docker database, left in place for Compass (see "Local database")
+pnpm test:e2e      # Playwright smoke suite against the built apps and a seeded `audiophile-e2e` (see "Local database")
 ```
 
 ### Running a single workspace
@@ -54,6 +55,7 @@ packages/media                                            (leaf: assets + script
 
 - **`apps/server`**: Express 5 REST API (TypeScript, Node ≥ 24.5)
 - **`apps/client`**: React 19 + React Router v8 + Vite 8 + TailwindCSS 4
+- **`apps/e2e`**: Playwright smoke suite (`pnpm test:e2e`); imports nothing from the monorepo and drives both apps over HTTP
 - **`packages/database`**: Prisma client + multi-file schema (`prisma/schema/` by domain), MongoDB (Docker replica set locally, Atlas in production)
 - **`packages/domain`**: Single source of truth for shared types, Zod schemas, DTOs, error codes
 - **`packages/media`**: Catalogue image originals under `assets/`, plus the import / sync / check scripts for the R2 bucket behind `audiophile-media.t-bendet.com`. See its README.
@@ -237,8 +239,14 @@ it.
 ```
 dev     -> mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
 tests   -> mongodb://localhost:27017/audiophile-test?replicaSet=rs0&directConnection=true   (TEST_DATABASE_URL)
+e2e     -> mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true    (pnpm test:e2e)
 Compass -> mongodb://localhost:27017
 ```
+
+`pnpm test:e2e` seeds `audiophile-e2e` and only then pushes the schema. The order is not
+interchangeable: the seed drops the database, indexes and all, and `Cart.userId` has to be unique
+while the suite runs - `getOrCreateCart` finds-then-creates, so without it two parallel page loads
+leave two carts behind and the next `db:push` cannot rebuild the index.
 
 The image tag in `docker-compose.yml` and `MONGODB_VERSION` in `global-setup.ts` are one version;
 bump them together, and only after checking `fastdl.mongodb.org` has the darwin/arm64 binary and

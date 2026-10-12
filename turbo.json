@@ -73,6 +73,12 @@
       "dependsOn": ["^build"],
       "outputs": [],
       "env": ["TEST_DATABASE_URL"]
+    },
+    "e2e": {
+      "dependsOn": ["server#build", "client#build"],
+      "cache": false,
+      "outputs": [],
+      "env": ["CI"]
     }
   }
 }
