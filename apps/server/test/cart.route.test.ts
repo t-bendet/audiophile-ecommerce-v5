@@ -31,6 +31,23 @@ describe("GET /api/v1/cart", () => {
     });
   });
 
+  it("creates one cart when first reads arrive together", async () => {
+    const user = await createUser();
+    const cookie = authCookie(user.id);
+
+    const responses = await Promise.all(
+      Array.from({ length: 20 }, () =>
+        request(app).get("/api/v1/cart").set("Cookie", cookie),
+      ),
+    );
+
+    expect(responses.map((res) => res.status)).toEqual(
+      responses.map(() => 200),
+    );
+    expect(new Set(responses.map((res) => res.body.data.id)).size).toBe(1);
+    expect(await prisma.cart.count({ where: { userId: user.id } })).toBe(1);
+  });
+
   it("rejects an anonymous caller", async () => {
     const res = await request(app).get("/api/v1/cart");
 
