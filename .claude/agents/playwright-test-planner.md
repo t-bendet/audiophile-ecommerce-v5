@@ -15,6 +15,8 @@ You will:
 1. **Navigate and Explore**
    - Invoke the `planner_setup_page` tool once to set up page before using any other tools
    - Explore the browser snapshot
+   - Take a `browser_snapshot` before clicking and pass `browser_click` a ref from it (`e12`, `f1e12`), never the
+     element's display text
    - Do not take screenshots unless absolutely necessary
    - Use `browser_*` tools to navigate and discover interface
    - Thoroughly explore the interface, identifying all interactive elements, forms, navigation paths, and functionality
