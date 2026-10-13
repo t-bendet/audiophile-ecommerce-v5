@@ -123,7 +123,12 @@ node apps/e2e/node_modules/@playwright/test/cli.js init-skills --loop claude
 Run them from the repo root. From here they write a second `.claude/agents/` and `.mcp.json` under
 `apps/e2e/`, which Claude Code never reads. Then re-apply, because the regeneration drops all four:
 
-1. **`model: inherit`** in each of the three agent definitions. The initialiser writes `model: sonnet`.
+1. **`model: inherit`** in the healer, and only the healer. The initialiser writes `model: sonnet`
+   for all three and that is right for two of them: the planner and the generator work breadth-first
+   over a site, many turns deep, each turn re-reading every accessibility snapshot it has taken so
+   far, so the per-turn model choice sets the wall clock and a planning pass on a reasoning model
+   runs for an hour. The healer is the depth-first one — it reads a failure and forms a hypothesis —
+   and is worth the stronger model.
 2. **The planner's pointer at the router.** `apps/client/src/app/router.tsx` is the source of routes,
    not `apps/client/src/config/paths.ts`.
 3. **The `.mcp.json` command**, and any MCP server entry beyond `playwright-test` — the only one it
