@@ -76,18 +76,12 @@ export class CartService extends AbstractCrudService<
    * Get or create cart for a user
    */
   async getOrCreateCart(userId: string): Promise<CartDTO> {
-    let cart = await prisma.cart.findUnique({
+    const cart = await prisma.cart.upsert({
       where: { userId },
+      create: { userId },
+      update: {},
       include: cartWithProductsInclude,
     });
-
-    // Create cart if it doesn't exist
-    if (!cart) {
-      cart = await prisma.cart.create({
-        data: { userId },
-        include: cartWithProductsInclude,
-      });
-    }
 
     return this.toDTO(cart);
   }
