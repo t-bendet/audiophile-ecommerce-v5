@@ -1,6 +1,9 @@
 {
   "enableAllProjectMcpServers": true,
   "permissions": {
-    "allow": ["mcp__playwright-test"]
+    "allow": [
+      "mcp__playwright-test",
+      "mcp__playwright-test__browser_run_code_unsafe"
+    ]
   }
 }
