@@ -91,6 +91,13 @@ server declared in `.mcp.json`, which `.claude/settings.json` pre-allows so the 
 stop on a permission prompt mid-run. `.agents/skills/playwright-trace` reads a trace from the
 command line when a failure needs more than the HTML report.
 
+A planning pass is not read-only. The planner explores by driving the real app, so it signs in as
+the seeded shopper and leaves whatever it touched behind — a guest cart in `localStorage`, cart
+items on the server. That is `audiophile-e2e` and never the `audiophile` a `pnpm dev` session uses,
+and the next `pnpm test:e2e` reseeds it, but a database open in Compass while an agent runs is not
+showing you seed data. The plans it writes are not kept either: `specs/*.plan.md` is git-ignored,
+and the spec the generator produces from one is the reviewable artifact.
+
 `tests/seed.spec.ts` is how they get a page: the planner and the generator run that one test and
 take over the browser it leaves behind, so it has to stay collectable by the `chromium` project —
 which is also why it runs as part of a normal suite.
