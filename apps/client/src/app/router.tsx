@@ -2,6 +2,7 @@ import { performanceMiddleware } from "@/app/middleware/performance";
 import { MainErrorFallback } from "@/components/errors/main";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import {
+  RootHydrateFallback,
   RootLayout,
   clientLoader as rootLoader,
 } from "@/components/layouts/root-layout";
@@ -37,6 +38,7 @@ const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
     {
       element: <RootLayout />,
+      HydrateFallback: RootHydrateFallback,
       errorElement: <MainErrorFallback />,
       middleware: [performanceMiddleware],
       loader: rootLoader(queryClient),

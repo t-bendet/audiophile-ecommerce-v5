@@ -43,6 +43,14 @@ export function RootLayout() {
   );
 }
 
+export function RootHydrateFallback() {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <LoadingSpinner size="xl" className="flex-1" />
+    </div>
+  );
+}
+
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
     await queryClient.ensureQueryData(getAuthStatusQueryOptions());
