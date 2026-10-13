@@ -38,7 +38,7 @@
 
 ## 🌟 Overview
 
-Audiophile is a comprehensive, enterprise-grade e-commerce application showcasing modern full-stack development practices. Built with TypeScript throughout, it demonstrates clean architecture, type safety from database to UI, and production-ready patterns including authentication, cart management, and secure checkout.
+Audiophile is a comprehensive, enterprise-grade e-commerce application showcasing modern full-stack development practices. Built with TypeScript throughout, it demonstrates clean architecture, type safety from database to UI, and production-ready patterns including authentication, cart management, and a login-protected checkout review.
 
 ### Live Demo
 
@@ -57,8 +57,8 @@ Audiophile is a comprehensive, enterprise-grade e-commerce application showcasin
 - ✅ **Product Details** - Detailed product pages with image galleries, specifications, and related products
 - ✅ **Shopping Cart** - Add/remove items, quantity management, persistent cart sync across sessions
 - ✅ **User Authentication** - Secure JWT-based signup/login with httpOnly cookies
-- ✅ **User Account** - Profile management with order history
-- ✅ **Checkout Flow** - Complete purchase workflow with order summary and validation
+- ✅ **User Account** - Login-protected account area showing your name and email
+- ✅ **Checkout Review** - Login-protected order summary listing cart items with their quantities, subtotal, shipping, tax and total; signed-out visitors are sent to login and returned afterwards
 - ✅ **Responsive Design** - Mobile-first design, optimized for all screen sizes
 - ✅ **Accessible UI** - Built with Radix UI primitives for WCAG compliance
 - ✅ **SEO & Performance** - Lighthouse optimizations for accessibility, best practices, and SEO
@@ -1033,6 +1033,8 @@ Product features, none of them specced yet:
 - Product search: full-text, autocomplete, highlighting.
 - Product reviews & ratings.
 - Wishlist.
+- Order placement: billing and shipping form, then placing the order from the checkout page. The server's `POST /orders` and `useCreateOrder` exist; nothing in the client calls them yet, and "Continue to Payment" is an `alert`.
+- Order history: the account Orders tab is a placeholder. `GET /orders` and `useOrders` exist but are not wired in.
 - Checkout enhancement: address book, multiple payment methods. (Checkout stays login-only; guest checkout is not planned.)
 - Order tracking: status updates, notifications, tracking numbers.
 - SEO: XML sitemap, Open Graph, product structured data. (React 19 document metadata is already in `components/seo/metadata.tsx`.)
