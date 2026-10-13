@@ -110,6 +110,11 @@ does not resolve from the root of a pnpm monorepo. That root working directory i
 `STORAGE_STATE` is an absolute path: relative artifact paths follow the process, and a run the
 agents start would otherwise drop `playwright/.auth/user.json` beside the lockfile.
 
+`browser_click` takes a ref from a fresh `browser_snapshot` (`e12`, `f1e12`) or a real selector.
+A description such as `button "Open cart"` is neither, and the server swallows it into an empty
+selector, so `Unexpected token "" while parsing css selector ""` means the target was unparseable,
+not that the page was empty. Take a snapshot and click by ref.
+
 ### Regenerating them
 
 After a Playwright upgrade, both initialisers are worth re-running — and both overwrite silently,
@@ -121,7 +126,7 @@ node apps/e2e/node_modules/@playwright/test/cli.js init-skills --loop claude
 ```
 
 Run them from the repo root. From here they write a second `.claude/agents/` and `.mcp.json` under
-`apps/e2e/`, which Claude Code never reads. Then re-apply, because the regeneration drops all four:
+`apps/e2e/`, which Claude Code never reads. Then re-apply, because the regeneration drops all five:
 
 1. **`model: inherit`** in the healer, and only the healer. The initialiser writes `model: sonnet`
    for all three and that is right for two of them: the planner and the generator work breadth-first
@@ -131,9 +136,11 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
    and is worth the stronger model.
 2. **The planner's pointer at the router.** `apps/client/src/app/router.tsx` is the source of routes,
    not `apps/client/src/config/paths.ts`.
-3. **The `.mcp.json` command**, and any MCP server entry beyond `playwright-test` — the only one it
+3. **The planner's snapshot-before-click line** in step 1, which has it click by ref rather than by
+   display text.
+4. **The `.mcp.json` command**, and any MCP server entry beyond `playwright-test` — the only one it
    writes, into a file it replaces wholesale.
-4. **The trace skill's relocation.** Move `.claude/skills/playwright-trace` to `.agents/skills/`,
+5. **The trace skill's relocation.** Move `.claude/skills/playwright-trace` to `.agents/skills/`,
    symlink it back with `ln -s ../../.agents/skills/playwright-trace .claude/skills/playwright-trace`,
    rewrite `npx playwright trace` to `pnpm --filter e2e exec playwright trace`, and delete the
    `playwright-cli` and `playwright-component-testing` skills installed alongside it.
