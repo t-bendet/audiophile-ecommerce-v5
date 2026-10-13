@@ -6,7 +6,6 @@ import { paths } from "@/config/paths";
 import { MiniCart } from "@/features/cart/components/mini-cart";
 import useMedia from "@/hooks/useMedia";
 import { HomeIcon } from "lucide-react";
-import { useState } from "react";
 import { Link } from "react-router";
 import { CartButton } from "./cart-button";
 import { NavLinks } from "./nav-links";
@@ -16,56 +15,50 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 export const Navbar = () => {
   const isLarge = useMedia("lg");
   const isSmall = useMedia("sm");
-  const [cartOpen, setCartOpen] = useState(false);
 
   return (
-    <>
-      <nav className="bg-neutral-900 max-md:border-b max-md:border-neutral-100/20">
-        <Container>
-          <div className="h-(--nav-bar-height) flex items-center justify-between md:border-b md:border-neutral-100/20">
-            {!isLarge && <NavBarDialog />}
-            {isSmall ? (
-              <Link
-                to={paths.home.path}
-                className="hover:*:*:fill-primary-500 focus-visible:*:*:fill-primary-500 max-lg:mr-auto max-lg:pl-11"
-              >
-                <Logo title="audiophile logo" />
-              </Link>
-            ) : (
-              <Link
-                to={paths.home.path}
-                aria-label="Home"
-                className="hover:*:*:stroke-primary-400 focus-visible:*:*:stroke-primary-500 mr-auto pl-4"
-              >
-                <HomeIcon />
-              </Link>
-            )}
+    <nav className="bg-neutral-900 max-md:border-b max-md:border-neutral-100/20">
+      <Container>
+        <div className="h-(--nav-bar-height) flex items-center justify-between md:border-b md:border-neutral-100/20">
+          {!isLarge && <NavBarDialog />}
+          {isSmall ? (
+            <Link
+              to={paths.home.path}
+              className="hover:*:*:fill-primary-500 focus-visible:*:*:fill-primary-500 max-lg:mr-auto max-lg:pl-11"
+            >
+              <Logo title="audiophile logo" />
+            </Link>
+          ) : (
+            <Link
+              to={paths.home.path}
+              aria-label="Home"
+              className="hover:*:*:stroke-primary-400 focus-visible:*:*:stroke-primary-500 mr-auto pl-4"
+            >
+              <HomeIcon />
+            </Link>
+          )}
 
-            {isLarge && (
-              <SafeRenderWithErrorBlock title="Error loading categories navigation">
-                <NavLinks />
-              </SafeRenderWithErrorBlock>
-            )}
-            <div className="flex items-center gap-4">
-              <SafeRenderWithErrorBlock
-                title="Error loading user dropdown"
-                fallback={<LoadingSpinner size="md" className="mr-12" />}
-              >
-                <UserDropdown />
-              </SafeRenderWithErrorBlock>
-              <SafeRenderWithErrorBlock
-                title="Error loading cart"
-                fallback={<LoadingSpinner size="md" />}
-              >
-                <CartButton onOpen={() => setCartOpen(true)} />
-              </SafeRenderWithErrorBlock>
-            </div>
+          {isLarge && (
+            <SafeRenderWithErrorBlock title="Error loading categories navigation">
+              <NavLinks />
+            </SafeRenderWithErrorBlock>
+          )}
+          <div className="flex items-center gap-4">
+            <SafeRenderWithErrorBlock
+              title="Error loading user dropdown"
+              fallback={<LoadingSpinner size="md" className="mr-12" />}
+            >
+              <UserDropdown />
+            </SafeRenderWithErrorBlock>
+            <SafeRenderWithErrorBlock
+              title="Error loading cart"
+              fallback={<LoadingSpinner size="md" />}
+            >
+              <MiniCart trigger={<CartButton />} />
+            </SafeRenderWithErrorBlock>
           </div>
-        </Container>
-      </nav>
-      <SafeRenderWithErrorBlock title="Error loading cart">
-        <MiniCart open={cartOpen} onOpenChange={setCartOpen} />
-      </SafeRenderWithErrorBlock>
-    </>
+        </div>
+      </Container>
+    </nav>
   );
 };

@@ -6,6 +6,7 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
+  DrawerTrigger,
 } from "@/components/ui/drawer";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { paths } from "@/config/paths";
@@ -17,14 +18,15 @@ import {
 import { CartItem } from "@/features/cart/components/cart-item";
 import currencyFormatter from "@/utils/formatters";
 import { ShoppingCart } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 
 interface MiniCartProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  trigger: ReactNode;
 }
 
-export function MiniCart({ open, onOpenChange }: MiniCartProps) {
+export function MiniCart({ trigger }: MiniCartProps) {
+  const [open, setOpen] = useState(false);
   const { data: cart, isLoading } = useCart();
   const updateCartItem = useUpdateCartItem();
   const removeFromCart = useRemoveFromCart();
@@ -44,7 +46,8 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
   const isUpdating = updateCartItem.isPending || removeFromCart.isPending;
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={setOpen} autoFocus>
+      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent className="max-h-[90vh] p-2 text-neutral-900">
         <DrawerHeader>
           <DrawerTitle className="flex items-center gap-2">
@@ -92,7 +95,7 @@ export function MiniCart({ open, onOpenChange }: MiniCartProps) {
             </div>
             <Link
               to={paths.checkout.checkout.path}
-              onClick={() => onOpenChange(false)}
+              onClick={() => setOpen(false)}
             >
               <Button variant="accent" className="w-full" size="lg">
                 Go to Checkout

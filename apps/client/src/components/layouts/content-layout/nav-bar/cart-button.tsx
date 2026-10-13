@@ -1,17 +1,14 @@
 import CartIcon from "@/assets/icon-cart.svg?react";
 import { useCart } from "@/features/cart/api/get-cart";
+import type { ComponentProps } from "react";
 
-type TCartButtonProps = {
-  onOpen: () => void;
-};
-
-export const CartButton = ({ onOpen }: TCartButtonProps) => {
+export const CartButton = (props: ComponentProps<"button">) => {
   const { data: cart } = useCart();
   const itemCount = cart?.data.itemCount ?? 0;
 
   return (
     <button
-      onClick={onOpen}
+      {...props}
       className="hover:*:fill-primary-500 focus-visible:*:fill-primary-500 relative cursor-pointer"
       aria-label="Open cart"
     >
