@@ -52,6 +52,9 @@ apps/e2e/blob-report
 .playwright-mcp
 .playwright-cli
 
+# the planner's plans: a plan's job ends when the spec it describes lands
+/specs/*.plan.md
+
 # wrangler local state
 .wrangler
 
