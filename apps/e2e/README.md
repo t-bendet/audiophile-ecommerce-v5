@@ -95,7 +95,7 @@ A planning pass is not read-only. The planner explores by driving the real app, 
 the seeded shopper and leaves whatever it touched behind — a guest cart in `localStorage`, cart
 items on the server. That is `audiophile-e2e` and never the `audiophile` a `pnpm dev` session uses,
 and the next `pnpm test:e2e` reseeds it, but a database open in Compass while an agent runs is not
-showing you seed data. The plans it writes are not kept either: `specs/*.plan.md` is git-ignored,
+showing you seed data. The plans it writes are not kept either: everything in `specs/` but its README is git-ignored,
 and the spec the generator produces from one is the reviewable artifact.
 
 `tests/seed.spec.ts` is how they get a page: the planner and the generator run that one test and
