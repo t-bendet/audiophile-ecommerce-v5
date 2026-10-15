@@ -90,6 +90,29 @@ describe("POST /api/v1/cart", () => {
     );
   });
 
+  it("creates one cart when first adds arrive together", async () => {
+    const user = await createUser();
+    const cookie = authCookie(user.id);
+    const products = await Promise.all(
+      Array.from({ length: 20 }, () => createProduct()),
+    );
+
+    const responses = await Promise.all(
+      products.map((product) =>
+        request(app)
+          .post("/api/v1/cart")
+          .set("Cookie", cookie)
+          .send({ productId: product.id, quantity: 1 }),
+      ),
+    );
+
+    expect(responses.map((res) => res.status)).toEqual(
+      responses.map(() => 200),
+    );
+    expect(new Set(responses.map((res) => res.body.data.id)).size).toBe(1);
+    expect(await prisma.cart.count({ where: { userId: user.id } })).toBe(1);
+  });
+
   it("rejects a malformed product id", async () => {
     const user = await createUser();
 
@@ -160,6 +183,29 @@ describe("POST /api/v1/cart/sync", () => {
       ]),
     );
     expect(persisted).toHaveLength(2);
+  });
+
+  it("creates one cart when first syncs arrive together", async () => {
+    const user = await createUser();
+    const cookie = authCookie(user.id);
+    const products = await Promise.all(
+      Array.from({ length: 20 }, () => createProduct()),
+    );
+
+    const responses = await Promise.all(
+      products.map((product) =>
+        request(app)
+          .post("/api/v1/cart/sync")
+          .set("Cookie", cookie)
+          .send({ items: [{ productId: product.id, quantity: 1 }] }),
+      ),
+    );
+
+    expect(responses.map((res) => res.status)).toEqual(
+      responses.map(() => 200),
+    );
+    expect(new Set(responses.map((res) => res.body.data.id)).size).toBe(1);
+    expect(await prisma.cart.count({ where: { userId: user.id } })).toBe(1);
   });
 
   it("ignores an unknown product id and merges the rest", async () => {
