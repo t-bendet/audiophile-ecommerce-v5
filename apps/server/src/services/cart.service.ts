@@ -9,6 +9,7 @@ import {
   SyncCartInput,
 } from "@repo/domain";
 import { toImageVariantDTO } from "../utils/media.js";
+import { isUniqueConstraintError } from "../utils/prisma-errors.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const cartWithProductsInclude = {
@@ -76,14 +77,39 @@ export class CartService extends AbstractCrudService<
    * Get or create cart for a user
    */
   async getOrCreateCart(userId: string): Promise<CartDTO> {
-    const cart = await prisma.cart.upsert({
-      where: { userId },
-      create: { userId },
-      update: {},
-      include: cartWithProductsInclude,
-    });
+    const cart = await this.retryOnDuplicate(() =>
+      prisma.cart.upsert({
+        where: { userId },
+        create: { userId },
+        update: {},
+        include: cartWithProductsInclude,
+      }),
+    );
 
     return this.toDTO(cart);
+  }
+
+  private async ensureCartId(userId: string): Promise<string> {
+    const cart = await this.retryOnDuplicate(() =>
+      prisma.cart.upsert({
+        where: { userId },
+        create: { userId },
+        update: {},
+        select: { id: true },
+      }),
+    );
+
+    return cart.id;
+  }
+
+  // Prisma's MongoDB upsert is find-then-write, so concurrent first writes can still hit P2002
+  private async retryOnDuplicate<T>(upsert: () => Promise<T>): Promise<T> {
+    try {
+      return await upsert();
+    } catch (e) {
+      if (!isUniqueConstraintError(e)) throw e;
+      return upsert();
+    }
   }
 
   /**
@@ -104,24 +130,13 @@ export class CartService extends AbstractCrudService<
       throw new AppError("Product not found", ErrorCode.NOT_FOUND);
     }
 
-    // Get or create cart
-    let cart = await prisma.cart.findUnique({
-      where: { userId },
-      select: { id: true },
-    });
-
-    if (!cart) {
-      cart = await prisma.cart.create({
-        data: { userId },
-        select: { id: true },
-      });
-    }
+    const cartId = await this.ensureCartId(userId);
 
     // Check if item already exists in cart
     const existingItem = await prisma.cartItem.findUnique({
       where: {
         cartId_productId: {
-          cartId: cart.id,
+          cartId,
           productId,
         },
       },
@@ -137,7 +152,7 @@ export class CartService extends AbstractCrudService<
       // Add new item to cart
       await prisma.cartItem.create({
         data: {
-          cartId: cart.id,
+          cartId,
           productId,
           quantity,
         },
@@ -159,18 +174,7 @@ export class CartService extends AbstractCrudService<
       return this.getOrCreateCart(userId);
     }
 
-    // Get or create cart
-    let cart = await prisma.cart.findUnique({
-      where: { userId },
-      select: { id: true },
-    });
-
-    if (!cart) {
-      cart = await prisma.cart.create({
-        data: { userId },
-        select: { id: true },
-      });
-    }
+    const cartId = await this.ensureCartId(userId);
 
     // Verify all products exist in a single batch query
     const productIds = input.items.map((item) => item.productId);
@@ -184,7 +188,7 @@ export class CartService extends AbstractCrudService<
     // Fetch all existing cart items in a single batch query
     const existingCartItems = await prisma.cartItem.findMany({
       where: {
-        cartId: cart.id,
+        cartId,
         productId: { in: productIds },
       },
       select: { id: true, productId: true, quantity: true },
@@ -219,7 +223,7 @@ export class CartService extends AbstractCrudService<
         operations.push(
           prisma.cartItem.create({
             data: {
-              cartId: cart.id,
+              cartId,
               productId: localItem.productId,
               quantity: localItem.quantity,
             },

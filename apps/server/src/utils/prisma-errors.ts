@@ -1,6 +1,7 @@
 import { Prisma } from "@repo/database";
 
 const RECORD_NOT_FOUND = "P2025";
+const UNIQUE_CONSTRAINT_VIOLATION = "P2002";
 
 export const isPrismaKnownRequestError = (
   err: unknown,
@@ -16,3 +17,6 @@ export const isPrismaValidationError = (
 
 export const isRecordNotFoundError = (err: unknown): boolean =>
   isPrismaKnownRequestError(err) && err.code === RECORD_NOT_FOUND;
+
+export const isUniqueConstraintError = (err: unknown): boolean =>
+  isPrismaKnownRequestError(err) && err.code === UNIQUE_CONSTRAINT_VIOLATION;
