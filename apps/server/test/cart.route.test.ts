@@ -113,6 +113,59 @@ describe("POST /api/v1/cart", () => {
     expect(await prisma.cart.count({ where: { userId: user.id } })).toBe(1);
   });
 
+  it("adds every quantity when adds of a product already in the cart arrive together", async () => {
+    const user = await createUser();
+    const product = await createProduct();
+    const cookie = authCookie(user.id);
+
+    await request(app)
+      .post("/api/v1/cart")
+      .set("Cookie", cookie)
+      .send({ productId: product.id, quantity: 1 });
+
+    const responses = await Promise.all(
+      Array.from({ length: 20 }, () =>
+        request(app)
+          .post("/api/v1/cart")
+          .set("Cookie", cookie)
+          .send({ productId: product.id, quantity: 2 }),
+      ),
+    );
+
+    expect(responses.map((res) => res.status)).toEqual(
+      responses.map(() => 200),
+    );
+    const persisted = await prisma.cartItem.findMany({
+      where: { cart: { userId: user.id } },
+      select: { productId: true, quantity: true },
+    });
+    expect(persisted).toEqual([{ productId: product.id, quantity: 41 }]);
+  });
+
+  it("adds every quantity when first adds of a product arrive together", async () => {
+    const user = await createUser();
+    const product = await createProduct();
+    const cookie = authCookie(user.id);
+
+    const responses = await Promise.all(
+      Array.from({ length: 20 }, () =>
+        request(app)
+          .post("/api/v1/cart")
+          .set("Cookie", cookie)
+          .send({ productId: product.id, quantity: 2 }),
+      ),
+    );
+
+    expect(responses.map((res) => res.status)).toEqual(
+      responses.map(() => 200),
+    );
+    const persisted = await prisma.cartItem.findMany({
+      where: { cart: { userId: user.id } },
+      select: { productId: true, quantity: true },
+    });
+    expect(persisted).toEqual([{ productId: product.id, quantity: 40 }]);
+  });
+
   it("rejects a malformed product id", async () => {
     const user = await createUser();
 
@@ -206,6 +259,63 @@ describe("POST /api/v1/cart/sync", () => {
     );
     expect(new Set(responses.map((res) => res.body.data.id)).size).toBe(1);
     expect(await prisma.cart.count({ where: { userId: user.id } })).toBe(1);
+  });
+
+  it("merges every quantity when syncs of the same product arrive together", async () => {
+    const user = await createUser();
+    const product = await createProduct();
+    const cookie = authCookie(user.id);
+
+    const responses = await Promise.all(
+      Array.from({ length: 20 }, () =>
+        request(app)
+          .post("/api/v1/cart/sync")
+          .set("Cookie", cookie)
+          .send({ items: [{ productId: product.id, quantity: 2 }] }),
+      ),
+    );
+
+    expect(responses.map((res) => res.status)).toEqual(
+      responses.map(() => 200),
+    );
+    const persisted = await prisma.cartItem.findMany({
+      where: { cart: { userId: user.id } },
+      select: { productId: true, quantity: true },
+    });
+    expect(persisted).toEqual([{ productId: product.id, quantity: 40 }]);
+  });
+
+  it("sums a sync and an add of the same product that arrive together", async () => {
+    const user = await createUser();
+    const product = await createProduct();
+    const cookie = authCookie(user.id);
+
+    await request(app)
+      .post("/api/v1/cart")
+      .set("Cookie", cookie)
+      .send({ productId: product.id, quantity: 1 });
+
+    const responses = await Promise.all(
+      Array.from({ length: 10 }, () => [
+        request(app)
+          .post("/api/v1/cart/sync")
+          .set("Cookie", cookie)
+          .send({ items: [{ productId: product.id, quantity: 2 }] }),
+        request(app)
+          .post("/api/v1/cart")
+          .set("Cookie", cookie)
+          .send({ productId: product.id, quantity: 3 }),
+      ]).flat(),
+    );
+
+    expect(responses.map((res) => res.status)).toEqual(
+      responses.map(() => 200),
+    );
+    const persisted = await prisma.cartItem.findMany({
+      where: { cart: { userId: user.id } },
+      select: { productId: true, quantity: true },
+    });
+    expect(persisted).toEqual([{ productId: product.id, quantity: 51 }]);
   });
 
   it("ignores an unknown product id and merges the rest", async () => {
