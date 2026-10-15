@@ -132,35 +132,26 @@ export class CartService extends AbstractCrudService<
 
     const cartId = await this.ensureCartId(userId);
 
-    // Check if item already exists in cart
-    const existingItem = await prisma.cartItem.findUnique({
-      where: {
-        cartId_productId: {
-          cartId,
-          productId,
-        },
-      },
-    });
-
-    if (existingItem) {
-      // Update existing item quantity
-      await prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + quantity },
-      });
-    } else {
-      // Add new item to cart
-      await prisma.cartItem.create({
-        data: {
-          cartId,
-          productId,
-          quantity,
-        },
-      });
-    }
+    await this.retryOnDuplicate(() =>
+      this.incrementCartItem(cartId, productId, quantity),
+    );
 
     // Return updated cart
     return this.getOrCreateCart(userId);
+  }
+
+  // The database does the arithmetic: `increment` is an atomic `$inc` on the line
+  private incrementCartItem(
+    cartId: string,
+    productId: string,
+    quantity: number,
+  ): Prisma.PrismaPromise<unknown> {
+    return prisma.cartItem.upsert({
+      where: { cartId_productId: { cartId, productId } },
+      create: { cartId, productId, quantity },
+      update: { quantity: { increment: quantity } },
+      select: { id: true },
+    });
   }
 
   /**
@@ -184,56 +175,18 @@ export class CartService extends AbstractCrudService<
     });
 
     const validProductIds = new Set(products.map((p) => p.id));
-
-    // Fetch all existing cart items in a single batch query
-    const existingCartItems = await prisma.cartItem.findMany({
-      where: {
-        cartId,
-        productId: { in: productIds },
-      },
-      select: { id: true, productId: true, quantity: true },
-    });
-
-    // Create a map for quick lookup
-    const existingItemMap = new Map(
-      existingCartItems.map((item) => [item.productId, item]),
+    const localItems = input.items.filter((item) =>
+      validProductIds.has(item.productId),
     );
 
-    // Collected unawaited so `$transaction` receives the array form it needs
-    const operations: Prisma.PrismaPromise<unknown>[] = [];
-
-    for (const localItem of input.items) {
-      // Skip items with invalid products
-      if (!validProductIds.has(localItem.productId)) {
-        continue;
-      }
-
-      const existingItem = existingItemMap.get(localItem.productId);
-
-      if (existingItem) {
-        // Update existing item quantity (add local quantity to server quantity)
-        operations.push(
-          prisma.cartItem.update({
-            where: { id: existingItem.id },
-            data: { quantity: existingItem.quantity + localItem.quantity },
-          }),
-        );
-      } else {
-        // Add new item to cart
-        operations.push(
-          prisma.cartItem.create({
-            data: {
-              cartId,
-              productId: localItem.productId,
-              quantity: localItem.quantity,
-            },
-          }),
-        );
-      }
-    }
-
-    // All merge writes land together or not at all
-    await prisma.$transaction(operations);
+    // All merge writes land together or not at all; a P2002 aborts the batch, so the retry re-runs every line
+    await this.retryOnDuplicate(() =>
+      prisma.$transaction(
+        localItems.map((item) =>
+          this.incrementCartItem(cartId, item.productId, item.quantity),
+        ),
+      ),
+    );
 
     // Return updated cart
     return this.getOrCreateCart(userId);
