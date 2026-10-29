@@ -9,12 +9,12 @@ export const CartButton = (props: ComponentProps<"button">) => {
   return (
     <button
       {...props}
-      className="hover:*:fill-primary-500 focus-visible:*:fill-primary-500 relative cursor-pointer"
+      className="relative cursor-pointer hover:*:fill-primary-500 focus-visible:*:fill-primary-500"
       aria-label="Open cart"
     >
       <CartIcon title="cart icon" />
       {itemCount > 0 ? (
-        <span className="bg-primary-500 absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-white">
+        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-xs font-bold text-white">
           {itemCount}
         </span>
       ) : null}

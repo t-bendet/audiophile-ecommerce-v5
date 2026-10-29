@@ -8,7 +8,7 @@ const ProductsListSkeleton = () => {
     <>
       <Section>
         <Container
-          classes={`lg:gap-31 flex flex-col gap-8 md:gap-14 lg:flex-row`}
+          classes={`flex flex-col gap-8 md:gap-14 lg:flex-row lg:gap-31`}
         >
           <Skeleton className="h-64 w-full rounded-sm" />
           <ProductSkeleton />
@@ -16,7 +16,7 @@ const ProductsListSkeleton = () => {
       </Section>
       <Section>
         <Container
-          classes={`lg:gap-31 flex flex-col gap-8 md:gap-14 lg:flex-row-reverse`}
+          classes={`flex flex-col gap-8 md:gap-14 lg:flex-row-reverse lg:gap-31`}
         >
           <Skeleton className="h-64 w-full rounded-sm" />
           <ProductSkeleton />
@@ -24,7 +24,7 @@ const ProductsListSkeleton = () => {
       </Section>
       <Section>
         <Container
-          classes={`lg:gap-31 flex flex-col gap-8 md:gap-14 lg:flex-row`}
+          classes={`flex flex-col gap-8 md:gap-14 lg:flex-row lg:gap-31`}
         >
           <Skeleton className="h-64 w-full rounded-sm" />
           <ProductSkeleton />

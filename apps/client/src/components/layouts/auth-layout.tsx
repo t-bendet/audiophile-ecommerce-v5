@@ -9,7 +9,7 @@ import { Container } from "../ui/container";
 const AuthLayout = () => {
   useQuery(getAuthStatusQueryOptions());
   return (
-    <main className="bg-muted md:pt-26 flex min-h-svh flex-col items-center gap-6 px-6 pt-10">
+    <main className="flex min-h-svh flex-col items-center gap-6 bg-muted px-6 pt-10 md:pt-26">
       <Container classes="w-full max-w-md">
         <Button variant="link" asChild className="mb-4 gap-2 px-0">
           <Link to={paths.home.getHref()}>

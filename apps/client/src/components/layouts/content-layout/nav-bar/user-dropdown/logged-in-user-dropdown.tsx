@@ -94,7 +94,7 @@ export default function LoggedInUserDropdown() {
 
         <DropdownMenuItem onClick={handleLogout}>
           Log out
-          <LogOut className="text-primary-700 ml-auto size-4" />
+          <LogOut className="ml-auto size-4 text-primary-700" />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

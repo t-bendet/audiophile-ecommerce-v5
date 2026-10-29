@@ -28,7 +28,7 @@ export function QuantitySelector({
   return (
     <div
       className={cn(
-        "w-30 flex h-12 items-center justify-around bg-neutral-200 text-xs font-bold",
+        "flex h-12 w-30 items-center justify-around bg-neutral-200 text-xs font-bold",
         className,
       )}
     >

@@ -4,7 +4,7 @@ import { Metadata } from "@/components/seo/metadata";
 
 export default function LoginPage() {
   return (
-    <Section classes="tracking-200 min-w-xs max-w-md">
+    <Section classes="max-w-md min-w-xs tracking-200">
       <Metadata title="Login" noIndex />
       <LoginForm />
     </Section>

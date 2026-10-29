@@ -91,3 +91,7 @@ login attempts. Run the client suite with `pnpm --filter client test` after its 
 dependencies are built, or use root `pnpm test` for dependency ordering. For browser
 coverage, follow the [E2E guide](../e2e/README.md); for the remaining checks, see
 [verification](../../docs/agents/verification.md).
+
+`pnpm format:check` sorts Tailwind classes with the `tailwindStylesheet` entry in
+[`.prettierrc`](.prettierrc); without it the plugin reuses whichever Tailwind context the
+first formatted file produced, so the sort changes with the file set.
