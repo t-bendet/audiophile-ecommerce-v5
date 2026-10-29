@@ -256,7 +256,7 @@ The five canonical triage roles, each label named after its role. See `docs/agen
 
 ### Domain docs
 
-Single-context: `docs/adr/` at the repo root, and `GLOSSARY.md` once one exists. See `docs/agents/domain.md`.
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
 ### Playwright agents
 

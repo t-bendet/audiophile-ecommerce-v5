@@ -73,9 +73,9 @@ there should not be one.
   fresh context starts without. To hold credentials and still arrive signed out, sign up and then
   `context.clearCookies()` — the signup response set the cookie.
 - **Locate by role and accessible name first**, then text and label. `data-testid` only where
-  neither identifies an element among siblings, named by a domain noun from `GLOSSARY.md`. There is
-  not one in the client today and the suite does not need one: a product card is an `article`, a
-  mini-cart line is a `heading` carrying the product's cart label, the drawer is a `dialog`.
+  neither identifies an element among siblings, named by a domain noun from `GLOSSARY.md`. The client
+  has no `data-testid` today and the suite does not need one: a product card is an `article`, a
+  mini-cart line is a `heading` carrying the product's cart label, the mini-cart is a `dialog`.
 - **Web-first assertions only.** `expect(locator).toBeVisible()` retries; `expect(await locator.isVisible())`
   does not, and `page.waitForTimeout` is a flake waiting to happen. TanStack Query refetches behind
   most of these pages, so this is the rule that matters most.
