@@ -1,51 +1,32 @@
-# Domain Docs
+# Domain guide
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+Read this guide when changing shared schemas or types, naming domain concepts, or making design decisions. This repo has one domain context: [GLOSSARY.md](../../GLOSSARY.md) and [docs/adr](../adr/).
 
-## Before exploring, read these
+## Vocabulary and decisions
 
-- **`GLOSSARY.md`** at the repo root, or
-- **`GLOSSARY-MAP.md`** at the repo root if it exists: it points at one `GLOSSARY.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`**: read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
+Read the glossary entries relevant to your task and use their terms in code, tests, issues, and proposals. Before changing behavior governed by a decision, read its ADR:
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
+| Change                                      | Decision                                                                                                  |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Ownership checks and their HTTP response    | [0001: ownership failures return 403](../adr/0001-ownership-failures-return-403.md)                       |
+| List sorting and field selection validation | [0002: reject unknown sort and fields values](../adr/0002-unknown-sort-and-fields-values-are-rejected.md) |
+| List pagination defaults                    | [0003: one default page size](../adr/0003-one-default-page-size-for-every-list.md)                        |
+| MongoDB topology or version                 | [0004: local replica set](../adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md)                    |
+| Hosting boundaries                          | [0005: Cloudflare deployment](../adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md)            |
 
-## File structure
+Surface a conflict with an existing decision explicitly. For a new settled term or decision, read and apply the [domain-modeling skill](../../.agents/skills/domain-modeling/SKILL.md); it owns glossary and ADR formats. Proposals remain proposals until a decision is made.
 
-Single-context repo (most repos):
+## Shared package conventions
 
-```
-/
-├── GLOSSARY.md
-├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
-└── src/
-```
+`packages/domain` is the source of shared Zod schemas, DTOs, types, and error codes. Expose public additions through [src/index.ts](../../packages/domain/src/index.ts); consumers import from `@repo/domain`. Use `.strict()` on input object schemas to reject unknown fields. Server request wiring is defined in the [server guide](../../apps/server/README.md).
 
-Multi-context repo (presence of `GLOSSARY-MAP.md` at the root):
+| Name                           | Purpose                                                     |
+| ------------------------------ | ----------------------------------------------------------- |
+| `*CreateInput`, `*UpdateInput` | Write operations                                            |
+| `*DTO`                         | Read responses                                              |
+| `*WhereInput`                  | Filter parameters                                           |
+| `*Select`                      | Field selection                                             |
+| `ExtendedQueryParams`          | Pagination and sorting                                      |
+| `*QueryParams`                 | One entity's list query: `ExtendedQueryParams<{ filters }>` |
 
-```
-/
-├── GLOSSARY-MAP.md
-├── docs/adr/                          ← system-wide decisions
-└── src/
-    ├── ordering/
-    │   ├── GLOSSARY.md
-    │   └── docs/adr/                  ← context-specific decisions
-    └── billing/
-        ├── GLOSSARY.md
-        └── docs/adr/
-```
-
-## Use the glossary's vocabulary
-
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `GLOSSARY.md`. Don't drift to synonyms the glossary explicitly avoids.
-
-If the concept you need isn't in the glossary yet, that's a signal: either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
-
-## Flag ADR conflicts
-
-If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
-
-> _Contradicts ADR-0007 (event-sourced orders), but worth reopening because…_
+Use the package's existing schema/type pairs as examples rather than introducing parallel definitions in client and server. Run the domain tests and type-check affected consumers when a shared contract changes; see [verification](verification.md).

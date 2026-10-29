@@ -1,5 +1,10 @@
 # Moving Audiophile to Cloudflare — hand-off document
 
+> Historical migration hand-off, retained as decision evidence. The cutover has happened; the
+> open questions, staged Render setup, version checks and execution sequence below are not a
+> current runbook. Use [deployment](../deployment.md), the [media guide](../../packages/media/README.md),
+> and [ADR 0005](../adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md) for the implemented system.
+
 Written 2026-09-06 as the input for a `/to-spec` session. It records what was decided in the
 sessions of 2026-09-04 to 2026-09-06, the evidence behind each decision, the three questions still
 open, and the execution order. It complements

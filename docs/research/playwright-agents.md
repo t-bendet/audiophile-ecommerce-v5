@@ -1,5 +1,9 @@
 # Playwright Agents in the first E2E ticket — research note
 
+> Historical setup research. The harness and agents are now installed; proposed commands,
+> model choices and tool availability below reflect the investigation date. Use the
+> [E2E agent workflow and regeneration instructions](../../apps/e2e/README.md#agents) for maintenance.
+
 Written 2026-10-12 against `@playwright/test` 1.64.0, as a follow-up to `playwright-e2e.md`. One
 decision: run `npx playwright init-agents --loop=claude` (and `init-skills --loop claude`) in the
 first E2E ticket, or ship a hand-written harness first and add the agents after. Primary sources

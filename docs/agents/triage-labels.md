@@ -1,15 +1,13 @@
-# Triage Labels
+# Triage labels
 
-The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker.
+Use these GitHub labels when triaging issues in this repository. Skills refer to the roles in the first column.
 
-| Label in mattpocock/skills | Label in our tracker | Meaning                                  |
-| -------------------------- | -------------------- | ---------------------------------------- |
-| `needs-triage`             | `needs-triage`       | Maintainer needs to evaluate this issue  |
-| `needs-info`               | `needs-info`         | Waiting on reporter for more information |
-| `ready-for-agent`          | `ready-for-agent`    | Fully specified, ready for an AFK agent  |
-| `ready-for-human`          | `ready-for-human`    | Requires human implementation            |
-| `wontfix`                  | `wontfix`            | Will not be actioned                     |
+| Role              | Label             | Meaning                                       |
+| ----------------- | ----------------- | --------------------------------------------- |
+| Needs triage      | `needs-triage`    | Maintainer needs to evaluate the issue        |
+| Needs information | `needs-info`      | Waiting on the reporter                       |
+| Agent-ready       | `ready-for-agent` | Fully specified for unattended implementation |
+| Human-ready       | `ready-for-human` | Requires human implementation                 |
+| Will not fix      | `wontfix`         | Will not be actioned                          |
 
-When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
-
-Edit the "Label in our tracker" column to match whatever vocabulary you actually use.
+Read the [issue workflow](issue-tracker.md) for tracker operations. PRs are not a feature-request triage surface in this repo.

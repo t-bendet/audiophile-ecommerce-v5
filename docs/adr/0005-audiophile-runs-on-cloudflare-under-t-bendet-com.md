@@ -1,5 +1,8 @@
 # Audiophile runs on Cloudflare under t-bendet.com, with MongoDB unchanged on Atlas
 
+This record preserves the migration decision and its measurements. For current configuration,
+CI gates and operational steps, use the [deployment runbook](../deployment.md).
+
 Hosting moves from Render to Cloudflare in three parts (#189). The Vite build is served as
 Workers Static Assets; the Express 5 server runs unchanged inside a Cloudflare Container behind a
 one-file Worker; product images live in an R2 bucket. MongoDB stays on Atlas. The app and its API
@@ -87,12 +90,8 @@ products, the Atlas round trip. That is just above the one-to-three-second cold 
 accepts and several times better than lite would manage, at a difference the research document's
 cost table puts at about 65 cents a month.
 
-A push to `main` deploys. The `deploy` job in `.github/workflows/ci.yml` needs the `verify` and
-`image` jobs, runs on the push event only, and calls `pnpm deploy:app`: Turbo builds the client and
-the server, then `wrangler deploy` builds the container image with the runner's Docker and sends the
-image, the Worker and the assets up together. It needs two repository secrets,
-`CLOUDFLARE_API_TOKEN` from the _Edit Cloudflare Workers_ template, whose R2 permission is what the
-managed image registry uses, and `CLOUDFLARE_ACCOUNT_ID`. Pull requests are unchanged: they build the
-Dockerfile without pushing it, and they do not deploy.
+Deployments are controlled by repository CI rather than a dashboard-only build pipeline.
+The [deployment runbook](../deployment.md) describes the current checks, credentials, catalogue
+sync and manual recovery procedure.
 
 The media hostname is recorded here rather than in the separate ADR the image research proposed.
