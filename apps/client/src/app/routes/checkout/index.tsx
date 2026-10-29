@@ -11,7 +11,7 @@ import {
 } from "@/features/cart/api/get-cart";
 import { CartItem } from "@/features/cart/components/cart-item";
 import { getAuthStatusQueryOptions } from "@/lib/auth";
-import { syncLocalCartToServer } from "@/lib/cart-sync";
+import { syncGuestCartToServer } from "@/lib/cart-sync";
 import currencyFormatter from "@/utils/formatters";
 import { calculateOrderTotals } from "@repo/domain";
 import { QueryClient } from "@tanstack/react-query";
@@ -30,8 +30,8 @@ export const clientLoader =
       throw redirect(paths.auth.login.getHref(redirectTo));
     }
 
-    // Sync local cart with server cart if user has local items
-    await syncLocalCartToServer(queryClient);
+    // Sync guest cart with server cart if user has local items
+    await syncGuestCartToServer(queryClient);
 
     return null;
   };
