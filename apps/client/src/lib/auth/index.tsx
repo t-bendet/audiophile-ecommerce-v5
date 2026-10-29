@@ -1,6 +1,6 @@
 import { getApi } from "@/lib/api-client";
-import { clearLocalCart } from "@/lib/cart-storage";
-import { syncLocalCartToServer } from "@/lib/cart-sync";
+import { clearGuestCart } from "@/lib/cart-storage";
+import { syncGuestCartToServer } from "@/lib/cart-sync";
 import {
   TBaseHandler,
   TBaseRequestParams,
@@ -107,8 +107,7 @@ export const useLogoutUser = (queryClient: QueryClient) => {
     mutationKey: [AUTH_LOGOUT_MUTATION_KEY],
     mutationFn: logoutUser,
     onSuccess: (result) => {
-      // Clear local cart on logout
-      clearLocalCart();
+      clearGuestCart();
       // Invalidate cart queries
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
       // Manually set the user data in the cache after a successful logout
@@ -143,8 +142,7 @@ export const useLogin = (queryClient: QueryClient) => {
     mutationFn: postLoginUser,
     mutationKey: [AUTH_LOGIN_MUTATION_KEY],
     onSuccess: async () => {
-      // After successful login, sync local cart to server
-      await syncLocalCartToServer(queryClient);
+      await syncGuestCartToServer(queryClient);
       // Invalidate auth status
       await queryClient.invalidateQueries({
         queryKey: [AUTH_STATUS_QUERY_KEY],

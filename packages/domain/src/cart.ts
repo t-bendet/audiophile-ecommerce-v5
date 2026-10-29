@@ -67,7 +67,7 @@ export const AddToCartInputSchema = z
 export type AddToCartInput = z.infer<typeof AddToCartInputSchema>;
 
 /**
- * Sync cart item input - for syncing local cart items to server
+ * Sync cart item input - for syncing guest cart items to server
  */
 export const SyncCartItemInputSchema = z
   .object({
@@ -79,7 +79,7 @@ export const SyncCartItemInputSchema = z
 export type SyncCartItemInput = z.infer<typeof SyncCartItemInputSchema>;
 
 /**
- * Sync cart input - for syncing local cart to server cart
+ * Sync cart input - for syncing guest cart to server cart
  */
 export const SyncCartInputSchema = z
   .object({
@@ -128,7 +128,7 @@ export const AddToCartRequestSchema = createRequestSchema({
 export type AddToCartRequest = z.infer<typeof AddToCartRequestSchema>;
 
 /**
- * Sync cart request - for syncing local cart to server cart
+ * Sync cart request - for syncing guest cart to server cart
  */
 export const SyncCartRequestSchema = createRequestSchema({
   body: SyncCartInputSchema,

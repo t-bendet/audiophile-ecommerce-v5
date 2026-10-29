@@ -13,7 +13,7 @@ cartRouter.get("/", ...cartController.getCart);
 // Add item to cart
 cartRouter.post("/", ...cartController.addToCart);
 
-// Sync local cart with server cart
+// Sync guest cart with server cart
 cartRouter.post("/sync", ...cartController.syncCart);
 
 // Update cart item quantity

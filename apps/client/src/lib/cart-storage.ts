@@ -1,22 +1,23 @@
-import { CartItemDTOSchema, ImageVariantDTO } from "@repo/domain";
+import { CartItemDTOSchema } from "@repo/domain";
 import * as z from "zod";
 
-// The cart a signed-out shopper keeps in localStorage: a server cart item
+// The guest cart a signed-out shopper keeps in localStorage: a server cart item
 // without the id the server assigns.
-const LocalCartItemSchema = CartItemDTOSchema.omit({ id: true }).extend({
+const GuestCartItemSchema = CartItemDTOSchema.omit({ id: true }).extend({
   id: z.string().optional(),
 });
 
-const LocalCartSchema = z.object({
-  items: z.array(LocalCartItemSchema),
+const GuestCartSchema = z.object({
+  items: z.array(GuestCartItemSchema),
   itemCount: z.number().int().nonnegative(),
   subtotal: z.number().int().nonnegative(),
 });
 
-export type LocalCartItem = z.infer<typeof LocalCartItemSchema>;
-export type LocalCart = z.infer<typeof LocalCartSchema>;
+export type GuestCartItem = z.infer<typeof GuestCartItemSchema>;
+export type GuestCart = z.infer<typeof GuestCartSchema>;
+export type GuestCartItemInput = Omit<GuestCartItem, "id" | "subtotal">;
 
-const EmptyLocalCart: LocalCart = {
+const EmptyGuestCart: GuestCart = {
   items: [],
   itemCount: 0,
   subtotal: 0,
@@ -27,32 +28,32 @@ const CART_STORAGE_KEY = "audiophile_cart";
 /**
  * Get cart from localStorage
  */
-export function getLocalCart(): LocalCart {
+export function getGuestCart(): GuestCart {
   if (typeof window === "undefined") {
-    return { ...EmptyLocalCart };
+    return { ...EmptyGuestCart };
   }
 
   try {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
     if (!stored) {
-      return { ...EmptyLocalCart };
+      return { ...EmptyGuestCart };
     }
 
     // A cart stored before the thumbnail became a key cannot be rendered.
-    const parsed = LocalCartSchema.safeParse(JSON.parse(stored));
-    return parsed.success ? parsed.data : { ...EmptyLocalCart };
+    const parsed = GuestCartSchema.safeParse(JSON.parse(stored));
+    return parsed.success ? parsed.data : { ...EmptyGuestCart };
   } catch (error) {
     if (import.meta.env.DEV) {
       console.error("Error reading cart from localStorage:", error);
     }
-    return { ...EmptyLocalCart };
+    return { ...EmptyGuestCart };
   }
 }
 
 /**
  * Save cart to localStorage
  */
-export function saveLocalCart(cart: LocalCart): void {
+export function saveGuestCart(cart: GuestCart): void {
   if (typeof window === "undefined") return;
 
   try {
@@ -67,7 +68,7 @@ export function saveLocalCart(cart: LocalCart): void {
 /**
  * Calculate cart totals
  */
-function calculateCartTotals(items: LocalCartItem[]): {
+function calculateCartTotals(items: GuestCartItem[]): {
   itemCount: number;
   subtotal: number;
 } {
@@ -76,40 +77,20 @@ function calculateCartTotals(items: LocalCartItem[]): {
   return { itemCount, subtotal };
 }
 
-/**
- * Add item to local cart
- */
-export function addToLocalCart(
-  productId: string,
-  cartLabel: string,
-  productSlug: string,
-  productPrice: number,
-  productImage: ImageVariantDTO,
-  quantity: number,
-): LocalCart {
-  const cart = getLocalCart();
+export function addToGuestCart(input: GuestCartItemInput): GuestCart {
+  const cart = getGuestCart();
 
-  // Check if item already exists
-  const existingItemIndex = cart.items.findIndex(
-    (item) => item.productId === productId,
+  const existingItem = cart.items.find(
+    (item) => item.productId === input.productId,
   );
 
-  if (existingItemIndex !== -1) {
-    // Update quantity of existing item
-    cart.items[existingItemIndex].quantity += quantity;
-    cart.items[existingItemIndex].subtotal =
-      cart.items[existingItemIndex].quantity *
-      cart.items[existingItemIndex].productPrice;
+  if (existingItem) {
+    existingItem.quantity += input.quantity;
+    existingItem.subtotal = existingItem.quantity * existingItem.productPrice;
   } else {
-    // Add new item
     cart.items.push({
-      productId,
-      cartLabel,
-      productSlug,
-      productPrice,
-      productImage,
-      quantity,
-      subtotal: productPrice * quantity,
+      ...input,
+      subtotal: input.productPrice * input.quantity,
     });
   }
 
@@ -117,18 +98,18 @@ export function addToLocalCart(
   cart.itemCount = totals.itemCount;
   cart.subtotal = totals.subtotal;
 
-  saveLocalCart(cart);
+  saveGuestCart(cart);
   return cart;
 }
 
 /**
  * Update cart item quantity
  */
-export function updateLocalCartItem(
+export function updateGuestCartItem(
   productId: string,
   quantity: number,
-): LocalCart {
-  const cart = getLocalCart();
+): GuestCart {
+  const cart = getGuestCart();
 
   const itemIndex = cart.items.findIndex(
     (item) => item.productId === productId,
@@ -144,15 +125,12 @@ export function updateLocalCartItem(
   cart.itemCount = totals.itemCount;
   cart.subtotal = totals.subtotal;
 
-  saveLocalCart(cart);
+  saveGuestCart(cart);
   return cart;
 }
 
-/**
- * Remove item from local cart
- */
-export function removeFromLocalCart(productId: string): LocalCart {
-  const cart = getLocalCart();
+export function removeFromGuestCart(productId: string): GuestCart {
+  const cart = getGuestCart();
 
   cart.items = cart.items.filter((item) => item.productId !== productId);
 
@@ -160,14 +138,11 @@ export function removeFromLocalCart(productId: string): LocalCart {
   cart.itemCount = totals.itemCount;
   cart.subtotal = totals.subtotal;
 
-  saveLocalCart(cart);
+  saveGuestCart(cart);
   return cart;
 }
 
-/**
- * Clear local cart
- */
-export function clearLocalCart(): LocalCart {
-  saveLocalCart({ ...EmptyLocalCart });
-  return { ...EmptyLocalCart };
+export function clearGuestCart(): GuestCart {
+  saveGuestCart({ ...EmptyGuestCart });
+  return { ...EmptyGuestCart };
 }
