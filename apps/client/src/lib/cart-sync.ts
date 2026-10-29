@@ -33,7 +33,6 @@ export async function syncGuestCartToServer(
 
     const parsed = SyncCartResponseSchema.parse(response.data);
 
-    // Clear guest cart after successful sync
     clearGuestCart();
     // Seed the authenticated cart cache so the merged cart is available at once
     queryClient.setQueryData(getCartQueryOptions(true).queryKey, parsed);

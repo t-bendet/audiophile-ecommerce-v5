@@ -30,7 +30,6 @@ export const clientLoader =
       throw redirect(paths.auth.login.getHref(redirectTo));
     }
 
-    // Sync guest cart with server cart if user has local items
     await syncGuestCartToServer(queryClient);
 
     return null;

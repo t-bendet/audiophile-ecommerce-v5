@@ -107,7 +107,6 @@ export const useLogoutUser = (queryClient: QueryClient) => {
     mutationKey: [AUTH_LOGOUT_MUTATION_KEY],
     mutationFn: logoutUser,
     onSuccess: (result) => {
-      // Clear guest cart on logout
       clearGuestCart();
       // Invalidate cart queries
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
@@ -143,7 +142,6 @@ export const useLogin = (queryClient: QueryClient) => {
     mutationFn: postLoginUser,
     mutationKey: [AUTH_LOGIN_MUTATION_KEY],
     onSuccess: async () => {
-      // After successful login, sync guest cart to server
       await syncGuestCartToServer(queryClient);
       // Invalidate auth status
       await queryClient.invalidateQueries({

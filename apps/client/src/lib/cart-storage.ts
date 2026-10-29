@@ -76,9 +76,6 @@ function calculateCartTotals(items: GuestCartItem[]): {
   return { itemCount, subtotal };
 }
 
-/**
- * Add item to guest cart
- */
 export function addToGuestCart(
   productId: string,
   cartLabel: string,
@@ -148,9 +145,6 @@ export function updateGuestCartItem(
   return cart;
 }
 
-/**
- * Remove item from guest cart
- */
 export function removeFromGuestCart(productId: string): GuestCart {
   const cart = getGuestCart();
 
@@ -164,9 +158,6 @@ export function removeFromGuestCart(productId: string): GuestCart {
   return cart;
 }
 
-/**
- * Clear guest cart
- */
 export function clearGuestCart(): GuestCart {
   saveGuestCart({ ...EmptyGuestCart });
   return { ...EmptyGuestCart };
