@@ -155,8 +155,8 @@ export class CartService extends AbstractCrudService<
   }
 
   /**
-   * Sync local cart items with server cart
-   * Merges items from local cart into the user's server-side cart
+   * Sync guest cart items with server cart
+   * Merges items from guest cart into the user's server-side cart
    * If an item already exists, updates quantity to be the sum of both
    */
   async syncCart(userId: string, input: SyncCartInput): Promise<CartDTO> {

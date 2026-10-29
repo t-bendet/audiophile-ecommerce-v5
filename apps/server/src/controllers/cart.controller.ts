@@ -38,7 +38,7 @@ export const addToCart: ValidatedHandler = defineHandler(
 );
 
 /**
- * Sync local cart with server cart
+ * Sync guest cart with server cart
  */
 export const syncCart: ValidatedHandler = defineHandler(
   SyncCartRequestSchema,
