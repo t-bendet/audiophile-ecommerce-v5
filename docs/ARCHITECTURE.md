@@ -65,7 +65,7 @@ Prisma wraps nested writes in transactions, and MongoDB only allows those on a r
 
 ### Multi-file Prisma Schema
 
-Schema split by domain (`user.prisma`, `product.prisma`, `category.prisma`, `config.prisma`) instead of one monolithic file. Easier to navigate on a team.
+Schema split by model (`user`, `product`, `category`, `cart`, `order`, `config`, plus `image` for the embedded image types) instead of one monolithic file. Easier to navigate on a team.
 
 ### ESM-native Client Generation
 
@@ -161,9 +161,9 @@ branch. Why Cloudflare, why a container rather than plain Workers, and why the h
 first-level subdomains is in `docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md`.
 
 The server reads its environment from the Worker, never from a deployed file: `NODE_ENV`,
-`JWT_EXPIRES_IN` and `JWT_COOKIE_EXPIRES_IN` are `vars` in `wrangler.jsonc`, `DATABASE_URL` and
-`JWT_SECRET` are Worker secrets, and `ApiContainer` passes all five into the container, whose `PORT`
-comes from the Dockerfile. The client's only build-time variable, `VITE_APP_API_URL`, is the
+`JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN` and `MEDIA_BASE_URL` are `vars` in `wrangler.jsonc`,
+`DATABASE_URL` and `JWT_SECRET` are Worker secrets, and `ApiContainer` passes all six into the
+container, whose `PORT` comes from the Dockerfile. The client's only build-time variable, `VITE_APP_API_URL`, is the
 same-origin `/api/v1` committed in `apps/client/.env.production`.
 
 A push to `main` deploys. The `deploy` job in `.github/workflows/ci.yml` needs `verify` and `image`,
@@ -189,7 +189,3 @@ Product catalog data is document-shaped (nested images, included items, category
 **"What would you change?"**
 
 - Consider a Redis cache layer for product catalog reads.
-
----
-
-**Last Updated:** September 12, 2026

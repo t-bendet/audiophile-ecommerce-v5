@@ -14,14 +14,12 @@ pnpm dev:server        # server only
 pnpm build             # all packages + apps (Turbo, respects dependency order)
 
 # Database (local Docker replica set, see "Local database")
-pnpm db:up             # start MongoDB (docker compose up -d --wait); dev, db:setup, db:reset and test:db run it first
-pnpm db:down           # stop and remove the container; the data volume survives
+pnpm db:up             # start MongoDB; dev, db:setup, db:reset and test:db run it first
 pnpm db:generate       # regenerate the Prisma client after any schema change
-pnpm db:push           # push schema to the local database
-pnpm db:seed           # DROPS the database, then seeds it: local only (see "Seeding vs syncing")
-pnpm db:sync           # upsert the catalogue onto whatever DATABASE_URL names: safe on production
+pnpm db:seed           # DROPS the database, then seeds it: local only
+pnpm db:sync           # upsert the catalogue onto DATABASE_URL: safe on production
 pnpm db:setup          # up + push + generate + seed: a fresh clone's one command after install
-pnpm db:reset          # up + push --force-reset + generate + seed: wipe dev data and start over
+pnpm db:reset          # the same with --force-reset: wipe dev data and start over
 
 # Type-check
 pnpm type-check        # tsc across every workspace via Turbo
@@ -30,9 +28,9 @@ pnpm types:watch       # watch mode across all TS projects
 # Quality
 pnpm lint
 pnpm format
-pnpm test          # domain + media + server + client vitest suites via Turbo (no network database needed)
-pnpm test:db       # server suite against the Docker database, left in place for Compass (see "Local database")
-pnpm test:e2e      # Playwright smoke suite against the built apps and a seeded `audiophile-e2e` (see "Local database")
+pnpm test          # every vitest suite via Turbo; no Docker needed
+pnpm test:db       # server suite against the Docker database, left in place for Compass
+pnpm test:e2e      # Playwright smoke suite against the built apps (see "End-to-end tests")
 ```
 
 ### Running a single workspace
@@ -119,7 +117,7 @@ diagnosing anything else. CI never sees this.
 
 ### Code comments
 
-Default to no comments — names and structure should carry the meaning; rationale belongs in `GLOSSARY.md` or `docs/adr/`, not inline.
+Default to no comments — names and structure should carry the meaning; rationale belongs in `docs/adr/`, not inline.
 
 Add one only when:
 
@@ -168,15 +166,13 @@ Used for dev-only navigation timing — the client's one middleware, `apps/clien
 
 ## End-to-end tests
 
-`apps/e2e` holds the Playwright smoke suite and `pnpm test:e2e` is all of it: the Docker database
-up, `audiophile-e2e` seeded and pushed, both apps built, the suite run. Playwright starts the
-compiled server on `8001` and `vite preview` on `4173` itself and never reuses a running one, so a
-`pnpm dev` session on `8000`/`5173` is neither tested nor disturbed.
-
-The server under test runs with `NODE_ENV=test`, which stands the rate limiters down, so no spec
-can see a 429; the vitest suite owns that behaviour. Specs import `test` and `expect` from
-`tests/fixtures.ts` and nothing else from the monorepo. `apps/e2e/README.md` has the fixtures, the
-locator policy, what the suite covers and the CI job.
+`pnpm test:e2e` runs the Playwright smoke suite in `apps/e2e` against the built apps on its own
+ports (`8001`, `4173`) and its own database (`audiophile-e2e`), so a `pnpm dev` session is neither
+tested nor disturbed. The server under test runs with `NODE_ENV=test`, which stands the rate
+limiters down; the vitest suite owns that behaviour. Specs import `test` and `expect` from
+`tests/fixtures.ts` and nothing else from the monorepo. Before writing or fixing a spec, or when a
+run fails on `E11000 ... Cart_userId_key`, read `apps/e2e/README.md`: fixtures, locator policy,
+the seed-before-push order, what the suite covers, the CI job.
 
 ## Critical Pitfalls
 
@@ -187,66 +183,25 @@ locator policy, what the suite covers and the CI job.
 
 ## Seeding vs syncing
 
-Two scripts write the catalogue, and the difference matters because one of them is safe to point
-at Atlas and the other is not.
-
-`pnpm db:seed` (`src/seed/index.ts`) runs `dropDatabase` and then `create`s everything: six demo
-users, the categories, the products, the config. It is the local "give me a clean database"
-command and `db:reset` builds on it. Never point it at production - it deletes every user, cart
-and order, and because every product is re-created with a fresh `_id`, it also dangles the
-`productId` in any order that survived.
-
-`pnpm db:sync` (`src/seed/catalogue-sync.ts`) writes only what the repo owns - 3 categories, 6
-products, 1 config - as upserts on the unique keys those models already carry (`Category.name`,
-`Product.slug`, `Config.name`). A document keeps its `_id`, so carts and order history keep
-resolving; nothing is deleted, so a product dropped from the repo is left in place rather than
-cascading away cart items; no user is touched. Running it twice changes nothing, which is what
-makes it safe to attach to a deploy.
-
-Use it whenever a schema shape changes - that is the migration:
-
-```bash
-DATABASE_URL='mongodb+srv://...' pnpm db:sync
-```
-
-`dotenv` never overrides an already-set variable, so the prefix wins over `packages/database/.env`
-and no production credential has to be written to a file.
-
-CI runs it for you: the `sync-catalogue` job in `.github/workflows/ci.yml` needs `deploy` and runs
-`db:sync` against the `DATABASE_URL` repository secret. Without that secret the job logs a warning
-and skips, so the catalogue simply stays a manual step rather than failing a good deploy.
-
-One thing the sync cannot fix: while a shape is changing, new code cannot read old rows and old
-code cannot read new rows, so there is a window between the Worker going live and the sync
-finishing. It is under a minute; closing it entirely would mean shipping a reader that accepts
-both shapes, migrating, then removing the old branch.
+`pnpm db:seed` drops the database and recreates everything: local only, never against Atlas.
+`pnpm db:sync` upserts the catalogue the repo owns onto whatever `DATABASE_URL` names, touching no
+user, cart or order; it is the migration step after a schema shape change, and CI runs it after
+every deploy. Before running either against anything but the local database, or when changing
+what the seed writes, read "Seeding vs syncing" in `packages/database/README.md`.
 
 ## Node version
 
-Three places name it, and they are not redundant - each answers a different question:
-
-| Where                              | Says       | Question it answers                     |
-| ---------------------------------- | ---------- | --------------------------------------- |
-| `.nvmrc`                           | `24`       | which major CI and a local shell run on |
-| `apps/server/Dockerfile`           | `24`       | which major the deployed container runs |
-| root `package.json` `engines.node` | `>=24.5.0` | the floor a contributor must clear      |
-
-CI reads `.nvmrc` through `node-version-file` in all three `actions/setup-node` steps, so the
-workflow holds no version literal of its own. Raising the major means editing `.nvmrc` and the
-Dockerfile together - Docker cannot read `.nvmrc` - and `.github/scripts/assert-node-version.sh`
-fails every job if you edit one and forget the other, so the pair cannot drift. The `engines` floor
-is deliberately open and moves only when something actually needs a newer runtime; see #240.
+`.nvmrc` and `apps/server/Dockerfile` name the major; raise them together.
+`.github/scripts/assert-node-version.sh` fails every CI job if they drift. The `engines.node`
+floor in the root `package.json` is deliberately open and moves only when something needs a newer
+runtime (#240).
 
 ## Local database
 
-Dev, seeding, the opt-in test path and Compass all use the one MongoDB in `docker-compose.yml`: a
-single-node replica set (`rs0`) on `localhost:27017`, which Prisma requires because nested writes run
-in transactions. `pnpm db:up` starts it (`docker compose up -d --wait`), and `pnpm dev`,
-`dev:server`, `db:setup`, `db:reset` and `test:db` all run that first, so the container is only ever
-started by hand after a `pnpm db:down`. The `--wait` matters: plain `up -d` returns before the
-healthcheck has initiated the set, and the first schema push then fails. The healthcheck is what
-runs `rs.initiate()`, so the service works when started on its own. `pnpm test` and CI never start
-it.
+One MongoDB in `docker-compose.yml`, a single-node replica set on `localhost:27017`, serves dev,
+seeding, `test:db`, `test:e2e` and Compass; Prisma needs a replica set because nested writes run in
+transactions. `pnpm db:up` starts it with `--wait`, and every script that needs it runs that first.
+`pnpm test` and CI never start it.
 
 ```
 dev     -> mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
@@ -255,94 +210,33 @@ e2e     -> mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnect
 Compass -> mongodb://localhost:27017
 ```
 
-`pnpm test:e2e` seeds `audiophile-e2e` and only then pushes the schema. The order is not
-interchangeable: the seed drops the database, indexes and all, and `Cart.userId` has to be unique
-while the suite runs - `getOrCreateCart` finds-then-creates, so without it two parallel page loads
-leave two carts behind and the next `db:push` cannot rebuild the index.
-
-The image tag in `docker-compose.yml` and `MONGODB_VERSION` in `global-setup.ts` are one version;
-bump them together, and only after checking `fastdl.mongodb.org` has the darwin/arm64 binary and
-Docker Hub has the tag. Why it is 8.2 rather than the 8.0 Atlas runs is in
-`docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md`. Port 27017 has to be free, so a
-Homebrew `mongodb-community` service must be stopped first. No local run touches Atlas; its
-connection string belongs only to deployment.
+Port 27017 has to be free, so a Homebrew `mongodb-community` service must be stopped first. No local
+run touches Atlas. Before bumping the MongoDB version, which is pinned in two places, read
+`docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md`.
 
 ## Environment Variables
 
-Local development uses `.env` files, one per workspace, each with a committed `.env.example`
-beside it. Production has no `.env` file at all — see "Deployment" below.
+Local development uses one `.env` per workspace, each copied from the committed `.env.example`
+beside it, which documents every variable: `packages/database`, `apps/server`, `apps/client`,
+`packages/media`. Production has no `.env` file at all; see "Deployment".
 
-**`packages/database/.env`**
+`MEDIA_BASE_URL` is required in every environment: `apps/server/src/utils/media.ts` joins it to a
+stored image key at the API boundary, and nothing below it ever sees a URL.
 
-```
-DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
-```
-
-**`apps/server/.env`**
-
-```
-DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
-NODE_ENV=development
-JWT_SECRET=<min 32 chars>
-JWT_EXPIRES_IN=7d
-JWT_COOKIE_EXPIRES_IN=7
-PORT=8000
-MEDIA_BASE_URL=https://audiophile-media.t-bendet.com
-LOG_LEVEL=debug
-```
-
-`MEDIA_BASE_URL` is the host every catalogue image key resolves against, required in every
-environment. It is the one place a stored key meets a host: `apps/server/src/utils/media.ts` joins
-them at the API boundary, and nothing below it ever sees a URL.
-
-`LOG_LEVEL` is optional; unset it defaults per environment — `debug` in development, `info` in production, `silent` in test.
-
-`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production` sanitizes responses. `test` is set by the vitest configs and behaves like `production` (logger silent, sanitized errors).
-
-**`apps/client/.env`**
-
-```
-VITE_APP_PORT=5173
-VITE_APP_API_URL=/api/v1
-VITE_APP_API_PROXY_TARGET=http://localhost:8000
-```
-
-`VITE_APP_API_URL` is baked into the bundle at build time. `apps/client/.env.production` is
-committed and holds that same `/api/v1`, because the Worker serves the API under the app's own
-hostname.
-
-**`packages/media/.env`**
-
-```
-R2_ACCOUNT_ID=
-R2_ACCESS_KEY_ID=
-R2_SECRET_ACCESS_KEY=
-R2_BUCKET=audiophile-media
-```
-
-An R2 Object Read & Write token for `pnpm --filter @repo/media media:sync`. It belongs to the developer publishing
-images, never to the deployed application.
+`NODE_ENV` controls error verbosity: `development` returns full stack traces; `production`
+sanitizes responses; `test` is set by the vitest configs and behaves like `production`. `LOG_LEVEL`
+is optional and defaults per environment: `debug`, `info`, `silent`.
 
 ## Deployment
 
-One Cloudflare Worker (`apps/server/wrangler.jsonc`) serves the whole application at
-`audiophile.t-bendet.com`: `run_worker_first` sends `/api/*` to the Express server in a Cloudflare
-Container, everything else is the client's `dist` as Workers Static Assets. Images are in R2 on
-`audiophile-media.t-bendet.com`, the database is MongoDB Atlas.
-
-The server's environment in production comes from the Worker, not a file: `NODE_ENV`,
-`JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN` and `MEDIA_BASE_URL` are `vars` in `wrangler.jsonc`,
-while `DATABASE_URL` and `JWT_SECRET` are Worker secrets (`wrangler secret put <NAME>` from
-`apps/server`). The Worker passes all six into the container; `PORT` comes from the Dockerfile.
-
-A push to `main` deploys: the `deploy` job in `.github/workflows/ci.yml` needs the `verify` and
-`image` jobs and then runs `pnpm deploy:app`, which builds everything and hands the image, the
-Worker and the assets to `wrangler deploy`. A `sync-catalogue` job then runs `pnpm db:sync`
-against Atlas, so a catalogue change ships without a manual reseed. It needs the repository
-secrets `CLOUDFLARE_API_TOKEN` (Edit Cloudflare Workers template), `CLOUDFLARE_ACCOUNT_ID`, and
-`DATABASE_URL` (the Atlas connection string; without it the sync job warns and skips). Deploying by
-hand is the same `pnpm deploy:app` after `wrangler login`. There are no pull-request previews;
-check a branch with `pnpm --filter server exec wrangler dev`, which needs Docker.
+One Cloudflare Worker (`apps/server/wrangler.jsonc`) serves `audiophile.t-bendet.com`: `/api/*` to
+the Express server in a Cloudflare Container, everything else as static assets; images from R2,
+database on Atlas. The server's environment comes from the Worker: `vars` in `wrangler.jsonc` for
+the plain values, Worker secrets for `DATABASE_URL` and `JWT_SECRET`. A push to `main` deploys
+through `.github/workflows/ci.yml`, then syncs the catalogue. There are no pull-request previews;
+check a branch with `pnpm --filter server exec wrangler dev`, which needs Docker. Before deploying
+by hand, changing a secret or `var`, or touching the workflow, read "Deployment" in `README.md`;
+the decision is `docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md`.
 
 ## Git workflow
 
@@ -362,7 +256,7 @@ The five canonical triage roles, each label named after its role. See `docs/agen
 
 ### Domain docs
 
-Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Single-context: `docs/adr/` at the repo root, and `GLOSSARY.md` once one exists. See `docs/agents/domain.md`.
 
 ### Playwright agents
 
