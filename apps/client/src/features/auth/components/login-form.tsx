@@ -153,7 +153,7 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
                 <Button type="submit" form="login-form" disabled={isPending}>
                   Login
                 </Button>
-                <FieldDescription className="text-primary-500 text-center">
+                <FieldDescription className="text-center text-primary-500">
                   Don&apos;t have an account?{" "}
                   <Link to={paths.auth.signup.path}>Sign up</Link>
                 </FieldDescription>

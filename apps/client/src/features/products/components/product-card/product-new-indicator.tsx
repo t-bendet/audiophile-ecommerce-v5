@@ -8,7 +8,7 @@ export default function ProductNewIndicator(props: { classes?: string }) {
       {isNewProduct ? (
         <span
           className={cn(
-            "tracking-900 text-primary-700 text-sm uppercase",
+            "text-sm tracking-900 text-primary-700 uppercase",
             props.classes,
           )}
         >

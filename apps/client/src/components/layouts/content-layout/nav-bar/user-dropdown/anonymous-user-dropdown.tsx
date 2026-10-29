@@ -27,7 +27,7 @@ export default function AnonymousUserDropdown() {
           >
             Log in
           </NavLink>
-          <LogInIcon className="text-primary-500 ml-auto size-4" />
+          <LogInIcon className="ml-auto size-4 text-primary-500" />
         </DropdownMenuItem>
         <DropdownMenuItem>
           <NavLink
@@ -36,7 +36,7 @@ export default function AnonymousUserDropdown() {
           >
             Sign up
           </NavLink>
-          <IdCardLanyard className="text-primary-500 ml-auto size-4" />
+          <IdCardLanyard className="ml-auto size-4 text-primary-500" />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

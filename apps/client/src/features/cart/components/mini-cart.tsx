@@ -51,7 +51,7 @@ export function MiniCart({ trigger }: MiniCartProps) {
       <DrawerContent className="max-h-[90vh] p-2 text-neutral-900">
         <DrawerHeader>
           <DrawerTitle className="flex items-center gap-2">
-            <p className="tracking-600 font-bold uppercase">
+            <p className="font-bold tracking-600 uppercase">
               cart ({cart?.data.itemCount || 0})
             </p>
           </DrawerTitle>

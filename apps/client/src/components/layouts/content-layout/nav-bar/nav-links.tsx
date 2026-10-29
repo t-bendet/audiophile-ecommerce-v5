@@ -14,7 +14,7 @@ export const NavLinks = () => {
     getCategoriesQueryOptions(),
   );
   return (
-    <ul className="tracking-700 flex flex-col gap-4 text-xs font-bold uppercase md:col-span-2 md:flex-row md:gap-9 lg:col-span-1 lg:justify-end">
+    <ul className="flex flex-col gap-4 text-xs font-bold tracking-700 uppercase md:col-span-2 md:flex-row md:gap-9 lg:col-span-1 lg:justify-end">
       <li key={"home"}>
         <NavLink
           className={({ isActive }) =>

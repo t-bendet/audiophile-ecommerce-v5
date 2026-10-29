@@ -8,7 +8,7 @@ export default function ProductTitle(props: { classes?: string }) {
     <header>
       <h2
         className={cn(
-          "tracking-400 mb-6 text-2xl font-bold uppercase md:text-4xl",
+          "mb-6 text-2xl font-bold tracking-400 uppercase md:text-4xl",
           props.classes,
         )}
       >

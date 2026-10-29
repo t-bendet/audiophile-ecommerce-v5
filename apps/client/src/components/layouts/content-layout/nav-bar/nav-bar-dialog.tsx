@@ -17,7 +17,7 @@ export default function NavBarDialog() {
   return (
     <Dialog defaultOpen={false} open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="hover:*:*:fill-primary-500 focus-visible:*:*:fill-primary-500 h-4 p-0">
+        <Button className="h-4 p-0 hover:*:*:fill-primary-500 focus-visible:*:*:fill-primary-500">
           <span className="sr-only">Open main menu</span>
           <HamburgerIcon className="" title="hamburger icon" />
         </Button>
@@ -25,7 +25,7 @@ export default function NavBarDialog() {
       <DialogContent
         aria-describedby="main-menu"
         showCloseButton={false}
-        className="top-(--nav-bar-height) fixed inset-0 w-full max-w-full translate-x-0 translate-y-0 rounded-t-none max-sm:overflow-scroll sm:max-w-full md:bottom-auto"
+        className="fixed inset-0 top-(--nav-bar-height) w-full max-w-full translate-x-0 translate-y-0 rounded-t-none max-sm:overflow-scroll sm:max-w-full md:bottom-auto"
       >
         <DialogTitle className="sr-only">Main menu</DialogTitle>
         <DialogDescription className="sr-only">

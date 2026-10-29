@@ -43,7 +43,7 @@ const Product = () => {
         image={product.images.primaryImage.desktop.src}
         type="product"
       />
-      <Container classes="lg:mt-19 mb-6 mt-4 md:mb-8 md:mt-8 lg:mb-14">
+      <Container classes="mt-4 mb-6 md:mt-8 md:mb-8 lg:mt-19 lg:mb-14">
         <Button
           onClick={() => navigate(-1)}
           aria-label="Go back to previous page"
@@ -57,7 +57,7 @@ const Product = () => {
 
       <main className="text-neutral-900" key={productSlug}>
         <Section classes="max-sm:mb-22">
-          <Container classes="md:gap-x-17 lg:gap-x-31 flex flex-col gap-y-8 md:flex-row">
+          <Container classes="flex flex-col gap-y-8 md:flex-row md:gap-x-17 lg:gap-x-31">
             <ResponsivePicture
               {...product.images.primaryImage}
               pictureClasses="rounded-sm"
@@ -85,9 +85,9 @@ const Product = () => {
         </Section>
 
         <Section classes="mb-22 md:mb-38 lg:mb-40">
-          <Container classes="gap-22 md:gap-30 lg:gap-31 flex flex-col lg:flex-row">
+          <Container classes="flex flex-col gap-22 md:gap-30 lg:flex-row lg:gap-31">
             <div>
-              <h2 className="tracking-300 mb-6 text-xl font-bold uppercase md:mb-8 md:text-[32px]">
+              <h2 className="mb-6 text-xl font-bold tracking-300 uppercase md:mb-8 md:text-[32px]">
                 features
               </h2>
               <div className="space-y-6 text-neutral-600 md:space-y-10">
@@ -98,16 +98,16 @@ const Product = () => {
             </div>
 
             <div className="flex flex-col gap-y-6 md:flex-row lg:flex-col lg:gap-y-8">
-              <h2 className="tracking-300 w-full text-xl font-bold uppercase md:text-[32px]">
+              <h2 className="w-full text-xl font-bold tracking-300 uppercase md:text-[32px]">
                 in the box
               </h2>
               <ul className="w-full min-w-max">
                 {product.includedItems.map((inc, index) => (
                   <li key={index}>
-                    <span className="text-primary-700 mr-5 font-bold md:mr-6">
+                    <span className="mr-5 font-bold text-primary-700 md:mr-6">
                       {inc.quantity}x
                     </span>
-                    <span className="capitalize text-neutral-600">
+                    <span className="text-neutral-600 capitalize">
                       {inc.item}
                     </span>
                   </li>
@@ -141,7 +141,7 @@ const Product = () => {
         </Section>
         <aside className="mb-30 lg:mb-40">
           <Container>
-            <h2 className="tracking-300 mb-10 text-center text-xl font-bold uppercase md:mb-14 md:text-[32px] lg:mb-16">
+            <h2 className="mb-10 text-center text-xl font-bold tracking-300 uppercase md:mb-14 md:text-[32px] lg:mb-16">
               you may also like
             </h2>
             <SafeRenderWithErrorBlock

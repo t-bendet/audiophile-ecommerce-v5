@@ -28,7 +28,7 @@ export default function UserAreaLayout() {
       >
         <Container>
           <h1 className="mb-6 text-3xl font-bold">Account Settings</h1>
-          <p className="text-muted-foreground mb-4">
+          <p className="mb-4 text-muted-foreground">
             Logged in as: {data.email}
           </p>
           <Tabs value={tab} onValueChange={handleTabChange} className="w-full">

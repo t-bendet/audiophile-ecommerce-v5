@@ -23,16 +23,16 @@ const CategoryNavList = ({ clickHandler }: { clickHandler?: () => void }) => {
               height={category.thumbnail.height}
               src={category.thumbnail.src}
               alt={category.thumbnail.altText}
-              className="max-w-1/3 md:max-w-2/3 lg:max-w-5/6 z-10 col-start-1 col-end-2 row-start-1 row-end-3"
+              className="z-10 col-start-1 col-end-2 row-start-1 row-end-3 max-w-1/3 md:max-w-2/3 lg:max-w-5/6"
             />
             <div className="col-start-1 col-end-2 row-start-2 row-end-4 w-full rounded-md bg-neutral-200"></div>
             <div className="col-start-1 col-end-2 row-start-3 row-end-4 w-full text-center">
-              <span className="tracking-500 mb-4 block font-bold uppercase">
+              <span className="mb-4 block font-bold tracking-500 uppercase">
                 {category.name}
               </span>
               <Link
                 to={paths.category.getHref(category.name)}
-                className="tracking-600 inline-flex items-center gap-2 text-xs font-bold uppercase opacity-50 hover:underline"
+                className="inline-flex items-center gap-2 text-xs font-bold tracking-600 uppercase opacity-50 hover:underline"
                 onMouseEnter={() => {
                   queryClient.prefetchQuery(
                     getProductsByCategoryQueryOptions(category.name),

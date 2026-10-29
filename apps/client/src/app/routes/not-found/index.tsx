@@ -8,7 +8,7 @@ const NotFoundRoute = () => {
     <Container>
       <Metadata title="Page Not Found" noIndex />
       <div className="mt-22 flex flex-col items-center gap-3 bg-neutral-900 py-6 font-semibold">
-        <h1 className="text-primary-700 text-3xl">404 - Not Found</h1>
+        <h1 className="text-3xl text-primary-700">404 - Not Found</h1>
         <p className="text-2xl">
           Sorry, the page you are looking for does not exist.
         </p>

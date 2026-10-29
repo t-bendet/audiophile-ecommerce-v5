@@ -15,7 +15,7 @@ export const BestGearSection = () => {
         classes="rounded-xl"
       />
       <div className="text-center text-neutral-900 md:max-w-xl lg:max-w-md lg:text-left">
-        <h3 className="tracking-300 mb-8 text-2xl font-bold uppercase md:text-4xl">
+        <h3 className="mb-8 text-2xl font-bold tracking-300 uppercase md:text-4xl">
           Bringing you the <span className="text-primary-500">best </span>
           audio gear
         </h3>

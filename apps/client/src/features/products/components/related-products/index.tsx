@@ -21,7 +21,7 @@ const RelatedProducts = ({ id }: { id: string }) => {
             classes="h-auto w-full md:mb-10"
             loading="lazy"
           />
-          <h3 className="tracking-300 text-center text-xl font-bold uppercase">
+          <h3 className="text-center text-xl font-bold tracking-300 uppercase">
             {product.shortLabel}
           </h3>
           <Button

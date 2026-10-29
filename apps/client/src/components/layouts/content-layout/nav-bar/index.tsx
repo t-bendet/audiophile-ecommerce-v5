@@ -19,7 +19,7 @@ export const Navbar = () => {
   return (
     <nav className="bg-neutral-900 max-md:border-b max-md:border-neutral-100/20">
       <Container>
-        <div className="h-(--nav-bar-height) flex items-center justify-between md:border-b md:border-neutral-100/20">
+        <div className="flex h-(--nav-bar-height) items-center justify-between md:border-b md:border-neutral-100/20">
           {!isLarge && <NavBarDialog />}
           {isSmall ? (
             <Link
@@ -32,7 +32,7 @@ export const Navbar = () => {
             <Link
               to={paths.home.path}
               aria-label="Home"
-              className="hover:*:*:stroke-primary-400 focus-visible:*:*:stroke-primary-500 mr-auto pl-4"
+              className="mr-auto pl-4 hover:*:*:stroke-primary-400 focus-visible:*:*:stroke-primary-500"
             >
               <HomeIcon />
             </Link>

@@ -30,11 +30,11 @@ const Category = () => {
         description={`Shop ${activeCategory} from Audiophile.`}
       />
       <header className="bg-neutral-900 py-8 md:py-24">
-        <h1 className="tracking-500 text-center text-2xl font-bold uppercase md:text-4xl">
+        <h1 className="text-center text-2xl font-bold tracking-500 uppercase md:text-4xl">
           {activeCategory}
         </h1>
       </header>
-      <main className="md:mt-30 mt-16 lg:mt-40">
+      <main className="mt-16 md:mt-30 lg:mt-40">
         <ProductsList products={ProductsResponse.data} />
 
         <Section>

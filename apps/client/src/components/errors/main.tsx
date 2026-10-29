@@ -10,7 +10,7 @@ export const MainErrorFallback = () => {
     >
       <h2 className="text-lg font-semibold">Ooops, something went wrong :( </h2>
       <Button
-        className="bg-primary-500 hover:bg-primary-400 mt-4"
+        className="mt-4 bg-primary-500 hover:bg-primary-400"
         onClick={() => window.location.assign(window.location.origin)}
       >
         Refresh

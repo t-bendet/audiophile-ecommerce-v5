@@ -122,7 +122,7 @@ export default function CheckoutPage() {
 
             {/* Right Column - Order Summary */}
             <div className="rounded-lg bg-white p-6 text-neutral-900 shadow">
-              <h2 className="tracking-300 mb-6 text-xl font-bold uppercase">
+              <h2 className="mb-6 text-xl font-bold tracking-300 uppercase">
                 summary
               </h2>
 
