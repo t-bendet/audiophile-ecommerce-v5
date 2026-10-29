@@ -1,4 +1,4 @@
-import { CartItemDTOSchema, ImageVariantDTO } from "@repo/domain";
+import { CartItemDTOSchema } from "@repo/domain";
 import * as z from "zod";
 
 // The guest cart a signed-out shopper keeps in localStorage: a server cart item
@@ -15,6 +15,7 @@ const GuestCartSchema = z.object({
 
 export type GuestCartItem = z.infer<typeof GuestCartItemSchema>;
 export type GuestCart = z.infer<typeof GuestCartSchema>;
+export type GuestCartItemInput = Omit<GuestCartItem, "id" | "subtotal">;
 
 const EmptyGuestCart: GuestCart = {
   items: [],
@@ -76,37 +77,20 @@ function calculateCartTotals(items: GuestCartItem[]): {
   return { itemCount, subtotal };
 }
 
-export function addToGuestCart(
-  productId: string,
-  cartLabel: string,
-  productSlug: string,
-  productPrice: number,
-  productImage: ImageVariantDTO,
-  quantity: number,
-): GuestCart {
+export function addToGuestCart(input: GuestCartItemInput): GuestCart {
   const cart = getGuestCart();
 
-  // Check if item already exists
-  const existingItemIndex = cart.items.findIndex(
-    (item) => item.productId === productId,
+  const existingItem = cart.items.find(
+    (item) => item.productId === input.productId,
   );
 
-  if (existingItemIndex !== -1) {
-    // Update quantity of existing item
-    cart.items[existingItemIndex].quantity += quantity;
-    cart.items[existingItemIndex].subtotal =
-      cart.items[existingItemIndex].quantity *
-      cart.items[existingItemIndex].productPrice;
+  if (existingItem) {
+    existingItem.quantity += input.quantity;
+    existingItem.subtotal = existingItem.quantity * existingItem.productPrice;
   } else {
-    // Add new item
     cart.items.push({
-      productId,
-      cartLabel,
-      productSlug,
-      productPrice,
-      productImage,
-      quantity,
-      subtotal: productPrice * quantity,
+      ...input,
+      subtotal: input.productPrice * input.quantity,
     });
   }
 

@@ -6,6 +6,7 @@ import {
   getGuestCart,
   removeFromGuestCart,
   updateGuestCartItem,
+  type GuestCart,
 } from "@/lib/cart-storage";
 import { TBaseHandler, TBaseRequestParams } from "@/types/api";
 import {
@@ -20,6 +21,7 @@ import {
   ImageVariantDTO,
   RemoveFromCartResponse,
   RemoveFromCartResponseSchema,
+  SingleItemResponse,
   UpdateCartItemInput,
   UpdateCartItemResponse,
   UpdateCartItemResponseSchema,
@@ -45,28 +47,27 @@ function getIsAuthenticated(queryClient: ReturnType<typeof useQueryClient>) {
 
 type TGetCart = TBaseHandler<GetCartResponse>;
 
-const getGuestCartResponse = (): GetCartResponse => {
-  const guestCart = getGuestCart();
-
-  const cartDTO: CartDTO = {
-    id: "local-cart",
-    userId: "anonymous",
+const toGuestCartResponse = (
+  guestCart: GuestCart,
+): SingleItemResponse<CartDTO> => ({
+  success: true,
+  timestamp: new Date().toISOString(),
+  data: {
+    id: "guest-cart",
+    userId: "guest",
     items: guestCart.items.map((item, index) => ({
       ...item,
-      id: item.id || `local-${index}`,
+      id: item.id || `guest-item-${index}`,
     })),
     itemCount: guestCart.itemCount,
     subtotal: guestCart.subtotal,
     createdAt: new Date(),
     updatedAt: new Date(),
-  };
+  },
+});
 
-  return {
-    success: true,
-    timestamp: new Date().toISOString(),
-    data: cartDTO,
-  };
-};
+const getGuestCartFn = (): GetCartResponse =>
+  toGuestCartResponse(getGuestCart());
 
 const getServerCart: TGetCart = async ({ signal }) => {
   const api = getApi();
@@ -83,7 +84,7 @@ export const getCartQueryOptions = (isAuthenticated: boolean) =>
   queryOptions({
     queryKey: [...cartKeys.detail(), isAuthenticated] as const,
     queryFn: ({ signal }: TBaseRequestParams) =>
-      isAuthenticated ? getServerCart({ signal }) : getGuestCartResponse(),
+      isAuthenticated ? getServerCart({ signal }) : getGuestCartFn(),
   });
 
 export const useCart = () => {
@@ -102,42 +103,9 @@ type TAddToCartInput = AddToCartInput & {
   productImage: ImageVariantDTO;
 };
 
-const addToGuestCartFn = async ({
-  productId,
-  quantity,
-  cartLabel,
-  productSlug,
-  productPrice,
-  productImage,
-}: TAddToCartInput): Promise<AddToCartResponse> => {
-  const guestCart = addToGuestCart(
-    productId,
-    cartLabel,
-    productSlug,
-    productPrice,
-    productImage,
-    quantity,
-  );
-
-  const cartDTO: CartDTO = {
-    id: "local-cart",
-    userId: "anonymous",
-    items: guestCart.items.map((item, index) => ({
-      ...item,
-      id: item.id || `local-${index}`,
-    })),
-    itemCount: guestCart.itemCount,
-    subtotal: guestCart.subtotal,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  return {
-    success: true,
-    timestamp: new Date().toISOString(),
-    data: cartDTO,
-  };
-};
+const addToGuestCartFn = async (
+  input: TAddToCartInput,
+): Promise<AddToCartResponse> => toGuestCartResponse(addToGuestCart(input));
 
 const addToServerCart = async ({
   productId,
@@ -178,28 +146,8 @@ type TUpdateCartItemInput = {
 const updateGuestCartItemFn = async ({
   productId,
   quantity,
-}: TUpdateCartItemInput): Promise<UpdateCartItemResponse> => {
-  const guestCart = updateGuestCartItem(productId, quantity);
-
-  const cartDTO: CartDTO = {
-    id: "local-cart",
-    userId: "anonymous",
-    items: guestCart.items.map((item, index) => ({
-      ...item,
-      id: item.id || `local-${index}`,
-    })),
-    itemCount: guestCart.itemCount,
-    subtotal: guestCart.subtotal,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  return {
-    success: true,
-    timestamp: new Date().toISOString(),
-    data: cartDTO,
-  };
-};
+}: TUpdateCartItemInput): Promise<UpdateCartItemResponse> =>
+  toGuestCartResponse(updateGuestCartItem(productId, quantity));
 
 const updateServerCartItem = async ({
   cartItemId,
@@ -252,28 +200,8 @@ type TRemoveFromCartInput = {
 
 const removeFromGuestCartFn = async ({
   productId,
-}: TRemoveFromCartInput): Promise<RemoveFromCartResponse> => {
-  const guestCart = removeFromGuestCart(productId);
-
-  const cartDTO: CartDTO = {
-    id: "local-cart",
-    userId: "anonymous",
-    items: guestCart.items.map((item, index) => ({
-      ...item,
-      id: item.id || `local-${index}`,
-    })),
-    itemCount: guestCart.itemCount,
-    subtotal: guestCart.subtotal,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  return {
-    success: true,
-    timestamp: new Date().toISOString(),
-    data: cartDTO,
-  };
-};
+}: TRemoveFromCartInput): Promise<RemoveFromCartResponse> =>
+  toGuestCartResponse(removeFromGuestCart(productId));
 
 const removeFromServerCart = async ({
   cartItemId,
