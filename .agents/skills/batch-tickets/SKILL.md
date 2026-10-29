@@ -6,10 +6,12 @@ description: Work a queue of GitHub tickets end to end, one at a time — branch
 # Batch tickets
 
 Ship a queue of GitHub issues unattended. **Strictly sequential**: one ticket fully lands on `main`
-before the next one branches, so no two agents ever touch the working tree at once and merge
-conflicts are impossible.
+before the next one branches. Only one implementer uses the working tree at a time; concurrent
+remote changes can still require conflict resolution.
 
 ## Before you start
+
+Read [the issue-tracker guide](../../../docs/agents/issue-tracker.md) for ticket operations and branching, and [the verification guide](../../../docs/agents/verification.md) for local checks and CI gates.
 
 1. **Confirm the queue.** Resolve `$ARGUMENTS` into a concrete list and print it for the user:
    - a label (`ready-for-agent`) → `gh issue list --state open --label <label> --json number,title`
@@ -20,8 +22,7 @@ conflicts are impossible.
      print it and proceed.
 2. **Check the tree is clean and `main` is current**: `git switch main && git pull`. Abort the whole
    batch if the tree is dirty; that is the user's uncommitted work.
-3. **Announce the gate**: `.github/workflows/ci.yml` runs the same checks on every PR, and the
-   local run below is the pre-merge gate that mirrors it.
+3. **Announce the gate**: identify the applicable local checks and required CI jobs from the verification guide. Local checks do not replace the image and E2E CI jobs.
 
 ## Per-ticket loop
 
@@ -29,8 +30,7 @@ For each issue number `N`, in order:
 
 ### 1. Read
 
-`gh issue view N --comments`. Extract the ask, the acceptance criteria, and any decisions made in
-comments. Pick the conventional-commit `<type>` matching the bulk of the change.
+Read the issue body and comments using the issue-tracker guide. Extract the ask, acceptance criteria, and decisions from both; `gh issue view N --comments` alone may omit the body off a TTY. Pick the conventional-commit `<type>` matching the bulk of the change.
 
 ### 2. Branch
 
@@ -43,24 +43,16 @@ git switch -c <type>/N-<slug>
 
 ### 3. Delegate
 
-Spawn **one** subagent (`general-purpose`, `run_in_background: false` — the batch is sequential and
-nothing else can proceed until it returns). Give it:
+Spawn **one** implementation subagent and wait for it to return before advancing the queue. Give it:
 
 - the full issue body and relevant comments, pasted in — it cannot see this conversation
 - the branch it is already on, and that it must **not** commit, push, merge, or switch branches
-- the repo conventions it must follow (point it at `AGENTS.md`)
+- `AGENTS.md` and the applicable task-guide paths, with an instruction to read them before editing
 - an instruction to report what it changed and anything it deliberately left out
 
 ### 4. Verify
 
-```bash
-pnpm build && pnpm lint && pnpm test && pnpm type-check && pnpm format:check
-```
-
-All five must pass. `pnpm type-check` runs `tsc` in every workspace; `pnpm build` also
-type-checks the packages it compiles. `pnpm format:check` verifies formatting without rewriting —
-use it rather than `pnpm format`, which is the fixer and would hide a formatting miss by silently
-correcting it.
+Run the checks selected from [the verification guide](../../../docs/agents/verification.md). Record commands and results. After opening the PR, wait for its required CI checks with `gh pr checks <pr> --watch` before merging; all required checks must pass for the current PR revision.
 
 **On failure**: make one focused attempt to fix it yourself. If it still fails, this ticket is a
 **miss** — go to _Handling a miss_ below and move on to the next ticket. Never merge red.
@@ -71,14 +63,14 @@ correcting it.
 git add <the paths the subagent reported>   # never `git add -A` — unrelated untracked files exist
 git commit   # conventional-commit subject; body ends with "Closes #N"
 git push -u origin <branch>
-gh pr create --base main --title "<type>: <subject>" --body "...Closes #N"
+gh pr create --base main --title "<type>: <subject>" --body-file <prepared-body-file>
+gh pr checks <pr> --watch
 gh pr merge <pr> --squash --delete-branch
 git switch main && git pull && git branch -d <branch>
 git fetch --prune   # gh deletes the remote branch; this clears the stale tracking ref
 ```
 
-Commit messages end with the `Co-Authored-By` trailer from the session's attribution rules; PR bodies
-end with the generated-with line.
+Read and apply [pr](../pr/SKILL.md) when preparing the PR body. Follow attribution rules only when supplied by the session or repository.
 
 ### 6. Record
 
@@ -88,7 +80,7 @@ Append one row to the running report: ticket, title, outcome, PR link, one-line 
 
 Do not stop the batch. For the failed ticket:
 
-- leave the branch pushed and the PR open (create it if you had not yet), titled with a `[WIP]` prefix
+- commit and push the ticket's files to preserve the failed attempt, then leave a draft PR open (create it if needed), titled with a `[WIP]` prefix
 - `gh issue comment N` with what failed and the verification output
 - `git switch main && git pull` so the next ticket starts clean
 - record it as **failed** with the reason, and continue
