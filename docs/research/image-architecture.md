@@ -1,6 +1,11 @@
 # Image Architecture Research — audiophile-ecommerce-v5
 
-> Dated record. Its `todos.js:NN` citations point at a scratch file deleted in #167; the backlog now lives in GitHub Issues and the README roadmap.
+> Historical research from the 2026-09 migration. Descriptions of “current” behavior, prices,
+> versions and proposed commands below describe that investigation, not today’s operating rules.
+> For image work use the [media guide](../../packages/media/README.md); for production data use
+> [seeding vs syncing](../../packages/database/README.md#seeding-vs-syncing); for hosting use the
+> [deployment runbook](../deployment.md). The old production-reseed proposal is superseded.
+> `todos.js:NN` citations refer to a scratch file deleted in #167; the backlog lives in GitHub Issues.
 
 ## Context
 
@@ -419,10 +424,11 @@ on gallery; `img { height: auto }`.
 `MEDIA_BASE_URL`; optional GitHub Action that runs `media:sync` on `main` when
 `packages/media/assets/**` changes.
 
-**Phase 5 — Production data.** Production users and orders are confirmed disposable, so cut-over
-is a plain `pnpm db:seed` against Atlas after `media:sync` has published the bucket (bucket first,
-so no request window ever serves keys that do not resolve). No in-place migration script is
-needed; the seed is the migration.
+**Phase 5 — Production data (superseded).** The original proposal assumed disposable production
+data and proposed a destructive reseed. That assumption is no longer an operating permission.
+Current publication preserves users, carts and orders with catalogue sync; follow
+[seeding vs syncing](../../packages/database/README.md#seeding-vs-syncing). Publish image bytes
+before records that reference their keys.
 
 **Phase 6 — Verify and cut over.** `media:check --remote` clean; a route test asserts no
 `ibb.co` in any DTO; Lighthouse before/after on home and product; watch Render bandwidth.

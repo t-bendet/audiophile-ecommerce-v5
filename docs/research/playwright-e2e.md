@@ -1,5 +1,11 @@
 # Playwright end-to-end testing for Audiophile — research note
 
+> Historical proposal for the first E2E implementation. The executable examples below are
+> superseded: current tests use dedicated ports, never reuse dev servers, and seed before schema
+> push. Use the [E2E guide](../../apps/e2e/README.md),
+> [current config](../../apps/e2e/playwright.config.ts) and
+> [CI workflow](../../.github/workflows/ci.yml) for authoring, running or changing the suite.
+
 Written 2026-10-12 as the input for the first E2E ticket. It answers three questions: where
 Playwright should live in this monorepo and how to set it up, which of Playwright's documented
 best practices actually bind here, and how Claude Code (or any coding agent) should author and
@@ -246,11 +252,9 @@ two things it exercises.
    Root `package.json` gets `"test:e2e": "pnpm db:up && turbo run e2e"`, mirroring `test:db`. The
    seed into the e2e database is a separate, explicit command because it is destructive:
 
-   ```bash
-   DATABASE_URL='mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true' pnpm db:push
-   DATABASE_URL='mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true' pnpm db:seed
-   pnpm test:e2e
-   ```
+   The original proposal pushed the schema before seeding. That sequence was corrected during
+   implementation because seeding drops indexes: the maintained root `pnpm test:e2e` command
+   now seeds first and pushes second. Use that command rather than this historical setup plan.
 
    Whether to fold the seed into a Playwright setup project (so `pnpm test:e2e` is one command) is
    open question 2.
@@ -287,7 +291,8 @@ two things it exercises.
        - run: pnpm db:up
        - run: pnpm db:generate
        - run: pnpm build
-       - run: pnpm db:push && pnpm db:seed
+       # Corrected from the original proposal: seed drops indexes; push rebuilds them.
+       - run: pnpm db:seed && pnpm db:push
        - run: pnpm --filter e2e exec playwright install chromium --with-deps
        - run: pnpm --filter e2e run e2e
        - uses: actions/upload-artifact@v4

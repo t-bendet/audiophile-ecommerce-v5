@@ -6,7 +6,7 @@ proxy, the auth cookie, cart sync after login, the routes the router actually mo
 thing in the repo that tests the artifacts that ship rather than a dev server.
 
 Nothing here imports from the monorepo. The workspace has no `test` script either, so `pnpm test`
-stays the fast, database-free unit run it has always been.
+keeps running Vitest without Docker or browser servers; server tests boot an in-memory database.
 
 ## Running it
 
@@ -126,7 +126,7 @@ node apps/e2e/node_modules/@playwright/test/cli.js init-skills --loop claude
 ```
 
 Run them from the repo root. From here they write a second `.claude/agents/` and `.mcp.json` under
-`apps/e2e/`, which Claude Code never reads. Then re-apply, because the regeneration drops all five:
+`apps/e2e/`, which Claude Code never reads. Then re-apply the repository customizations:
 
 1. **`model: inherit`** in the healer, and only the healer. The initialiser writes `model: sonnet`
    for all three and that is right for two of them: the planner and the generator work breadth-first
@@ -144,6 +144,13 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
    symlink it back with `ln -s ../../.agents/skills/playwright-trace .claude/skills/playwright-trace`,
    rewrite `npx playwright trace` to `pnpm --filter e2e exec playwright trace`, and delete the
    `playwright-cli` and `playwright-component-testing` skills installed alongside it.
+6. **The repository rules in all three agents.** Restore the entry instruction to read
+   `AGENTS.md` and this guide. The generator follows the fixture, state, locator and comment
+   conventions; it does not add comments for every step. The planner separates missing product
+   features from implemented flows. The healer preserves valid assertions when the product is
+   broken and reports the reproduction and expected behavior; skipping, marking `fixme`, or
+   weakening a test is not a substitute for resolving that failure. Application fixes stay
+   within the assigned scope.
 
 ## What it covers
 

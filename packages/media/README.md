@@ -3,7 +3,7 @@
 The catalogue's image originals and the tools that move them. Every product and
 category image is owned by this package and served from
 `https://audiophile-media.t-bendet.com/<key>` — a Cloudflare R2 bucket behind a
-custom domain (see `docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md`).
+custom domain (see [ADR 0005](../../docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md)).
 
 ## Key convention
 
@@ -69,9 +69,20 @@ edited after upload and the repo copy would revert it.
 objects whose ETag already matches. Its credentials belong to the developer
 running it, never to the deployed server; see `.env.example`.
 
-## Console steps (account owner)
+## Publication
+
+After changing catalogue images, run `media:check --write` and review the manifest diff, then
+upload with `pnpm --filter @repo/media media:sync`. Publish image bytes before catalogue records
+that reference new keys. Catalogue changes use `pnpm db:sync`, following the database guide's
+[seeding vs syncing](../database/README.md#seeding-vs-syncing) instructions; `db:seed` is local-only.
+Normal deployments run catalogue sync through CI, as described in the
+[deployment runbook](../../docs/deployment.md).
+
+Use `--prune` only when removing the obsolete bucket keys is intended. It deletes remote objects
+that are absent from this package, including any keys an older deployment may still reference.
+
+## Initial bucket setup
 
 Create the R2 bucket, attach `audiophile-media.t-bendet.com` to it, and mint an
-Object Read & Write API token scoped to that bucket. Then, once this is merged:
-`pnpm --filter @repo/media media:sync`, followed by `pnpm db:seed` against
-Atlas.
+Object Read & Write API token scoped to that bucket. Put the upload credentials in this package's
+`.env`, using [`.env.example`](.env.example), then follow the publication steps above.

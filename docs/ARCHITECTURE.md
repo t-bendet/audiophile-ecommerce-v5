@@ -1,191 +1,97 @@
-# Architecture Overview — Audiophile E-Commerce v5
+# Architecture
 
-## Monorepo Structure (Turborepo + pnpm)
+Audiophile is a single-brand storefront. Use the [glossary](../GLOSSARY.md) for domain terms and
+[ADRs](adr/) for the reasons behind durable design choices. This page maps the system;
+implementation conventions live in the guides linked below.
 
-Three workspaces with enforced build ordering, plus a leaf package nothing imports:
+## Workspaces and dependencies
 
-```
+```text
 packages/database → packages/domain → apps/server
                                     → apps/client
 
-packages/media                                  (catalogue image originals + R2 scripts)
+apps/e2e        drives the built apps over HTTP; imports no application packages
+packages/media catalogue originals and publication tools; no runtime consumers
 ```
 
-**Why Turborepo over Nx/bare pnpm?** Turborepo is lightweight and opinionated — `dependsOn: ["^build"]` handles build order automatically. Remote caching is built-in. Nx adds more complexity (plugins, project graph config) that isn't needed here.
+Turborepo orders builds through the workspace dependency graph. pnpm provides workspace linking;
+the shared ESLint and TypeScript packages hold tooling configuration. The package manifests and
+[`turbo.json`](../turbo.json) are authoritative for dependencies and task ordering.
 
-**Why pnpm over npm/yarn?** Strict `node_modules` hoisting rules prevent phantom dependencies (accessing packages you didn't declare). Much faster installs via hard-linking.
+## Request and data boundaries
 
----
+The Express API owns authentication, validation, persistence and DTO mapping. Input routes bind
+a request schema to a controller with `defineHandler`, which supplies validation and async error
+handling together. Controllers consume `req.verified`; services encapsulate domain behavior and
+Prisma access where that abstraction is useful. Simple pass-through CRUD can go directly from a
+controller to Prisma. Errors reach one centralized response/logging boundary.
 
-## Backend: Express + TypeScript
+[`apps/server/README.md`](../apps/server/README.md) defines the request lifecycle, service
+contracts, error handling and route-test seam. Shared request schemas, DTOs and semantic error
+codes live in `packages/domain`; the public exports are in its `src/index.ts`.
 
-**Layered architecture:**
+MongoDB stores document-shaped catalogue data, including embedded image variants. Image variants
+hold **keys and dimensions**, not public URLs. The API resolves each key against `MEDIA_BASE_URL`
+when constructing DTOs. The [media guide](../packages/media/README.md) owns key conventions and
+publication; the [database guide](../packages/database/README.md) owns schemas, client generation,
+local databases and catalogue sync.
 
-```
-Route → validateSchema middleware → Controller → Service → Prisma
-```
+Prisma's nested writes require MongoDB transactions, so local development uses a Docker replica
+set. Atlas is the production database. The repo authors the catalogue; catalogue sync updates it
+without deleting shoppers' users, carts or orders. Destructive seeding is for local databases.
 
-### Key Patterns
+## Client and browser state
 
-**1. `AbstractCrudService<Entity, CreateInput, UpdateInput, DTO>`**
-Base class handles pagination meta; concrete subclasses implement six abstract methods — `toDTO` plus five `persist*` methods. Query building (where/select/orderBy) stays inside the concrete service, not abstracted further. This avoids the common pitfall where over-abstracted ORMs become unmaintainable.
+The React client uses React Router loaders and lazy route modules with TanStack Query for server
+state. Query-option factories let loaders and components share cache keys and fetch functions.
+Requests use the lazy Axios client with credentials enabled. Axios rejects raw errors; query and
+UI layers classify them and choose retry, inline, toast or boundary behavior.
 
-**2. `catchAsync` wrapper**
-Instead of try/catch in every handler, all async controllers are wrapped once. Errors propagate to a centralized error middleware.
+[`apps/client/README.md`](../apps/client/README.md) defines those conventions and the current error
+flow. The router is `apps/client/src/app/router.tsx`. Authentication checks live in loaders; the
+navigation middleware measures development performance.
 
-**3. `req.verified` contract**
-Validated input is written here by `validateSchema(ZodSchema)` middleware before the controller even runs. Controllers never touch raw `req.body` or `req.params`. Zod schemas use `.strict()` to reject unknown fields. `req.verified` is narrowed to the schema's inferred type, so renaming a schema field breaks the controller at compile time.
+A guest cart lives in the browser. Signing in syncs it with the user's server cart. Orders retain
+prices from checkout, rather than recalculating old purchases at the catalogue's current price.
+The glossary distinguishes cart sync from catalogue sync and media sync.
 
-**3a. `defineHandler(schema, fn)`**
-The schema and the handler that reads it are declared together: `defineHandler` returns the `[validateSchema(schema), catchAsync(fn)]` pair, the controller exports it, and the route spreads it (`router.post("/", ...controller.createX)`). The schema is named once, route files import none, and a handler cannot be mounted against a schema other than the one it was written for — the drift is unrepresentable rather than merely detectable. `catchAsync` alone remains for the handful of handlers whose routes mount no schema.
+## Authentication and protection
 
-**4. Semantic `ErrorCode` enum (in `@repo/domain`)**
-Shared between client and server. One source of truth maps `ErrorCode → HTTP status`. Both sides speak the same error vocabulary.
+The server accepts JWTs from an HTTP-only cookie or the Authorization header. Protected requests
+validate the token and reject tokens issued before a user's password change. Authorization and
+ownership checks control access to protected operations and records.
 
-**5. JWT auth with `passwordChangedAt` invalidation**
-Tokens issued before a password change are rejected even if not expired — without needing a token blacklist.
+Request schemas reject unknown fields, persistence rules protect writes, and DTOs control the
+read shape. Helmet, request size limits and rate limiters are configured in the server; inspect
+[`app.ts`](../apps/server/src/app.ts) and its imported middleware for current limits. Rate-limit
+failures use the same error envelope as other API failures. Test environments disable the
+limiters, with their behavior covered separately by the route suite.
 
----
+## Verification boundaries
 
-## Database: MongoDB (Prisma)
+- Server route tests drive the real Express app and an isolated MongoDB replica set. They cover
+  validation, auth, persistence and response behavior.
+- Client tests cover browser-side behavior without deploying the system.
+- [E2E tests](../apps/e2e/README.md) drive the built client and server through HTTP with their own
+  ports and seeded database. Fixtures keep test state independent of application internals.
+- Media checks compare catalogue references, the assets tree and the committed manifest.
 
-### Why MongoDB over PostgreSQL/MySQL?
+The [verification guide](agents/verification.md) maps changes to checks and CI coverage.
 
-| Factor             | MongoDB                                                                                             | SQL                                               |
-| ------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Schema flexibility | Embedded documents (e.g. `ProductImages` stored inline) avoid join overhead                         | Requires separate `product_images` table + joins  |
-| Data shape         | Products have nested, varied structures (image sets per breakpoint) that map naturally to documents | Would need normalization or JSON columns          |
-| Tradeoff           | No true foreign key constraints; multi-document transactions need a replica set                     | ACID transactions, enforced referential integrity |
+## Hosting
 
-**Concrete example:** `ProductImages` is a Prisma `type` (embedded document) — responsive image URLs for desktop/tablet/mobile live inside the product document. In SQL you'd need a separate table and joins on every product query.
-
-### One Local Replica Set
-
-Prisma wraps nested writes in transactions, and MongoDB only allows those on a replica set, so even a single local node has to be one. `docker-compose.yml` runs it: MongoDB 8.2 on `localhost:27017`, initiated by its own healthcheck, with `audiophile` for dev and `audiophile-test` for the opt-in test path (`TEST_DATABASE_URL`). Route tests default to an in-memory replica set on the same pinned version, so CI and a fresh clone need no Docker. Atlas is production only. Why the pin is 8.2 rather than Atlas's 8.0 is in `docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md`.
-
-### Multi-file Prisma Schema
-
-Schema split by model (`user`, `product`, `category`, `cart`, `order`, `config`, plus `image` for the embedded image types) instead of one monolithic file. Easier to navigate on a team.
-
-### ESM-native Client Generation
-
-`pnpm db:generate` is plain `prisma generate` — there is no post-processing step. The `prisma-client` generator is configured with `runtime = "nodejs"`, `moduleFormat = "esm"` and `importFileExtension = "js"`, so the generated imports carry the explicit `.js` extensions Node.js ESM requires.
-
----
-
-## Domain Package (`@repo/domain`)
-
-Shared between server and client:
-
-- **Zod schemas** — for request validation (server) and form validation (client). Same schema, no duplication.
-- **DTOs** — what the API actually returns (sensitive fields like passwords never leak out).
-- **`ErrorCode` enum** — client can type-check error codes from API responses.
-
-**Why a shared domain package?** Single source of truth. If you change `ProductUpdateInput`, TypeScript will catch mismatches on both the route handler and whatever calls it.
-
----
-
-## Frontend: React Router v8 + TanStack Query + Axios
-
-### React Router v8 (framework/data mode)
-
-- All routes are **lazy-loaded** — no bundle bloat on initial load.
-- `clientLoader(queryClient)` pattern — route loaders prefetch data into the TanStack Query cache before the component renders. No loading spinners on navigation.
-- Middleware chain for cross-cutting concerns without HOC wrapper hell — one middleware today, `app/middleware/performance.ts`, timing a navigation in DEV. Auth is not middleware: it lives in route loaders.
-
-### TanStack Query
-
-- `throwOnError: true` everywhere → errors go to `ErrorBoundary`, not scattered throughout component state.
-- Smart retry: 4xx → never retry (client error), 5xx/network → retry 2x with exponential backoff.
-- `staleTime: 1 minute` — prevents redundant refetches on tab focus.
-
-**Why TanStack Query over Redux/Zustand for server state?** Redux is for client-side state. TanStack Query handles the actual hard problems of server state: caching, deduplication, background refresh, optimistic updates. Mixing server state into Redux creates boilerplate without benefit.
-
-### Axios over fetch
-
-Interceptors for centralized error classification. Automatic JSON parsing. `withCredentials: true` for cookie-based auth without per-request config.
-
----
-
-## Auth Flow
-
-```
-Login → JWT issued → stored in httpOnly cookie OR Authorization header
-         ↓
-Protected route → auth middleware extracts token
-               → validates signature + expiry
-               → checks passwordChangedAt
-               → attaches user to req.user
-```
-
-`authorize("ADMIN")` middleware is applied as a barrier at the router level — not inside individual handlers — so you can't accidentally forget it on a new route.
-
----
-
-## Security Layers (OWASP-aware)
-
-| Layer                   | What it does                                            |
-| ----------------------- | ------------------------------------------------------- |
-| Helmet                  | Security headers (XSS, clickjacking, MIME sniffing)     |
-| Same-origin API         | App and API share a hostname, so no cross-origin cookie |
-| Rate limiting (global)  | 500 req / 15 min per IP on `/api`                       |
-| Rate limiting (route)   | login 10/15min, signup 5/hr, order create 20/hr         |
-| Body size limit         | 10kb cap — prevents request flooding                    |
-| Zod `.strict()`         | Rejects extra fields (mass assignment prevention)       |
-| DTO mapping             | Sensitive fields never leave the service layer          |
-| JWT `passwordChangedAt` | Revokes old tokens without a blacklist                  |
-
-Rate-limit rejections are not special-cased: the limiter hands an
-`AppError(TOO_MANY_REQUESTS)` to `next()`, so a 429 comes back in the same
-`ErrorResponse` envelope as every other failure, alongside the `RateLimit-*`
-and `Retry-After` headers. Successful logins are refunded, so only failed
-attempts burn the login quota.
-
----
-
-## Deployment: one Cloudflare Worker
-
-```
+```text
 audiophile.t-bendet.com
-  ├── /api/*  → Worker (apps/server/worker/index.ts) → Cloudflare Container (Express, basic) → Atlas
-  └── /*      → Workers Static Assets (apps/client/dist, SPA fallback)
+  /api/* → Worker → Cloudflare Container (Express) → Atlas
+  /*     → Workers Static Assets (Vite build, SPA fallback)
 
-audiophile-media.t-bendet.com → R2 bucket (packages/media publishes it)
+audiophile-media.t-bendet.com → R2 bucket
 ```
 
-`run_worker_first` in `apps/server/wrangler.jsonc` is what keeps the two apart: an API path reaches
-the Worker before any asset lookup, so an unknown `/api` route returns the server's JSON 404 rather
-than the SPA shell, and every other path is an asset. One hostname is also what makes the auth
-cookie same-origin, which is why the server carries neither CORS middleware nor a `sameSite: "none"`
-branch. Why Cloudflare, why a container rather than plain Workers, and why the hostnames are
-first-level subdomains is in `docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md`.
+API paths reach the Worker before asset lookup, so an unknown API route returns JSON rather than
+the app shell. Sharing the application hostname keeps authentication cookies same-origin.
+Catalogue media is separate from UI chrome, which stays bundled with the client.
 
-The server reads its environment from the Worker, never from a deployed file: `NODE_ENV`,
-`JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN` and `MEDIA_BASE_URL` are `vars` in `wrangler.jsonc`,
-`DATABASE_URL` and `JWT_SECRET` are Worker secrets, and `ApiContainer` passes all six into the
-container, whose `PORT` comes from the Dockerfile. The client's only build-time variable, `VITE_APP_API_URL`, is the
-same-origin `/api/v1` committed in `apps/client/.env.production`.
-
-A push to `main` deploys. The `deploy` job in `.github/workflows/ci.yml` needs `verify` and `image`,
-then runs `pnpm deploy:app`: Turbo builds both apps and `wrangler deploy` sends the container image,
-the Worker and the assets up together, authenticated by the `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` repository secrets. There are no pull-request previews — Cloudflare does not
-issue them for a Worker with Durable Objects, which the container binding is — so a branch is checked
-with `wrangler dev`, which runs the assets and the container locally.
-
----
-
-## Interview Talking Points
-
-**"Why not just use NestJS?"**
-NestJS adds heavy DI/decorator abstraction. This project achieves the same layered architecture with plain TypeScript classes and is easier to reason about.
-
-**"Why Zod over class-validator?"**
-Zod is schema-first, works without decorators, and infers TypeScript types from schemas (DRY). `class-validator` requires duplicating the type definition as a class.
-
-**"Why MongoDB for an e-commerce app?"**
-Product catalog data is document-shaped (nested images, included items, category references). Orders and carts are denormalized snapshots by design. Joins aren't needed. Trade-off: no referential integrity enforcement at the DB level — that's handled by Prisma type safety.
-
-**"What would you change?"**
-
-- Consider a Redis cache layer for product catalog reads.
+The [deployment runbook](deployment.md) owns environments, CI gates, manual deployment, local
+container checks and recovery. [ADR 0005](adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md)
+records why this repository uses Cloudflare Containers with Atlas.
