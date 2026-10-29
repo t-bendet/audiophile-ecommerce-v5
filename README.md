@@ -217,18 +217,18 @@ Route → Middleware (validation) → Controller → Service → Prisma
 **Example Flow**:
 
 ```typescript
-// Route definition
-router.post('/products',
-  validateSchema(productCreateSchema),  // Validation middleware
-  authMiddleware,                        // Auth middleware
-  catchAsync(productController.create)   // Error wrapper
+// Controller: the schema and the handler are declared together
+export const createProduct = defineHandler(
+  ProductCreateRequestSchema, // validateSchema(...) + catchAsync(...)
+  async (req, res) => {
+    const product = await productService.create(req.verified.body);
+    res.status(201).json({ data: product });
+  },
 );
 
-// Controller (thin layer)
-async create(req, res) {
-  const product = await productService.create(req.verified.body);
-  res.status(201).json({ data: product });
-}
+// Route: spreads the [validate, handle] pair; never imports a schema
+productRouter.use(authenticate, authorize("ADMIN"));
+productRouter.post("/", ...productController.createProduct);
 
 // Service (business logic)
 async create(input: ProductCreateInput) {
@@ -747,40 +747,16 @@ pnpm install
 
 3. **Set up environment variables**:
 
-Create `.env` files in the following locations:
+Each workspace that needs one has a committed `.env.example` beside it; copy it to `.env` and fill in the blanks:
 
-**`packages/database/.env`**:
-
-```env
-DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
+```bash
+cp packages/database/.env.example packages/database/.env
+cp apps/server/.env.example apps/server/.env
+cp apps/client/.env.example apps/client/.env
+cp packages/media/.env.example packages/media/.env   # only to publish images to R2
 ```
 
-**`apps/server/.env`**:
-
-```env
-DATABASE_URL=mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true
-NODE_ENV=development
-JWT_SECRET=your-secret-key-at-least-32-characters-long
-JWT_EXPIRES_IN=7d
-JWT_COOKIE_EXPIRES_IN=7
-PORT=8000
-```
-
-**`apps/client/.env`**:
-
-```env
-VITE_APP_API_URL=/api/v1
-VITE_APP_API_PROXY_TARGET=http://localhost:8000
-```
-
-**`packages/media/.env`** (only to publish images to R2 with `pnpm --filter @repo/media media:sync`):
-
-```env
-R2_ACCOUNT_ID=
-R2_ACCESS_KEY_ID=
-R2_SECRET_ACCESS_KEY=
-R2_BUCKET=audiophile-media
-```
+The examples explain every variable. The database and server files already point at the Docker replica set; the server one needs a `JWT_SECRET` of at least 32 characters.
 
 > **🔒 Security Note**: Never commit `.env` files to version control; the one committed file, `apps/client/.env.production`, holds only the public API URL. Use strong, unique secrets in production.
 
@@ -842,36 +818,15 @@ pnpm prod:server  # Start production server
 apps/server/src/
 ├── app.ts                 # Express app configuration
 ├── index.ts               # Server entry point
-├── controllers/           # HTTP request handlers (thin layer)
-│   ├── auth.controller.ts
-│   ├── product.controller.ts
-│   ├── cart.controller.ts
-│   └── order.controller.ts
-├── services/              # Business logic layer
-│   ├── abstract-crud.service.ts  # Base CRUD service
-│   ├── user.service.ts
-│   ├── product.service.ts
-│   ├── cart.service.ts
-│   └── order.service.ts
-├── routes/                # Route definitions
-│   ├── index.ts           # Root router
-│   ├── auth.routes.ts
-│   ├── product.routes.ts
-│   └── cart.routes.ts
-├── middlewares/           # Express middleware
-│   ├── auth.middleware.ts       # JWT verification
-│   ├── validation.middleware.ts # Zod validation
-│   └── error.middleware.ts      # Global error handler
-└── utils/                 # Utility functions
-    ├── catchAsync.ts      # Async error wrapper
-    ├── appError.ts        # Custom error class
-    └── env.ts             # Environment variables
-
-docs/
-├── SERVICE_LAYER_EXAMPLE.md   # Service layer patterns
-├── VALIDATION_STRATEGY.md     # Validation approach
-└── ERROR_FLOW.md              # Error handling guide
+├── controllers/           # One per resource: auth, cart, category, config, order, product, user
+├── services/              # abstract-crud.service.ts plus one service per resource
+├── routes/                # index.ts mounts one *.route.ts per resource, plus health
+├── middlewares/           # auth, validation (Zod), error (global handler)
+├── types/                 # Express augmentation, req.verified typing
+└── utils/                 # defineHandler, catchAsync, env, logger, media, query, rateLimiters
 ```
+
+`AppError` lives in `@repo/domain`, shared with the client.
 
 ### Frontend Architecture
 
@@ -951,9 +906,7 @@ packages/
 │   └── index.js           # Shared ESLint config
 │
 └── config-typescript/
-    ├── base.json          # Base tsconfig
-    ├── nextjs.json        # Next.js config
-    └── react-library.json # React library config
+    └── base.json          # Base tsconfig every workspace extends
 ```
 
 ---
@@ -1096,15 +1049,16 @@ pnpm --filter server exec wrangler dev  # serve the last build and the container
 
 A deploy by hand needs a Cloudflare login (`wrangler login`) or `CLOUDFLARE_API_TOKEN` in the environment, and `wrangler dev` needs Docker running for the container.
 
-The server's environment is split between the Worker's `vars` and its secrets; no `.env` file is deployed. `apps/server/wrangler.jsonc` holds the three non-secret values, and the Worker passes all five into the container:
+The server's environment is split between the Worker's `vars` and its secrets; no `.env` file is deployed. `apps/server/wrangler.jsonc` holds the four non-secret values, and the Worker passes all six into the container:
 
-| Variable                | Where it lives                     | Value in production               |
-| ----------------------- | ---------------------------------- | --------------------------------- |
-| `NODE_ENV`              | `vars` in `wrangler.jsonc`         | `production`                      |
-| `JWT_EXPIRES_IN`        | `vars` in `wrangler.jsonc`         | `7d`                              |
-| `JWT_COOKIE_EXPIRES_IN` | `vars` in `wrangler.jsonc`         | `7`                               |
-| `DATABASE_URL`          | `wrangler secret put DATABASE_URL` | the Atlas `mongodb+srv://` string |
-| `JWT_SECRET`            | `wrangler secret put JWT_SECRET`   | at least 32 characters            |
+| Variable                | Where it lives                     | Value in production                     |
+| ----------------------- | ---------------------------------- | --------------------------------------- |
+| `NODE_ENV`              | `vars` in `wrangler.jsonc`         | `production`                            |
+| `JWT_EXPIRES_IN`        | `vars` in `wrangler.jsonc`         | `7d`                                    |
+| `JWT_COOKIE_EXPIRES_IN` | `vars` in `wrangler.jsonc`         | `7`                                     |
+| `MEDIA_BASE_URL`        | `vars` in `wrangler.jsonc`         | `https://audiophile-media.t-bendet.com` |
+| `DATABASE_URL`          | `wrangler secret put DATABASE_URL` | the Atlas `mongodb+srv://` string       |
+| `JWT_SECRET`            | `wrangler secret put JWT_SECRET`   | at least 32 characters                  |
 
 `PORT` is not passed: the Dockerfile sets it to `8000`, which is the `defaultPort` the Worker's container class reaches. The client's one build-time variable, `VITE_APP_API_URL`, is committed in `apps/client/.env.production` as the same-origin `/api/v1`. The media package's R2 credentials belong to the developer running `pnpm --filter @repo/media media:sync`, never to the deployment; they live in `packages/media/.env` (see its `.env.example`).
 
@@ -1112,14 +1066,15 @@ The server's environment is split between the Worker's `vars` and its secrets; n
 
 ### Continuous Deployment
 
-A push to `main` deploys; `pnpm deploy:app` from a laptop is the fallback, not the route. The `deploy` job in `.github/workflows/ci.yml` waits for the `verify` and `image` jobs, so a red build never ships, and then runs `pnpm deploy:app` on the runner: Turbo builds the client and the server, and `wrangler deploy` builds the container image with the runner's Docker and sends the image, the Worker and the assets up together. Pull requests still build the Dockerfile without pushing it, and never deploy.
+A push to `main` deploys; `pnpm deploy:app` from a laptop is the fallback, not the route. The `deploy` job in `.github/workflows/ci.yml` waits for the `verify` and `image` jobs, so a red build never ships, and then runs `pnpm deploy:app` on the runner: Turbo builds the client and the server, and `wrangler deploy` builds the container image with the runner's Docker and sends the image, the Worker and the assets up together. Pull requests still build the Dockerfile without pushing it, and never deploy. A `sync-catalogue` job then runs `pnpm db:sync` against Atlas, so a catalogue or schema-shape change ships without a manual reseed; see "Seeding vs syncing" in [`packages/database/README.md`](packages/database/README.md).
 
-It needs two repository secrets:
+It needs three repository secrets:
 
 | Secret                  | Value                                                                                                                                                                                                              |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `CLOUDFLARE_API_TOKEN`  | An API token from the **Edit Cloudflare Workers** template, scoped to the account. The template covers it as it stands: Workers Containers for the rollout, and the R2 permission the managed image registry uses. |
 | `CLOUDFLARE_ACCOUNT_ID` | The account ID from the Cloudflare dashboard.                                                                                                                                                                      |
+| `DATABASE_URL`          | The Atlas connection string, for the `sync-catalogue` job. Without it the job logs a warning and skips, and the catalogue stays a manual step.                                                                     |
 
 Workers Builds can do this too — Cloudflare runs Dockerfile builds in its own build environment — and was rejected: its configuration lives in the dashboard rather than the repository, and the build it starts does not wait for CI, so a push with failing tests would deploy. The reasoning is in [ADR 0005](docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md).
 
@@ -1129,7 +1084,7 @@ Workers Builds can do this too — Cloudflare runs Dockerfile builds in its own 
 
 2. **Cloudflare account**
    - A Workers Paid plan, which is what Containers require, and `wrangler login` locally
-   - Set the Worker's secrets from `apps/server`: `wrangler secret put DATABASE_URL` and `wrangler secret put JWT_SECRET`. The non-secret values (`NODE_ENV`, `JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN`) are already in `wrangler.jsonc`
+   - Set the Worker's secrets from `apps/server`: `wrangler secret put DATABASE_URL` and `wrangler secret put JWT_SECRET`. The non-secret values (`NODE_ENV`, `JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN`, `MEDIA_BASE_URL`) are already in `wrangler.jsonc`; point `MEDIA_BASE_URL` at your own bucket's hostname
    - `pnpm deploy:app` builds the client and the container image and deploys both behind one Worker
    - Add a custom domain to the Worker in the Cloudflare dashboard; no origin list is needed, since the app and its API share the hostname
 
@@ -1183,7 +1138,7 @@ If you want to contribute code:
 
 ### Code Standards
 
-- Follow the patterns in [`.github/copilot-instructions.md`](.github/copilot-instructions.md)
+- Follow the conventions in [`AGENTS.md`](AGENTS.md); it is written for coding agents and humans alike
 - Use TypeScript strict mode
 - Validate inputs with Zod
 - Write descriptive commit messages
@@ -1251,5 +1206,3 @@ Feel free to use this code for learning, inspiration, or your own projects!
 </div>
 
 ---
-
-**Last Updated**: September 12, 2026
