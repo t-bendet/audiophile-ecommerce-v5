@@ -10,11 +10,14 @@ import {
   useUpdateCartItem,
 } from "@/features/cart/api/get-cart";
 import { CartItem } from "@/features/cart/components/cart-item";
+import { CheckoutForm } from "@/features/orders/components/checkout-form";
+import { OrderConfirmation } from "@/features/orders/components/order-confirmation";
 import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { syncGuestCartToServer } from "@/lib/cart-sync";
 import currencyFormatter from "@/utils/formatters";
-import { calculateOrderTotals } from "@repo/domain";
+import { calculateOrderTotals, OrderDTO } from "@repo/domain";
 import { QueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link, LoaderFunctionArgs, redirect } from "react-router";
 
 export const clientLoader =
@@ -39,6 +42,7 @@ export default function CheckoutPage() {
   const { data: cart, isLoading } = useCart();
   const updateCartItem = useUpdateCartItem();
   const removeFromCart = useRemoveFromCart();
+  const [createdOrder, setCreatedOrder] = useState<OrderDTO | null>(null);
 
   const handleUpdateQuantity = (
     productId: string,
@@ -61,6 +65,11 @@ export default function CheckoutPage() {
     tax,
     total,
   } = calculateOrderTotals(cart?.data.subtotal || 0);
+
+  // The created order wins over the now-empty cart the mutation leaves behind.
+  if (createdOrder) {
+    return <OrderConfirmation order={createdOrder} />;
+  }
 
   if (isLoading) {
     return (
@@ -102,22 +111,8 @@ export default function CheckoutPage() {
       <Section>
         <Container>
           <div className="grid gap-8 lg:grid-cols-3">
-            {/* Left Column - Form Placeholder */}
-            <div className="rounded-lg bg-white p-6 shadow lg:col-span-2">
-              <h2 className="mb-6 text-2xl font-bold">Billing Details</h2>
-              <p className="mb-4 text-neutral-600">
-                ⚠️ Checkout form coming soon! This page will include:
-              </p>
-              <ul className="mb-8 list-inside list-disc space-y-2 text-neutral-600">
-                <li>Billing information form (name, email, address)</li>
-                <li>Shipping information section</li>
-                <li>Payment method selection</li>
-                <li>Form validation</li>
-              </ul>
-              <p className="text-sm text-neutral-500">
-                For now, the checkout page shows your cart summary and price
-                calculations.
-              </p>
+            <div className="rounded-lg bg-white p-6 text-neutral-900 shadow lg:col-span-2">
+              <CheckoutForm onOrderCreated={setCreatedOrder} />
             </div>
 
             {/* Right Column - Order Summary */}
@@ -166,25 +161,11 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="mt-6 space-y-3">
-                <Button
-                  variant="accent"
-                  className="w-full"
-                  onClick={() => {
-                    alert(
-                      "Checkout form and payment integration coming in next phase!",
-                    );
-                  }}
-                >
-                  Continue to Payment
+              <Link to={paths.home.path} className="mt-6 block">
+                <Button variant="outline" className="w-full">
+                  Continue Shopping
                 </Button>
-                <Link to={paths.home.path} className="block">
-                  <Button variant="outline" className="w-full">
-                    Continue Shopping
-                  </Button>
-                </Link>
-              </div>
+              </Link>
             </div>
           </div>
         </Container>

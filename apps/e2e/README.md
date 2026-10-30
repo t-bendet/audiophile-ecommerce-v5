@@ -75,7 +75,8 @@ there should not be one.
 - **Locate by role and accessible name first**, then text and label. `data-testid` only where
   neither identifies an element among siblings, named by a domain noun from `GLOSSARY.md`. The client
   has no `data-testid` today and the suite does not need one: a product card is an `article`, a
-  mini-cart line is a `heading` carrying the product's cart label, the mini-cart is a `dialog`.
+  mini-cart line is a `heading` carrying the product's cart label, the mini-cart is a `dialog`, an
+  order under account orders is an `article` whose lines are `heading`s.
 - **Web-first assertions only.** `expect(locator).toBeVisible()` retries; `expect(await locator.isVisible())`
   does not, and `page.waitForTimeout` is a flake waiting to happen. TanStack Query refetches behind
   most of these pages, so this is the rule that matters most.
@@ -155,13 +156,13 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
 ## What it covers
 
 Home showcase, a category listing, a guest add-to-cart through the mini-cart, the checkout redirect
-to login and back, a guest cart surviving sign-in, and the not-found page.
+to login and back, a guest cart surviving sign-in, a checkout that creates an order and finds it under
+account orders, and the not-found page.
 
-One flow the spec names is missing: placing an order and finding it under account orders. The
-checkout page's "Continue to Payment" is an `alert()` placeholder and `/account/orders` renders a
-static heading, so there is nothing a browser can drive end to end yet. The API behind it works and
-`apps/server/test/order.route.test.ts` covers it; the browser test belongs with the ticket that
-builds the checkout form and the order list.
+The order flow is the one that writes, so `order.spec.ts` signs up its own shopper and asserts the
+orders page holds exactly one order. The checkout form groups its inputs under `Shipping details`,
+`Billing address` and `Payment method` fieldsets, so a label such as `City` is reached through its
+group rather than on the page.
 
 ## CI
 

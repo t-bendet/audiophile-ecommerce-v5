@@ -1,6 +1,6 @@
 # Audiophile E-Commerce
 
-A full-stack TypeScript portfolio project based on the Frontend Mentor Audiophile design. Browse headphones, speakers, and earphones; manage a persistent cart; sign in; and review checkout totals.
+A full-stack TypeScript portfolio project based on the Frontend Mentor Audiophile design. Browse headphones, speakers, and earphones; manage a persistent cart; sign in; check out; and review your orders.
 
 [Live application](https://audiophile.t-bendet.com) · [API health](https://audiophile.t-bendet.com/api/v1/health) · [Issues](https://github.com/t-bendet/audiophile-ecommerce-v5/issues)
 
