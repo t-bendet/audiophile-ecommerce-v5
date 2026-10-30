@@ -16,7 +16,7 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
-File issues only into the user's own repo. Never file into `mattpocock/skills` (the repo these skills come from) unless the user owns it. In a fork, `gh` can default to the upstream parent, so before the first `gh issue create` of a session, check the target with `gh repo view --json nameWithOwner` and confirm it with the user if it is not their repo.
+File issues only into the user's own repo. Never file into `mattpocock/skills` (the repo these skills come from) unless the user owns it. When working from a fork, `gh` can default to the upstream parent: check the target with `gh repo view --json nameWithOwner` before the first `gh issue create` of a session.
 
 ## Branching
 
@@ -47,9 +47,11 @@ git switch -c <type>/<issue#>-<slug>
 gh pr create --base main --title "..." --body "...Closes #<issue#>"
 ```
 
-Reference the issue in the commit body and the PR body with `Closes #<issue#>` so GitHub closes it
-on merge. Preserve existing work when correcting a misplaced commit; inspect the branch and working
-tree before choosing a recovery operation.
+Commit subjects use the conventional-commit form `<type>: <summary>`, with `<type>` from the branch
+table above. Reference the issue in the commit body and the PR body with `Closes #<issue#>` so GitHub
+closes it on merge. Closing keywords ignore negation ("does not close #N" still closes #N), so work
+that leaves the issue open references it with `Part of #<issue#>` instead. Preserve existing work when
+correcting a misplaced commit; inspect the branch and working tree before choosing a recovery operation.
 
 **No ticket?** Process or housekeeping work that came from a direct request rather than an issue drops
 the number: `<type>/<slug>` (e.g. `docs/branching-convention`). Anything a ticket exists for keeps it.
@@ -70,7 +72,7 @@ Read it as in **Read an issue** above.
 
 ## Wayfinding operations
 
-Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets.
+Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets. The `wayfinder:*` labels are workflow labels, never combined with a triage label; [triage labels](triage-labels.md) defines the family.
 
 - **Map**: a single issue labelled `wayfinder:map`, holding the Notes / Decisions-so-far / Fog body. `gh issue create --label wayfinder:map`.
 - **Child ticket**: an issue linked to the map as a GitHub sub-issue (see **Make an issue a sub-issue of a parent**). Where sub-issues aren't enabled, add the child to a task list in the map body and put `Part of #<map>` at the top of the child body. Labels: `wayfinder:<type>` (`research`/`prototype`/`grilling`/`task`). Once claimed, the ticket is assigned to the driving dev.

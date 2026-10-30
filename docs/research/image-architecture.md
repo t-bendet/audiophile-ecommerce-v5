@@ -88,6 +88,9 @@ model; it is that every leaf of the model is an opaque third-party URL.
 | Docs never mention ImgBB; every documented plan says "Cloudinary" (`todos.js:25`, README roadmap, issue #162); `CONTEXT.md` referenced by CLAUDE.md does not exist                    | docs agent                                                                                                                                                    | An ADR is needed; the glossary has no term for image host/key                            |
 | No custom domain in evidence (both services on `*.onrender.com`)                                                                                                                      | render.yaml, README                                                                                                                                           | Affects which CDN implementation is frictionless (see §5)                                |
 
+> **Status (2026-10):** The glossary gap in the ImgBB row is closed: `GLOSSARY.md` defines Image
+> key and Media sync.
+
 ### 1.4 Current weaknesses, by layer
 
 - **Storage:** consumer image host, no account credentials in repo, no management API, ToS
@@ -142,6 +145,10 @@ is convention, a script, or a client fix.
 - Per-variant `width`/`height` in data (kills hard-coded sizes and mobile CLS).
 - Preconnect / `decoding="async"` / consistent `loading` / `height:auto` CSS.
 - CI publishes images on merge so "commit = published".
+
+  > **Status (2026-10):** Not implemented. `media:sync` is a manual developer step
+  > (`packages/media/README.md`); CI runs `db:sync` for the catalogue, not `media:sync`.
+
 - Local dev without network (server serves the media folder statically).
 - Generated manifest (bytes, sha256, dimensions) committed for auditability.
 - WebP/AVIF via build-time siblings or edge `format=auto`.
@@ -350,6 +357,9 @@ Field rationale:
 
 Key convention (documented in an ADR):
 
+> **Status (2026-10):** The convention is documented in `packages/media/README.md#key-convention`,
+> not in an ADR.
+
 ```
 products/<product-slug>/<role>[-<n>]-<breakpoint>.<ext>     role ∈ primary|intro|featured|showcase|related|gallery
 products/<product-slug>/thumbnail.<ext>
@@ -377,6 +387,10 @@ pnpm db:seed (dev)   /  in-place update script (prod)
 API returns MEDIA_BASE_URL + key   →  <ResponsivePicture> renders it
 ```
 
+> **Status (2026-10):** The production step is `pnpm db:sync`, run by CI's `sync-catalogue` job
+> after deploy (`.github/workflows/ci.yml`); it preserves users, carts and orders. `db:seed` is
+> local-only.
+
 Concrete example — adding "ZX3 speaker" with primary, intro and one gallery image:
 
 1. Add 9 files: `packages/media/assets/products/zx3-speaker/{primary,intro,gallery-1}-{mobile,tablet,desktop}.jpg`
@@ -387,11 +401,18 @@ Concrete example — adding "ZX3 speaker" with primary, intro and one gallery im
 "products/zx3-speaker/primary-mobile.jpg", width: 654, height: 654 }` and so on.
 4. `pnpm media:sync` uploads only the new objects. `pnpm db:seed` locally; CI runs `media:check`.
 5. Replace an image later: overwrite the file, `media:sync` (purges or waits ≤ 1 day for cache).
+
+   > **Status (2026-10):** No purge exists. `packages/media/src/scripts/sync.ts` skips objects
+   > whose R2 ETag matches and uploads the rest; propagation waits on the cache TTL.
+
 6. Delete a product: remove its seed entry and its folder; `media:check` passes; `media:sync --prune`
    removes the objects. Undo = `git revert`.
 
 Optional admin path with zero new server code: the existing admin `PATCH /products/:id` accepts the
 same `images` object with keys; `media:check --remote` can verify keys exist in the bucket.
+
+> **Status (2026-10):** `media:check --remote` was not built; `packages/media/src/scripts/check.ts`
+> accepts only `--write`.
 
 ---
 
@@ -406,23 +427,39 @@ compares sha256 against the starter-pack file that replaces each one, so any ima
 edited before upload (e.g. the re-uploaded YX1 "suggestion" set) is flagged rather than silently
 reverted.
 
+> **Status (2026-10):** Done. `media:import --verify` exists as described
+> (`packages/media/src/scripts/import.ts`).
+
 **Phase 1 — Introduce the model.** Prisma `ImageVariant`/`ResponsiveImage`/`SingleImage`;
 domain schemas (persisted vs DTO); `MEDIA_BASE_URL` in server env + `render.yaml`; one
 `resolveProductImages()` used by `toDTO`, the nested-select views, cart and order flattening.
 Test fixtures (`apps/server/test/helpers/database.ts:68-80`) switch to keys and assert resolved URLs.
 
+> **Status (2026-10):** Done (`packages/database/prisma/schema/image.prisma`,
+> `apps/server/src/utils/media.ts`); `MEDIA_BASE_URL` is a Worker var, not a `render.yaml` entry.
+
 **Phase 2 — Rewrite the seed.** `media:import --rewrite` replaces the 129 literals with key +
 dimension objects; drops `ariaLabel`; fixes `altText: "test"`. Add `packages/media` with
 `assets/`, `check`, `sync`, `import`.
+
+> **Status (2026-10):** Done, but `media:import --rewrite` was never built: `media:import` is
+> verify-only by design (`packages/media/src/scripts/import.ts`, media README) and the seed was
+> rewritten by hand.
 
 **Phase 3 — Client.** `ResponsivePicture` takes `{ mobile, tablet, desktop, altText }` and uses
 per-variant dimensions; category nav and cart item read `src`/`width`/`height` from data;
 `<link rel="preconnect">` to the media host in `index.html`; `decoding="async"`; `loading="lazy"`
 on gallery; `img { height: auto }`.
 
+> **Status (2026-10):** Done (`apps/client/index.html` preconnect,
+> `apps/client/src/components/ui/responsivePicture.tsx`).
+
 **Phase 4 — Publish.** Create bucket, public custom domain, API token; `media:sync`; set
 `MEDIA_BASE_URL`; optional GitHub Action that runs `media:sync` on `main` when
 `packages/media/assets/**` changes.
+
+> **Status (2026-10):** Done except the GitHub Action: CI does not run `media:sync`; it is a
+> manual developer step (`packages/media/README.md`).
 
 **Phase 5 — Production data (superseded).** The original proposal assumed disposable production
 data and proposed a destructive reseed. That assumption is no longer an operating permission.
@@ -433,10 +470,16 @@ before records that reference their keys.
 **Phase 6 — Verify and cut over.** `media:check --remote` clean; a route test asserts no
 `ibb.co` in any DTO; Lighthouse before/after on home and product; watch Render bandwidth.
 
+> **Status (2026-10):** Done via the route test `apps/server/test/media-urls.route.test.ts`
+> (asserts the media host and no `ibb.co`); `media:check --remote` was not built.
+
 **Phase 7 — Remove ImgBB.** Grep guard in CI; the ADR (written as
 `docs/adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md`, which folds in the media
 hostname; 0004 is the local replica-set ADR); README/ARCHITECTURE updated; `todos.js:25` and
 issue #162's "Switch to Cloudinary" closed or rewritten.
+
+> **Status (2026-10):** Done, except that no CI grep guard was added; the guard is
+> `apps/server/test/media-urls.route.test.ts`.
 
 ---
 
@@ -454,6 +497,12 @@ issue #162's "Switch to Cloudinary" closed or rewritten.
 
 ### Phase 2 — Developer experience
 
+> **Status (2026-10):** Not built as written. `media:import` is verify-only; CI does not run
+> `media:sync`; `media:check --remote`, the `/media` `express.static` mount and `media:ls` do not
+> exist; the manifest is committed; the `*.data.ts` split was replaced by the subpath exports
+> `@repo/database/seed/products` and `@repo/database/seed/categories` (`packages/database/package.json`,
+> `packages/media/src/seed-references.ts`).
+
 - `media:import` retained as a general "pull from URL into convention" tool.
 - CI job publishing on merge; `media:check --remote` drift report.
 - Express `express.static` mount of `packages/media/assets` under `/media` in development so
@@ -464,6 +513,9 @@ issue #162's "Switch to Cloudinary" closed or rewritten.
   import references without the Prisma client.
 
 ### Phase 3 — Optional future improvements (only on a real trigger)
+
+> **Status (2026-10):** None built. `sync.ts` has no cache purge; it only skips unchanged objects
+> by ETag.
 
 - WebP/AVIF: generate sibling keys at sync time with sharp, or turn on Cloudflare transformations
   (`/cdn-cgi/image/format=auto,width=…/`) on the media subdomain (5,000 unique transformations
@@ -484,7 +536,11 @@ issue #162's "Switch to Cloudinary" closed or rewritten.
    app stays on Render's default domains.
 2. **Frontend Mentor starter pack — resolved.** The user still has it; it is the source of all
    originals, including the 6 files ImgBB lost.
-3. **Production users/orders — resolved.** Confirmed disposable; cut-over is a reseed.
+3. **Production users/orders — superseded.** The original assumption (disposable data, cut-over
+   by reseed) no longer holds. Production catalogue updates run `pnpm db:sync` from CI
+   (`.github/workflows/ci.yml`, `sync-catalogue` job), which preserves users, carts and orders;
+   `db:seed` and `db:reset` are local-only. See
+   [seeding vs syncing](../../packages/database/README.md#seeding-vs-syncing).
 4. Render bandwidth numbers are from Render's docs as of this session; the static-site CDN
    behaviour and the $0.15/GB overage are from Render's pricing/blog and may change.
 5. Client hero image `image-best-gear.jpg` stays a Vite asset (UI chrome, referenced by code);

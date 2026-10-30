@@ -9,13 +9,16 @@ implementation conventions live in the guides linked below.
 ```text
 packages/database → packages/domain → apps/server
                                     → apps/client
+                  → packages/media
 
 apps/e2e        drives the built apps over HTTP; imports no application packages
-packages/media catalogue originals and publication tools; no runtime consumers
+packages/media  catalogue originals and publication tools; reads seed references from
+                packages/database; no runtime consumers
 ```
 
 Turborepo orders builds through the workspace dependency graph. pnpm provides workspace linking;
-the shared ESLint and TypeScript packages hold tooling configuration. The package manifests and
+the shared tooling packages, `packages/config-eslint` (`@repo/eslint-config`) and
+`packages/config-typescript` (`@repo/typescript-config`), hold lint and TypeScript configuration. The package manifests and
 [`turbo.json`](../turbo.json) are authoritative for dependencies and task ordering.
 
 ## Request and data boundaries
@@ -23,8 +26,8 @@ the shared ESLint and TypeScript packages hold tooling configuration. The packag
 The Express API owns authentication, validation, persistence and DTO mapping. Input routes bind
 a request schema to a controller with `defineHandler`, which supplies validation and async error
 handling together. Controllers consume `req.verified`; services encapsulate domain behavior and
-Prisma access where that abstraction is useful. Simple pass-through CRUD can go directly from a
-controller to Prisma. Errors reach one centralized response/logging boundary.
+Prisma access where that abstraction is useful. Simple pass-through CRUD may go directly from a
+controller to Prisma, though every current controller goes through a service. Errors reach one centralized response/logging boundary.
 
 [`apps/server/README.md`](../apps/server/README.md) defines the request lifecycle, service
 contracts, error handling and route-test seam. Shared request schemas, DTOs and semantic error
@@ -51,7 +54,8 @@ UI layers classify them and choose retry, inline, toast or boundary behavior.
 flow. The router is `apps/client/src/app/router.tsx`. Authentication checks live in loaders; the
 navigation middleware measures development performance.
 
-A guest cart lives in the browser. Signing in syncs it with the user's server cart. Orders retain
+A guest cart lives in the browser. Signing in or reaching checkout syncs it with the user's server
+cart. Orders retain
 prices from checkout, rather than recalculating old purchases at the catalogue's current price.
 The glossary distinguishes cart sync from catalogue sync and media sync.
 
@@ -71,7 +75,8 @@ limiters, with their behavior covered separately by the route suite.
 
 - Server route tests drive the real Express app and an isolated MongoDB replica set. They cover
   validation, auth, persistence and response behavior.
-- Client tests cover browser-side behavior without deploying the system.
+- Client tests run client-side logic, such as error classification, under Vitest in Node, with no
+  browser and no deployed system.
 - [E2E tests](../apps/e2e/README.md) drive the built client and server through HTTP with their own
   ports and seeded database. Fixtures keep test state independent of application internals.
 - Media checks compare catalogue references, the assets tree and the committed manifest.
@@ -90,7 +95,9 @@ audiophile-media.t-bendet.com → R2 bucket
 
 API paths reach the Worker before asset lookup, so an unknown API route returns JSON rather than
 the app shell. Sharing the application hostname keeps authentication cookies same-origin.
-Catalogue media is separate from UI chrome, which stays bundled with the client.
+Catalogue media is separate from UI chrome, which stays bundled with the client. The Worker entry
+is [`apps/server/worker/index.ts`](../apps/server/worker/index.ts); the container image is built
+from [`apps/server/Dockerfile`](../apps/server/Dockerfile).
 
 The [deployment runbook](deployment.md) owns environments, CI gates, manual deployment, local
 container checks and recovery. [ADR 0005](adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md)

@@ -69,6 +69,8 @@ jobs:
 
       - run: pnpm format:check
 
+      - run: pnpm docs:check
+
   image:
     name: Server image
     runs-on: ubuntu-latest

@@ -98,6 +98,10 @@ the bandwidth cap and a one-minute cold start; its cheapest always-on service is
 
 ## Open questions
 
+> **Status (2026-10):** All three are answered: the instance size is `basic`
+> (`apps/server/wrangler.jsonc`); the image is built in GitHub Actions (`.github/workflows/ci.yml`);
+> React Router 8 and lucide-react 1.x are in, while TypeScript stayed on 5.x (root `package.json`).
+
 Three remain. None changes the route; each is answered inside the stage that needs it.
 
 1. **Instance size.** Node plus Prisma 6's Rust engine usually sits between 100 and 180 MB
@@ -142,6 +146,9 @@ for now, the new origin added to `ALLOWED_ORIGINS`, a note that Render PR previe
 Workers preview URLs. Console: custom domain `audiophile.t-bendet.com`. Done when the app serves
 from Cloudflare against the Render API and Render's client service is paused.
 
+> **Status (2026-10):** No pull-request preview is configured; PRs build the image without
+> deploying it (`docs/deployment.md`).
+
 **Stage 4 — Container prototype, timeboxed.** Repo: a multi-stage Dockerfile for `apps/server`
 built from `turbo prune --scope=server --docker`, the container binding in wrangler config, the
 one-file Worker forwarding requests, a health route check. Console: Atlas network access for
@@ -149,6 +156,10 @@ Cloudflare egress (no fixed IP), secrets `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPI
 `JWT_COOKIE_EXPIRES_IN`, `NODE_ENV` as Worker secrets and vars passed to the container. Done when
 the product routes answer from the container, resident memory and cold start are measured, and
 the instance size is written into ADR 0005. The artifacts are kept: they are the production ones.
+
+> **Status (2026-10):** Only `DATABASE_URL` and `JWT_SECRET` are Worker secrets; `NODE_ENV`,
+> `JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN` and `MEDIA_BASE_URL` are plain `vars` in
+> `apps/server/wrangler.jsonc`.
 
 **Stage 5 — API cutover.** Repo: `/api/*` routed to the container before static assets on the app
 hostname; client back to the default `/api/v1`; `ALLOWED_ORIGINS` and `sameSite: "none"` removed

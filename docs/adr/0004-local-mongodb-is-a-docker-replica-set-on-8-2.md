@@ -2,7 +2,8 @@
 
 Dev, seeding, the opt-in test path (`TEST_DATABASE_URL`) and Compass all use the one MongoDB
 service in `docker-compose.yml`: a single-node replica set, `rs0`, on `localhost:27017`, with
-`audiophile` for dev and `audiophile-test` for tests. Before this (#163) dev pointed at Atlas and
+`audiophile` for dev and `audiophile-test` for tests. The E2E suite joined them later (#257), on
+`audiophile-e2e`. Before this (#163) dev pointed at Atlas and
 tests booted their own in-memory server; the compose service was a standalone `mongo:7.0` that
 Prisma could not use, since nested writes run in transactions and MongoDB only allows those on a
 replica set.

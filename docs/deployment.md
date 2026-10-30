@@ -67,7 +67,7 @@ The workflow uses these repository secrets:
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account to deploy into                                                                                                                           |
 | `DATABASE_URL`          | Atlas connection for the post-deploy catalogue sync; separate from the Worker's secret of the same name                                                     |
 
-After deployment, `sync-catalogue` runs `pnpm db:sync`. If the repository's `DATABASE_URL`
+After deployment, `sync-catalogue` runs `pnpm db:generate && pnpm db:sync`. If the repository's `DATABASE_URL`
 secret is missing, that job warns and skips the sync; a green deploy alone does not prove the
 catalogue was updated. Follow [seeding vs syncing](../packages/database/README.md#seeding-vs-syncing)
 for manual publication or schema-shape changes. `db:seed` and `db:reset` are local-only.
@@ -81,7 +81,8 @@ running:
 2. Copy `apps/server/.dev.vars.example` to `apps/server/.dev.vars` if needed. This uses the Docker
    host database and `NODE_ENV=test`; the production image does not contain `pino-pretty`, so
    development logging is unsuitable for this path.
-3. Run `pnpm --filter server exec wrangler dev` from the repository root.
+3. Run `pnpm --filter server exec wrangler dev` from the repository root; `apps/server` has the
+   equivalent `dev:worker` script.
 
 Wrangler serves the last built client assets. Rebuild after changing them. Local branch checks
 do not replace the [E2E suite](../apps/e2e/README.md).
@@ -108,6 +109,9 @@ Use a Cloudflare account with Containers enabled, an Atlas database/user, and an
 a public custom domain. Configure the Worker secrets and plain values above, set `MEDIA_BASE_URL`
 to the bucket hostname, publish media using the [media guide](../packages/media/README.md), and
 deploy. Attach the application's custom domain to the Worker; the API uses that same hostname.
+The Worker's custom domain and the bucket's custom domain are configured in the Cloudflare
+dashboard and are not recorded in `apps/server/wrangler.jsonc`, so a fresh clone cannot read them
+from the repo.
 For automatic deploys from a fork, configure all three repository secrets above and use the
 committed workflow.
 

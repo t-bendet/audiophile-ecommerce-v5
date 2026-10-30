@@ -21,6 +21,7 @@
     "db:reset": "pnpm db:up && turbo run db:reset",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md}\"",
+    "docs:check": "node .github/scripts/check-doc-links.mjs",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:db": "pnpm db:up && TEST_DATABASE_URL=\"mongodb://localhost:27017/audiophile-test?replicaSet=rs0&directConnection=true\" turbo run test --filter=server",

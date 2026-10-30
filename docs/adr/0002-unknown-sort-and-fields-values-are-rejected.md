@@ -19,7 +19,8 @@ query the client wrote is the query the server runs, or the client hears about i
 The whitelist is enforced twice. `createQueryParamsSchema(allowedFields)` in
 `packages/domain/src/common.ts` binds it to the request schema of every list route that takes one —
 categories, products, users — so the rejection happens at the same validation seam as unknown keys,
-before auth or any database work. `parseSelect` / `parseOrderBy` in `apps/server/src/utils/query.ts`
+before any database work (and, on the public categories and products lists, before auth; `/users`
+authenticates and authorizes first). `parseSelect` / `parseOrderBy` in `apps/server/src/utils/query.ts`
 throw on the same input, which is unreachable for a client but fires loudly if a schema and its
 service ever stop sharing a whitelist. Both layers call the same
 `unknownFieldListMembers(key, value, allowedFields)` over the same exported constant per entity

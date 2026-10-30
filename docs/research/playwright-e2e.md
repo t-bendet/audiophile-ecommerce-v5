@@ -50,13 +50,17 @@ two things it exercises.
   `users.seed.ts`). Point it at `audiophile-e2e`, never `audiophile`, for the same reason
   `AGENTS.md` keeps `audiophile-test` apart: the seed is destructive. The server under test gets
   the same `DATABASE_URL` through the `webServer` `env` block; `dotenv` never overrides a variable
-  that is already set (`AGENTS.md`, "Seeding vs syncing"), so `apps/server/.env` cannot redirect
-  it.
+  that is already set (`AGENTS.md`, "Seeding vs syncing"; that section has since moved to
+  `packages/database/README.md#seeding-vs-syncing`), so `apps/server/.env` cannot redirect it.
 - **Demo credentials.** `packages/database/src/seed/users.seed.ts` creates three `ADMIN` users
   (`admin@example.com`, `admin2@`, `admin3@`) and three `USER`s (`doe@example.com`, `doe2@`,
   `doe3@`), all with password `11111111`. These are the login fixtures; one `USER` per worker is
   what the Playwright auth guide's `parallelIndex` pattern needs, which caps `workers` at 3 for
   signed-in projects unless more users are seeded or created at setup.
+
+  > **Status (2026-10):** The cap never applied. Fixtures sign up a fresh shopper per test
+  > (`signUpFreshShopper` in `apps/e2e/tests/fixtures.ts`), so workers are not tied to seeded users.
+
 - **Per-test state through the API, not the database.** The `tdd` skill
   (`.claude/skills/tdd/SKILL.md`) says tests live at seams and never reach inside; for E2E the seam
   is the HTTP API. A fixture that needs a fresh cart calls `DELETE /api/v1/cart`
@@ -208,7 +212,8 @@ two things it exercises.
    polling it also proves the database is up. The six server variables are the set
    `apps/server/vitest.config.ts` supplies for the same reason: `src/utils/env.ts` validates them
    at import. `NODE_ENV=test` makes the server behave like production (sanitised errors, silent
-   logger per `AGENTS.md`), which is the behaviour a browser test should see. One Chromium project
+   logger per `AGENTS.md`; the silent default now lives in `apps/server/src/utils/env.ts`,
+   `LOG_LEVEL_DEFAULTS`), which is the behaviour a browser test should see. One Chromium project
    to start; the best-practices page recommends all three engines, which is a later widening once
    the suite is stable. `workers: 1` on CI is the documented default and sidesteps the rate-limit
    and seeded-user caps until the open questions are settled.
@@ -250,7 +255,7 @@ two things it exercises.
 
    The package-qualified `dependsOn` form is already used by `server#deploy` in `turbo.json`.
    Root `package.json` gets `"test:e2e": "pnpm db:up && turbo run e2e"`, mirroring `test:db`. The
-   seed into the e2e database is a separate, explicit command because it is destructive:
+   seed into the e2e database is a separate, explicit command because it is destructive.
 
    The original proposal pushed the schema before seeding. That sequence was corrected during
    implementation because seeding drops indexes: the maintained root `pnpm test:e2e` command
@@ -266,7 +271,8 @@ two things it exercises.
    comes from the repo's `docker-compose.yml` via `pnpm db:up`: the ubuntu-24.04 runner image ships
    Docker 28.0.4 and Docker Compose v2 2.38.2 (runner-images README, image 20261004), and the
    compose healthcheck is what runs `rs.initiate()` (`docker-compose.yml`, `AGENTS.md` "Local
-   database"). GitHub's `services:` form can pass `command: --replSet rs0` (service-containers
+   database"; that section has since moved to `packages/database/README.md#local-databases`).
+   GitHub's `services:` form can pass `command: --replSet rs0` (service-containers
    page documents `command` and `entrypoint`) but has nowhere to run the initiate, so compose is
    the smaller change and keeps one definition of the database.
 
@@ -332,6 +338,9 @@ Two paths exist in `paths.ts` but not in the router: `/cart` and `/checkout/conf
 (and `/checkout/payment`). A planner agent that reads `paths.ts` will try to navigate to them;
 the seed spec or the plan prompt should say they are not routes.
 
+> **Status (2026-10):** The three unmounted paths were removed from
+> `apps/client/src/config/paths.ts` in #256; the planner agent is pointed at `router.tsx` instead.
+
 ## Best practices that apply here
 
 Each item names the page it comes from; URLs are in the appendix.
@@ -360,6 +369,10 @@ Each item names the page it comes from; URLs are in the appendix.
   `pnpm dev` is reused; CI always starts fresh (webserver page). Note the repo's `pnpm dev` points
   the server at `audiophile`, not `audiophile-e2e`, so a reused local server tests against dev
   data; the seed-into-e2e flow above is the CI truth.
+
+  > **Status (2026-10):** Not adopted. The implemented config sets `reuseExistingServer: false`
+  > on both servers and never reuses a dev server; see `apps/e2e/README.md`.
+
 - **Retries on CI with `trace: 'on-first-retry'`.** The best-practices page prefers traces over
   video and screenshots on CI and warns that `trace: 'on'` is heavy. `npx playwright show-trace`
   or trace.playwright.dev opens the zip (trace-viewer page).
@@ -380,6 +393,9 @@ Three official Microsoft routes exist today, plus the `claude-in-chrome` MCP alr
 this user's sessions. They solve different problems.
 
 ### 1. `@playwright/mcp` — a browser for the agent to drive
+
+> **Status (2026-10):** Not adopted. Only the `playwright-test` server from route 2 is in
+> `.mcp.json` (#259); `@playwright/mcp` was never added.
 
 `claude mcp add playwright npx @playwright/mcp@latest` (playwright-mcp README) or, committed for
 the team, a project-scoped `.mcp.json` (Claude Code MCP page):
@@ -417,6 +433,10 @@ in the `v1.64.0` tag of `program.ts`:
 - `.mcp.json` with one server, `playwright-test`, running `npx playwright run-test-mcp-server`.
   **It overwrites the file.** If the `@playwright/mcp` entry from route 1 is wanted as well, add
   it after running `init-agents`, and re-add it after every regeneration.
+
+  > **Status (2026-10):** Moot: `@playwright/mcp` was not added, so `.mcp.json` holds only
+  > `playwright-test` (#259). The command was changed by hand; see `apps/e2e/README.md`.
+
 - `specs/README.md` and `tests/seed.spec.ts` (relative to the project's `testDir`), the seed test
   the planner runs to inherit fixtures and the generator copies as a model.
 - `--prompts` additionally writes `.claude/prompts/`; `--project` and `-c` pick the Playwright
@@ -437,6 +457,10 @@ skill's "write down the seams and confirm them first": the spec file is the seam
 the generator's output is reviewed against `tests.md`'s "good test" criteria (public interface,
 one logical assertion, no implementation coupling) before it is kept. The healer may also skip a
 test it believes is a real bug (test-agents page); treat a healer skip as a ticket, not a pass.
+
+> **Status (2026-10):** Stricter in practice. The installed healer
+> (`.claude/agents/playwright-test-healer.md`) is instructed never to skip tests or weaken
+> expectations, and `apps/e2e/README.md` says the same.
 
 ### 3. `@playwright/cli` and `playwright init-skills`
 
@@ -476,27 +500,51 @@ tests, use Playwright's servers; keep `claude-in-chrome` for one-off inspection 
 
 ## Open questions
 
+> **Status (2026-10):** Five of the six are resolved; only question 5 (browser engines) is still
+> open. Each item below carries its outcome.
+
 1. **Rate limiters under `NODE_ENV=test`.** Signup 5/hour and orders 20/hour per IP
    (`apps/server/src/utils/rateLimiters.ts`) break any parallel suite. Decide between an
    environment opt-out and a very high limit in test; the fix is a small server change and should
    be its own ticket, merged before the suite grows past the seeded users.
+
+   > **Status (2026-10):** Resolved (#255). Every limiter stands down under `NODE_ENV=test`
+   > (`defineLimiter` in `apps/server/src/utils/rateLimiters.ts`).
+
 2. **Seed as a setup project or as a CI step.** Running `db:seed` from a Playwright setup project
    (via `execFile`, as `apps/server/test/helpers/global-setup.ts` already does for `prisma db push`)
    would make `pnpm test:e2e` one command and put the seed in the HTML report; the cost is a
    workspace that imports `@repo/database`. The sketch above keeps it an explicit command.
+
+   > **Status (2026-10):** Resolved as a CI step and the root `test:e2e` script (root
+   > `package.json`, `.github/workflows/ci.yml` e2e job), not a setup project.
+
 3. **Which client server in CI: `vite preview` or `vite`.** Preview tests the real bundle and
    reuses the `verify` build; the dev server is what a developer reuses locally. Both proxy `/api`
    identically (`apps/client/vite.config.ts`). Preview is recommended above; confirm there is no
    dev-only behaviour (the React Router performance middleware is dev-only per `AGENTS.md`) that a
    test should see.
+
+   > **Status (2026-10):** Resolved: `vite preview` on port 4173 (`apps/e2e/playwright.config.ts`).
+
 4. **One job or `needs: [verify]`.** Parallel is faster; sequential saves a browser install when
    lint already failed. Pick after the first few runs show real durations.
+
+   > **Status (2026-10):** Resolved: the `e2e` job runs in parallel with `verify` and `image`, and
+   > `deploy` needs all three (`.github/workflows/ci.yml`).
+
 5. **How many engines.** One Chromium project is the starting point; the best-practices page says
    all three. WebKit matters for this project only if Safari-specific cookie behaviour is a risk,
    and with same-origin `sameSite: "lax"` cookies it is not.
+
+   > **Status (2026-10):** Still open. The suite runs Chromium only.
+
 6. **`@playwright/mcp` versus `playwright-test` MCP in `.mcp.json`.** `init-agents` writes only
    the latter and overwrites the file. Decide whether the repo commits both and documents the
    regeneration step.
+
+   > **Status (2026-10):** Resolved: `.mcp.json` has only the `playwright-test` server; `@playwright/mcp`
+   > was not added. Regeneration is documented in `apps/e2e/README.md`.
 
 ## Verification trail (2026-10-12)
 
