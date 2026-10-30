@@ -64,8 +64,9 @@ alone does not make its 5xx/network failures optional.
 
 Form components own mutation feedback. Normalize the error in the mutation's `onError`
 before using its semantic code, message, or structured `details`. Current
-[login](src/features/auth/components/login-form.tsx) and
-[signup](src/features/auth/components/signup-form.tsx) forms validate inputs with the
+[login](src/features/auth/components/login-form.tsx),
+[signup](src/features/auth/components/signup-form.tsx) and
+[checkout](src/features/orders/components/checkout-form.tsx) forms validate inputs with the
 shared body schema, show local field validation errors inline, and show mutation
 failures through a destructive toast. There is no global rule that all 4xx responses
 appear inline or all 5xx responses produce a toast.
