@@ -30,6 +30,10 @@ example), add the `@playwright/mcp` server to `.mcp.json` by hand after generati
 in the upgrade step. Do not run several healers in parallel (#39235/#39236: "not a supported
 scenario").
 
+> **Status (2026-10):** Done in #259 with one difference: the agents are committed with repository
+> edits (listed under "Regenerating them" in `apps/e2e/README.md`), and no `@playwright/mcp` entry
+> was added to `.mcp.json`.
+
 ## Findings
 
 ### 1. How the docs position Agents
@@ -50,9 +54,11 @@ workflow and not labelled experimental.
 `init-agents` (program.ts, v1.64.0) runs `configLoader.loadConfigFromFile(opts.config)` and
 `seedProject(fullConfig, projectName)` — "Project to use for seed test" — before any write; with
 no `--project` it takes `findTopLevelProjects(fullConfig)[0]`. A `playwright.config.ts` with at
-least one project is therefore a precondition. In this repo's sketch the first project is `setup`
-(`testMatch: /.*\.setup\.ts/`), so pass `--project chromium` or the seed lands in the wrong
-project.
+least one project is therefore a precondition. `findTopLevelProjects` returns only projects that no
+other project depends on: `buildProjectsClosure` in `lib/runner/index.js` marks anything reached
+through `dependencies` as `dependency`, not `top-level`. In this repo's config `setup` is a
+dependency of `chromium`, so `chromium` is chosen without `--project`, which is why the
+regeneration command in `apps/e2e/README.md` omits the flag.
 
 The seed file: `findSeedFile` scans the project's files for any basename containing `seed` and
 leaves an existing one alone; otherwise it writes `<testDir>/seed.spec.ts` with exactly:
@@ -87,6 +93,10 @@ From `generateAgents.ts` and the three `*.agent.md` files at tag v1.64.0:
   browser tools plus `planner_setup_page`/`planner_save_plan`; generator gets browser +
   `browser_verify_*` + `generator_setup_page`/`generator_read_log`/`generator_write_test`; healer
   gets `test_list`/`test_run`/`test_debug`, `browser_generate_locator` and edit tools.
+
+  > **Status (2026-10):** Committed as generated except `model`: only the healer is
+  > `model: inherit`; the planner and generator stay `sonnet` (`.claude/agents/*.md`).
+
 - `.mcp.json`: `JSON.stringify({ mcpServers: { 'playwright-test': { command: 'npx', args:
 ['playwright', 'run-test-mcp-server'] } } })` — **written unconditionally, no merge** (the VS
   Code generator merges `.vscode/mcp.json`; the Claude one does not). The shared `writeFile`
@@ -96,6 +106,10 @@ From `generateAgents.ts` and the three `*.agent.md` files at tag v1.64.0:
 
 This repo has `.claude/skills/` and `.claude/settings.local.json` and no `.claude/agents` or
 `.mcp.json`, so a first run collides with nothing; later runs clobber `.mcp.json`.
+
+> **Status (2026-10):** Both now exist. `.mcp.json` runs
+> `node apps/e2e/node_modules/@playwright/test/cli.js run-test-mcp-server --config apps/e2e/playwright.config.ts`
+> rather than `npx playwright`, so a regeneration does clobber it; `apps/e2e/README.md` lists the fix.
 
 ### 4. `init-skills --loop claude`
 
@@ -153,6 +167,10 @@ the skill content lagging the CLI it describes — regenerate on upgrade.
 - `model: sonnet` is a valid alias (`sonnet`, `opus`, `haiku`, `fable`, full ID, `inherit`). It
   pins the three agents to Sonnet regardless of the session model; editing it to `inherit` is
   allowed but is lost on regeneration. `color` is an accepted field.
+
+  > **Status (2026-10):** The healer alone was edited to `model: inherit`; re-applying it after
+  > regeneration is step 1 of "Regenerating them" in `apps/e2e/README.md`.
+
 - `tools` as a comma-separated string is one of the two documented forms; the
   `mcp__playwright-test__<tool>` names are the documented per-tool pattern. `LS` and `MultiEdit`
   are listed by the generator; the sub-agents page does not list them among current tools —
@@ -164,6 +182,10 @@ the skill content lagging the CLI it describes — regenerate on upgrade.
   edit (the seed is skipped if present, so only `.mcp.json` needs hand care). Nothing in the
   generated files conflicts with `.claude/settings.local.json`; `Bash` is not granted to any
   agent, so the permission allow-list is untouched.
+
+  > **Status (2026-10):** The allow-list did change: `.claude/settings.json` pre-allows
+  > `mcp__playwright-test` and `mcp__playwright-test__browser_run_code_unsafe` and sets
+  > `enableAllProjectMcpServers: true`, so the healer is not stopped by a permission prompt mid-run.
 
 ## Verification trail (2026-10-12)
 

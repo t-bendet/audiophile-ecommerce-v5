@@ -25,8 +25,9 @@ rejected as the same two numbers with an import between them. There is one const
 
 This is an API contract change. `GET /api/v1/orders` with no `limit` now returns up to 20 orders
 and reports `meta.limit: 20`, where it returned 10. Callers that name a `limit` are unaffected, and
-`apps/client` names one on every list call — its default filters were changed to the shared
-constant, so the client asks for what it always asked for, spelled once.
+the client's orders fetcher names one — its default filters were changed to the shared constant,
+so it asks for what it always asked for, spelled once. The client's categories fetcher sends no
+query at all, so it always received, and still receives, the server default.
 
 `OrderQueryParamsSchema` keeps its own `.max(100)`; only the default is shared. Schemas built by
 `createQueryParamsSchema` still leave `page` and `limit` optional and let `parsePagination` fill

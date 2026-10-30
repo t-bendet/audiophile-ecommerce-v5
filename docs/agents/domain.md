@@ -18,15 +18,18 @@ Surface a conflict with an existing decision explicitly. For a new settled term 
 
 ## Shared package conventions
 
-`packages/domain` is the source of shared Zod schemas, DTOs, types, and error codes. Expose public additions through [src/index.ts](../../packages/domain/src/index.ts); consumers import from `@repo/domain`. Use `.strict()` on input object schemas to reject unknown fields. Server request wiring is defined in the [server guide](../../apps/server/README.md).
+`packages/domain` is the source of shared Zod schemas, DTOs, types, and error codes. Expose public additions through [src/index.ts](../../packages/domain/src/index.ts); consumers import from `@repo/domain`. Use `.strict()` on input object schemas to reject unknown fields. Several schemas are pinned to generated Prisma types (`satisfies z.ZodType<ImageVariant>` in [src/image.ts](../../packages/domain/src/image.ts), the `Prisma.ProductSelect` aliases), so a schema change may need `pnpm db:generate` first. Server request wiring is defined in the [server guide](../../apps/server/README.md).
 
-| Name                           | Purpose                                                     |
-| ------------------------------ | ----------------------------------------------------------- |
-| `*CreateInput`, `*UpdateInput` | Write operations                                            |
-| `*DTO`                         | Read responses                                              |
-| `*WhereInput`                  | Filter parameters                                           |
-| `*Select`                      | Field selection                                             |
-| `ExtendedQueryParams`          | Pagination and sorting                                      |
-| `*QueryParams`                 | One entity's list query: `ExtendedQueryParams<{ filters }>` |
+| Name                           | Purpose                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| `*CreateInput`, `*UpdateInput` | Write operations                                                               |
+| `*DTO`                         | Read responses                                                                 |
+| `*WhereInput`                  | Filter parameters                                                              |
+| `*Select`                      | Field selection                                                                |
+| `ExtendedQueryParams`          | Pagination and sorting                                                         |
+| `*QueryParams`                 | One entity's list query: `ExtendedQueryParams<{ filters }>`                    |
+| `*Schema`                      | Zod schema paired with its inferred type: `ProductDTOSchema` / `ProductDTO`    |
+| `*Response`, `*ResponseSchema` | Response envelopes the client validates against: `ProductGetAllResponseSchema` |
+| `*Params`, `*ParamsSchema`     | Route params: `RemoveFromCartParamsSchema`                                     |
 
 Use the package's existing schema/type pairs as examples rather than introducing parallel definitions in client and server. Run the domain tests and type-check affected consumers when a shared contract changes; see [verification](verification.md).

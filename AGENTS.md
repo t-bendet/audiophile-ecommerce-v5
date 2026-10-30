@@ -4,7 +4,7 @@ This is the shared entrypoint for coding agents. Read the task guides below befo
 
 ## Repository map
 
-This pnpm/Turborepo monorepo builds `packages/database` → `packages/domain` → `apps/server` and `apps/client`. The server is Express; the client is React. `apps/e2e` tests both over HTTP without importing workspace code. `packages/media` owns catalogue image originals and publication scripts. Shared lint and TypeScript configuration lives in `packages/config-*`.
+This pnpm/Turborepo monorepo builds `packages/database` → `packages/domain` → `apps/server` and `apps/client`. The server is Express; the client is React. `apps/e2e` tests both over HTTP without importing application packages. `packages/media` owns catalogue image originals and publication scripts. Shared lint and TypeScript configuration lives in `packages/config-*`.
 
 For cross-package exploration, read [architecture](docs/ARCHITECTURE.md). Package manifests and configuration are authoritative for installed versions and available commands.
 
@@ -13,7 +13,7 @@ For cross-package exploration, read [architecture](docs/ARCHITECTURE.md). Packag
 - Work on a branch based on `main`: `<type>/<issue#>-<slug>` for a ticket, `<type>/<slug>` for direct housekeeping requests. PRs target `main`; a push to `main` deploys. Read the [Git and issue workflow](docs/agents/issue-tracker.md) before ticket operations, commits, or PRs.
 - Use names and structure to explain code. Add a short comment only for a non-obvious constraint or to match an existing commented section. Design rationale belongs in an ADR.
 - Keep each convention in its task guide. Update that guide when behavior changes; this file holds shared rules and routing, not copies of implementation examples.
-- Before handing off a change, use the [verification guide](docs/agents/verification.md) to select checks and report what ran and any remaining failures. Documentation-only work needs formatting, links, and instruction consistency checks.
+- Before handing off a change, use the [verification guide](docs/agents/verification.md) to select checks and report what ran and any remaining failures. Documentation-only work runs the documentation checks in that guide.
 
 ## Data boundaries
 

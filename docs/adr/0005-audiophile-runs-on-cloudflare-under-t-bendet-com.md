@@ -15,9 +15,9 @@ dependency upgrade.
 
 Images follow one rule: catalogue content (product and category images, the ones the seed
 references by URL) goes to the media package that #204 introduces and is served from the bucket;
-UI chrome stays a client asset bundled by Vite. `image-best-gear.jpg` under
-`apps/client/src/assets` is chrome, since code references it rather than data, and it stays where
-it is with the SVG icons.
+UI chrome stays a client asset bundled by Vite. The breakpoint copies of `image-best-gear.jpg`
+under `apps/client/src/assets/` are chrome, since code references them rather than data, and they
+stay where they are with the SVG icons.
 
 The evidence behind each part is in `docs/research/cloudflare-move.md` and the appendix of
 `docs/research/image-architecture.md`; this record exists so the later stages of the move point at
@@ -45,7 +45,8 @@ free Universal SSL certificate covers the apex and first-level subdomains only; 
 needs Total TLS or an advanced certificate. A separate first-level hostname for the API was
 rejected in favour of path routing: it would keep the cookie cross-origin, and with it the
 `sameSite: "none"` setting in `apps/server/src/controllers/auth.controller.ts` and the
-`ALLOWED_ORIGINS` CORS list, both of which path routing makes dead configuration. The bucket's
+`ALLOWED_ORIGINS` CORS list, both of which path routing makes dead configuration (both have since
+been removed in #229; the cookie is `sameSite: "lax"` and the server has no CORS list). The bucket's
 `r2.dev` URL was rejected for public access because it is rate-limited and uncached; the custom
 domain is the supported shape.
 
