@@ -30,7 +30,6 @@ Product features, none of them specced yet:
 Client work that needs a design or UX pass before it can be specced (from the #162 triage):
 
 - Auth through React Router middleware and a typed context. Today auth is re-checked in four route loaders plus a `getIsAuthenticated` helper in `features/cart/api/get-cart.ts`. Folds in the central queryClient/auth hook, `useSuspense` in `logged-in-user-dropdown.tsx`, and React Query stale-time tuning for auth. Middleware already runs: React Router v8 removed the `v8_middleware` flag, and `performanceMiddleware` logs on every navigation. Real middleware reads `({ context }, next)` with `createContext()` keys and `context.get()`/`context.set()`. `performanceMiddleware` times the whole data-strategy run, loader retries included.
-- Surface server validation details on forms. Since #156 the server answers 422 with Zod `details`, and `processAxiosError` in `lib/errors/errors.ts` carries them onto the `AppError`, but no form consumes them. Map them onto TanStack Form field errors, and decide there which messages are exposed at route, feature and form level.
 - Password strength meter on the signup form.
 - Skeleton loaders for images and sections. Run a prototype session first to find where a loading state is missing, then ticket the result. `ui/skeleton.tsx`, `product-skeleton.tsx` and `products-list-skeleton.tsx` already exist.
 - Pattern-circles SVG behind the ZX9 showcase. `assets/pattern-circles.svg` exists and its import is commented out in `showcase-section/index.tsx`.
