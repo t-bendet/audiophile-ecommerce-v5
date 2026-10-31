@@ -71,6 +71,7 @@ Read [AGENTS.md](AGENTS.md) for shared rules and task routing. The focused guide
 - [E2E tests and Playwright maintenance](apps/e2e/README.md)
 - [Catalogue images](packages/media/README.md)
 - [Verification and Node upgrades](docs/agents/verification.md)
+- [Roadmap of planned and candidate features](docs/ROADMAP.md)
 
 For contribution branches, commits, and PRs, use the [issue workflow](docs/agents/issue-tracker.md). Feature requests and planned work live in [GitHub Issues](https://github.com/t-bendet/audiophile-ecommerce-v5/issues). Research in `docs/research` records past investigations; current implementation and operations follow the guides above.
 
