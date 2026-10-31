@@ -29,7 +29,10 @@ Product features, none of them specced yet:
 
 Client work that needs a design or UX pass before it can be specced (from the #162 triage):
 
-- Auth through React Router middleware and a typed context. Today auth is re-checked in four route loaders plus a `getIsAuthenticated` helper in `features/cart/api/get-cart.ts`. Folds in the central queryClient/auth hook, `useSuspense` in `logged-in-user-dropdown.tsx`, and React Query stale-time tuning for auth. Note: `createBrowserRouter` in `app/router.tsx` does not pass `future.v8_middleware`, so the existing `performanceMiddleware` most likely never runs; verify that first.
+- Auth through React Router middleware and a typed context. Today auth is re-checked in four route loaders plus a `getIsAuthenticated` helper in `features/cart/api/get-cart.ts`. Folds in the central queryClient/auth hook, `useSuspense` in `logged-in-user-dropdown.tsx`, and React Query stale-time tuning for auth. Middleware already runs: React Router v8 removed the `v8_middleware` flag, and `performanceMiddleware` logs on every navigation. Three things to handle first:
+  - In dev every navigation likely runs twice: `<StrictMode>` double-invokes the `useMemo` that calls `createBrowserRouter`, and the discarded router is never disposed. Harmless for a log, not for auth side effects. Create the router at module scope or dispose the extra one.
+  - The first parameter of `performanceMiddleware` is named `_context` but is the whole args object. Real use needs `({ context }, next)` with `createContext()` keys and `context.get()`/`context.set()`.
+  - Its timing wraps the whole data-strategy run, loader retries included, not only the navigation.
 - Surface server validation details on forms. Since #156 the server answers 422 with Zod `details`, and `processAxiosError` in `lib/errors/errors.ts` carries them onto the `AppError`, but no form consumes them. Map them onto TanStack Form field errors, and decide there which messages are exposed at route, feature and form level.
 - Password strength meter on the signup form.
 - Skeleton loaders for images and sections. Run a prototype session first to find where a loading state is missing, then ticket the result. `ui/skeleton.tsx`, `product-skeleton.tsx` and `products-list-skeleton.tsx` already exist.
