@@ -96,7 +96,7 @@ export function isCriticalError(error: AppError): boolean {
 /**
  * Check if error means the session is dead and the user has to sign in again.
  * `INVALID_CREDENTIALS` is deliberately absent: it is a rejected login attempt,
- * which the login form reports inline, not an expired session.
+ * which the login form reports in a toast, not an expired session.
  */
 export function isAuthError(error: AppError): boolean {
   const authCodes: ErrorCode[] = [

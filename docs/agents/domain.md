@@ -13,6 +13,7 @@ Read the glossary entries relevant to your task and use their terms in code, tes
 | List pagination defaults                    | [0003: one default page size](../adr/0003-one-default-page-size-for-every-list.md)                        |
 | MongoDB topology or version                 | [0004: local replica set](../adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md)                    |
 | Hosting boundaries                          | [0005: Cloudflare deployment](../adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md)            |
+| Client feedback for server validation       | [0006: errors belong to the form](../adr/0006-server-validation-errors-belong-to-the-form.md)             |
 
 Surface a conflict with an existing decision explicitly. For a new settled term or decision, read and apply the [domain-modeling skill](../../.agents/skills/domain-modeling/SKILL.md); it owns glossary and ADR formats. Proposals remain proposals until a decision is made.
 

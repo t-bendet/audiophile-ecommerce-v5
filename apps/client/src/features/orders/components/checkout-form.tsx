@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { normalizeError } from "@/lib/errors/errors";
+import { applyServerErrors } from "@/lib/errors/form-errors";
 import {
   CreateOrderInput,
   CreateOrderInputSchema,
@@ -99,12 +100,15 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
       createOrder(value, {
         onSuccess: (response) => onOrderCreated(response.data),
         onError: (error) => {
-          toast({
-            title: "Order Failed",
-            description: normalizeError(error).message,
-            variant: "destructive",
-            duration: 3000,
-          });
+          const message = applyServerErrors(form, normalizeError(error));
+          if (message) {
+            toast({
+              title: "Order Failed",
+              description: message,
+              variant: "destructive",
+              duration: 3000,
+            });
+          }
         },
       });
     },

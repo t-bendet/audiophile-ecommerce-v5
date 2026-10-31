@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLogin, USER_QUERY_KEY } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { normalizeError } from "@/lib/errors/errors";
+import { applyServerErrors } from "@/lib/errors/form-errors";
 import { AuthLoginRequestSchema } from "@repo/domain";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
@@ -52,13 +53,15 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
           );
         },
         onError: async (error) => {
-          const normalizedError = normalizeError(error);
-          toast({
-            title: "Login Failed",
-            description: normalizedError.message,
-            variant: "destructive",
-            duration: 3000,
-          });
+          const message = applyServerErrors(form, normalizeError(error));
+          if (message) {
+            toast({
+              title: "Login Failed",
+              description: message,
+              variant: "destructive",
+              duration: 3000,
+            });
+          }
           await queryClient.setQueryData([USER_QUERY_KEY], null);
         },
       });
