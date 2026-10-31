@@ -1,6 +1,6 @@
 # Issue tracker: GitHub
 
-Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
+Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all operations; in a cloud session, read **Cloud sessions** below first.
 
 ## Conventions
 
@@ -55,6 +55,16 @@ correcting a misplaced commit; inspect the branch and working tree before choosi
 
 **No ticket?** Process or housekeeping work that came from a direct request rather than an issue drops
 the number: `<type>/<slug>` (e.g. `docs/branching-convention`). Anything a ticket exists for keeps it.
+
+## Cloud sessions
+
+A Claude Code cloud session (`CLAUDE_CODE_REMOTE=true`) cannot reach GitHub GraphQL, so `gh issue ...` and `gh pr ...` fail with 403. The REST API through `gh api` works:
+
+- **Read an issue**: `gh api repos/<owner>/<repo>/issues/<n>`; its comments: `gh api repos/<owner>/<repo>/issues/<n>/comments`.
+- **List issues**: `gh api "repos/<owner>/<repo>/issues?state=open&labels=<label>"`. The endpoint returns pull requests too; drop them with `--jq '[.[] | select(.pull_request | not)]'`.
+- **Open a PR**: push the branch, then use the **Create PR** button in the cloud UI; `gh pr create` fails the same way. The PR body still references the issue with `Closes #<n>` or `Part of #<n>` as in **Branching**. CI runs once the PR exists, not on the session's pushes.
+
+Branch names follow **Branching** unchanged.
 
 ## Pull requests as a triage surface
 
