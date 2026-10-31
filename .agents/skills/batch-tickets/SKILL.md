@@ -11,7 +11,7 @@ remote changes can still require conflict resolution.
 
 ## Before you start
 
-Read [the issue-tracker guide](../../../docs/agents/issue-tracker.md) for ticket operations and branching, and [the verification guide](../../../docs/agents/verification.md) for local checks and CI gates.
+Read [the issue-tracker guide](../../../docs/agents/issue-tracker.md) for ticket operations and branching, and [the verification guide](../../../docs/agents/verification.md) for local checks and CI gates. In a cloud session (`CLAUDE_CODE_REMOTE=true`), read its [cloud sessions](../../../docs/agents/issue-tracker.md#cloud-sessions) subsection first: the `gh issue` and `gh pr` commands below fail there.
 
 1. **Confirm the queue.** Resolve `$ARGUMENTS` into a concrete list and print it for the user:
    - a label (`ready-for-agent`) → `gh issue list --state open --label <label> --json number,title`

@@ -34,7 +34,7 @@ Documentation-only changes run two tools: `pnpm format:check` (Prettier, which c
 
 ## CI coverage
 
-The local sequence above corresponds to the workflow's `verify` job; it is not the whole pipeline. CI also builds the server Docker image and runs Playwright in separate `image` and `e2e` jobs. Deployment on `main` waits for all three, then `sync-catalogue` runs `pnpm db:sync` against production ([deployment runbook](../deployment.md)). Report local checks separately from observed CI results; do not claim an unrun gate passed.
+The local sequence above corresponds to the workflow's `verify` job; it is not the whole pipeline. CI also builds the server Docker image and runs Playwright in separate `image` and `e2e` jobs. Deployment on `main` waits for all three, then `sync-catalogue` runs `pnpm db:sync` against production ([deployment runbook](../deployment.md)). Report local checks separately from observed CI results; do not claim an unrun gate passed. Pushes from a cloud session run CI only once the PR exists ([cloud sessions](issue-tracker.md#cloud-sessions)).
 
 ## Node upgrades
 
