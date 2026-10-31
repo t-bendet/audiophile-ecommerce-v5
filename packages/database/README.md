@@ -111,8 +111,10 @@ Run in this workspace, `pnpm exec prisma migrate diff --from-url '<url>' --to-sc
 prints the same plan without applying it.
 
 `pnpm db:indexes:check` (`src/indexes/check-duplicates.ts`) is read-only. For every unique index
-in the schema, it aggregates the groups of documents that share a key and prints their `_id`s.
-A missing field counts as `null`, as it does in the index. It exits 1 when any index is blocked.
+in the schema, it aggregates the groups of documents that share a key. For each group it prints
+the count and the documents' `_id`s, never the key values, so its output is safe in a public CI
+log whatever the index covers. A missing field counts as `null`, as it does in the index. It exits
+1 when any index is blocked.
 It keeps its own list of the schema's unique indexes and fails if that list differs from the schema.
 Add a new `@unique` or `@@unique` to `UNIQUE_INDEXES` in the same change.
 
@@ -120,8 +122,12 @@ Add a new `@unique` or `@@unique` to `UNIQUE_INDEXES` in the same change.
 reaches production: the `sync-catalogue` job runs it after `db:sync` once the
 `SYNC_SCHEMA_INDEXES` repository variable is `true` (see the
 [deployment runbook](../../docs/deployment.md#normal-deployment)). When existing data blocks a new
-unique index, the check fails the job before anything is pushed. Resolve the reported documents,
-for example by merging duplicate cart lines into one, then rerun the job.
+unique index, the check fails the job before anything is pushed. Look up each reported document in
+Atlas Data Explorer with the filter `{ _id: ObjectId("…") }` and resolve the group, for example by
+merging duplicate cart lines into one, then rerun the job. If push itself fails after the check
+passed, because a duplicate was written in between, the job withholds push's output, which would
+include the key value. Rerun `db:indexes:check` to find it. Local `db:indexes` runs show push's
+full output.
 
 By hand, prefix the Atlas connection string as for `db:sync`. The production URL lives only in
 write-only secrets, so use a temporary Atlas database user with read/write access and delete it

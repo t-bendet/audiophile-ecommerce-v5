@@ -101,13 +101,14 @@ const assertListMatchesSchema = () => {
   }
 };
 
-type DuplicateGroup = { _id: unknown; count: number; ids: unknown[] };
+type DuplicateGroup = { count: number; ids: unknown[] };
 type DuplicateReport = {
   total: { groups: number }[];
   sample: DuplicateGroup[];
 };
 
 // A unique index treats a missing field as null, so the grouping does too.
+// The key values never leave the database: the output goes to a public log.
 const findDuplicates = async ({ collection, keys }: UniqueIndex) => {
   const result = await prisma.$runCommandRaw({
     aggregate: collection,
@@ -128,7 +129,13 @@ const findDuplicates = async ({ collection, keys }: UniqueIndex) => {
           total: [{ $count: "groups" }],
           sample: [
             { $limit: SAMPLE_GROUPS },
-            { $project: { count: 1, ids: { $slice: ["$ids", SAMPLE_IDS] } } },
+            {
+              $project: {
+                _id: 0,
+                count: 1,
+                ids: { $slice: ["$ids", SAMPLE_IDS] },
+              },
+            },
           ],
         },
       },
@@ -142,6 +149,11 @@ const findDuplicates = async ({ collection, keys }: UniqueIndex) => {
     sample: report?.sample ?? [],
   };
 };
+
+const formatId = (id: unknown) =>
+  typeof id === "object" && id !== null && "$oid" in id
+    ? String(id.$oid)
+    : JSON.stringify(id);
 
 const checkDuplicates = async () => {
   assertListMatchesSchema();
@@ -157,9 +169,9 @@ const checkDuplicates = async () => {
 
     blocked += 1;
     console.log(`DUPLICATES ${label}: ${groups} duplicated key(s)`);
-    for (const { _id, count, ids } of sample) {
+    for (const { count, ids } of sample) {
       console.log(
-        `  ${JSON.stringify(_id)} x${count}: ${JSON.stringify(ids)}${count > ids.length ? " ..." : ""}`,
+        `  x${count}: ${ids.map(formatId).join(", ")}${count > ids.length ? ", ..." : ""}`,
       );
     }
     if (groups > sample.length)

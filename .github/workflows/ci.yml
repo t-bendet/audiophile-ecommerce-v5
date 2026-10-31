@@ -236,9 +236,18 @@ jobs:
         env:
           SYNC_SCHEMA_INDEXES: ${{ vars.SYNC_SCHEMA_INDEXES }}
 
+      # `pnpm db:indexes`, split so push's output is withheld on failure: an
+      # E11000 message carries the duplicate key value, and this log is public.
       - name: Push the schema's indexes
         if: steps.indexes.outputs.enabled == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: pnpm db:indexes
+        run: |
+          pnpm db:indexes:check
+          if pnpm --filter @repo/database exec prisma db push --skip-generate > "$RUNNER_TEMP/push.log" 2>&1; then
+            cat "$RUNNER_TEMP/push.log"
+          else
+            echo "::error::prisma db push failed after the duplicate check passed; its output is withheld because it can contain key values. Rerun pnpm db:indexes:check, resolve what it reports, then rerun this job."
+            exit 1
+          fi
         timeout-minutes: 10

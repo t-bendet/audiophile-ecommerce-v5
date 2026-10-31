@@ -78,7 +78,9 @@ for manual publication or schema-shape changes. `db:seed` and `db:reset` are loc
 The same job then runs `pnpm db:indexes` when `SYNC_SCHEMA_INDEXES` is `true`, and warns and skips
 otherwise. It checks for duplicates read-only and pushes only if none are found. The push then
 creates every schema index Atlas lacks and drops every index the schema does not declare. It changes
-no documents. A failed check names the duplicate documents; resolve them and rerun the job. A
+no documents. A failed check lists the duplicate documents by `_id` only, and a failed push's own
+output is withheld, so the job log never carries key values. Resolve the documents and rerun the
+job. A
 schema index change reaches production this way, after the deploy that ships it. See
 [indexes](../packages/database/README.md#indexes) before adding a unique index or creating one by
 hand in Atlas.
