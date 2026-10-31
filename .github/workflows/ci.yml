@@ -175,6 +175,7 @@ jobs:
 
   # The catalogue the repo owns, onto Atlas, once the new server is live. Every
   # write is an upsert on a unique key: no drop, no delete, no user touched.
+  # The index push that follows changes indexes only, never documents.
   sync-catalogue:
     name: Sync catalogue
     if: github.event_name == 'push'
@@ -217,4 +218,36 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm db:generate && pnpm db:sync
+        timeout-minutes: 10
+
+      # `db:indexes` refuses to push while duplicates exist. The variable opts
+      # in once Atlas has none, because push builds indexes one by one and
+      # stops at the first failure.
+      - name: Check the schema index opt-in
+        id: indexes
+        if: steps.secret.outputs.present == 'true'
+        run: |
+          if [ "$SYNC_SCHEMA_INDEXES" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::SYNC_SCHEMA_INDEXES is not true; skipping the schema index push."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          SYNC_SCHEMA_INDEXES: ${{ vars.SYNC_SCHEMA_INDEXES }}
+
+      # `pnpm db:indexes`, split so push's output is withheld on failure: an
+      # E11000 message carries the duplicate key value, and this log is public.
+      - name: Push the schema's indexes
+        if: steps.indexes.outputs.enabled == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pnpm db:indexes:check
+          if pnpm --filter @repo/database exec prisma db push --skip-generate > "$RUNNER_TEMP/push.log" 2>&1; then
+            cat "$RUNNER_TEMP/push.log"
+          else
+            echo "::error::prisma db push failed after the duplicate check passed; its output is withheld because it can contain key values. Rerun pnpm db:indexes:check, resolve what it reports, then rerun this job."
+            exit 1
+          fi
         timeout-minutes: 10

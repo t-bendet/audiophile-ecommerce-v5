@@ -32,6 +32,8 @@
     "db:push": "prisma db push",
     "db:seed": "tsx src/seed/index.ts",
     "db:sync": "tsx src/seed/sync.ts",
+    "db:indexes:check": "tsx src/indexes/check-duplicates.ts",
+    "db:indexes": "pnpm db:indexes:check && prisma db push --skip-generate",
     "db:deploy": "pnpm db:push && pnpm db:generate",
     "db:setup": "pnpm db:push && pnpm db:generate && pnpm db:seed",
     "db:reset": "pnpm db:push --force-reset && pnpm db:generate && pnpm db:seed",
