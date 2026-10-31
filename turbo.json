@@ -57,6 +57,14 @@
       "cache": false,
       "env": ["DATABASE_URL"]
     },
+    "db:indexes:check": {
+      "cache": false,
+      "env": ["DATABASE_URL"]
+    },
+    "db:indexes": {
+      "cache": false,
+      "env": ["DATABASE_URL"]
+    },
     "db:deploy": {
       "cache": false,
       "env": ["DATABASE_URL"]

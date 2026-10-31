@@ -175,6 +175,7 @@ jobs:
 
   # The catalogue the repo owns, onto Atlas, once the new server is live. Every
   # write is an upsert on a unique key: no drop, no delete, no user touched.
+  # The index push that follows changes indexes only, never documents.
   sync-catalogue:
     name: Sync catalogue
     if: github.event_name == 'push'
@@ -217,4 +218,27 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm db:generate && pnpm db:sync
+        timeout-minutes: 10
+
+      # `db:indexes` refuses to push while duplicates exist. The variable opts
+      # in once Atlas has none, because push builds indexes one by one and
+      # stops at the first failure.
+      - name: Check the schema index opt-in
+        id: indexes
+        if: steps.secret.outputs.present == 'true'
+        run: |
+          if [ "$SYNC_SCHEMA_INDEXES" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::SYNC_SCHEMA_INDEXES is not true; skipping the schema index push."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          SYNC_SCHEMA_INDEXES: ${{ vars.SYNC_SCHEMA_INDEXES }}
+
+      - name: Push the schema's indexes
+        if: steps.indexes.outputs.enabled == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pnpm db:indexes
         timeout-minutes: 10
