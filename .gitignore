@@ -64,3 +64,6 @@ apps/e2e/blob-report
 # wrangler local secrets and generated runtime types
 .dev.vars
 worker-configuration.d.ts
+
+# Understand-Anything data directory 
+.ua/
