@@ -11,6 +11,11 @@ export const NameValidator = (identifier: string = "Document") =>
     .min(2)
     .max(30);
 
+export const UserNameValidator = z
+  .string({ message: "User Name is required" })
+  .min(2)
+  .max(100);
+
 export const LabelValidator = (identifier: string = "Document") =>
   z
     .string({ message: `${identifier} Label is required` })

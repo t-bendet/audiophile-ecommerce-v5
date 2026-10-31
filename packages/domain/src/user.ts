@@ -12,8 +12,8 @@ import {
 import {
   EmailValidator,
   IdValidator,
-  NameValidator,
   PasswordValidator,
+  UserNameValidator,
 } from "./shared.js";
 
 // * ===== Database Type Re-exports (Service Generics )=====
@@ -53,7 +53,7 @@ export const UserUpdateMeRequestSchema = createRequestSchema({
   params: z.object({}).strict(),
   body: z
     .object({
-      name: NameValidator("User").optional(),
+      name: UserNameValidator.optional(),
       email: EmailValidator.optional(),
     })
     .strict() satisfies z.ZodType<UserSelfUpdateInput>,
@@ -93,7 +93,7 @@ export const UserGetAllRequestSchema = createRequestSchema({
 export const UserCreateRequestSchema = createRequestSchema({
   body: z
     .object({
-      name: NameValidator("User"),
+      name: UserNameValidator,
       email: EmailValidator,
       password: PasswordValidator(),
       passwordConfirm: PasswordValidator("Password confirm"),
@@ -119,7 +119,7 @@ export const UserUpdateByIdRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("User") }).strict(),
   body: z
     .object({
-      name: NameValidator("User"),
+      name: UserNameValidator,
       email: EmailValidator.optional(),
       role: z.enum(ROLE).optional(),
       active: z.boolean().optional(),
@@ -138,7 +138,7 @@ export const UserDeleteByIdRequestSchema = createRequestSchema({
 export const UserDTOSchema = z
   .object({
     id: IdValidator("User"),
-    name: NameValidator("User"),
+    name: UserNameValidator,
     email: EmailValidator,
     role: z.enum(ROLE),
     emailVerified: z.boolean(),

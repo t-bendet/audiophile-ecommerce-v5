@@ -5,7 +5,11 @@ import {
   SingleItemResponse,
   SingleItemResponseSchema,
 } from "./common.js";
-import { EmailValidator, NameValidator, PasswordValidator } from "./shared.js";
+import {
+  EmailValidator,
+  PasswordValidator,
+  UserNameValidator,
+} from "./shared.js";
 import { UserDTO, UserDTOSchema } from "./user.js";
 
 // * ===== RequestSchemas =====
@@ -13,7 +17,7 @@ import { UserDTO, UserDTOSchema } from "./user.js";
 export const AuthSignUpRequestSchema = z.object({
   body: z
     .object({
-      name: NameValidator("User"),
+      name: UserNameValidator,
       email: EmailValidator,
       password: PasswordValidator(),
       passwordConfirm: PasswordValidator("Password confirm"),
