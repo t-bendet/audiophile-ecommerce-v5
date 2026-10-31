@@ -8,7 +8,7 @@ import {
 } from "@/components/layouts/root-layout";
 import { paths } from "@/config/paths";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
-import { ComponentType, useMemo } from "react";
+import { ComponentType } from "react";
 import {
   ActionFunction,
   createBrowserRouter,
@@ -138,10 +138,13 @@ const createAppRouter = (queryClient: QueryClient) =>
     },
   ]);
 
+// Created on first render: StrictMode re-runs useMemo, and loaders need <InitializeEnv /> first.
+let router: ReturnType<typeof createAppRouter> | undefined;
+
 export const AppRouter = () => {
   const queryClient = useQueryClient();
 
-  const router = useMemo(() => createAppRouter(queryClient), [queryClient]);
+  router ??= createAppRouter(queryClient);
 
   return <RouterProvider router={router} />;
 };
