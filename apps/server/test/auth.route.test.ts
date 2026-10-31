@@ -46,6 +46,38 @@ describe("POST /api/v1/auth/signup", () => {
     expect(res.body.error.code).toBe(ErrorCode.DUPLICATE_ENTRY);
   });
 
+  it("lets two shoppers sign up with the same name", async () => {
+    const first = await request(app)
+      .post("/api/v1/auth/signup")
+      .send(signupBody);
+    const second = await request(app)
+      .post("/api/v1/auth/signup")
+      .send({ ...signupBody, email: "ada.two@example.com" });
+
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(201);
+  });
+
+  it("accepts a 100-character name", async () => {
+    const res = await request(app)
+      .post("/api/v1/auth/signup")
+      .send({ ...signupBody, name: "a".repeat(100) });
+
+    expect(res.status).toBe(201);
+  });
+
+  it("rejects a 101-character name", async () => {
+    const res = await request(app)
+      .post("/api/v1/auth/signup")
+      .send({ ...signupBody, name: "a".repeat(101) });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.VALIDATION_ERROR,
+      details: [{ path: ["body", "name"] }],
+    });
+  });
+
   it("rejects a passwordConfirm that does not match", async () => {
     const res = await request(app)
       .post("/api/v1/auth/signup")

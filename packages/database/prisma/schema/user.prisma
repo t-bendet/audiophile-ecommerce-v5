@@ -1,6 +1,6 @@
 model User {
   id                   String    @id @default(auto()) @map("_id") @db.ObjectId
-  name                 String    @unique(map: "name_1")
+  name                 String
   email                String    @unique(map: "email_1")
   role                 ROLE      @default(USER)
   password             String
