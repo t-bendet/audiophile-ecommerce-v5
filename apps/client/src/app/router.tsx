@@ -140,6 +140,7 @@ const createAppRouter = (queryClient: QueryClient) =>
 
 // Created on first render: StrictMode re-runs useMemo, and loaders need <InitializeEnv /> first.
 let router: ReturnType<typeof createAppRouter> | undefined;
+import.meta.hot?.dispose(() => router?.dispose());
 
 export const AppRouter = () => {
   const queryClient = useQueryClient();
