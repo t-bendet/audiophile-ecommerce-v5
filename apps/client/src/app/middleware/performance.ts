@@ -1,8 +1,7 @@
 import type { MiddlewareFunction } from "react-router";
 
 export const performanceMiddleware: MiddlewareFunction = async (
-  // scaffold for future use
-  _context,
+  _args,
   next,
 ) => {
   const start = performance.now();
