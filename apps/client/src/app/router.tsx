@@ -172,6 +172,30 @@ const createAppRouter = (queryClient: QueryClient) =>
               path: paths.admin.user.path,
               errorElement: <RouteErrorBoundary />,
             },
+            {
+              lazy: () =>
+                import("@/features/admin/products/routes/products-list").then(
+                  convert(queryClient),
+                ),
+              path: paths.admin.products.path,
+              errorElement: <RouteErrorBoundary />,
+            },
+            {
+              lazy: () =>
+                import("@/features/admin/products/routes/product-edit").then(
+                  convert(queryClient),
+                ),
+              path: paths.admin.product.path,
+              errorElement: <RouteErrorBoundary />,
+            },
+            {
+              lazy: () =>
+                import("@/features/admin/homepage/routes/homepage").then(
+                  convert(queryClient),
+                ),
+              path: paths.admin.homepage.path,
+              errorElement: <RouteErrorBoundary />,
+            },
           ],
         },
         {

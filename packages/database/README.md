@@ -45,7 +45,8 @@ which takes arguments and runs in this workspace.
 | `pnpm db:generate`                                           | regenerate the Prisma client                | after any schema change                              |
 | `pnpm db:push`                                               | push the schema to `DATABASE_URL`           | after a schema change, local only                    |
 | `pnpm db:seed`                                               | **drop** the database, then create all      | local only; see below                                |
-| `pnpm db:sync`                                               | upsert the catalogue, preserve user data    | production publication; see below                    |
+| `pnpm db:sync`                                               | create missing catalogue documents only     | production publication; see below                    |
+| `pnpm db:sync -- --overwrite`                                | rewrite existing catalogue documents too    | by hand, for a field-shape change; see below         |
 | `pnpm --filter @repo/database db:role <email> <ADMIN\|USER>` | set one user's role                         | the first admin on production; see [Roles](#roles)   |
 | `pnpm db:indexes:check`                                      | report duplicates blocking a unique index   | read-only, safe on Atlas; see below                  |
 | `pnpm db:indexes`                                            | the check, then `prisma db push`            | production index changes; see below                  |
@@ -67,30 +68,45 @@ and order, and because every product is re-created with a fresh `_id`, it also d
 `productId` in any order that survived.
 
 `pnpm db:sync` (`src/seed/sync.ts`, logic in `src/seed/catalogue-sync.ts`) writes only what the
-repo owns, 3 categories, 6 products and 1 config, as upserts on the unique keys those models
-already carry (`Category.name`, `Product.slug`, `Config.name`). A document keeps its `_id`, so
-carts and order history keep resolving; nothing is deleted, so a product dropped from the repo is
-left in place rather than cascading away cart items; no user is touched. Running it twice changes
-nothing, which is what makes it safe to attach to a deploy.
+repo owns, 3 categories, 6 products and 1 config, keyed on the unique keys those models already
+carry (`Category.name`, `Product.slug`, `Config.name`). By default it is insert-only: a document
+whose key is missing is created, and one that exists is left exactly as it is, including the
+config's four slot ids. That is what lets the admin dashboard edit products and the homepage at
+runtime without the next deploy undoing the edits: the repo publishes the first version of the
+catalogue and the database owns it afterwards
+([ADR 0007](../../docs/adr/0007-the-database-owns-the-catalogue-after-first-publish.md)). A
+document keeps its `_id`, so carts and order history keep resolving; nothing is deleted, so a
+product dropped from the repo is left in place rather than cascading away cart items; no user is
+touched. Running it twice changes nothing, which is what makes it safe to attach to a deploy.
 
-Use it to publish catalogue changes, including changes to catalogue field shapes. It does not
-migrate user, cart or order data, or create indexes (see [Indexes](#indexes)):
+`pnpm db:sync -- --overwrite` restores the full upsert: every field of an existing category,
+product and config is rewritten from the repo's copy, which also resets every admin edit on those
+documents. Use it by hand, never from CI, to publish a change to the shape of an existing
+catalogue document (a new product field, say) after shipping a reader that accepts both shapes;
+a one-off migration script is the alternative when the admin edits must survive. The script
+accepts no other option and exits without writing on an unknown one.
+
+Use the default to publish a new category, product or config and to give a fresh environment its
+first catalogue. Neither mode migrates user, cart or order data, or creates indexes (see
+[Indexes](#indexes)):
 
 ```bash
 DATABASE_URL='mongodb+srv://...' pnpm db:sync
+DATABASE_URL='mongodb+srv://...' pnpm db:sync -- --overwrite
 ```
 
 `dotenv` never overrides an already-set variable, so the prefix wins over this workspace's `.env`
 and no production credential has to be written to a file.
 
-CI runs it for you: the `sync-catalogue` job in `.github/workflows/ci.yml` needs `deploy` and runs
-`db:sync` against the `DATABASE_URL` repository secret. Without that secret the job logs a warning
-and skips, so the catalogue simply stays a manual step rather than failing a good deploy.
+CI runs the default for you: the `sync-catalogue` job in `.github/workflows/ci.yml` needs `deploy`
+and runs `db:sync` without the flag against the `DATABASE_URL` repository secret, so a deploy can
+only add to the catalogue. Without that secret the job logs a warning and skips, so the catalogue
+simply stays a manual step rather than failing a good deploy.
 
 A breaking shape change can leave new code unable to read old rows, or a reverted reader unable
 to read synced rows. Deployment precedes sync, so compatibility matters during that interval.
-Avoid the gap by shipping a reader that accepts both shapes, syncing, then removing the old
-branch. A successful code rollback does not reverse persisted data. See the
+Avoid the gap by shipping a reader that accepts both shapes, running `db:sync -- --overwrite` by
+hand, then removing the old branch. A successful code rollback does not reverse persisted data. See the
 [deployment runbook](../../docs/deployment.md) for the pipeline and recovery path.
 
 ## Roles

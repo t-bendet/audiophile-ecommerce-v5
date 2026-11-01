@@ -268,6 +268,30 @@ describe("PATCH /api/v1/products/:id", () => {
     });
   });
 
+  it("changes the price and the category", async () => {
+    const admin = await createAdmin();
+    const product = await createProduct({ price: 1000 });
+    const speakers = await createCategory("Speakers");
+
+    const res = await request(app)
+      .patch(`/api/v1/products/${product.id}`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ price: 129900, categoryId: speakers.id });
+
+    expect(res.status, JSON.stringify(res.body)).toBe(200);
+    expect(res.body.data).toMatchObject({
+      id: product.id,
+      price: 129900,
+      categoryId: speakers.id,
+    });
+
+    const shown = await request(app).get(`/api/v1/products/${product.id}`);
+    expect(shown.body.data).toMatchObject({
+      price: 129900,
+      categoryId: speakers.id,
+    });
+  });
+
   it("leaves the slug alone when the name changes", async () => {
     const admin = await createAdmin();
     const product = await createProduct({ slug: "xx99-mark-one" });

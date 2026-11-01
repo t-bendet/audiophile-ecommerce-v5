@@ -159,6 +159,9 @@ export const createProduct = async (
     price?: number;
     slug?: string;
     featuredImageText?: string;
+    /** `null` leaves the slot's image out, as a product the homepage cannot feature. */
+    featuredImage?: ResponsiveImage | null;
+    showCaseImage?: ResponsiveImage | null;
   } = {},
 ) => {
   const categoryId = overrides.categoryId ?? (await sharedCategoryId());
@@ -183,8 +186,14 @@ export const createProduct = async (
         introImage: responsiveImage(label, "intro"),
         primaryImage: responsiveImage(label, "primary"),
         relatedProductImage: responsiveImage(label, "related"),
-        featuredImage: responsiveImage(label, "featured"),
-        showCaseImage: responsiveImage(label, "showcase"),
+        featuredImage:
+          overrides.featuredImage === undefined
+            ? responsiveImage(label, "featured")
+            : overrides.featuredImage,
+        showCaseImage:
+          overrides.showCaseImage === undefined
+            ? responsiveImage(label, "showcase")
+            : overrides.showCaseImage,
         thumbnail: thumbnail(label),
       },
     },

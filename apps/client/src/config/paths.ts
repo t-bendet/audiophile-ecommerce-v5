@@ -92,6 +92,18 @@ export const paths = {
       path: "/admin/users/:userId",
       getHref: (userId: string) => `/admin/users/${userId}`,
     },
+    products: {
+      path: "/admin/products",
+      getHref: () => "/admin/products",
+    },
+    product: {
+      path: "/admin/products/:productId",
+      getHref: (productId: string) => `/admin/products/${productId}`,
+    },
+    homepage: {
+      path: "/admin/homepage",
+      getHref: () => "/admin/homepage",
+    },
   },
 } as const;
 

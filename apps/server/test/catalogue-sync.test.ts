@@ -8,8 +8,9 @@ import {
 } from "./helpers/database.js";
 
 // `db:sync` writes to production, so what keeps it safe is pinned here: it
-// upserts on existing unique keys, so nothing it touches changes `_id`, and a
-// cart or order pointing at a product keeps resolving.
+// keys on existing unique keys, so nothing it touches changes `_id`, a cart or
+// order pointing at a product keeps resolving, and an existing document is
+// left alone unless `overwrite` is asked for (ADR 0007).
 
 const catalogueIds = async () => ({
   categories: await prisma.category.findMany({
@@ -110,8 +111,72 @@ describe("syncCatalogue", () => {
     expect(await prisma.user.count()).toBe(1);
   });
 
-  it("corrects a drifted catalogue field in place", async () => {
-    const before = await prisma.category.findUniqueOrThrow({
+  // ADR 0007: once published, the database owns the catalogue. An admin's
+  // edit survives every deploy's sync; only a hand-run `--overwrite` resets it.
+  it("keeps an edited product as it is on a default sync", async () => {
+    const before = await prisma.product.findUniqueOrThrow({
+      where: { slug: "zx9-speaker" },
+    });
+    await prisma.product.update({
+      where: { slug: "zx9-speaker" },
+      data: { price: before.price + 1, name: "ZX9 edited" },
+    });
+
+    await syncCatalogue();
+
+    const after = await prisma.product.findUniqueOrThrow({
+      where: { slug: "zx9-speaker" },
+    });
+    expect(after.id).toBe(before.id);
+    expect(after.price).toBe(before.price + 1);
+    expect(after.name).toBe("ZX9 edited");
+  });
+
+  it("creates a product whose slug is missing", async () => {
+    // A product no config slot points at, so it can be deleted.
+    const removed = await prisma.product.findUniqueOrThrow({
+      where: { slug: "xx59-headphones" },
+    });
+    await prisma.product.delete({ where: { id: removed.id } });
+
+    await syncCatalogue();
+
+    const restored = await prisma.product.findUnique({
+      where: { slug: "xx59-headphones" },
+    });
+    expect(restored).not.toBeNull();
+    expect(restored?.id).not.toBe(removed.id);
+    expect(await prisma.product.count()).toBe(6);
+  });
+
+  it("keeps the config's slot ids on a default sync", async () => {
+    const config = await prisma.config.findFirstOrThrow();
+    const other = await prisma.product.findUniqueOrThrow({
+      where: { slug: "zx7-speaker" },
+    });
+    await prisma.config.update({
+      where: { id: config.id },
+      data: { featuredProductId: other.id },
+    });
+
+    await syncCatalogue();
+
+    const after = await prisma.config.findUniqueOrThrow({
+      where: { id: config.id },
+    });
+    expect(after.featuredProductId).toBe(other.id);
+    expect(await prisma.config.count()).toBe(1);
+  });
+
+  it("resets an edit with overwrite, keeping the id", async () => {
+    const before = await prisma.product.findUniqueOrThrow({
+      where: { slug: "zx9-speaker" },
+    });
+    await prisma.product.update({
+      where: { slug: "zx9-speaker" },
+      data: { price: before.price + 1 },
+    });
+    const beforeCategory = await prisma.category.findUniqueOrThrow({
       where: { name: "Speakers" },
     });
     await prisma.category.update({
@@ -128,13 +193,18 @@ describe("syncCatalogue", () => {
       },
     });
 
-    await syncCatalogue();
+    await syncCatalogue({ overwrite: true });
 
-    const after = await prisma.category.findUniqueOrThrow({
-      where: { name: "Speakers" },
+    const after = await prisma.product.findUniqueOrThrow({
+      where: { slug: "zx9-speaker" },
     });
     expect(after.id).toBe(before.id);
-    expect(after.thumbnail).toEqual(before.thumbnail);
+    expect(after.price).toBe(before.price);
+    const afterCategory = await prisma.category.findUniqueOrThrow({
+      where: { name: "Speakers" },
+    });
+    expect(afterCategory.id).toBe(beforeCategory.id);
+    expect(afterCategory.thumbnail).toEqual(beforeCategory.thumbnail);
   });
 
   it("keeps a product the repo no longer lists, rather than deleting it", async () => {
