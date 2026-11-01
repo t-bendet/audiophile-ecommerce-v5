@@ -125,9 +125,9 @@ root's:
   lands on the page they asked for. Checkout and the account group use it.
 - `requireRole(role)` throws a 404 response for a signed-in user whose role differs; the
   matching role passes through. List it after `requireAuth`, since alone it answers a guest with
-  not-found as well. Nothing uses it yet; the admin dashboard (#322) is its first consumer. The
-  API keeps answering a role mismatch with 403 ([ADR 0001](../../docs/adr/0001-ownership-failures-return-403.md)); the client hides the route instead, so a shopper
-  never learns an admin page exists.
+  not-found as well. Nothing uses it yet; the admin dashboard (#322) is its first consumer.
+  [ADR 0008](../../docs/adr/0008-a-route-the-role-cannot-reach-is-not-found.md) records why a
+  role mismatch is not found on the client while the API answers 403.
 
 A guarded group needs its own `errorElement`. React Router bubbles an error thrown before
 `next()` to the shallowest route that is loading in that navigation: the group's boundary on a
