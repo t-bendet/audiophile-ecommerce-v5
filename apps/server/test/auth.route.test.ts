@@ -44,6 +44,16 @@ describe("POST /api/v1/auth/signup", () => {
 
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe(ErrorCode.DUPLICATE_ENTRY);
+    expect(res.body.error.message).toBe(
+      "An account with this email already exists.",
+    );
+    expect(res.body.error.details).toEqual([
+      {
+        code: "duplicate",
+        message: "An account with this email already exists.",
+        path: ["body", "email"],
+      },
+    ]);
   });
 
   it("lets two shoppers sign up with the same name", async () => {

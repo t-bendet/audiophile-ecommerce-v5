@@ -72,17 +72,20 @@ shared body schema and show local field validation errors inline. Their mutation
 [`applyServerErrors`](src/lib/errors/form-errors.ts), the only reader of
 `AppError.details`, and shows a destructive toast only when it returns a message:
 
-| Mutation failure                                           | Feedback                                                                                     |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `VALIDATION_ERROR`, every detail names a registered field  | The server message under each field, focus on the first in render order, no toast            |
-| `VALIDATION_ERROR` with an unmatched detail or no details  | Matched details still inline; the toast says "We couldn't accept this form. Please refresh…" |
-| Any other code (`INVALID_CREDENTIALS`, `CART_EMPTY`, 5xx…) | The toast shows the normalized error's message                                               |
+| Mutation failure                                          | Feedback                                                                                     |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Any code, every detail names a registered field           | The server message under each field, focus on the first in render order, no toast            |
+| `VALIDATION_ERROR` with an unmatched detail or no details | Matched details still inline; the toast says "We couldn't accept this form. Please refresh…" |
+| Any other code with an unmatched detail or no details     | Matched details still inline; the toast shows the normalized error's message                 |
 
 A detail matches when its `path` starts with `"body"` and the rest, joined with `"."`, is a
-registered field name such as `shippingAddress.zipCode`. Unmatched messages are written for
-developers and never shown. Server field errors use the `onSubmit` error key, so editing
-the field clears them like a client error. Route and feature boundaries never see mutation
-errors. The decision is recorded in
+registered field name such as `shippingAddress.zipCode`. Details are mapped for any error code,
+not only `VALIDATION_ERROR`: a taken email at signup is a `DUPLICATE_ENTRY` with a detail at
+`["body", "email"]`, so it shows under the email field. Unmatched validation messages are written
+for developers and never shown; every other code's message is written for shoppers and is the
+toast fallback. Server field errors use the `onSubmit` error key, so editing the field clears
+them like a client error. Route and feature boundaries never see mutation errors. The decision is
+recorded in
 [ADR 0006](../../docs/adr/0006-server-validation-errors-belong-to-the-form.md). There is no
 global rule that all 4xx responses appear inline or all 5xx responses produce a toast.
 

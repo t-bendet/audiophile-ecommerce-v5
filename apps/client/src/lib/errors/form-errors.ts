@@ -9,17 +9,23 @@ const toFieldName = (path: ErrorDetail["path"]): string | undefined => {
   return path.slice(1).join(".");
 };
 
-/** Puts server validation errors on their fields; returns the toast message, if any. */
+// Validation messages are written for developers; every other code's message is for shoppers.
+const unmatchedMessage = (error: AppError): string =>
+  error.code === ErrorCode.VALIDATION_ERROR
+    ? UNMATCHED_SERVER_ERROR_MESSAGE
+    : error.message;
+
+/** Puts server field errors on their fields; returns the toast message, if any. */
 export function applyServerErrors(
   form: AnyFormApi,
   error: AppError,
 ): string | undefined {
-  if (error.code !== ErrorCode.VALIDATION_ERROR) return error.message;
+  const details = error.details ?? [];
+  if (details.length === 0) return unmatchedMessage(error);
 
   const fieldNames = Object.keys(form.fieldInfo);
   const fields: Record<string, { message: string }[]> = {};
-  const details = error.details ?? [];
-  let hasUnmatched = details.length === 0;
+  let hasUnmatched = false;
 
   for (const detail of details) {
     const name = toFieldName(detail.path);
@@ -35,5 +41,5 @@ export function applyServerErrors(
   const firstMatched = fieldNames.find((name) => name in fields);
   if (firstMatched) document.getElementById(firstMatched)?.focus();
 
-  return hasUnmatched ? UNMATCHED_SERVER_ERROR_MESSAGE : undefined;
+  return hasUnmatched ? unmatchedMessage(error) : undefined;
 }
