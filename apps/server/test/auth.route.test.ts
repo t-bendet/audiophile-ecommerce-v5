@@ -129,6 +129,32 @@ describe("POST /api/v1/auth/login", () => {
     });
   });
 
+  it("tells a deactivated account with the right password that it is deactivated", async () => {
+    const user = await createUser({ email: "gone@example.com", active: false });
+
+    const res = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: user.email, password: TEST_PASSWORD });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.ACCOUNT_DEACTIVATED,
+      message: "This account has been deactivated.",
+    });
+    expect(res.headers["set-cookie"]).toBeUndefined();
+  });
+
+  it("keeps the generic answer for a wrong password on a deactivated account", async () => {
+    const user = await createUser({ email: "gone@example.com", active: false });
+
+    const res = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: user.email, password: "wrong-password" });
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe(ErrorCode.INVALID_CREDENTIALS);
+  });
+
   // Twelve is past `loginLimiter`'s quota of 10 failures.
   it("never answers a burst past the login quota with a 429", async () => {
     const user = await createUser({ email: "margaret@example.com" });
@@ -229,9 +255,31 @@ describe("GET /api/v1/auth/status", () => {
     expect(res.status).toBe(200);
     expect(res.body.data).toEqual({ isAuthenticated: false });
   });
+
+  it("reports a deactivated account as not authenticated", async () => {
+    const user = await createUser({ active: false });
+
+    const res = await request(app)
+      .get("/api/v1/auth/status")
+      .set("Cookie", authCookie(user.id));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({ isAuthenticated: false });
+  });
 });
 
 describe("protected routes still reject a dead cookie", () => {
+  it("returns ACCOUNT_DEACTIVATED for a deactivated account's live token", async () => {
+    const user = await createUser({ active: false });
+
+    const res = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", authCookie(user.id));
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe(ErrorCode.ACCOUNT_DEACTIVATED);
+  });
+
   it("returns TOKEN_EXPIRED for an expired token", async () => {
     const user = await createUser();
 

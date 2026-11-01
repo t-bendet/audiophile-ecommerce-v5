@@ -19,6 +19,14 @@ describe("admin sections", () => {
     ).toBe("Orders");
   });
 
+  it("puts Users second and keeps it active on a user's detail page", () => {
+    expect(ADMIN_SECTIONS[1]?.label).toBe("Users");
+    expect(activeAdminSection("/admin/users")?.label).toBe("Users");
+    expect(
+      activeAdminSection("/admin/users/0123456789abcdef01234567")?.label,
+    ).toBe("Users");
+  });
+
   it("keeps every section under the guarded group", () => {
     for (const section of ADMIN_SECTIONS) {
       expect(section.href).toMatch(/^\/admin(\/|$)/);

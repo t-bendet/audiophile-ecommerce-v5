@@ -4,6 +4,7 @@ import { paths } from "@/config/paths";
 import {
   isAuthError,
   isCriticalError,
+  isDeactivatedError,
   isNotFoundResponse,
   normalizeError,
 } from "@/lib/errors/errors";
@@ -36,6 +37,9 @@ export function RouteErrorBoundary() {
     // A dead session cannot be retried; only signing in again fixes it.
     if (isAuthError(normalizedError)) {
       return <RedirectToLogin />;
+    }
+    if (isDeactivatedError(normalizedError)) {
+      return <RedirectToLogin reason="deactivated" />;
     }
 
     statusCode = normalizedError.statusCode;

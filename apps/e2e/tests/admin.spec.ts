@@ -77,6 +77,68 @@ test.describe("an admin", () => {
     await expect(rows.last()).toContainText("Processing");
     await expect(rows.last()).toContainText("Paid");
   });
+
+  test("deactivates a fresh shopper and reactivates them", async ({
+    page,
+    browser,
+    baseURL,
+    placeOrderAsFreshShopper,
+  }) => {
+    const { shopper } = await placeOrderAsFreshShopper();
+
+    await page.goto("/admin/users");
+    const filters = page.getByRole("form", { name: "Filter users" });
+    await filters.getByLabel("Search").fill(shopper.email);
+    await filters.getByRole("button", { name: "Apply" }).click();
+
+    await expect(page).toHaveURL(/search=/);
+    const rows = page.getByRole("table").getByRole("row");
+    await expect(rows).toHaveCount(2);
+    await expect(rows.last()).toContainText(shopper.email);
+    await rows.last().getByRole("link").click();
+
+    await expect(page).toHaveURL(/\/admin\/users\/[0-9a-f]{24}$/);
+    const account = page.getByRole("region", { name: "Account" });
+    await expect(account.getByText("Active", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Orders (1)" }).getByRole("link"),
+    ).toHaveCount(1);
+
+    await account.getByRole("button", { name: "Deactivate account" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Deactivate", exact: true })
+      .click();
+    await expect(account.getByText("Deactivated")).toBeVisible();
+
+    // The shopper, in a browser of their own, is told why they cannot sign in.
+    const shopperContext = await browser.newContext({ baseURL });
+    const shopperPage = await shopperContext.newPage();
+    const signIn = async () => {
+      await shopperPage.goto("/auth/login");
+      await shopperPage.getByLabel("Email").fill(shopper.email);
+      await shopperPage
+        .getByLabel("Password", { exact: true })
+        .fill(shopper.password);
+      await shopperPage.getByRole("button", { name: "Login" }).click();
+    };
+    await signIn();
+    await expect(shopperPage.getByRole("alert")).toHaveText(
+      "This account has been deactivated.",
+    );
+    await expect(shopperPage).toHaveURL("/auth/login");
+
+    await account.getByRole("button", { name: "Reactivate account" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Reactivate", exact: true })
+      .click();
+    await expect(account.getByText("Active", { exact: true })).toBeVisible();
+
+    await signIn();
+    await expect(shopperPage).toHaveURL(/\/account/);
+    await shopperContext.close();
+  });
 });
 
 test.describe("a shopper", () => {

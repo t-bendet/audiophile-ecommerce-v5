@@ -115,6 +115,14 @@ export function isAuthError(error: AppError): boolean {
 }
 
 /**
+ * The account behind the session was deactivated: the session is over like an
+ * auth error, but the person is told why on the login page.
+ */
+export function isDeactivatedError(error: AppError): boolean {
+  return error.code === ErrorCode.ACCOUNT_DEACTIVATED;
+}
+
+/**
  * Normalizes any error into an AppError. This is the central function
  * to process all errors in the client application.
  *

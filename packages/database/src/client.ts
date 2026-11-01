@@ -24,7 +24,7 @@ const passwordToHash = (
 // Create base client
 const baseClient = new PrismaClient({
   omit: {
-    user: { password: true, passwordConfirm: true, active: true },
+    user: { password: true, passwordConfirm: true },
   },
 });
 
@@ -37,28 +37,6 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
   name: "userExtensions",
   query: {
     user: {
-      $allOperations({ operation, args, query }) {
-        const findMethods = [
-          "findFirst",
-          "findMany",
-          "findFirstOrThrow",
-          "aggregate",
-          "findUniqueOrThrow",
-          "findUnique",
-        ] as const;
-        // `where` is absent from the create and upsert members of this union.
-        if (
-          (findMethods as readonly string[]).includes(operation) &&
-          "where" in args &&
-          args.where
-        ) {
-          return query({
-            ...args,
-            where: { ...args.where, active: { not: false } },
-          });
-        }
-        return query(args);
-      },
       // ** user input should be validated before this functions are called
       async create({ args, query }) {
         const hashedPassword = await hashPassword(args.data.password);
@@ -80,7 +58,6 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
         }
         return query(args);
       },
-      // *  soft delete all find methods will not return users marked as not active
     },
   },
   model: {

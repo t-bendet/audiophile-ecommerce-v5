@@ -169,7 +169,9 @@ to login and back, a guest cart surviving sign-in, a checkout that creates an or
 account orders, the not-found page, the admin shell (the account menu's Admin item and `/admin` for
 the admin, not-found there for a shopper, the login redirect and return for a guest), admin order
 fulfilment (a fresh shopper's order found by email, moved to Processing and marked Paid, after which
-the select no longer offers Pending), and the crawler surface: a product page's JSON-LD, the robots
+the select no longer offers Pending), admin user management (a fresh shopper found by email,
+deactivated, told so by the login form in a browser context of their own, reactivated and signed
+in), and the crawler surface: a product page's JSON-LD, the robots
 file and the sitemap the preview proxies to the server.
 
 The order flow is the one that writes, so `order.spec.ts` signs up its own shopper and asserts the

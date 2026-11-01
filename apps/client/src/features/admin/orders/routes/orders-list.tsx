@@ -5,7 +5,7 @@ import { paths } from "@/config/paths";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Link, LoaderFunctionArgs, useSearchParams } from "react-router";
 import { adminOrdersQueryOptions } from "../api/get-admin-orders";
-import { ListPagination } from "../components/list-pagination";
+import { ListPagination } from "../../components/list-pagination";
 import { OrdersFilters } from "../components/orders-filters";
 import { OrdersTable } from "../components/orders-table";
 import {

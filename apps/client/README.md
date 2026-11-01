@@ -55,6 +55,10 @@ internal error rather than necessarily preserving the HTTP response's status.
 | Application-level failure           | `RootErrorBoundary` renders [`MainErrorFallback`](src/components/errors/main.tsx) for anything but a not-found response                                                      |
 
 `isAuthError` matches `UNAUTHORIZED`, `INVALID_TOKEN`, and `TOKEN_EXPIRED`.
+`isDeactivatedError` matches `ACCOUNT_DEACTIVATED`: the session is over like an auth error, but
+both boundaries and the root middleware send it to login with `reason=deactivated`, and the
+[login form](src/features/auth/components/login-form.tsx) shows "This account has been deactivated."
+under the form, as it does when a login attempt itself answers that code.
 `INVALID_CREDENTIALS` belongs to the login form, which reports it in a toast, and
 `FORBIDDEN` does not mean the session is dead. `isCriticalError` matches internal/service
 errors and statuses at least 500. The route boundary uses a generic message for those
@@ -113,8 +117,10 @@ The root route in [`router.tsx`](src/app/router.tsx) registers two middlewares, 
    who the shopper is. It reads the cached `/auth/status` query through the shared `QueryClient`,
    fetches `/users/me` afresh when the status says signed in, and stores `UserDTO | null` under
    the typed `currentUserContext` key. A `/users/me` request the server rejects as
-   unauthenticated marks the cached status signed out and resolves a guest; any other failure
-   keeps the user already in the cache, and the components that render the user surface it. The
+   unauthenticated marks the cached status signed out and resolves a guest; one it rejects with
+   `ACCOUNT_DEACTIVATED` marks it signed out and redirects to login with the reason; any other
+   failure keeps the user already in the cache, and the components that render the user surface
+   it. The
    [auth layout](src/components/layouts/auth-layout.tsx) loader reads the key to send a signed-in
    user away from the login and signup pages.
 
@@ -196,6 +202,24 @@ everywhere an order status or payment status appears. `badge`, `select` and `tab
 registry's `new-york-v4` output with the design note's corrections: `cn` from `@/lib/cn`, the
 `radix-ui` umbrella package, and `badgeVariants` kept module-private like `buttonVariants`.
 
+### Users
+
+The second section, under `src/features/admin/users/`. [`routes/users-list.tsx`](src/features/admin/users/routes/users-list.tsx)
+is `/admin/users`, built like the orders list: the filters (`search`, `role`, `active`, `page`)
+live in the URL, [`filters.ts`](src/features/admin/users/filters.ts) reads them back dropping what
+the server would reject, the loader ensures the matching page of `GET /users`, and the table
+(name, email, role, active, created) becomes stacked cards of name, email and the active pill below
+`md`. [`ListPagination`](src/features/admin/components/list-pagination.tsx) is shared by both lists.
+[`routes/user-detail.tsx`](src/features/admin/users/routes/user-detail.tsx) is `/admin/users/:userId`:
+the [account panel](src/features/admin/users/components/account-panel.tsx) left and the user's
+orders right, read through `GET /admin/orders?userId=` and each linking to the admin order detail.
+Deactivate and reactivate are the panel's one write, a `PATCH /users/:id` of `active` behind the
+existing `Dialog` primitive, and the panel omits the button when the shown user is the signed-in
+admin. There is no role control and no delete control: roles are the database's `db:role` script
+and a delete would cascade to the orders. The role and active pills are the `admin`, `user`,
+`active` and `deactivated` `Badge` variants, rendered through
+[`user-badges.tsx`](src/features/admin/users/components/user-badges.tsx).
+
 The [logged-in user dropdown](src/components/layouts/content-layout/nav-bar/user-dropdown/logged-in-user-dropdown.tsx)
 shows an Admin item linking to `/admin` when the rendered user's role is `ADMIN` and nothing for a
 shopper. The first admin account comes from the database's `db:role` script
@@ -219,11 +243,13 @@ navigation. [`public/robots.txt`](public/robots.txt) is static; the sitemap is a
 consistent validation status, and the distinction between expired sessions and rejected
 login attempts. [`test/auth-middleware.test.ts`](test/auth-middleware.test.ts) drives a memory
 router through the auth middleware with only the HTTP client mocked: pass-through, redirect to
-login with the return URL, not-found for the wrong role, a session that died, and a role change
-seen on the next navigation. [`test/admin-sections.test.ts`](test/admin-sections.test.ts) checks
-the admin section lookup behind the header title and the active entry, and
+login with the return URL, not-found for the wrong role, a session that died, an account
+deactivated since the last status check, and a role change seen on the next navigation.
+[`test/admin-sections.test.ts`](test/admin-sections.test.ts) checks the admin section lookup behind
+the header title and the active entry,
 [`test/admin-order-transitions.test.ts`](test/admin-order-transitions.test.ts) the fulfilment
-select options, the refund reminder and the order filters read from and written to the URL.
+select options, the refund reminder and the order filters read from and written to the URL, and
+[`test/admin-user-filters.test.ts`](test/admin-user-filters.test.ts) the same for the user filters.
 [`test/form-errors.test.ts`](test/form-errors.test.ts) drives
 `applyServerErrors` against a headless TanStack form with a stubbed `document`. Run the
 client suite with `pnpm --filter client test` after its workspace dependencies are built,

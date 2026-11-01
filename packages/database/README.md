@@ -110,6 +110,11 @@ DATABASE_URL='mongodb+srv://...' pnpm --filter @repo/database db:role owner@exam
 
 The user signs up through the storefront first, so the script has an account to promote.
 
+`User.active` is a plain column: the client returns it and reads deactivated accounts like any
+other, so the admin's user pages can list and reactivate them. What a deactivated account cannot
+do is decided where it matters, at sign-in and token validation in the
+[server guide](../../apps/server/README.md#request-lifecycle), and `db:role` skips one on purpose.
+
 ## Indexes
 
 `prisma/schema` is the only record of the database's indexes. Every `@unique` and `@@unique` is

@@ -65,6 +65,7 @@ export const updateUser: ValidatedHandler = defineHandler(
     const dto = await userService.updateAsAdmin(
       req.verified.params.id,
       req.verified.body,
+      req.user!.id,
     );
     res.status(200).json(createSingleItemResponse(dto));
   },

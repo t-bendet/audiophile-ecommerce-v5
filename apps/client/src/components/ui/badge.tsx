@@ -26,6 +26,12 @@ const badgeVariants = cva(
         paid: "bg-emerald-100 text-emerald-700",
         failed: "bg-primary-700/10 text-primary-700",
         refunded: "bg-amber-100 text-amber-700",
+        // The user pills: role, then active state in the Delivered and
+        // Cancelled colours.
+        admin: "bg-neutral-900 text-neutral-100",
+        user: "bg-neutral-200 text-neutral-900",
+        active: "bg-emerald-100 text-emerald-700",
+        deactivated: "bg-primary-700/10 text-primary-700",
       },
     },
     defaultVariants: {

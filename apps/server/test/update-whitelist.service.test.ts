@@ -1,6 +1,5 @@
 import { prisma } from "@repo/database";
 import {
-  ErrorCode,
   type ConfigUpdateInput,
   type ProductUpdateInput,
   type UserSelfUpdateInput,
@@ -286,13 +285,14 @@ describe("UserService.updateAsAdmin", () => {
 });
 
 describe("UserService.deactivate", () => {
-  it("soft-deletes the user", async () => {
+  it("marks the user inactive and keeps the account readable", async () => {
     const user = await createUser();
 
     await userService.deactivate(user.id);
 
-    await expect(userService.get(user.id)).rejects.toMatchObject({
-      code: ErrorCode.NOT_FOUND,
+    await expect(userService.get(user.id)).resolves.toMatchObject({
+      id: user.id,
+      active: false,
     });
   });
 });
