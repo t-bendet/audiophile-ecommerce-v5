@@ -8,17 +8,7 @@ import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-pro
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { Fragment } from "react/jsx-runtime";
-// import CircleSvg from "@/assets/pattern-circles.svg?react";
-
-// mobile size should be 558 - 558
-
-// <Container classes="h-[20%] w-[20%] bg-neutral-600">
-//   <img src={CircleSvg} className="w-full" />
-// </Container>
-// <CircleSvg className="absolute top-1/2 overflow-visible" />
-
-// grid size should be 558 - 558
-// <Container classes="h-[20%] w-[20%] bg-neutral-600
+import PatternCircles from "@/assets/pattern-circles.svg?react";
 
 const ShowCaseProductsSection = () => {
   const { data: productResponse } = useSuspenseQuery(
@@ -41,15 +31,22 @@ const ShowCaseProductsSection = () => {
   return (
     <>
       <article>
-        <Container classes="flex flex-col items-center gap-8 overflow-hidden rounded-sm bg-primary-500 pt-24 lg:flex-row lg:items-start lg:justify-center lg:gap-30">
-          <section className="mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5 lg:max-w-102.5">
+        <Container classes="relative flex flex-col items-center gap-8 overflow-hidden rounded-sm bg-primary-500 pt-24 lg:flex-row lg:items-start lg:justify-center lg:gap-30">
+          <section className="relative z-10 mx-auto w-[60%] max-w-60 lg:mx-0 lg:-mb-2.5 lg:max-w-102.5">
+            {/* The asset has no viewBox and the global svg rule caps size at 100%, so both are overridden to let CSS width scale the rings. */}
+            <PatternCircles
+              aria-hidden
+              viewBox="0 0 944 944"
+              className="pointer-events-none absolute top-1/2 left-1/2 h-auto max-h-none w-[285%] max-w-none -translate-1/2 sm:w-[400%] lg:left-[39%] lg:w-[178%]"
+            />
             <ResponsivePicture
               {...showCaseCover.images.showCaseImage}
               classes="mx-auto"
+              pictureClasses="relative"
               loading="lazy"
             />
           </section>
-          <section className="max-w-[30ch] text-center md:max-w-[35ch] lg:max-w-[40ch] lg:p-6 lg:text-left">
+          <section className="relative z-10 max-w-[30ch] text-center md:max-w-[35ch] lg:max-w-[40ch] lg:p-6 lg:text-left">
             <header>
               <h2 className="mb-6 text-3xl font-bold tracking-300 uppercase md:text-5xl">
                 {showCaseCover?.shortLabel.split(" ").map((word, index) => (
