@@ -51,6 +51,7 @@ a change to how a shopper signs in touches one file.
 | Fixture                | What it does                                                                                           |
 | ---------------------- | ------------------------------------------------------------------------------------------------------ |
 | `login(credentials?)`  | Signs in through the API on the browser context's cookie jar; defaults to the seeded `doe@example.com` |
+| `SEEDED_ADMIN`         | The seeded `admin@example.com` credentials, for `login` or the login form                              |
 | `signUpFreshShopper()` | Creates a user with a unique email and name and returns its credentials                                |
 | `resetCart()`          | `DELETE /api/v1/cart` for the signed-in context                                                        |
 | `catalogue`            | Reads the catalogue through the products and categories API                                            |
@@ -68,6 +69,9 @@ there should not be one.
   `signUpFreshShopper()` first, so tests never share a cart and the suite can raise its worker count
   later. Read-only signed-in flows get the seeded shopper for free: the `setup` project signs in once
   and the `chromium` project loads its storage state.
+- **Arrive as the admin with `test.use({ storageState: ADMIN_STORAGE_STATE })`.** The same setup
+  signs in the seeded `admin@example.com` into a second state file beside the shopper's. It is
+  read-only too: an admin flow that writes signs up its own shopper for the data it changes.
 - **Opt out of that state for a guest flow.** `test.use({ storageState: { cookies: [], origins: [] } })`
   at the top of the file. A guest cart lives in `localStorage` under `audiophile_cart`, which every
   fresh context starts without. To hold credentials and still arrive signed out, sign up and then
@@ -76,7 +80,9 @@ there should not be one.
   neither identifies an element among siblings, named by a domain noun from `GLOSSARY.md`. The client
   has no `data-testid` today and the suite does not need one: a product card is an `article`, a
   mini-cart line is a `heading` carrying the product's cart label, the mini-cart is a `dialog`, an
-  order under account orders is an `article` whose lines are `heading`s.
+  order under account orders is an `article` whose lines are `heading`s. The admin sidebar and its
+  phone tab bar are both a `navigation` named `Admin sections`; only the one the viewport shows is
+  visible to a locator.
 - **Web-first assertions only.** `expect(locator).toBeVisible()` retries; `expect(await locator.isVisible())`
   does not, and `page.waitForTimeout` is a flake waiting to happen. TanStack Query refetches behind
   most of these pages, so this is the rule that matters most.
@@ -157,8 +163,9 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
 
 Home showcase, a category listing, a guest add-to-cart through the mini-cart, the checkout redirect
 to login and back, a guest cart surviving sign-in, a checkout that creates an order and finds it under
-account orders, the not-found page, and the crawler surface: a product page's JSON-LD, the robots
-file and the sitemap the preview proxies to the server.
+account orders, the not-found page, the admin shell (the account menu's Admin item and `/admin` for
+the admin, not-found there for a shopper, the login redirect and return for a guest), and the crawler
+surface: a product page's JSON-LD, the robots file and the sitemap the preview proxies to the server.
 
 The order flow is the one that writes, so `order.spec.ts` signs up its own shopper and asserts the
 orders page holds exactly one order. The checkout form groups its inputs under `Shipping details`,

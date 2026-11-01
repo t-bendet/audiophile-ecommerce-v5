@@ -1,4 +1,8 @@
-import { requireAuth, resolveCurrentUser } from "@/app/middleware/auth";
+import {
+  requireAuth,
+  requireRole,
+  resolveCurrentUser,
+} from "@/app/middleware/auth";
 import { performanceMiddleware } from "@/app/middleware/performance";
 import { MainErrorFallback } from "@/components/errors/main";
 import { RootErrorBoundary } from "@/components/errors/root-error-boundary";
@@ -120,6 +124,18 @@ const createAppRouter = (queryClient: QueryClient) =>
                 import("./routes/not-found").then(convert(queryClient)),
             },
           ],
+        },
+        {
+          lazy: () =>
+            import("@/features/admin/components/admin-layout").then(
+              convert(queryClient),
+            ),
+          path: paths.admin.root.path,
+          // requireRole after requireAuth: alone it answers a guest with not-found.
+          middleware: [requireAuth, requireRole("ADMIN")],
+          errorElement: <RouteErrorBoundary />,
+          // Slices add their pages here; see the client guide's admin section.
+          children: [],
         },
         {
           lazy: () =>

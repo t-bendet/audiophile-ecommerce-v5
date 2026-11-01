@@ -3,5 +3,6 @@ Allow: /
 Disallow: /checkout
 Disallow: /auth/
 Disallow: /account/
+Disallow: /admin/
 
 Sitemap: https://audiophile.t-bendet.com/sitemap.xml

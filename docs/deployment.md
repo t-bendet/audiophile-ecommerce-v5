@@ -77,6 +77,8 @@ After deployment, `sync-catalogue` runs `pnpm db:generate && pnpm db:sync`. If t
 secret is missing, that job warns and skips the sync; a green deploy alone does not prove the
 catalogue was updated. Follow [seeding vs syncing](../packages/database/README.md#seeding-vs-syncing)
 for manual publication or schema-shape changes. `db:seed` and `db:reset` are local-only.
+The first admin: sign up through the storefront, then run `db:role` with the Atlas prefix as
+[roles](../packages/database/README.md#roles) shows; no page grants the role.
 
 The same job then runs `pnpm db:indexes` when `SYNC_SCHEMA_INDEXES` is `true`, and warns and skips
 otherwise. It checks for duplicates read-only and pushes only if none are found. The push then
