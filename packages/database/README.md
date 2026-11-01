@@ -35,20 +35,22 @@ The Docker image and the route-test setup's `MONGODB_VERSION` must stay aligned.
 
 ## Scripts
 
-Run from the repo root; each wraps the matching script here through Turbo.
+Run from the repo root; each wraps the matching script here through Turbo, except `db:role`,
+which takes arguments and runs in this workspace.
 
-| Command                 | Does                                        | When                                                 |
-| ----------------------- | ------------------------------------------- | ---------------------------------------------------- |
-| `pnpm db:up`            | `docker compose up -d --wait`               | by hand only after a `db:down`; dev and setup run it |
-| `pnpm db:down`          | stop and remove the container               | the data volume survives                             |
-| `pnpm db:generate`      | regenerate the Prisma client                | after any schema change                              |
-| `pnpm db:push`          | push the schema to `DATABASE_URL`           | after a schema change, local only                    |
-| `pnpm db:seed`          | **drop** the database, then create all      | local only; see below                                |
-| `pnpm db:sync`          | upsert the catalogue, preserve user data    | production publication; see below                    |
-| `pnpm db:indexes:check` | report duplicates blocking a unique index   | read-only, safe on Atlas; see below                  |
-| `pnpm db:indexes`       | the check, then `prisma db push`            | production index changes; see below                  |
-| `pnpm db:setup`         | up + push + generate + seed                 | fresh clone                                          |
-| `pnpm db:reset`         | up + push `--force-reset` + generate + seed | wipe dev data and start over                         |
+| Command                                                      | Does                                        | When                                                 |
+| ------------------------------------------------------------ | ------------------------------------------- | ---------------------------------------------------- |
+| `pnpm db:up`                                                 | `docker compose up -d --wait`               | by hand only after a `db:down`; dev and setup run it |
+| `pnpm db:down`                                               | stop and remove the container               | the data volume survives                             |
+| `pnpm db:generate`                                           | regenerate the Prisma client                | after any schema change                              |
+| `pnpm db:push`                                               | push the schema to `DATABASE_URL`           | after a schema change, local only                    |
+| `pnpm db:seed`                                               | **drop** the database, then create all      | local only; see below                                |
+| `pnpm db:sync`                                               | upsert the catalogue, preserve user data    | production publication; see below                    |
+| `pnpm --filter @repo/database db:role <email> <ADMIN\|USER>` | set one user's role                         | the first admin on production; see [Roles](#roles)   |
+| `pnpm db:indexes:check`                                      | report duplicates blocking a unique index   | read-only, safe on Atlas; see below                  |
+| `pnpm db:indexes`                                            | the check, then `prisma db push`            | production index changes; see below                  |
+| `pnpm db:setup`                                              | up + push + generate + seed                 | fresh clone                                          |
+| `pnpm db:reset`                                              | up + push `--force-reset` + generate + seed | wipe dev data and start over                         |
 
 Inside this workspace, `pnpm studio` opens Prisma Studio, `pnpm format` formats the schema files,
 and `pnpm db:deploy` is push + generate without a seed.
@@ -90,6 +92,23 @@ to read synced rows. Deployment precedes sync, so compatibility matters during t
 Avoid the gap by shipping a reader that accepts both shapes, syncing, then removing the old
 branch. A successful code rollback does not reverse persisted data. See the
 [deployment runbook](../../docs/deployment.md) for the pipeline and recovery path.
+
+## Roles
+
+No page grants the admin role; a shop owner's first admin account is set by hand with
+`db:role` (`src/users/set-role.ts`). It takes an email and a role, prints the previous and the new
+role, and writes one document. It exits non-zero without writing for a role other than `ADMIN` or
+`USER` or an email no active user has.
+
+Like `db:sync`, it runs against the database `DATABASE_URL` names, and `dotenv` never overrides an
+already-set variable, so the prefix wins over this workspace's `.env` and no production credential
+has to be written to a file:
+
+```bash
+DATABASE_URL='mongodb+srv://...' pnpm --filter @repo/database db:role owner@example.com ADMIN
+```
+
+The user signs up through the storefront first, so the script has an account to promote.
 
 ## Indexes
 

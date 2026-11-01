@@ -8,8 +8,18 @@ export const STORAGE_STATE = join(
   "../playwright/.auth/user.json",
 );
 
+export const ADMIN_STORAGE_STATE = join(
+  import.meta.dirname,
+  "../playwright/.auth/admin.json",
+);
+
 export const SEEDED_SHOPPER = {
   email: "doe@example.com",
+  password: "11111111",
+} as const;
+
+export const SEEDED_ADMIN = {
+  email: "admin@example.com",
   password: "11111111",
 } as const;
 

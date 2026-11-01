@@ -125,7 +125,7 @@ root's:
   lands on the page they asked for. Checkout and the account group use it.
 - `requireRole(role)` throws a 404 response for a signed-in user whose role differs; the
   matching role passes through. List it after `requireAuth`, since alone it answers a guest with
-  not-found as well. Nothing uses it yet; the admin dashboard (#322) is its first consumer.
+  not-found as well. The [admin dashboard](#admin-dashboard) group is its consumer.
   [ADR 0008](../../docs/adr/0008-a-route-the-role-cannot-reach-is-not-found.md) records why a
   role mismatch is not found on the client while the API answers 403.
 
@@ -141,6 +141,40 @@ Components cannot read the router context, so they keep reading the cached queri
 the query configuration and boundaries described above. The
 [historical middleware proposal](docs/error-middleware-proposal.md) records earlier ideas; it
 is not the current implementation.
+
+## Admin dashboard
+
+`/admin` is a lazy-loaded route group registered in [`router.tsx`](src/app/router.tsx) as a
+sibling of the storefront's content layout, so it renders none of the storefront header, footer,
+mini-cart or cart drawer. Its code lives under `src/features/admin/`, with a sub-folder per slice
+(`orders`, `users`, `products`, `homepage`, `stats`) created as that slice lands. The group lists
+`requireAuth` then `requireRole("ADMIN")` in its `middleware` and owns a `RouteErrorBoundary`, so
+a guest is sent to login with `/admin` as the return URL and a signed-in shopper sees the not-found
+page ([ADR 0008](../../docs/adr/0008-a-route-the-role-cannot-reach-is-not-found.md)). Anything
+visual follows the [design note](../../docs/research/admin-dashboard-design.md).
+
+[`AdminLayout`](src/features/admin/components/admin-layout.tsx) is the shell: from `md` up a fixed
+left sidebar with the logo, the section entries and the signed-in admin's name and email, and below
+`md` a fixed bottom tab bar with the same entries as icon and label, with no drawer. The white
+header carries the active section's label as the page title. Both navigations render
+[`ADMIN_SECTIONS`](src/features/admin/sections.ts), and the layout renders `Metadata` with
+`noIndex` for every admin route, so a page renders its own `Metadata` only to change the title.
+[`public/robots.txt`](public/robots.txt) disallows `/admin/` as well.
+
+A slice adds a section in two places:
+
+1. Append `{ label, href, icon }` to `ADMIN_SECTIONS`; the sidebar entry, the tab bar entry and the
+   header title follow. Only the dashboard root sets `end`, so a nested URL such as a detail page
+   keeps its list's entry active.
+2. Add the route as a child of the admin group in `router.tsx`, lazy-loading its module from the
+   slice's folder through `convert` like every other route, with `clientLoader` for required data
+   and `SafeRenderWithErrorBlock` for inline feature errors as the
+   [boundaries table](#loaders-and-boundaries) describes.
+
+The [logged-in user dropdown](src/components/layouts/content-layout/nav-bar/user-dropdown/logged-in-user-dropdown.tsx)
+shows an Admin item linking to `/admin` when the rendered user's role is `ADMIN` and nothing for a
+shopper. The first admin account comes from the database's `db:role` script
+([roles](../../packages/database/README.md#roles)), not from any page.
 
 ## Page metadata
 
@@ -161,7 +195,9 @@ consistent validation status, and the distinction between expired sessions and r
 login attempts. [`test/auth-middleware.test.ts`](test/auth-middleware.test.ts) drives a memory
 router through the auth middleware with only the HTTP client mocked: pass-through, redirect to
 login with the return URL, not-found for the wrong role, a session that died, and a role change
-seen on the next navigation. [`test/form-errors.test.ts`](test/form-errors.test.ts) drives
+seen on the next navigation. [`test/admin-sections.test.ts`](test/admin-sections.test.ts) checks
+the admin section lookup behind the header title and the active entry.
+[`test/form-errors.test.ts`](test/form-errors.test.ts) drives
 `applyServerErrors` against a headless TanStack form with a stubbed `document`. Run the
 client suite with `pnpm --filter client test` after its workspace dependencies are built,
 or use root `pnpm test` for dependency ordering. For browser coverage, follow the

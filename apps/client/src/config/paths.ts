@@ -61,14 +61,10 @@ export const paths = {
     // reviews: {},
   },
   admin: {
-    root: {},
-    users: {},
-    products: {},
-    orders: {},
-    categories: {},
-    settings: {},
-    reports: {},
-    analytics: {},
+    root: {
+      path: "/admin",
+      getHref: () => "/admin",
+    },
   },
 } as const;
 

@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { paths } from "@/config/paths";
 import { getUserQueryOptions, useLogoutUser } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import { ChevronsUpDown, LayoutDashboard, LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -82,6 +82,22 @@ export default function LoggedInUserDropdown() {
             </NavLink>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+        {user.role === "ADMIN" && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <NavLink
+                to={paths.admin.root.getHref()}
+                className={({ isActive }) =>
+                  isActive ? "text-primary-500" : ""
+                }
+              >
+                Admin
+              </NavLink>
+              <LayoutDashboard className="ml-auto size-4 text-primary-500" />
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
 
         <DropdownMenuItem onClick={handleLogout}>
