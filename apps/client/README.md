@@ -70,7 +70,7 @@ Form components own mutation feedback. The
 shared body schema and show local field validation errors inline. Their mutation's
 `onError` passes the normalized error to
 [`applyServerErrors`](src/lib/errors/form-errors.ts), the only reader of
-`AppError.details`, and shows a destructive toast only when it returns a message:
+`AppError.details`, and shows an error toast only when it returns a message:
 
 | Mutation failure                                          | Feedback                                                                                     |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -92,6 +92,12 @@ global rule that all 4xx responses appear inline or all 5xx responses produce a 
 Keep feedback at the feature that owns the action. Query retry classification does not
 display an error, and adding a transport-level toast would duplicate feedback from
 forms or boundaries.
+
+Toasts are [Sonner](https://sonner.emilkowal.ski/): call `toast.success(title, { description })`
+or `toast.error(title, { description })` imported from `sonner`; no hook or wrapper module is
+involved, so mutation callbacks can toast directly. [`AppProvider`](src/app/provider.tsx) mounts
+the single [`Toaster`](src/components/ui/sonner.tsx), which carries the palette and font
+overrides through `toastOptions.classNames`.
 
 ## Router middleware
 

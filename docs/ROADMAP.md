@@ -18,7 +18,6 @@ Product features, none of them specced yet:
 - Checkout enhancement: address book, multiple payment methods. (Checkout stays login-only; guest checkout is not planned.)
 - Order tracking: status updates, notifications, tracking numbers.
 - SEO: XML sitemap, Open Graph, product structured data. (React 19 document metadata is already in `components/seo/metadata.tsx`.)
-- Switch to Sonner for toasts.
 - Dark mode.
 - Multi-language support.
 - Social authentication.

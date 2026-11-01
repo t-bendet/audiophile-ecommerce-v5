@@ -4,12 +4,12 @@ import { paths } from "@/config/paths";
 import { useAddToCart } from "@/features/cart/api/get-cart";
 import { getProductBySlugQueryOptions } from "@/features/products/api/get-product";
 import { useProductCardContext } from "@/features/products/components/product-card/context";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/cn";
 import { AppError, ErrorCode } from "@repo/domain";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
+import { toast } from "sonner";
 
 export default function ProductActions(props: {
   classes?: string;
@@ -21,7 +21,6 @@ export default function ProductActions(props: {
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
   const addToCart = useAddToCart();
-  const { toast } = useToast();
 
   if (
     !props.children &&
@@ -44,11 +43,7 @@ export default function ProductActions(props: {
     );
 
     if (!productData?.data) {
-      toast({
-        title: "Error",
-        description: "Failed to get product details",
-        variant: "destructive",
-      });
+      toast.error("Error", { description: "Failed to get product details" });
       return;
     }
 
@@ -66,17 +61,14 @@ export default function ProductActions(props: {
       },
       {
         onSuccess: () => {
-          toast({
-            title: "Added to cart",
+          toast.success("Added to cart", {
             description: `${quantity} item(s) added to your cart`,
           });
           setQuantity(1); // Reset quantity after adding
         },
         onError: (error) => {
-          toast({
-            title: "Error",
+          toast.error("Error", {
             description: error.message || "Failed to add item to cart",
-            variant: "destructive",
           });
         },
       },

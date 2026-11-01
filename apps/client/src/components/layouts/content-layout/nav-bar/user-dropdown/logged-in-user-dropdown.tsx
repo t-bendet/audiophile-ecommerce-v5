@@ -10,14 +10,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { paths } from "@/config/paths";
-import { useToast } from "@/hooks/use-toast";
 import { getUserQueryOptions, useLogoutUser } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export default function LoggedInUserDropdown() {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutate: logout } = useLogoutUser(queryClient);
@@ -38,18 +37,11 @@ export default function LoggedInUserDropdown() {
       navigate(paths.home.getHref(), { replace: true });
       logout({});
 
-      toast({
-        title: "Logged out successfully",
+      toast.success("Logged out successfully", {
         description: "See you soon!",
-        duration: 3000,
       });
     } catch {
-      toast({
-        title: "Logout failed",
-        description: "Please try again",
-        variant: "destructive",
-        duration: 3000,
-      });
+      toast.error("Logout failed", { description: "Please try again" });
     }
   };
   return (
