@@ -32,3 +32,7 @@ install_when_inputs_changed() {
 
 start_docker_daemon
 install_when_inputs_changed
+
+# Workspace packages publish types from dist/, so consumers type-check only after a build.
+# Turbo caches by inputs; a repeat run is a cache hit.
+pnpm turbo run build --filter=@repo/domain

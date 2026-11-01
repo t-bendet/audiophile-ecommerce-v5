@@ -58,13 +58,18 @@ the number: `<type>/<slug>` (e.g. `docs/branching-convention`). Anything a ticke
 
 ## Cloud sessions
 
-A Claude Code cloud session (`CLAUDE_CODE_REMOTE=true`) cannot reach GitHub GraphQL, so `gh issue ...` and `gh pr ...` fail with 403. The REST API through `gh api` works:
+A Claude Code cloud session (`CLAUDE_CODE_REMOTE=true`) cannot reach GitHub GraphQL, so `gh issue ...`, `gh pr ...` and `gh pr checks` fail with 403. The same `gh` binary works against the REST API through `gh api`, and the `gh run ...` commands work as they are. Substitute as follows; everything else in this guide is unchanged, including branch names.
 
 - **Read an issue**: `gh api repos/<owner>/<repo>/issues/<n>`; its comments: `gh api repos/<owner>/<repo>/issues/<n>/comments`.
 - **List issues**: `gh api "repos/<owner>/<repo>/issues?state=open&labels=<label>"`. The endpoint returns pull requests too; drop them with `--jq '[.[] | select(.pull_request | not)]'`.
-- **Open a PR**: push the branch, then use the **Create PR** button in the cloud UI; `gh pr create` fails the same way. The PR body still references the issue with `Closes #<n>` or `Part of #<n>` as in **Branching**. CI runs once the PR exists, not on the session's pushes.
+- **Create an issue**: `gh api --method POST repos/<owner>/<repo>/issues -f title="..." -F body=@<file> -f "labels[]=<label>"`. Repeat `-f "labels[]=..."` per label. Sub-issues and blocking edges use the `gh api` fallbacks under **Conventions**; the `--parent` and `--blocked-by` flags are GraphQL.
+- **Comment, label, close**: `gh api --method POST repos/<owner>/<repo>/issues/<n>/comments -f body="..."`, `gh api --method POST repos/<owner>/<repo>/issues/<n>/labels -f "labels[]=<label>"`, `gh api --method PATCH repos/<owner>/<repo>/issues/<n> -f state=closed`.
+- **Open a PR**: push the branch, then `gh api --method POST repos/<owner>/<repo>/pulls -f title="..." -f head=<branch> -f base=main -F body=@<file>`. The body still references the issue with `Closes #<n>` or `Part of #<n>` as in **Branching**. CI runs once the PR exists, not on the session's pushes.
+- **Watch CI**: `gh run list --branch <branch> --json databaseId --jq '.[0].databaseId'` finds the run, `gh run watch <run-id> --exit-status` waits for it. Per-check results: `gh api repos/<owner>/<repo>/commits/<sha>/check-runs`.
+- **Merge a PR**: `gh api --method PUT repos/<owner>/<repo>/pulls/<n>/merge -f merge_method=squash -f commit_title="..." -f commit_message="..."`, once the required checks pass. Or enable auto-merge and let GitHub merge on green: `gh api --method PUT repos/<owner>/<repo>/pulls/<n>/ccr/auto_merge -f merge_method=squash`. The `/ccr/` routes are the proxy's replacements for GraphQL-only operations; the 403 message lists them (auto-merge, review threads, draft toggling).
+- **Delete a branch**: not permitted from a cloud session (`git push --delete` and `DELETE git/refs` are both refused). The repository deletes head branches on merge, so nothing is left to do.
 
-Branch names follow **Branching** unchanged.
+`main` is protected by the `main-protection` ruleset: PRs only, the three CI jobs required, linear history, and the branch must be up to date with `main` before merging. Work tickets one at a time and branch after the previous PR merges, or update the branch before merging.
 
 ## Pull requests as a triage surface
 
