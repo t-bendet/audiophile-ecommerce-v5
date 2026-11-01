@@ -8,7 +8,6 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import { normalizeError } from "@/lib/errors/errors";
 import { applyServerErrors } from "@/lib/errors/form-errors";
 import {
@@ -17,6 +16,7 @@ import {
   OrderDTO,
 } from "@repo/domain";
 import { useForm } from "@tanstack/react-form";
+import { toast } from "sonner";
 import { useCreateOrder } from "../api/get-orders";
 
 const PAYMENT_METHODS = ["e-Money", "Cash on Delivery"] as const;
@@ -90,7 +90,6 @@ type CheckoutFormProps = {
 };
 
 export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
-  const { toast } = useToast();
   const { mutate: createOrder, isPending } = useCreateOrder();
 
   const form = useForm({
@@ -102,12 +101,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
         onError: (error) => {
           const message = applyServerErrors(form, normalizeError(error));
           if (message) {
-            toast({
-              title: "Order Failed",
-              description: message,
-              variant: "destructive",
-              duration: 3000,
-            });
+            toast.error("Order Failed", { description: message });
           }
         },
       });

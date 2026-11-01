@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { paths } from "@/config/paths";
-import { useToast } from "@/hooks/use-toast";
 import { USER_QUERY_KEY, useSignup } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { normalizeError } from "@/lib/errors/errors";
@@ -26,10 +25,10 @@ import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { toast } from "sonner";
 import { PasswordVisibilityToggle } from "./password-visibility-toggle";
 
 export function SignupForm({ className }: React.ComponentProps<"div">) {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -59,12 +58,7 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
         async onError(error) {
           const message = applyServerErrors(form, normalizeError(error));
           if (message) {
-            toast({
-              title: "Signup Failed",
-              description: message,
-              variant: "destructive",
-              duration: 3000,
-            });
+            toast.error("Signup Failed", { description: message });
           }
           await queryClient.setQueryData([USER_QUERY_KEY], null);
         },
