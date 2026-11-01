@@ -49,6 +49,11 @@ export default defineConfig(({ mode }) => {
           target: apiProxyTarget,
           changeOrigin: true,
         },
+        // Mirrors the Worker: the sitemap lists URLs on the requesting origin,
+        // so the Host header is passed through unchanged.
+        "/sitemap.xml": {
+          target: apiProxyTarget,
+        },
       },
       port: clientPort,
       host: true,
@@ -62,6 +67,9 @@ export default defineConfig(({ mode }) => {
         "/api": {
           target: apiProxyTarget,
           changeOrigin: true,
+        },
+        "/sitemap.xml": {
+          target: apiProxyTarget,
         },
       },
     },

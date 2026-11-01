@@ -1,6 +1,7 @@
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import { BestGearSection } from "@/components/page-sections";
 import { Metadata } from "@/components/seo/metadata";
+import { productStructuredData } from "@/components/seo/structured-data";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ResponsivePicture } from "@/components/ui/responsivePicture";
@@ -34,14 +35,23 @@ const Product = () => {
   );
   const navigate = useNavigate();
   const product = productResponse.data;
+  const productName = product.fullLabel.join(" ");
+  const primaryImage = product.images.primaryImage.desktop.src;
 
   return (
     <>
       <Metadata
-        title={product.fullLabel.join(" ")}
+        title={productName}
         description={product.description}
-        image={product.images.primaryImage.desktop.src}
+        image={primaryImage}
         type="product"
+        structuredData={productStructuredData({
+          name: productName,
+          description: product.description,
+          image: primaryImage,
+          slug: product.slug,
+          price: product.price,
+        })}
       />
       <Container classes="mt-4 mb-6 md:mt-8 md:mb-8 lg:mt-19 lg:mb-14">
         <Button

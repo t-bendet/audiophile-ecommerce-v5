@@ -4,6 +4,7 @@ import express, { Express } from "express";
 import helmet from "helmet";
 import globalErrorHandler from "./middlewares/error.middleware.js";
 import indexRoute from "./routes/index.js";
+import sitemapRouter from "./routes/sitemap.route.js";
 import { httpLogger } from "./utils/logger.js";
 import { apiLimiter } from "./utils/rateLimiters.js";
 
@@ -32,6 +33,10 @@ app.use(cookieParser());
 
 // 6. Routes
 app.use("/api/v1", indexRoute);
+
+// Served at the site root, where crawlers expect it: the Worker forwards this
+// one non-API path to the container.
+app.use("/sitemap.xml", sitemapRouter);
 
 app.all(/.*/, (req, _res, next) => {
   next(

@@ -108,6 +108,18 @@ configuration, and components described above. The
 [historical middleware proposal](docs/error-middleware-proposal.md) records earlier
 ideas; it is not the current implementation or an approved migration plan.
 
+## Page metadata
+
+A route declares its document metadata by rendering
+[`Metadata`](src/components/seo/metadata.tsx) with its title, description and Open Graph image;
+React 19 hoists those tags into the head. The optional `structuredData` prop takes a schema.org
+object built by [`structured-data.ts`](src/components/seo/structured-data.ts) and emits it as the
+page's one `application/ld+json` script: the product route passes `productStructuredData` and
+the home route `organizationStructuredData`. React does not hoist inline scripts, so the script
+renders where the route renders `Metadata` and is replaced along with the route's other props on
+navigation. [`public/robots.txt`](public/robots.txt) is static; the sitemap is a
+[server route](../server/README.md#request-lifecycle).
+
 ## Verification
 
 [`test/errors.test.ts`](test/errors.test.ts) covers nested server-error extraction,

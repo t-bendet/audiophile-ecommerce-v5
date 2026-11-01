@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import app from "../src/app.js";
 import authRouter from "../src/routes/auth.route.js";
 import cartRouter from "../src/routes/cart.route.js";
 import categoryRouter from "../src/routes/category.route.js";
@@ -7,6 +8,7 @@ import healthRouter from "../src/routes/health.route.js";
 import indexRoute from "../src/routes/index.js";
 import orderRouter from "../src/routes/order.route.js";
 import productRouter from "../src/routes/product.route.js";
+import sitemapRouter from "../src/routes/sitemap.route.js";
 import userRouter from "../src/routes/user.route.js";
 
 // Reads Express internals: keep the walk here, never in production code.
@@ -25,6 +27,8 @@ type StackHolder = { stack: RouteLayer[] };
 
 // Express 5 hides the mount prefix in the parent matcher: name groups by identity.
 const ROUTER_NAMES = new Map<unknown, string>([
+  [indexRoute, "api/v1"],
+  [sitemapRouter, "sitemap.xml"],
   [healthRouter, "health"],
   [userRouter, "users"],
   [authRouter, "auth"],
@@ -55,11 +59,19 @@ const walk = (router: StackHolder, indent = ""): string[] =>
     return [`${indent}${describeLayer(layer)}`];
   });
 
+// The app's own stack also holds the logging, security and parsing
+// middleware and the catch-all 404; only the mounted routers are the manifest.
+const mountedRouters = (): StackHolder => ({
+  stack: (app.router as unknown as StackHolder).stack.filter((layer) =>
+    ROUTER_NAMES.has(layer.handle),
+  ),
+});
+
 describe("route manifest", () => {
   it("mounts every route with the same middleware chain", () => {
-    expect(walk(indexRoute as unknown as StackHolder).join("\n"))
-      .toMatchInlineSnapshot(`
-        "health
+    expect(walk(mountedRouters()).join("\n")).toMatchInlineSnapshot(`
+      "api/v1
+        health
           get / [1 handlers]
         users
           use <anonymous>
@@ -119,7 +131,9 @@ describe("route manifest", () => {
           get / [2 handlers]
           get /:orderId [2 handlers]
           use <anonymous>
-          patch /:orderId/status [2 handlers]"
-      `);
+          patch /:orderId/status [2 handlers]
+      sitemap.xml
+        get / [1 handlers]"
+    `);
   });
 });

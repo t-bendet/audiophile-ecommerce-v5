@@ -1,6 +1,7 @@
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import { BestGearSection } from "@/components/page-sections";
 import { Metadata } from "@/components/seo/metadata";
+import { organizationStructuredData } from "@/components/seo/structured-data";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import CategoryNavList from "@/features/categories/components/category-nav-list";
@@ -17,6 +18,7 @@ const Home = () => {
       <Metadata
         title="Home"
         description="Explore premium headphones, earphones, and speakers from Audiophile."
+        structuredData={organizationStructuredData()}
       />
       <main>
         <Section classes="mb-10 h-[calc(100vh-(var(--nav-bar-height)))] w-full bg-neutral-900 md:mb-24 lg:mb-30">
