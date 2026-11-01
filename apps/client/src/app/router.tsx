@@ -1,5 +1,7 @@
+import { requireAuth, resolveCurrentUser } from "@/app/middleware/auth";
 import { performanceMiddleware } from "@/app/middleware/performance";
 import { MainErrorFallback } from "@/components/errors/main";
+import { RootErrorBoundary } from "@/components/errors/root-error-boundary";
 import { RouteErrorBoundary } from "@/components/errors/route-error-boundary";
 import {
   RootHydrateFallback,
@@ -39,8 +41,9 @@ const createAppRouter = (queryClient: QueryClient) =>
     {
       element: <RootLayout />,
       HydrateFallback: RootHydrateFallback,
-      errorElement: <MainErrorFallback />,
-      middleware: [performanceMiddleware],
+      errorElement: <RootErrorBoundary />,
+      // Timing first, so the user lookup is inside the measured time.
+      middleware: [performanceMiddleware, resolveCurrentUser(queryClient)],
       loader: rootLoader(queryClient),
       children: [
         {
@@ -72,6 +75,7 @@ const createAppRouter = (queryClient: QueryClient) =>
               lazy: () =>
                 import("./routes/checkout").then(convert(queryClient)),
               path: paths.checkout.checkout.path,
+              middleware: [requireAuth],
               errorElement: <RouteErrorBoundary />,
             },
             {
@@ -80,6 +84,7 @@ const createAppRouter = (queryClient: QueryClient) =>
                   convert(queryClient),
                 ),
               path: paths.account.root.path,
+              middleware: [requireAuth],
               errorElement: <RouteErrorBoundary />,
               children: [
                 {

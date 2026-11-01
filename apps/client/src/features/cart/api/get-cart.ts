@@ -1,5 +1,5 @@
 import { getApi } from "@/lib/api-client";
-import { getAuthStatusQueryOptions } from "@/lib/auth";
+import { useIsAuthenticated } from "@/lib/auth";
 import {
   addToGuestCart,
   clearGuestCart,
@@ -33,15 +33,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import cartKeys from "./cart-keys";
-
-// ===== Helper to check auth status =====
-
-function getIsAuthenticated(queryClient: ReturnType<typeof useQueryClient>) {
-  const authStatus = queryClient.getQueryData(
-    getAuthStatusQueryOptions().queryKey,
-  );
-  return authStatus?.data?.isAuthenticated ?? false;
-}
 
 // ===== GetCart =====
 
@@ -88,8 +79,7 @@ export const getCartQueryOptions = (isAuthenticated: boolean) =>
   });
 
 export const useCart = () => {
-  const queryClient = useQueryClient();
-  const isAuthenticated = getIsAuthenticated(queryClient);
+  const isAuthenticated = useIsAuthenticated();
 
   return useQuery(getCartQueryOptions(isAuthenticated));
 };
@@ -123,7 +113,7 @@ const addToServerCart = async ({
 
 export const useAddToCart = () => {
   const queryClient = useQueryClient();
-  const isAuthenticated = getIsAuthenticated(queryClient);
+  const isAuthenticated = useIsAuthenticated();
 
   return useMutation({
     mutationFn: (input: TAddToCartInput) =>
@@ -168,7 +158,7 @@ const updateServerCartItem = async ({
 
 export const useUpdateCartItem = () => {
   const queryClient = useQueryClient();
-  const isAuthenticated = getIsAuthenticated(queryClient);
+  const isAuthenticated = useIsAuthenticated();
 
   return useMutation({
     mutationFn: (input: TUpdateCartItemInput) => {
@@ -220,7 +210,7 @@ const removeFromServerCart = async ({
 
 export const useRemoveFromCart = () => {
   const queryClient = useQueryClient();
-  const isAuthenticated = getIsAuthenticated(queryClient);
+  const isAuthenticated = useIsAuthenticated();
 
   return useMutation({
     mutationFn: (input: TRemoveFromCartInput) => {
@@ -262,7 +252,7 @@ const clearServerCart = async (): Promise<ClearCartResponse> => {
 
 export const useClearCart = () => {
   const queryClient = useQueryClient();
-  const isAuthenticated = getIsAuthenticated(queryClient);
+  const isAuthenticated = useIsAuthenticated();
 
   return useMutation({
     mutationFn: () =>

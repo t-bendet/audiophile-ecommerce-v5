@@ -51,8 +51,9 @@ Requests use the lazy Axios client with credentials enabled. Axios rejects raw e
 UI layers classify them and choose retry, inline, toast or boundary behavior.
 
 [`apps/client/README.md`](../apps/client/README.md) defines those conventions and the current error
-flow. The router is `apps/client/src/app/router.tsx`. Authentication checks live in loaders; the
-navigation middleware measures development performance.
+flow. The router is `apps/client/src/app/router.tsx`. Root middleware measures development performance
+and resolves the signed-in user once per navigation into a typed context; route groups guard
+themselves with `requireAuth` and `requireRole`.
 
 A guest cart lives in the browser. Signing in or reaching checkout syncs it with the user's server
 cart. Orders retain
