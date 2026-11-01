@@ -12,29 +12,16 @@ import {
 import { CartItem } from "@/features/cart/components/cart-item";
 import { CheckoutForm } from "@/features/orders/components/checkout-form";
 import { OrderConfirmation } from "@/features/orders/components/order-confirmation";
-import { getAuthStatusQueryOptions } from "@/lib/auth";
 import { syncGuestCartToServer } from "@/lib/cart-sync";
 import currencyFormatter from "@/utils/formatters";
 import { calculateOrderTotals, OrderDTO } from "@repo/domain";
 import { QueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link, LoaderFunctionArgs, redirect } from "react-router";
+import { Link, LoaderFunctionArgs } from "react-router";
 
 export const clientLoader =
-  (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
-    // Check if user is authenticated
-    const authResponse = await queryClient.ensureQueryData(
-      getAuthStatusQueryOptions(),
-    );
-    if (!authResponse.data.isAuthenticated) {
-      // User is not logged in, redirect to login page with redirectTo parameter
-      const url = new URL(context.request.url);
-      const redirectTo = url.pathname + url.search;
-      throw redirect(paths.auth.login.getHref(redirectTo));
-    }
-
+  (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
     await syncGuestCartToServer(queryClient);
-
     return null;
   };
 

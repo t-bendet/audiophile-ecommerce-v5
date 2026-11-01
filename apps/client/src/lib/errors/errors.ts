@@ -1,5 +1,6 @@
 import { AppError, ErrorCode, ErrorResponse } from "@repo/domain";
 import { AxiosError, isAxiosError } from "axios";
+import { isRouteErrorResponse } from "react-router";
 import { ZodError } from "zod";
 
 // Type guards
@@ -98,6 +99,11 @@ export function isCriticalError(error: AppError): boolean {
  * `INVALID_CREDENTIALS` is deliberately absent: it is a rejected login attempt,
  * which the login form reports in a toast, not an expired session.
  */
+/** A 404 thrown to a route boundary: an unknown URL or a `requireRole` miss. */
+export function isNotFoundResponse(error: unknown): boolean {
+  return isRouteErrorResponse(error) && error.status === 404;
+}
+
 export function isAuthError(error: AppError): boolean {
   const authCodes: ErrorCode[] = [
     ErrorCode.UNAUTHORIZED,

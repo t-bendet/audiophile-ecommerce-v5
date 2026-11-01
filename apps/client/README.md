@@ -31,7 +31,9 @@ error handler.
 Route modules export `clientLoader(queryClient)` when they need a loader; the adapter in
 [`router.tsx`](src/app/router.tsx) supplies the same client used by components. For data
 required to render the route, await `ensureQueryData` in the loader and let failures reach
-the route boundary. The [product loader](src/app/routes/product/index.tsx) demonstrates
+the route boundary. Loaders never fetch the signed-in user: the
+[root middleware](#router-middleware) resolves it once per navigation, and a loader that needs
+it reads `context.get(currentUserContext)`. The [product loader](src/app/routes/product/index.tsx) demonstrates
 required product data and separate related-product prefetching. Prefetching warms the
 cache; it is not a required-data success check.
 
@@ -42,14 +44,15 @@ maps local Zod errors to `VALIDATION_ERROR` with structured details. Unknown fai
 become `INTERNAL_ERROR`. A malformed/unrecognized HTTP error envelope falls back to an
 internal error rather than necessarily preserving the HTTP response's status.
 
-| Failure context                     | Current handling                                                                                                                                   |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Route loader or route rendering     | [`RouteErrorBoundary`](src/components/errors/route-error-boundary.tsx) handles Router response errors directly and normalizes other errors         |
-| Feature rendering or Suspense query | [`SafeRenderWithErrorBlock`](src/components/errors/safe-render-with-error-block.tsx) combines loading fallback, query reset, and an error boundary |
-| Dead session                        | Both boundaries use [`RedirectToLogin`](src/components/errors/redirect-to-login.tsx), which marks cached auth state signed out before navigating   |
-| Recoverable feature error           | `SafeRenderWithErrorBlock` renders `ErrorBlock` with a reset action                                                                                |
-| Critical feature error              | The feature boundary rethrows it to the route boundary; it is not isolated inline                                                                  |
-| Application-level failure           | [`MainErrorFallback`](src/components/errors/main.tsx) supplies the outer fallback                                                                  |
+| Failure context                     | Current handling                                                                                                                                                             |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Route loader or route rendering     | [`RouteErrorBoundary`](src/components/errors/route-error-boundary.tsx) handles Router response errors directly and normalizes other errors                                   |
+| Feature rendering or Suspense query | [`SafeRenderWithErrorBlock`](src/components/errors/safe-render-with-error-block.tsx) combines loading fallback, query reset, and an error boundary                           |
+| Dead session                        | Both boundaries use [`RedirectToLogin`](src/components/errors/redirect-to-login.tsx), which marks cached auth state signed out before navigating                             |
+| Not-found response                  | `RouteErrorBoundary` and [`RootErrorBoundary`](src/components/errors/root-error-boundary.tsx) render [`NotFound`](src/components/errors/not-found.tsx), the `*` route's page |
+| Recoverable feature error           | `SafeRenderWithErrorBlock` renders `ErrorBlock` with a reset action                                                                                                          |
+| Critical feature error              | The feature boundary rethrows it to the route boundary; it is not isolated inline                                                                                            |
+| Application-level failure           | `RootErrorBoundary` renders [`MainErrorFallback`](src/components/errors/main.tsx) for anything but a not-found response                                                      |
 
 `isAuthError` matches `UNAUTHORIZED`, `INVALID_TOKEN`, and `TOKEN_EXPIRED`.
 `INVALID_CREDENTIALS` belongs to the login form, which reports it in a toast, and
@@ -101,12 +104,43 @@ overrides through `toastOptions.classNames`.
 
 ## Router middleware
 
-[`performanceMiddleware`](src/app/middleware/performance.ts) is the only registered
-middleware. It measures navigation around `next()` and logs duration in development.
-Authentication, error normalization, and retry behavior remain in the loaders, query
-configuration, and components described above. The
-[historical middleware proposal](docs/error-middleware-proposal.md) records earlier
-ideas; it is not the current implementation or an approved migration plan.
+The root route in [`router.tsx`](src/app/router.tsx) registers two middlewares, in this order:
+
+1. [`performanceMiddleware`](src/app/middleware/performance.ts) measures the navigation around
+   `next()` and logs the duration in development. It runs first so the user lookup below is
+   inside the measured time.
+2. `resolveCurrentUser` in [`auth.ts`](src/app/middleware/auth.ts) decides once per navigation
+   who the shopper is. It reads the cached `/auth/status` query through the shared `QueryClient`,
+   fetches `/users/me` afresh when the status says signed in, and stores `UserDTO | null` under
+   the typed `currentUserContext` key. A `/users/me` request the server rejects as
+   unauthenticated marks the cached status signed out and resolves a guest; any other failure
+   keeps the user already in the cache, and the components that render the user surface it. The
+   [auth layout](src/components/layouts/auth-layout.tsx) loader reads the key to send a signed-in
+   user away from the login and signup pages.
+
+A route group opts in by listing guards in its route's `middleware` array, which run after the
+root's:
+
+- `requireAuth` redirects a guest to login with the current URL as `redirectTo`, so signing in
+  lands on the page they asked for. Checkout and the account group use it.
+- `requireRole(role)` throws a 404 response for a signed-in user whose role differs; the
+  matching role passes through. List it after `requireAuth`, since alone it answers a guest with
+  not-found as well. Nothing uses it yet; the admin dashboard (#322) is its first consumer.
+  [ADR 0008](../../docs/adr/0008-a-route-the-role-cannot-reach-is-not-found.md) records why a
+  role mismatch is not found on the client while the API answers 403.
+
+A guarded group needs its own `errorElement`. React Router bubbles an error thrown before
+`next()` to the shallowest route that is loading in that navigation: the group's boundary on a
+client-side navigation, the root's on a full page load. Both boundaries render `NotFound` for a
+404 response, so a wrong role shows the same page as an unknown URL, with no redirect. Redirects
+thrown by middleware are followed in either case.
+
+Components cannot read the router context, so they keep reading the cached queries:
+`useIsAuthenticated` in [`lib/auth`](src/lib/auth/index.tsx) for the cart hooks, and
+`getUserQueryOptions` where the user is rendered. Error normalization and retry behavior stay in
+the query configuration and boundaries described above. The
+[historical middleware proposal](docs/error-middleware-proposal.md) records earlier ideas; it
+is not the current implementation.
 
 ## Page metadata
 
@@ -124,7 +158,10 @@ navigation. [`public/robots.txt`](public/robots.txt) is static; the sitemap is a
 
 [`test/errors.test.ts`](test/errors.test.ts) covers nested server-error extraction,
 consistent validation status, and the distinction between expired sessions and rejected
-login attempts. [`test/form-errors.test.ts`](test/form-errors.test.ts) drives
+login attempts. [`test/auth-middleware.test.ts`](test/auth-middleware.test.ts) drives a memory
+router through the auth middleware with only the HTTP client mocked: pass-through, redirect to
+login with the return URL, not-found for the wrong role, a session that died, and a role change
+seen on the next navigation. [`test/form-errors.test.ts`](test/form-errors.test.ts) drives
 `applyServerErrors` against a headless TanStack form with a stubbed `document`. Run the
 client suite with `pnpm --filter client test` after its workspace dependencies are built,
 or use root `pnpm test` for dependency ordering. For browser coverage, follow the

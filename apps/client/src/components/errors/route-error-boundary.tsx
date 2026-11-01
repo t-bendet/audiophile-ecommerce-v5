@@ -4,10 +4,12 @@ import { paths } from "@/config/paths";
 import {
   isAuthError,
   isCriticalError,
+  isNotFoundResponse,
   normalizeError,
 } from "@/lib/errors/errors";
 import { ErrorCode } from "@repo/domain";
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router";
+import { NotFound } from "./not-found";
 import { RedirectToLogin } from "./redirect-to-login";
 
 export function RouteErrorBoundary() {
@@ -18,17 +20,15 @@ export function RouteErrorBoundary() {
   let title: string;
   let message: string;
 
+  if (isNotFoundResponse(error)) {
+    return <NotFound />;
+  }
+
   if (isRouteErrorResponse(error)) {
     // React Router Response errors - extract directly without normalization
     statusCode = error.status;
     title = error.statusText || `Error ${statusCode}`;
     message = error.data || "An error occurred";
-
-    // Special case for 404
-    if (statusCode === 404) {
-      title = "Page Not Found";
-      message = "The page you're looking for doesn't exist.";
-    }
   } else {
     // All other errors - normalize first
     const normalizedError = normalizeError(error);

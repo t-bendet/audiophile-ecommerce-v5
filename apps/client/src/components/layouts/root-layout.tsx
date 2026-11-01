@@ -3,7 +3,6 @@ import {
   AUTH_LOGIN_MUTATION_KEY,
   AUTH_LOGOUT_MUTATION_KEY,
   AUTH_SIGNUP_MUTATION_KEY,
-  getAuthStatusQueryOptions,
   USER_QUERY_KEY,
 } from "@/lib/auth";
 import {
@@ -53,7 +52,6 @@ export function RootHydrateFallback() {
 
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    await queryClient.ensureQueryData(getAuthStatusQueryOptions());
     await queryClient.prefetchQuery(getCategoriesQueryOptions());
     return null;
   };

@@ -1,15 +1,9 @@
 import { Container } from "@/components/ui/container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { paths, TAccountPathKeys } from "@/config/paths";
-import { getAuthStatusQueryOptions, getUserQueryOptions } from "@/lib/auth";
-import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import {
-  LoaderFunctionArgs,
-  Outlet,
-  redirect,
-  useLocation,
-  useNavigate,
-} from "react-router";
+import { getUserQueryOptions } from "@/lib/auth";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Outlet, useLocation, useNavigate } from "react-router";
 import { SafeRenderWithErrorBlock } from "../errors/safe-render-with-error-block";
 
 export default function UserAreaLayout() {
@@ -46,18 +40,3 @@ export default function UserAreaLayout() {
     </main>
   );
 }
-
-export const clientLoader =
-  (queryClient: QueryClient) => async (context: LoaderFunctionArgs) => {
-    const authResponse = await queryClient.ensureQueryData(
-      getAuthStatusQueryOptions(),
-    );
-    if (!authResponse.data.isAuthenticated) {
-      // User is not logged in, redirect to login page
-      const url = new URL(context.request.url);
-      const redirectTo = url.pathname + url.search;
-      throw redirect(paths.auth.login.getHref(redirectTo));
-    }
-    await queryClient.refetchQueries(getUserQueryOptions());
-    return null;
-  };

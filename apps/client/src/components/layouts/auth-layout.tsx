@@ -1,3 +1,4 @@
+import { currentUserContext } from "@/app/middleware/auth";
 import { Button } from "@/components/ui/button";
 import { paths } from "@/config/paths";
 import { getAuthStatusQueryOptions } from "@/lib/auth";
@@ -26,12 +27,10 @@ const AuthLayout = () => {
 export default AuthLayout;
 
 export const clientLoader =
-  (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    const response = await queryClient.ensureQueryData(
-      getAuthStatusQueryOptions(),
-    );
-    if (response.data.isAuthenticated) {
-      // User is logged in, redirect to home page or dashboard
+  (_queryClient: QueryClient) =>
+  async ({ context }: LoaderFunctionArgs) => {
+    if (context.get(currentUserContext)) {
+      // Already signed in: there is nothing to log in to.
       throw redirect(paths.account.profile.path);
     }
     return null;

@@ -16,7 +16,12 @@ import {
   UserDTOResponse,
   UserDTOResponseSchema,
 } from "@repo/domain";
-import { QueryClient, queryOptions, useMutation } from "@tanstack/react-query";
+import {
+  QueryClient,
+  queryOptions,
+  useMutation,
+  useQuery,
+} from "@tanstack/react-query";
 import cartKeys from "@/features/cart/api/cart-keys";
 
 export const USER_QUERY_KEY = "authenticated-user";
@@ -50,6 +55,15 @@ export const getAuthStatusQueryOptions = () =>
     staleTime: Infinity, // User data doesn't change often, keep it fresh indefinitely
     select: (data) => data?.data, // Return only the user DTO
   });
+
+/** Whether the shopper is signed in, from the status the root middleware resolved. */
+export const useIsAuthenticated = () => {
+  const { data } = useQuery({
+    ...getAuthStatusQueryOptions(),
+    select: (response) => response.data.isAuthenticated,
+  });
+  return data ?? false;
+};
 
 /** Record locally that the session is over; the cookie behind it is already dead. */
 export const markSignedOut = (queryClient: QueryClient) =>

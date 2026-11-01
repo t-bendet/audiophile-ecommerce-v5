@@ -15,7 +15,7 @@ export const RedirectToLogin = () => {
   const loginHref = paths.auth.login.getHref(pathname + search);
 
   useEffect(() => {
-    // Must land before the navigation: the auth layout's loader reads this.
+    // Must land before the navigation: the root middleware reads this.
     markSignedOut(queryClient);
     void navigate(loginHref, { replace: true });
   }, [queryClient, navigate, loginHref]);
