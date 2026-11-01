@@ -47,6 +47,10 @@ git switch -c <type>/<issue#>-<slug>
 gh pr create --base main --title "..." --body "...Closes #<issue#>"
 ```
 
+To merge on green without waiting, enable auto-merge once the PR exists: `gh pr merge <n> --auto --squash`.
+GitHub merges when the required checks pass and deletes the head branch. The cloud-session route is
+under **Cloud sessions**.
+
 Commit subjects use the conventional-commit form `<type>: <summary>`, with `<type>` from the branch
 table above. Reference the issue in the commit body and the PR body with `Closes #<issue#>` so GitHub
 closes it on merge. Closing keywords ignore negation ("does not close #N" still closes #N), so work
