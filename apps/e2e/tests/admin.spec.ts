@@ -112,7 +112,12 @@ test.describe("an admin", () => {
     await expect(account.getByText("Deactivated")).toBeVisible();
 
     // The shopper, in a browser of their own, is told why they cannot sign in.
-    const shopperContext = await browser.newContext({ baseURL });
+    // A context made inside a test inherits the describe's storageState (the
+    // admin's) unless told otherwise, so the shopper starts signed out here.
+    const shopperContext = await browser.newContext({
+      baseURL,
+      storageState: { cookies: [], origins: [] },
+    });
     const shopperPage = await shopperContext.newPage();
     const signIn = async () => {
       await shopperPage.goto("/auth/login");

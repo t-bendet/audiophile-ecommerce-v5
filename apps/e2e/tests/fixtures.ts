@@ -173,10 +173,14 @@ export const test = base.extend<Fixtures>({
   },
 
   // A separate cookie jar, so the page's own session (the admin's, say) is
-  // untouched by the shopper who places the order.
+  // untouched by the shopper who places the order. It starts empty on purpose:
+  // a request context made inside a test inherits the test's storageState.
   placeOrderAsFreshShopper: async ({ playwright, baseURL }, use) => {
     await use(async () => {
-      const api = await playwright.request.newContext({ baseURL });
+      const api = await playwright.request.newContext({
+        baseURL,
+        storageState: { cookies: [], origins: [] },
+      });
       try {
         const shopper = freshShopper();
         await signUp(api, shopper);

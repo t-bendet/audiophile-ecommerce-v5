@@ -78,7 +78,9 @@ there should not be one.
 - **Opt out of that state for a guest flow.** `test.use({ storageState: { cookies: [], origins: [] } })`
   at the top of the file. A guest cart lives in `localStorage` under `audiophile_cart`, which every
   fresh context starts without. To hold credentials and still arrive signed out, sign up and then
-  `context.clearCookies()` — the signup response set the cookie.
+  `context.clearCookies()` — the signup response set the cookie. A context a test makes itself,
+  through `browser.newContext()` or `playwright.request.newContext()`, inherits the test's
+  `storageState` as well, so a second browser for another user passes that same empty state.
 - **Locate by role and accessible name first**, then text and label. `data-testid` only where
   neither identifies an element among siblings, named by a domain noun from `GLOSSARY.md`. The client
   has no `data-testid` today and the suite does not need one: a product card is an `article`, a
