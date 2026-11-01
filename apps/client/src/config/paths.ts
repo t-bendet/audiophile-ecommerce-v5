@@ -104,6 +104,11 @@ export const paths = {
       path: "/admin/homepage",
       getHref: () => "/admin/homepage",
     },
+    stats: {
+      path: "/admin/stats",
+      getHref: (period?: string) =>
+        `/admin/stats${period ? `?period=${period}` : ""}`,
+    },
   },
 } as const;
 

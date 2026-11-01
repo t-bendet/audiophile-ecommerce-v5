@@ -23,6 +23,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { type ZodType } from "zod";
+import adminStatsKeys from "../../stats/api/admin-stats-keys";
 import { AdminOrderFilters, toSearchParams } from "../filters";
 import adminOrderKeys from "./admin-order-keys";
 
@@ -95,12 +96,16 @@ const updatePaymentStatus = async (
   return parseEnvelope(UpdatePaymentStatusResponseSchema, response.data);
 };
 
-/** A saved move refreshes every admin list and detail, and the shopper's own orders. */
+/**
+ * A saved move refreshes every admin list and detail, the shopper's own orders
+ * and the stats, whose status counts and revenue it may have changed.
+ */
 const useInvalidateOrders = () => {
   const queryClient = useQueryClient();
   return () => {
     void queryClient.invalidateQueries({ queryKey: adminOrderKeys.all });
     void queryClient.invalidateQueries({ queryKey: orderKeys.all });
+    void queryClient.invalidateQueries({ queryKey: adminStatsKeys.all });
   };
 };
 

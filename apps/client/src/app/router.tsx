@@ -136,9 +136,22 @@ const createAppRouter = (queryClient: QueryClient) =>
           errorElement: <RouteErrorBoundary />,
           // Slices add their pages here; see the client guide's admin section.
           children: [
+            // The dashboard lands on the stats page, which also has its own URL.
             {
-              element: <Navigate to={paths.admin.orders.getHref()} replace />,
+              lazy: () =>
+                import("@/features/admin/stats/routes/stats").then(
+                  convert(queryClient),
+                ),
               index: true,
+              errorElement: <RouteErrorBoundary />,
+            },
+            {
+              lazy: () =>
+                import("@/features/admin/stats/routes/stats").then(
+                  convert(queryClient),
+                ),
+              path: paths.admin.stats.path,
+              errorElement: <RouteErrorBoundary />,
             },
             {
               lazy: () =>

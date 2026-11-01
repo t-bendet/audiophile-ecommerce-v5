@@ -140,6 +140,7 @@ describe("route manifest", () => {
           use <anonymous>
           get /orders [2 handlers]
           get /orders/:orderId [2 handlers]
+          get /stats [2 handlers]
       sitemap.xml
         get / [1 handlers]"
     `);

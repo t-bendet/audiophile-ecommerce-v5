@@ -4,8 +4,18 @@ import { ADMIN_STORAGE_STATE, SEEDED_ADMIN, expect, test } from "./fixtures.js";
 const openUserMenu = (page: Page) =>
   page.getByRole("button", { name: "Open user menu" }).click();
 
-const ordersHeading = (page: Page) =>
-  page.getByRole("heading", { name: "Orders", level: 1 });
+const statsHeading = (page: Page) =>
+  page.getByRole("heading", { name: "Stats", level: 1 });
+
+// A stat card prints one number: a count as `1,234`, revenue as `$ 1,234`.
+const statValue = (page: Page, label: string) =>
+  page.getByRole("region", { name: label, exact: true }).getByRole("paragraph");
+
+const readNumber = async (page: Page, label: string) =>
+  Number((await statValue(page, label).innerText()).replace(/[^\d]/g, ""));
+
+const shownCount = (count: number) => count.toLocaleString("en-US");
+const shownMoney = (amount: number) => `$ ${shownCount(amount)}`;
 
 test.describe("an admin", () => {
   test.use({ storageState: ADMIN_STORAGE_STATE });
@@ -15,16 +25,55 @@ test.describe("an admin", () => {
     await openUserMenu(page);
     await page.getByRole("link", { name: "Admin" }).click();
 
-    await expect(page).toHaveURL("/admin/orders");
-    await expect(ordersHeading(page)).toBeVisible();
-    await expect(
-      page
-        .getByRole("navigation", { name: "Admin sections" })
-        .getByRole("link", { name: "Orders" }),
-    ).toBeVisible();
+    await expect(page).toHaveURL("/admin");
+    await expect(statsHeading(page)).toBeVisible();
+    const sections = page
+      .getByRole("navigation", { name: "Admin sections" })
+      .getByRole("link");
+    await expect(sections.first()).toHaveText("Orders");
+    await expect(sections.last()).toHaveText("Stats");
     await expect(page.getByRole("button", { name: "Open cart" })).toHaveCount(
       0,
     );
+  });
+
+  test("counts a fresh shopper's paid order in the week's stats", async ({
+    page,
+    context,
+    placeOrderAsFreshShopper,
+  }) => {
+    await page.goto("/admin/stats?period=7d");
+    await expect(page.getByRole("tab", { name: "7 days" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(
+      page.getByRole("region", { name: "Orders by status" }),
+    ).toBeVisible();
+    const before = {
+      orders: await readNumber(page, "Orders"),
+      revenue: await readNumber(page, "Revenue"),
+    };
+
+    const { orderId } = await placeOrderAsFreshShopper();
+    // Paid by the admin through the API, the way the fulfilment form does it.
+    const paid = await context.request.patch(
+      `/api/v1/orders/${orderId}/payment-status`,
+      { data: { paymentStatus: "PAID" } },
+    );
+    expect(paid.ok(), "marking the order paid").toBe(true);
+    const { total } = ((await paid.json()) as { data: { total: number } }).data;
+
+    await page.goto("/admin/stats?period=7d");
+    await expect(statValue(page, "Orders")).toHaveText(
+      shownCount(before.orders + 1),
+    );
+    await expect(statValue(page, "Revenue")).toHaveText(
+      shownMoney(before.revenue + total),
+    );
+    await expect(
+      page.getByRole("region", { name: "Best sellers" }).getByRole("link"),
+    ).not.toHaveCount(0);
   });
 
   test("finds a fresh shopper's order and moves it along", async ({
@@ -287,7 +336,7 @@ test.describe("a guest", () => {
       .fill(SEEDED_ADMIN.password);
     await page.getByRole("button", { name: "Login" }).click();
 
-    await expect(page).toHaveURL("/admin/orders");
-    await expect(ordersHeading(page)).toBeVisible();
+    await expect(page).toHaveURL("/admin");
+    await expect(statsHeading(page)).toBeVisible();
   });
 });

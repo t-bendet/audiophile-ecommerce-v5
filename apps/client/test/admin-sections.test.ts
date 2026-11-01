@@ -36,6 +36,14 @@ describe("admin sections", () => {
     expect(activeAdminSection("/admin/homepage")?.label).toBe("Homepage");
   });
 
+  it("puts Stats last and makes it the group's own page", () => {
+    expect(ADMIN_SECTIONS[ADMIN_SECTIONS.length - 1]?.label).toBe("Stats");
+    expect(activeAdminSection("/admin/stats")?.label).toBe("Stats");
+    expect(activeAdminSection("/admin")?.label).toBe("Stats");
+    expect(activeAdminSection("/admin/")?.label).toBe("Stats");
+    expect(activeAdminSection("/admin/orders")?.label).toBe("Orders");
+  });
+
   it("keeps every section under the guarded group", () => {
     for (const section of ADMIN_SECTIONS) {
       expect(section.href).toMatch(/^\/admin(\/|$)/);
