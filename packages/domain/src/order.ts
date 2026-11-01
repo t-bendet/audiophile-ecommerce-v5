@@ -39,6 +39,17 @@ export type OrderUpdateInput = Prisma.OrderUpdateInput;
 export type OrderWhereInput = Prisma.OrderWhereInput;
 export type OrderSelect = Prisma.OrderSelect;
 
+// The admin reads the same order plus who placed it; `AdminOrder` derives from
+// this include the way `Order` derives from `ORDER_INCLUDE`.
+export const ADMIN_ORDER_INCLUDE = {
+  ...ORDER_INCLUDE,
+  user: { select: { id: true, name: true, email: true } },
+} as const satisfies Prisma.OrderInclude;
+
+export type AdminOrder = Prisma.OrderGetPayload<{
+  include: typeof ADMIN_ORDER_INCLUDE;
+}>;
+
 // * ===== Re-export enums and types =====
 
 const ORDER_STATUS = {
@@ -61,6 +72,45 @@ type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
 
 export { ORDER_STATUS, PAYMENT_STATUS };
 export type { BillingAddress, ShippingAddress, OrderStatus, PaymentStatus };
+
+// * ===== Status Transitions =====
+
+/**
+ * The order status moves an admin may make from each status. Cancelled is
+ * final; a Delivered order can only be cancelled. The server enforces this
+ * table and the client offers only what it allows.
+ */
+export const ORDER_STATUS_TRANSITIONS = {
+  PENDING: ["PROCESSING", "CANCELLED"],
+  PROCESSING: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["DELIVERED", "CANCELLED"],
+  DELIVERED: ["CANCELLED"],
+  CANCELLED: [],
+} as const satisfies Record<OrderStatus, readonly OrderStatus[]>;
+
+/**
+ * The payment status moves an admin may make by hand, since there is no
+ * payment gateway. Refunded is final. Payment status moves independently of
+ * order status.
+ */
+export const PAYMENT_STATUS_TRANSITIONS = {
+  PENDING: ["PAID", "FAILED"],
+  PAID: ["REFUNDED"],
+  FAILED: ["PAID"],
+  REFUNDED: [],
+} as const satisfies Record<PaymentStatus, readonly PaymentStatus[]>;
+
+export const canTransitionOrderStatus = (
+  from: OrderStatus,
+  to: OrderStatus,
+): boolean =>
+  (ORDER_STATUS_TRANSITIONS[from] as readonly OrderStatus[]).includes(to);
+
+export const canTransitionPaymentStatus = (
+  from: PaymentStatus,
+  to: PaymentStatus,
+): boolean =>
+  (PAYMENT_STATUS_TRANSITIONS[from] as readonly PaymentStatus[]).includes(to);
 
 // * ===== Common Schemas =====
 
@@ -143,6 +193,26 @@ export const OrderDTOSchema = z.object({
 
 export type OrderDTO = z.infer<typeof OrderDTOSchema>;
 
+/**
+ * The customer who placed an order, as the admin sees it
+ */
+export const OrderCustomerDTOSchema = z.object({
+  id: IdValidator("User"),
+  name: z.string(),
+  email: z.string(),
+});
+
+export type OrderCustomerDTO = z.infer<typeof OrderCustomerDTOSchema>;
+
+/**
+ * Admin order DTO - the shopper's order plus its customer
+ */
+export const AdminOrderDTOSchema = OrderDTOSchema.extend({
+  customer: OrderCustomerDTOSchema,
+});
+
+export type AdminOrderDTO = z.infer<typeof AdminOrderDTOSchema>;
+
 // * ===== Input Schemas =====
 
 /**
@@ -172,6 +242,19 @@ export type UpdateOrderStatusInput = z.infer<
 >;
 
 /**
+ * Update payment status input (admin only)
+ */
+export const UpdatePaymentStatusInputSchema = z
+  .object({
+    paymentStatus: PaymentStatusSchema,
+  })
+  .strict();
+
+export type UpdatePaymentStatusInput = z.infer<
+  typeof UpdatePaymentStatusInputSchema
+>;
+
+/**
  * Order query params
  */
 export const OrderQueryParamsSchema = z
@@ -184,6 +267,18 @@ export const OrderQueryParamsSchema = z
   .strict();
 
 export type OrderQueryParams = z.infer<typeof OrderQueryParamsSchema>;
+
+/**
+ * Admin order query params: every shop order, narrowed by status, payment
+ * status, an exact order id, part of the customer's email or an exact user id.
+ */
+export const AdminOrderQueryParamsSchema = OrderQueryParamsSchema.extend({
+  orderId: IdValidator("Order").optional(),
+  customerEmail: z.string().trim().min(1).optional(),
+  userId: IdValidator("User").optional(),
+}).strict();
+
+export type AdminOrderQueryParams = z.infer<typeof AdminOrderQueryParamsSchema>;
 
 // * ===== Request Schemas =====
 
@@ -215,6 +310,17 @@ export const ListOrdersRequestSchema = createRequestSchema({
 export type ListOrdersRequest = z.infer<typeof ListOrdersRequestSchema>;
 
 /**
+ * List every order request (admin only)
+ */
+export const AdminListOrdersRequestSchema = createRequestSchema({
+  query: AdminOrderQueryParamsSchema,
+});
+
+export type AdminListOrdersRequest = z.infer<
+  typeof AdminListOrdersRequestSchema
+>;
+
+/**
  * Update order status request (admin only)
  */
 export const UpdateOrderStatusRequestSchema = createRequestSchema({
@@ -224,6 +330,18 @@ export const UpdateOrderStatusRequestSchema = createRequestSchema({
 
 export type UpdateOrderStatusRequest = z.infer<
   typeof UpdateOrderStatusRequestSchema
+>;
+
+/**
+ * Update payment status request (admin only)
+ */
+export const UpdatePaymentStatusRequestSchema = createRequestSchema({
+  params: z.object({ orderId: IdValidator("Order") }).strict(),
+  body: UpdatePaymentStatusInputSchema,
+});
+
+export type UpdatePaymentStatusRequest = z.infer<
+  typeof UpdatePaymentStatusRequestSchema
 >;
 
 // * ===== Response Schemas =====
@@ -241,3 +359,15 @@ export const ListOrdersResponseSchema = ListResponseSchema(OrderDTOSchema);
 export type UpdateOrderStatusResponse = SingleItemResponse<OrderDTO>;
 export const UpdateOrderStatusResponseSchema =
   SingleItemResponseSchema(OrderDTOSchema);
+
+export type UpdatePaymentStatusResponse = SingleItemResponse<OrderDTO>;
+export const UpdatePaymentStatusResponseSchema =
+  SingleItemResponseSchema(OrderDTOSchema);
+
+export type AdminListOrdersResponse = ListResponse<AdminOrderDTO>;
+export const AdminListOrdersResponseSchema =
+  ListResponseSchema(AdminOrderDTOSchema);
+
+export type AdminGetOrderResponse = SingleItemResponse<AdminOrderDTO>;
+export const AdminGetOrderResponseSchema =
+  SingleItemResponseSchema(AdminOrderDTOSchema);

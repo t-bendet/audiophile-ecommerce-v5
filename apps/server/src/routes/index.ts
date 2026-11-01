@@ -1,4 +1,5 @@
 import express from "express";
+import adminRouter from "./admin.route.js";
 import authRouter from "./auth.route.js";
 import cartRouter from "./cart.route.js";
 import categoryRouter from "./category.route.js";
@@ -18,5 +19,6 @@ indexRoute.use("/products", productRouter);
 indexRoute.use("/config", configRouter);
 indexRoute.use("/cart", cartRouter);
 indexRoute.use("/orders", orderRouter);
+indexRoute.use("/admin", adminRouter);
 
 export default indexRoute;

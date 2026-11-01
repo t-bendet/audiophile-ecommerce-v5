@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import app from "../src/app.js";
+import adminRouter from "../src/routes/admin.route.js";
 import authRouter from "../src/routes/auth.route.js";
 import cartRouter from "../src/routes/cart.route.js";
 import categoryRouter from "../src/routes/category.route.js";
@@ -37,6 +38,7 @@ const ROUTER_NAMES = new Map<unknown, string>([
   [configRouter, "config"],
   [cartRouter, "cart"],
   [orderRouter, "orders"],
+  [adminRouter, "admin"],
 ]);
 
 const isStackHolder = (value: unknown): value is StackHolder =>
@@ -132,6 +134,12 @@ describe("route manifest", () => {
           get /:orderId [2 handlers]
           use <anonymous>
           patch /:orderId/status [2 handlers]
+          patch /:orderId/payment-status [2 handlers]
+        admin
+          use <anonymous>
+          use <anonymous>
+          get /orders [2 handlers]
+          get /orders/:orderId [2 handlers]
       sitemap.xml
         get / [1 handlers]"
     `);

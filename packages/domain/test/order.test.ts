@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 import {
+  AdminOrderQueryParamsSchema,
+  canTransitionOrderStatus,
+  canTransitionPaymentStatus,
   DEFAULT_LIMIT,
   DEFAULT_PAGE,
   GetOrderRequestSchema,
+  ORDER_STATUS_TRANSITIONS,
   OrderQueryParamsSchema,
+  PAYMENT_STATUS_TRANSITIONS,
   UpdateOrderStatusRequestSchema,
 } from "../src/index.js";
 
@@ -66,5 +71,54 @@ describe("OrderQueryParamsSchema pagination", () => {
       page: DEFAULT_PAGE,
       limit: DEFAULT_LIMIT,
     });
+  });
+});
+
+describe("status transition tables", () => {
+  it("lets an order move along fulfilment or be cancelled, and no further", () => {
+    expect(ORDER_STATUS_TRANSITIONS).toEqual({
+      PENDING: ["PROCESSING", "CANCELLED"],
+      PROCESSING: ["SHIPPED", "CANCELLED"],
+      SHIPPED: ["DELIVERED", "CANCELLED"],
+      DELIVERED: ["CANCELLED"],
+      CANCELLED: [],
+    });
+    expect(canTransitionOrderStatus("PENDING", "PROCESSING")).toBe(true);
+    expect(canTransitionOrderStatus("PENDING", "SHIPPED")).toBe(false);
+    expect(canTransitionOrderStatus("DELIVERED", "CANCELLED")).toBe(true);
+    expect(canTransitionOrderStatus("CANCELLED", "PENDING")).toBe(false);
+    expect(canTransitionOrderStatus("PENDING", "PENDING")).toBe(false);
+  });
+
+  it("lets payment be settled, retried or refunded by hand", () => {
+    expect(PAYMENT_STATUS_TRANSITIONS).toEqual({
+      PENDING: ["PAID", "FAILED"],
+      PAID: ["REFUNDED"],
+      FAILED: ["PAID"],
+      REFUNDED: [],
+    });
+    expect(canTransitionPaymentStatus("PENDING", "PAID")).toBe(true);
+    expect(canTransitionPaymentStatus("FAILED", "PAID")).toBe(true);
+    expect(canTransitionPaymentStatus("PAID", "PENDING")).toBe(false);
+    expect(canTransitionPaymentStatus("REFUNDED", "PAID")).toBe(false);
+  });
+});
+
+describe("AdminOrderQueryParamsSchema", () => {
+  it("accepts the admin filters and rejects an unknown one", () => {
+    expect(
+      AdminOrderQueryParamsSchema.parse({
+        status: "PENDING",
+        customerEmail: " Ada@Example.com ",
+        userId: VALID_ORDER_ID,
+        orderId: VALID_ORDER_ID,
+      }),
+    ).toMatchObject({ customerEmail: "Ada@Example.com", page: DEFAULT_PAGE });
+    expect(() => AdminOrderQueryParamsSchema.parse({ email: "x" })).toThrow(
+      ZodError,
+    );
+    expect(() => AdminOrderQueryParamsSchema.parse({ status: "LOST" })).toThrow(
+      ZodError,
+    );
   });
 });

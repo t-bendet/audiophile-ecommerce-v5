@@ -122,13 +122,17 @@ changes do not touch it.
 _Avoid_: line item, order product
 
 **Order status**:
-Where an order is in fulfilment: Pending, Processing, Shipped, Delivered or Cancelled. Cancelled is
-final; a Delivered order can only move to Cancelled.
+Where an order is in fulfilment: Pending, Processing, Shipped, Delivered or Cancelled. An admin moves
+it along `ORDER_STATUS_TRANSITIONS` in `@repo/domain`: Pending to Processing or Cancelled,
+Processing to Shipped or Cancelled, Shipped to Delivered or Cancelled, Delivered to Cancelled only.
+Cancelled is final. The server refuses any other move and the dashboard offers only these.
 _Avoid_: order state, fulfilment status
 
 **Payment status**:
 Whether an order has been paid: Pending, Paid, Failed or Refunded. It moves independently of order
-status.
+status, along `PAYMENT_STATUS_TRANSITIONS` in `@repo/domain`: Pending to Paid or Failed, Failed to
+Paid, Paid to Refunded. Refunded is final. There is no payment gateway, so an admin sets it by hand
+until one exists; cancelling a Paid order is allowed and may leave a refund due.
 _Avoid_: payment state, paid flag
 
 **Order totals**:

@@ -1,7 +1,13 @@
 import { prisma } from "@repo/database";
 import {
+  ADMIN_ORDER_INCLUDE,
+  AdminOrder,
+  AdminOrderDTO,
+  AdminOrderQueryParams,
   AppError,
   calculateOrderTotals,
+  canTransitionOrderStatus,
+  canTransitionPaymentStatus,
   CreateOrderInput,
   ErrorCode,
   type Meta,
@@ -61,6 +67,20 @@ export class OrderService extends AbstractCrudService<
       paymentStatus: entity.paymentStatus,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+    };
+  }
+
+  /**
+   * The shopper's DTO plus the customer who placed the order
+   */
+  private toAdminDTO(entity: AdminOrder): AdminOrderDTO {
+    return {
+      ...this.toDTO(entity),
+      customer: {
+        id: entity.user.id,
+        name: entity.user.name,
+        email: entity.user.email,
+      },
     };
   }
 
@@ -189,34 +209,67 @@ export class OrderService extends AbstractCrudService<
   }
 
   /**
-   * Update order status (admin only)
+   * List every order in the shop (admin only)
    */
-  async updateOrderStatus(
-    orderId: string,
-    status: OrderStatus,
-  ): Promise<OrderDTO> {
+  async listAllOrders(
+    query: AdminOrderQueryParams,
+  ): Promise<{ data: AdminOrderDTO[]; meta: Meta }> {
+    const { status, paymentStatus, orderId, customerEmail, userId } = query;
+    const { page, limit, skip, take } = parsePagination(query);
+
+    const where = this.buildOrderWhere({
+      status,
+      paymentStatus,
+      orderId,
+      customerEmail,
+      userId,
+    });
+
+    const [data, total] = await prisma.$transaction([
+      prisma.order.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: "desc" },
+        include: ADMIN_ORDER_INCLUDE,
+      }),
+      prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: data.map((order) => this.toAdminDTO(order)),
+      meta: buildMeta({ page, limit, total }),
+    };
+  }
+
+  /**
+   * Get any user's order with its customer (admin only)
+   */
+  async getAnyOrder(orderId: string): Promise<AdminOrderDTO> {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
+      include: ADMIN_ORDER_INCLUDE,
     });
 
     if (!order) {
       throw new AppError("Order not found", ErrorCode.ORDER_NOT_FOUND);
     }
 
-    // Validate status transition
-    if (order.status === ORDER_STATUS.CANCELLED) {
-      throw new AppError(
-        "Cannot update cancelled order",
-        ErrorCode.ORDER_ALREADY_PROCESSED,
-      );
-    }
+    return this.toAdminDTO(order);
+  }
 
-    if (
-      order.status === ORDER_STATUS.DELIVERED &&
-      status !== ORDER_STATUS.CANCELLED
-    ) {
+  /**
+   * Update order status (admin only), along the domain transition table
+   */
+  async updateOrderStatus(
+    orderId: string,
+    status: OrderStatus,
+  ): Promise<OrderDTO> {
+    const order = await this.findOrderForUpdate(orderId);
+
+    if (!canTransitionOrderStatus(order.status, status)) {
       throw new AppError(
-        "Cannot update delivered order",
+        `Order status cannot move from ${order.status} to ${status}`,
         ErrorCode.ORDER_ALREADY_PROCESSED,
       );
     }
@@ -230,21 +283,65 @@ export class OrderService extends AbstractCrudService<
     return this.toDTO(updatedOrder);
   }
 
+  /**
+   * Update payment status by hand (admin only), along the domain transition
+   * table; there is no payment gateway.
+   */
+  async updatePaymentStatus(
+    orderId: string,
+    paymentStatus: PaymentStatus,
+  ): Promise<OrderDTO> {
+    const order = await this.findOrderForUpdate(orderId);
+
+    if (!canTransitionPaymentStatus(order.paymentStatus, paymentStatus)) {
+      throw new AppError(
+        `Payment status cannot move from ${order.paymentStatus} to ${paymentStatus}`,
+        ErrorCode.ORDER_ALREADY_PROCESSED,
+      );
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { paymentStatus },
+      include: ORDER_INCLUDE,
+    });
+
+    return this.toDTO(updatedOrder);
+  }
+
+  private async findOrderForUpdate(orderId: string) {
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+
+    if (!order) {
+      throw new AppError("Order not found", ErrorCode.ORDER_NOT_FOUND);
+    }
+
+    return order;
+  }
+
   // ===== Private Query Builders =====
 
   private buildOrderWhere({
     userId,
     status,
     paymentStatus,
+    orderId,
+    customerEmail,
   }: {
     userId?: string;
     status?: OrderStatus;
     paymentStatus?: PaymentStatus;
+    orderId?: string;
+    customerEmail?: string;
   }): OrderWhereInput {
     return {
       ...(userId && { userId }),
       ...(status && { status }),
       ...(paymentStatus && { paymentStatus }),
+      ...(orderId && { id: orderId }),
+      ...(customerEmail && {
+        user: { email: { contains: customerEmail, mode: "insensitive" } },
+      }),
     };
   }
 

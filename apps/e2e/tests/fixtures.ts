@@ -76,11 +76,56 @@ export type Catalogue = {
   productsByCategory: (category: CategoryName) => Promise<CategoryProduct[]>;
 };
 
+export type PlacedOrder = {
+  shopper: Shopper;
+  orderId: string;
+};
+
 type Fixtures = {
   login: (credentials?: Credentials) => Promise<void>;
   signUpFreshShopper: () => Promise<Shopper>;
+  placeOrderAsFreshShopper: () => Promise<PlacedOrder>;
   resetCart: () => Promise<void>;
   catalogue: Catalogue;
+};
+
+const CHECKOUT = {
+  shippingAddress: {
+    fullName: "E2E Shopper",
+    email: "e2e@example.com",
+    phone: "+1 202 555 0100",
+    address: "1 Audio Lane",
+    city: "Hi-Fi City",
+    state: "CA",
+    zipCode: "90001",
+    country: "United States",
+  },
+  billingAddress: {
+    fullName: "E2E Shopper",
+    address: "1 Audio Lane",
+    city: "Hi-Fi City",
+    state: "CA",
+    zipCode: "90001",
+    country: "United States",
+  },
+  paymentMethod: "Cash on Delivery",
+};
+
+const freshShopper = (): Shopper => {
+  // `User.name` is unique too, and capped at 30 characters.
+  const id = randomUUID();
+  return {
+    name: `e2e shopper ${id.slice(0, 8)}`,
+    email: `e2e-${id}@example.com`,
+    password: "11111111",
+  };
+};
+
+const signUp = async (api: APIRequestContext, shopper: Shopper) => {
+  await writeData(api, "post", "/api/v1/auth/signup", {
+    ...shopper,
+    passwordConfirm: shopper.password,
+  });
 };
 
 const readData = async <T>(
@@ -121,18 +166,35 @@ export const test = base.extend<Fixtures>({
 
   signUpFreshShopper: async ({ context }, use) => {
     await use(async () => {
-      // `User.name` is unique too, and capped at 30 characters.
-      const id = randomUUID();
-      const shopper: Shopper = {
-        name: `e2e shopper ${id.slice(0, 8)}`,
-        email: `e2e-${id}@example.com`,
-        password: "11111111",
-      };
-      await writeData(context.request, "post", "/api/v1/auth/signup", {
-        ...shopper,
-        passwordConfirm: shopper.password,
-      });
+      const shopper = freshShopper();
+      await signUp(context.request, shopper);
       return shopper;
+    });
+  },
+
+  // A separate cookie jar, so the page's own session (the admin's, say) is
+  // untouched by the shopper who places the order.
+  placeOrderAsFreshShopper: async ({ playwright, baseURL }, use) => {
+    await use(async () => {
+      const api = await playwright.request.newContext({ baseURL });
+      try {
+        const shopper = freshShopper();
+        await signUp(api, shopper);
+        const [product] = await readData<CatalogueProduct[]>(
+          api,
+          "/api/v1/products",
+        );
+        await writeData(api, "post", "/api/v1/cart", {
+          productId: product.id,
+          quantity: 1,
+        });
+        const response = await api.post("/api/v1/orders", { data: CHECKOUT });
+        expect(response.status(), "POST /api/v1/orders").toBe(201);
+        const body = (await response.json()) as { data: { id: string } };
+        return { shopper, orderId: body.data.id };
+      } finally {
+        await api.dispose();
+      }
     });
   },
 

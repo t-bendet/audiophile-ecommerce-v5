@@ -48,13 +48,14 @@ a 429 no matter how many retries it takes. The vitest suite owns that behaviour.
 Every spec imports `test` and `expect` from `tests/fixtures.ts`, never from `@playwright/test`, so
 a change to how a shopper signs in touches one file.
 
-| Fixture                | What it does                                                                                           |
-| ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| `login(credentials?)`  | Signs in through the API on the browser context's cookie jar; defaults to the seeded `doe@example.com` |
-| `SEEDED_ADMIN`         | The seeded `admin@example.com` credentials, for `login` or the login form                              |
-| `signUpFreshShopper()` | Creates a user with a unique email and name and returns its credentials                                |
-| `resetCart()`          | `DELETE /api/v1/cart` for the signed-in context                                                        |
-| `catalogue`            | Reads the catalogue through the products and categories API                                            |
+| Fixture                      | What it does                                                                                                |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `login(credentials?)`        | Signs in through the API on the browser context's cookie jar; defaults to the seeded `doe@example.com`      |
+| `SEEDED_ADMIN`               | The seeded `admin@example.com` credentials, for `login` or the login form                                   |
+| `signUpFreshShopper()`       | Creates a user with a unique email and name and returns its credentials                                     |
+| `placeOrderAsFreshShopper()` | Signs up a shopper in its own cookie jar, orders one catalogue product and returns the shopper and order id |
+| `resetCart()`                | `DELETE /api/v1/cart` for the signed-in context                                                             |
+| `catalogue`                  | Reads the catalogue through the products and categories API                                                 |
 
 `catalogue` is how a spec learns what to assert: `showCaseProducts()`, `featuredProduct()`,
 `products()`, `productBySlug(slug)` and `productsByCategory(category)`. Assert against what the API
@@ -71,7 +72,9 @@ there should not be one.
   and the `chromium` project loads its storage state.
 - **Arrive as the admin with `test.use({ storageState: ADMIN_STORAGE_STATE })`.** The same setup
   signs in the seeded `admin@example.com` into a second state file beside the shopper's. It is
-  read-only too: an admin flow that writes signs up its own shopper for the data it changes.
+  read-only too: an admin flow that writes gets the data it changes from `placeOrderAsFreshShopper()`,
+  which keeps the shopper's session out of the admin's cookie jar, and finds it by that shopper's
+  email rather than by position in the list.
 - **Opt out of that state for a guest flow.** `test.use({ storageState: { cookies: [], origins: [] } })`
   at the top of the file. A guest cart lives in `localStorage` under `audiophile_cart`, which every
   fresh context starts without. To hold credentials and still arrive signed out, sign up and then
@@ -164,8 +167,10 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
 Home showcase, a category listing, a guest add-to-cart through the mini-cart, the checkout redirect
 to login and back, a guest cart surviving sign-in, a checkout that creates an order and finds it under
 account orders, the not-found page, the admin shell (the account menu's Admin item and `/admin` for
-the admin, not-found there for a shopper, the login redirect and return for a guest), and the crawler
-surface: a product page's JSON-LD, the robots file and the sitemap the preview proxies to the server.
+the admin, not-found there for a shopper, the login redirect and return for a guest), admin order
+fulfilment (a fresh shopper's order found by email, moved to Processing and marked Paid, after which
+the select no longer offers Pending), and the crawler surface: a product page's JSON-LD, the robots
+file and the sitemap the preview proxies to the server.
 
 The order flow is the one that writes, so `order.spec.ts` signs up its own shopper and asserts the
 orders page holds exactly one order. The checkout form groups its inputs under `Shipping details`,
