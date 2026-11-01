@@ -26,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
+import { PasswordStrengthMeter } from "./password-strength-meter";
 import { PasswordVisibilityToggle } from "./password-visibility-toggle";
 
 export function SignupForm({ className }: React.ComponentProps<"div">) {
@@ -178,6 +179,7 @@ export function SignupForm({ className }: React.ComponentProps<"div">) {
                             }
                           />
                         </div>
+                        <PasswordStrengthMeter password={field.state.value} />
                         {isInvalid && (
                           <FieldError errors={field.state.meta.errors} />
                         )}
