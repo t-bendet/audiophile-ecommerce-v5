@@ -12,3 +12,4 @@ export * from "./cart.js";
 export * from "./order.js";
 export * from "./pricing.js";
 export * from "./image.js";
+export * from "./stats.js";

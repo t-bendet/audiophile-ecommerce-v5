@@ -84,6 +84,13 @@ export class UserService extends AbstractCrudService<
     await this.updateAsAdmin(id, { active: false });
   }
 
+  /** How many accounts were created since `since`, or ever when it is null. */
+  async countCreatedSince(since: Date | null): Promise<number> {
+    return prisma.user.count({
+      where: since ? { createdAt: { gte: since } } : {},
+    });
+  }
+
   // ***** Persistence Layer Methods *****
 
   protected async persistFindMany(

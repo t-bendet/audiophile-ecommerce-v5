@@ -145,6 +145,13 @@ An order's subtotal, shipping cost, tax and total. Subtotal is the sum of its li
 flat amount, tax is a fixed share of the subtotal, and total is the three added together.
 _Avoid_: grand total, amount, price breakdown
 
+**Stats period**:
+The window the dashboard's stats page counts over: the last 7, 30 or 90 days, or all time, chosen
+with tabs and never a custom range. Every number is for the orders created in it, except new
+customers, which counts the users created in it; revenue is the total of its Paid orders whatever
+their order status, so a Refunded order drops out and a cancelled Paid order stays.
+_Avoid_: date range, time frame, window
+
 **Ownership**:
 A cart item or order belongs to the user who created it. Any other user reaching for it is refused
 as forbidden, not treated as unauthenticated and not told it does not exist.

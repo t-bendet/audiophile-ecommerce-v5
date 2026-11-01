@@ -1,12 +1,16 @@
 import Logo from "@/assets/logo.svg?react";
 import { Metadata } from "@/components/seo/metadata";
 import { paths } from "@/config/paths";
-import { ADMIN_SECTIONS, activeAdminSection } from "@/features/admin/sections";
+import {
+  ADMIN_SECTIONS,
+  activeAdminSection,
+  type AdminSection,
+} from "@/features/admin/sections";
 import { getUserQueryOptions } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
-import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation } from "react-router";
 
 const overline = "text-xs font-bold tracking-600 uppercase";
 
@@ -18,12 +22,13 @@ const overline = "text-xs font-bold tracking-600 uppercase";
  */
 export default function AdminLayout() {
   const { pathname } = useLocation();
-  const title = activeAdminSection(pathname)?.label ?? "Admin";
+  const active = activeAdminSection(pathname);
+  const title = active?.label ?? "Admin";
 
   return (
     <div className="flex min-h-dvh bg-neutral-200 text-neutral-900">
       <Metadata title={`${title} | Admin`} noIndex />
-      <AdminSidebar />
+      <AdminSidebar active={active} />
       <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
         <header className="flex h-20 items-center gap-4 border-b border-neutral-400/40 bg-neutral-100 px-5 md:px-10">
           <Logo
@@ -38,12 +43,17 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
-      <AdminTabBar />
+      <AdminTabBar active={active} />
     </div>
   );
 }
 
-function AdminSidebar() {
+type NavigationProps = {
+  /** From the one lookup the header title uses, so `/admin` lights its section. */
+  active: AdminSection | undefined;
+};
+
+function AdminSidebar({ active }: NavigationProps) {
   const { data: user } = useQuery(getUserQueryOptions());
 
   return (
@@ -58,29 +68,24 @@ function AdminSidebar() {
       <nav aria-label="Admin sections" className="flex flex-col">
         {ADMIN_SECTIONS.map((section) => {
           const Icon = section.icon;
+          const isActive = section === active;
           return (
-            <NavLink
+            <Link
               key={section.href}
               to={section.href}
-              end={section.end}
-              className={({ isActive }) =>
-                cn(
-                  overline,
-                  "relative flex h-12 items-center gap-4 px-6 transition-colors hover:text-primary-500",
-                  isActive ? "text-primary-500" : "text-neutral-100",
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {isActive && (
-                    <span className="absolute inset-y-2 left-0 w-1 bg-primary-500" />
-                  )}
-                  <Icon className="size-4" />
-                  {section.label}
-                </>
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                overline,
+                "relative flex h-12 items-center gap-4 px-6 transition-colors hover:text-primary-500",
+                isActive ? "text-primary-500" : "text-neutral-100",
               )}
-            </NavLink>
+            >
+              {isActive && (
+                <span className="absolute inset-y-2 left-0 w-1 bg-primary-500" />
+              )}
+              <Icon className="size-4" />
+              {section.label}
+            </Link>
           );
         })}
       </nav>
@@ -106,7 +111,7 @@ function AdminSidebar() {
   );
 }
 
-function AdminTabBar() {
+function AdminTabBar({ active }: NavigationProps) {
   return (
     <nav
       aria-label="Admin sections"
@@ -114,21 +119,20 @@ function AdminTabBar() {
     >
       {ADMIN_SECTIONS.map((section) => {
         const Icon = section.icon;
+        const isActive = section === active;
         return (
-          <NavLink
+          <Link
             key={section.href}
             to={section.href}
-            end={section.end}
-            className={({ isActive }) =>
-              cn(
-                "flex flex-1 flex-col items-center justify-center gap-1 text-[0.625rem] font-bold tracking-200 uppercase",
-                isActive ? "text-primary-500" : "text-neutral-100/70",
-              )
-            }
+            aria-current={isActive ? "page" : undefined}
+            className={cn(
+              "flex flex-1 flex-col items-center justify-center gap-1 text-[0.625rem] font-bold tracking-200 uppercase",
+              isActive ? "text-primary-500" : "text-neutral-100/70",
+            )}
           >
             <Icon className="size-5" />
             {section.label}
-          </NavLink>
+          </Link>
         );
       })}
     </nav>

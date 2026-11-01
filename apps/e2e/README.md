@@ -177,8 +177,10 @@ in), admin catalogue edits (a seeded product's price raised on its edit page and
 storefront page, then put back through the API; and the homepage slot picker offering the featured
 slot only the one seeded product with a featured image and a showcase slot the three showcase
 products with the two held elsewhere disabled; the seed has no spare image, so no slot can be
-saved to another product and the spec does not try), and the crawler surface: a product page's JSON-LD, the robots
-file and the sitemap the preview proxies to the server.
+saved to another product and the spec does not try), admin stats (the week's orders count and
+revenue read from the stat cards, then read again after a fresh shopper's order is placed and
+marked Paid through the API, each up by that one order), and the crawler surface: a product page's
+JSON-LD, the robots file and the sitemap the preview proxies to the server.
 
 The order flow is the one that writes, so `order.spec.ts` signs up its own shopper and asserts the
 orders page holds exactly one order. The checkout form groups its inputs under `Shipping details`,

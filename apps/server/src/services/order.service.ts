@@ -23,11 +23,15 @@ import {
   OrderWhereInput,
   type PaymentStatus,
   PAYMENT_STATUS,
+  type StatsDTO,
 } from "@repo/domain";
 import { toImageVariantDTO } from "../utils/media.js";
 import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 import { cartService } from "./cart.service.js";
+
+/** The best-sellers panel shows at most this many products. */
+const TOP_PRODUCTS_LIMIT = 5;
 
 export class OrderService extends AbstractCrudService<
   Order,
@@ -307,6 +311,72 @@ export class OrderService extends AbstractCrudService<
     });
 
     return this.toDTO(updatedOrder);
+  }
+
+  /**
+   * The order numbers of the stats page, aggregated by the database: a count
+   * per status, Paid revenue and the best-selling products among the orders
+   * created since `since` (or ever when it is null).
+   */
+  async summarizeSince(
+    since: Date | null,
+  ): Promise<
+    Pick<StatsDTO, "ordersCount" | "ordersByStatus" | "revenue" | "topProducts">
+  > {
+    const where: OrderWhereInput = since ? { createdAt: { gte: since } } : {};
+
+    const [byStatus, paid, bestSelling] = await Promise.all([
+      prisma.order.groupBy({
+        by: ["status"],
+        where,
+        _count: { _all: true },
+      }),
+      prisma.order.aggregate({
+        where: { ...where, paymentStatus: PAYMENT_STATUS.PAID },
+        _sum: { total: true },
+      }),
+      prisma.orderItem.groupBy({
+        by: ["productId"],
+        where: { order: where },
+        _sum: { quantity: true },
+        orderBy: { _sum: { quantity: "desc" } },
+        take: TOP_PRODUCTS_LIMIT,
+      }),
+    ]);
+
+    const ordersByStatus = Object.fromEntries(
+      Object.values(ORDER_STATUS).map((status) => [
+        status,
+        byStatus.find((group) => group.status === status)?._count._all ?? 0,
+      ]),
+    ) as StatsDTO["ordersByStatus"];
+
+    const products = await prisma.product.findMany({
+      where: { id: { in: bestSelling.map((group) => group.productId) } },
+      select: { id: true, name: true, slug: true, images: true },
+    });
+
+    const topProducts = bestSelling.flatMap((group) => {
+      const product = products.find(({ id }) => id === group.productId);
+      if (!product) return [];
+      return {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        thumbnail: toImageVariantDTO(product.images.thumbnail.image),
+        quantity: group._sum.quantity ?? 0,
+      };
+    });
+
+    return {
+      ordersCount: Object.values(ordersByStatus).reduce(
+        (sum, count) => sum + count,
+        0,
+      ),
+      ordersByStatus,
+      revenue: paid._sum.total ?? 0,
+      topProducts,
+    };
   }
 
   private async findOrderForUpdate(orderId: string) {

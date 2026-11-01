@@ -37,7 +37,15 @@ Read [`product.controller.ts`](src/controllers/product.controller.ts) and
 [`admin.route.ts`](src/routes/admin.route.ts), mounted at `/api/v1/admin`, holds the admin reads
 that cross users: `GET /admin/orders` lists every order newest first, filtered by `status`,
 `paymentStatus`, an exact `orderId`, a case-insensitive `customerEmail` fragment or an exact
-`userId`, and `GET /admin/orders/:orderId` returns any user's order with its customer. The router
+`userId`, `GET /admin/orders/:orderId` returns any user's order with its customer, and
+`GET /admin/stats?period=` (`7d`, `30d`, `90d` or `all`, default `30d`; any other value is rejected
+per [ADR 0002](../../docs/adr/0002-unknown-sort-and-fields-values-are-rejected.md)) answers the
+dashboard's landing numbers for the orders created in the period: a count per order status with
+zeros included, the revenue (the sum of `total` over orders whose payment status is Paid, whatever
+their order status), up to five best sellers by quantity across order items, and the users created
+in the period. [`stats.service.ts`](src/services/stats.service.ts) composes them from the order
+service's Prisma `groupBy` and `aggregate` calls and the user service's count; nothing scans orders
+in application code. The router
 applies `authenticate, authorize("ADMIN")` once, so a guest gets 401 and a shopper 403 on every
 path under it. The user router's admin section serves the users slice: `GET /users` pages every
 account, deactivated ones included, filtered by `search` (a case-insensitive fragment of the name

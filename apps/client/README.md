@@ -152,7 +152,7 @@ is not the current implementation.
 
 `/admin` is a lazy-loaded route group registered in [`router.tsx`](src/app/router.tsx) as a
 sibling of the storefront's content layout, so it renders none of the storefront header, footer,
-mini-cart or cart drawer. Its index redirects to `/admin/orders`. Its code lives under
+mini-cart or cart drawer. Its index renders the [stats page](#stats). Its code lives under
 `src/features/admin/`, with a sub-folder per slice (`orders`, `users`, `products`, `homepage`,
 `stats`) created as that slice lands. The group lists
 `requireAuth` then `requireRole("ADMIN")` in its `middleware` and owns a `RouteErrorBoundary`, so
@@ -172,7 +172,9 @@ A slice adds a section in two places:
 
 1. Append `{ label, href, icon }` to `ADMIN_SECTIONS`; the sidebar entry, the tab bar entry and the
    header title follow. Leave `end` unset so a nested URL such as a detail page keeps its list's
-   entry active; set it only for an entry that must claim its exact path alone.
+   entry active; set it only for an entry that must claim its exact path alone. `index` marks the
+   one section `/admin` itself renders, so `activeAdminSection` answers it there too; both
+   navigations take their active entry from that lookup rather than from `NavLink`.
 2. Add the route as a child of the admin group in `router.tsx`, lazy-loading its module from the
    slice's folder through `convert` like every other route, with `clientLoader` for required data
    and `SafeRenderWithErrorBlock` for inline feature errors as the
@@ -258,6 +260,22 @@ product keys are invalidated, so the home hero and showcase show the change on t
 Both slices add `textarea` and `checkbox` to `components/ui`, written to the registry's
 `new-york-v4` output with the design note's corrections, as `badge`, `select` and `table` were.
 
+### Stats
+
+The fifth section and the dashboard's landing page, under `src/features/admin/stats/`.
+[`routes/stats.tsx`](src/features/admin/stats/routes/stats.tsx) is both `/admin` and
+`/admin/stats`: the period lives in the URL (`period`, absent for the default `30d`),
+[`period.ts`](src/features/admin/stats/period.ts) reads it back dropping a value the server would
+reject and labels the tabs, and the loader ensures `GET /admin/stats` for it through
+[`get-admin-stats.ts`](src/features/admin/stats/api/get-admin-stats.ts). The page is the existing
+`Tabs` primitive top right, three [stat cards](src/features/admin/stats/components/stat-card.tsx)
+(orders, revenue through the storefront's `currencyFormatter`, new customers), then the
+[status breakdown](src/features/admin/stats/components/status-breakdown.tsx) (an `OrderStatusBadge`
+per status with its count) beside the
+[best sellers](src/features/admin/stats/components/best-sellers.tsx), each row a link to the
+product's edit page. There are no charts. A saved fulfilment move invalidates the stats keys along
+with the order keys, so the counts are fresh on the next visit.
+
 The [logged-in user dropdown](src/components/layouts/content-layout/nav-bar/user-dropdown/logged-in-user-dropdown.tsx)
 shows an Admin item linking to `/admin` when the rendered user's role is `ADMIN` and nothing for a
 shopper. The first admin account comes from the database's `db:role` script
@@ -290,7 +308,9 @@ select options, the refund reminder and the order filters read from and written 
 [`test/admin-user-filters.test.ts`](test/admin-user-filters.test.ts) the same for the user filters,
 [`test/admin-product-form.test.ts`](test/admin-product-form.test.ts) the product form's conversions
 and submit validation, and [`test/admin-homepage-slots.test.ts`](test/admin-homepage-slots.test.ts)
-what each homepage slot's select offers and disables.
+what each homepage slot's select offers and disables, and
+[`test/admin-stats-period.test.ts`](test/admin-stats-period.test.ts) the period read from and
+written to the URL.
 [`test/form-errors.test.ts`](test/form-errors.test.ts) drives
 `applyServerErrors` against a headless TanStack form with a stubbed `document`. Run the
 client suite with `pnpm --filter client test` after its workspace dependencies are built,

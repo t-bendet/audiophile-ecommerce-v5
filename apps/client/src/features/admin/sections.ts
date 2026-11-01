@@ -1,6 +1,7 @@
 import { paths } from "@/config/paths";
 import {
   Boxes,
+  ChartColumn,
   LayoutTemplate,
   Package,
   Users,
@@ -15,6 +16,8 @@ export type AdminSection = {
   icon: LucideIcon;
   /** Only the exact path is this section; a list keeps its entry active on a detail page. */
   end?: boolean;
+  /** Also the page `/admin` itself renders, so the entry is active there too. */
+  index?: boolean;
 };
 
 /** One entry per shipped section, in sidebar order. A slice appends its own. */
@@ -39,9 +42,20 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
     href: paths.admin.homepage.getHref(),
     icon: LayoutTemplate,
   },
+  {
+    label: "Stats",
+    href: paths.admin.stats.getHref(),
+    icon: ChartColumn,
+    index: true,
+  },
 ];
 
+export const isAdminIndex = (pathname: string) =>
+  matchPath({ path: paths.admin.root.path, end: true }, pathname) !== null;
+
 export const activeAdminSection = (pathname: string) =>
-  ADMIN_SECTIONS.find((section) =>
-    matchPath({ path: section.href, end: section.end ?? false }, pathname),
+  ADMIN_SECTIONS.find(
+    (section) =>
+      matchPath({ path: section.href, end: section.end ?? false }, pathname) ||
+      (section.index && isAdminIndex(pathname)),
   );

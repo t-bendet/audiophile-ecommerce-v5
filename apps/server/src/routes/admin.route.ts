@@ -1,5 +1,6 @@
 import express from "express";
 import * as orderController from "../controllers/order.controller.js";
+import * as statsController from "../controllers/stats.controller.js";
 import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 
 /**
@@ -14,5 +15,7 @@ adminRouter.use(authenticate, authorize("ADMIN"));
 adminRouter.get("/orders", ...orderController.listAllOrders);
 
 adminRouter.get("/orders/:orderId", ...orderController.getAnyOrder);
+
+adminRouter.get("/stats", ...statsController.getStats);
 
 export default adminRouter;
