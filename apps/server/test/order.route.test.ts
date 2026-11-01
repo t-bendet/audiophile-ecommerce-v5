@@ -3,6 +3,7 @@ import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 import app from "../src/app.js";
 import {
+  ABSENT_ID,
   authCookie,
   createAdmin,
   createProduct,
@@ -203,7 +204,21 @@ describe("GET /api/v1/orders/:orderId", () => {
 });
 
 describe("PATCH /api/v1/orders/:orderId/status", () => {
-  it("moves the order on for an admin", async () => {
+  it("moves a pending order to processing for an admin", async () => {
+    const user = await createUser();
+    const admin = await createAdmin();
+    const { res: created } = await orderFromCart(user.id, 400);
+
+    const res = await request(app)
+      .patch(`/api/v1/orders/${created.body.data.id}/status`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ status: "PROCESSING" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe("PROCESSING");
+  });
+
+  it("refuses a move the transition table does not allow", async () => {
     const user = await createUser();
     const admin = await createAdmin();
     const { res: created } = await orderFromCart(user.id, 400);
@@ -213,8 +228,23 @@ describe("PATCH /api/v1/orders/:orderId/status", () => {
       .set("Cookie", authCookie(admin.id))
       .send({ status: "SHIPPED" });
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.status).toBe("SHIPPED");
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.ORDER_ALREADY_PROCESSED,
+      message: "Order status cannot move from PENDING to SHIPPED",
+    });
+  });
+
+  it("answers ORDER_NOT_FOUND for an order that does not exist", async () => {
+    const admin = await createAdmin();
+
+    const res = await request(app)
+      .patch(`/api/v1/orders/${ABSENT_ID}/status`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ status: "PROCESSING" });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe(ErrorCode.ORDER_NOT_FOUND);
   });
 
   it("refuses a non-admin", async () => {
@@ -225,6 +255,54 @@ describe("PATCH /api/v1/orders/:orderId/status", () => {
       .patch(`/api/v1/orders/${created.body.data.id}/status`)
       .set("Cookie", cookie)
       .send({ status: "SHIPPED" });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe(ErrorCode.FORBIDDEN);
+  });
+});
+
+describe("PATCH /api/v1/orders/:orderId/payment-status", () => {
+  it("marks a pending order paid for an admin", async () => {
+    const user = await createUser();
+    const admin = await createAdmin();
+    const { res: created } = await orderFromCart(user.id, 400);
+
+    const res = await request(app)
+      .patch(`/api/v1/orders/${created.body.data.id}/payment-status`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ paymentStatus: "PAID" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.paymentStatus).toBe("PAID");
+    // Payment status moves independently of order status.
+    expect(res.body.data.status).toBe("PENDING");
+  });
+
+  it("refuses to refund an order that was never paid", async () => {
+    const user = await createUser();
+    const admin = await createAdmin();
+    const { res: created } = await orderFromCart(user.id, 400);
+
+    const res = await request(app)
+      .patch(`/api/v1/orders/${created.body.data.id}/payment-status`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ paymentStatus: "REFUNDED" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.ORDER_ALREADY_PROCESSED,
+      message: "Payment status cannot move from PENDING to REFUNDED",
+    });
+  });
+
+  it("refuses a non-admin", async () => {
+    const user = await createUser();
+    const { cookie, res: created } = await orderFromCart(user.id, 400);
+
+    const res = await request(app)
+      .patch(`/api/v1/orders/${created.body.data.id}/payment-status`)
+      .set("Cookie", cookie)
+      .send({ paymentStatus: "PAID" });
 
     expect(res.status).toBe(403);
     expect(res.body.error.code).toBe(ErrorCode.FORBIDDEN);

@@ -5,14 +5,18 @@ import {
 } from "../src/features/admin/sections";
 
 // The header title and the active sidebar entry both come from this lookup,
-// so the root must own exactly its own URL and every section must sit under it.
+// so a list must stay active on its detail pages and every section must sit
+// under the guarded group.
 describe("admin sections", () => {
-  it("names the dashboard root at /admin", () => {
-    expect(activeAdminSection("/admin")?.label).toBe("Dashboard");
+  it("puts Orders first", () => {
+    expect(ADMIN_SECTIONS[0]?.label).toBe("Orders");
+    expect(activeAdminSection("/admin/orders")?.label).toBe("Orders");
   });
 
-  it("does not let the root claim a nested admin page", () => {
-    expect(activeAdminSection("/admin/anything")?.label).not.toBe("Dashboard");
+  it("keeps the orders entry active on an order's detail page", () => {
+    expect(
+      activeAdminSection("/admin/orders/0123456789abcdef01234567")?.label,
+    ).toBe("Orders");
   });
 
   it("keeps every section under the guarded group", () => {

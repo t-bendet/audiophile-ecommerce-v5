@@ -24,4 +24,10 @@ orderRouter.use(authorize("ADMIN"));
 // Update order status (admin only)
 orderRouter.patch("/:orderId/status", ...orderController.updateOrderStatus);
 
+// Update payment status by hand (admin only)
+orderRouter.patch(
+  "/:orderId/payment-status",
+  ...orderController.updatePaymentStatus,
+);
+
 export default orderRouter;

@@ -27,6 +27,17 @@ Read [`product.controller.ts`](src/controllers/product.controller.ts) and
   [`auth.middleware.ts`](src/middlewares/auth.middleware.ts). Ownership failures follow
   [ADR 0001](../../docs/adr/0001-ownership-failures-return-403.md).
 
+[`admin.route.ts`](src/routes/admin.route.ts), mounted at `/api/v1/admin`, holds the admin reads
+that cross users: `GET /admin/orders` lists every order newest first, filtered by `status`,
+`paymentStatus`, an exact `orderId`, a case-insensitive `customerEmail` fragment or an exact
+`userId`, and `GET /admin/orders/:orderId` returns any user's order with its customer. The router
+applies `authenticate, authorize("ADMIN")` once, so a guest gets 401 and a shopper 403 on every
+path under it. The order router keeps `GET /orders/:orderId` scoped to the signed-in shopper, and
+admin writes stay in each resource router's admin section: `PATCH /orders/:orderId/status` and
+`PATCH /orders/:orderId/payment-status` move an order along the `@repo/domain` transition tables
+(`ORDER_STATUS_TRANSITIONS`, `PAYMENT_STATUS_TRANSITIONS`) and answer a move the table forbids with
+`ORDER_ALREADY_PROCESSED` naming the current and requested values.
+
 [`sitemap.route.ts`](src/routes/sitemap.route.ts) is the one router mounted outside `/api/v1`:
 `GET /sitemap.xml` renders the home, category and product pages from the live catalogue as
 absolute URLs on the requesting origin, read from `req.protocol` and `req.host` so the Worker's

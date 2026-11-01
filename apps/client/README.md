@@ -146,8 +146,9 @@ is not the current implementation.
 
 `/admin` is a lazy-loaded route group registered in [`router.tsx`](src/app/router.tsx) as a
 sibling of the storefront's content layout, so it renders none of the storefront header, footer,
-mini-cart or cart drawer. Its code lives under `src/features/admin/`, with a sub-folder per slice
-(`orders`, `users`, `products`, `homepage`, `stats`) created as that slice lands. The group lists
+mini-cart or cart drawer. Its index redirects to `/admin/orders`. Its code lives under
+`src/features/admin/`, with a sub-folder per slice (`orders`, `users`, `products`, `homepage`,
+`stats`) created as that slice lands. The group lists
 `requireAuth` then `requireRole("ADMIN")` in its `middleware` and owns a `RouteErrorBoundary`, so
 a guest is sent to login with `/admin` as the return URL and a signed-in shopper sees the not-found
 page ([ADR 0008](../../docs/adr/0008-a-route-the-role-cannot-reach-is-not-found.md)). Anything
@@ -164,12 +165,36 @@ header carries the active section's label as the page title. Both navigations re
 A slice adds a section in two places:
 
 1. Append `{ label, href, icon }` to `ADMIN_SECTIONS`; the sidebar entry, the tab bar entry and the
-   header title follow. Only the dashboard root sets `end`, so a nested URL such as a detail page
-   keeps its list's entry active.
+   header title follow. Leave `end` unset so a nested URL such as a detail page keeps its list's
+   entry active; set it only for an entry that must claim its exact path alone.
 2. Add the route as a child of the admin group in `router.tsx`, lazy-loading its module from the
    slice's folder through `convert` like every other route, with `clientLoader` for required data
    and `SafeRenderWithErrorBlock` for inline feature errors as the
    [boundaries table](#loaders-and-boundaries) describes.
+
+### Orders
+
+The first section, under `src/features/admin/orders/`. [`routes/orders-list.tsx`](src/features/admin/orders/routes/orders-list.tsx)
+is `/admin/orders`: the filters live in the URL's search params (`status`, `paymentStatus`, `orderId`,
+`customerEmail`, `userId`, `page`), [`filters.ts`](src/features/admin/orders/filters.ts) reads them
+back dropping any value the server would reject, and the loader ensures the matching page of
+`GET /admin/orders`. The table renders from `md` up and stacked cards below it; pagination is two
+`Button`s and a "Showing x–y of n" label. [`routes/order-detail.tsx`](src/features/admin/orders/routes/order-detail.tsx)
+is `/admin/orders/:orderId`, with the order summary left and the
+[fulfilment form](src/features/admin/orders/components/fulfilment-form.tsx) right. That form is a
+TanStack form over two selects whose options come from
+[`transitions.ts`](src/features/admin/orders/transitions.ts), the current value plus what the
+`@repo/domain` transition tables allow, so the server never has to refuse a move the page offered;
+when it does refuse one, `applyServerErrors` and the form's toast report it like any other form.
+Choosing Cancelled on a Paid order shows the refund reminder before saving. The form is mounted with
+a key of the order's two statuses, so a saved move (which invalidates the admin and shopper order
+queries) remounts it on the fresh values.
+
+The status pills are [`Badge`](src/components/ui/badge.tsx) variants named after the statuses in
+lower case, rendered through [`status-badges.tsx`](src/features/admin/orders/components/status-badges.tsx)
+everywhere an order status or payment status appears. `badge`, `select` and `table` follow the
+registry's `new-york-v4` output with the design note's corrections: `cn` from `@/lib/cn`, the
+`radix-ui` umbrella package, and `badgeVariants` kept module-private like `buttonVariants`.
 
 The [logged-in user dropdown](src/components/layouts/content-layout/nav-bar/user-dropdown/logged-in-user-dropdown.tsx)
 shows an Admin item linking to `/admin` when the rendered user's role is `ADMIN` and nothing for a
@@ -196,7 +221,9 @@ login attempts. [`test/auth-middleware.test.ts`](test/auth-middleware.test.ts) d
 router through the auth middleware with only the HTTP client mocked: pass-through, redirect to
 login with the return URL, not-found for the wrong role, a session that died, and a role change
 seen on the next navigation. [`test/admin-sections.test.ts`](test/admin-sections.test.ts) checks
-the admin section lookup behind the header title and the active entry.
+the admin section lookup behind the header title and the active entry, and
+[`test/admin-order-transitions.test.ts`](test/admin-order-transitions.test.ts) the fulfilment
+select options, the refund reminder and the order filters read from and written to the URL.
 [`test/form-errors.test.ts`](test/form-errors.test.ts) drives
 `applyServerErrors` against a headless TanStack form with a stubbed `document`. Run the
 client suite with `pnpm --filter client test` after its workspace dependencies are built,

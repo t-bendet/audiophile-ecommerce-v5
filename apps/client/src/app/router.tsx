@@ -135,7 +135,28 @@ const createAppRouter = (queryClient: QueryClient) =>
           middleware: [requireAuth, requireRole("ADMIN")],
           errorElement: <RouteErrorBoundary />,
           // Slices add their pages here; see the client guide's admin section.
-          children: [],
+          children: [
+            {
+              element: <Navigate to={paths.admin.orders.getHref()} replace />,
+              index: true,
+            },
+            {
+              lazy: () =>
+                import("@/features/admin/orders/routes/orders-list").then(
+                  convert(queryClient),
+                ),
+              path: paths.admin.orders.path,
+              errorElement: <RouteErrorBoundary />,
+            },
+            {
+              lazy: () =>
+                import("@/features/admin/orders/routes/order-detail").then(
+                  convert(queryClient),
+                ),
+              path: paths.admin.order.path,
+              errorElement: <RouteErrorBoundary />,
+            },
+          ],
         },
         {
           lazy: () =>
