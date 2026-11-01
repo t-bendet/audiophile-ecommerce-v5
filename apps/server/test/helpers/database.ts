@@ -46,7 +46,12 @@ export const TEST_PASSWORD = "password1234";
 export const ABSENT_ID = "0123456789abcdef01234567";
 
 export const createUser = async (
-  overrides: { name?: string; email?: string; role?: "ADMIN" | "USER" } = {},
+  overrides: {
+    name?: string;
+    email?: string;
+    role?: "ADMIN" | "USER";
+    active?: boolean;
+  } = {},
 ) => {
   const name = overrides.name ?? unique("user");
   return prisma.user.create({
@@ -54,6 +59,7 @@ export const createUser = async (
       name,
       email: overrides.email ?? `${name}@example.com`,
       role: overrides.role ?? "USER",
+      active: overrides.active ?? true,
       password: TEST_PASSWORD,
       passwordConfirm: TEST_PASSWORD,
     },

@@ -4,7 +4,11 @@ import {
   getUserQueryOptions,
   markSignedOut,
 } from "@/lib/auth";
-import { isAuthError, normalizeError } from "@/lib/errors/errors";
+import {
+  isAuthError,
+  isDeactivatedError,
+  normalizeError,
+} from "@/lib/errors/errors";
 import type { ROLE, UserDTO } from "@repo/domain";
 import type { QueryClient } from "@tanstack/react-query";
 import { createContext, redirect, type MiddlewareFunction } from "react-router";
@@ -14,6 +18,7 @@ export const currentUserContext = createContext<UserDTO | null>(null);
 
 const fetchCurrentUser = async (
   queryClient: QueryClient,
+  request: Request,
 ): Promise<UserDTO | null> => {
   const status = await queryClient.ensureQueryData(getAuthStatusQueryOptions());
   if (!status.data.isAuthenticated) {
@@ -27,10 +32,19 @@ const fetchCurrentUser = async (
     });
     return response.data;
   } catch (error) {
+    const failure = normalizeError(error);
     // The cookie died since the status was cached: a guest now.
-    if (isAuthError(normalizeError(error))) {
+    if (isAuthError(failure)) {
       markSignedOut(queryClient);
       return null;
+    }
+    // The account was deactivated since: a guest too, and the login page says why.
+    if (isDeactivatedError(failure)) {
+      markSignedOut(queryClient);
+      const url = new URL(request.url);
+      throw redirect(
+        paths.auth.login.getHref(url.pathname + url.search, "deactivated"),
+      );
     }
     // Any other failure keeps the user already known; the components that
     // render the user surface the error.
@@ -44,8 +58,11 @@ const fetchCurrentUser = async (
 
 export const resolveCurrentUser =
   (queryClient: QueryClient): MiddlewareFunction =>
-  async ({ context }, next) => {
-    context.set(currentUserContext, await fetchCurrentUser(queryClient));
+  async ({ context, request }, next) => {
+    context.set(
+      currentUserContext,
+      await fetchCurrentUser(queryClient, request),
+    );
     return next();
   };
 

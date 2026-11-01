@@ -31,9 +31,9 @@ const setRole = async (email: string, role: ROLE) => {
     `Setting the role of ${email} on ${target ?? "<no DATABASE_URL>"}`,
   );
 
-  // The client hides deactivated accounts, so one of those is unknown here too.
+  // A deactivated account is unknown here: an admin reactivates it first.
   const user = await prisma.user.findUnique({
-    where: { email },
+    where: { email, active: true },
     select: { id: true, role: true },
   });
   if (!user) {

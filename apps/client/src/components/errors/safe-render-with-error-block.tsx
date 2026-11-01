@@ -3,6 +3,7 @@ import { cn } from "@/lib/cn";
 import {
   isAuthError,
   isCriticalError,
+  isDeactivatedError,
   normalizeError,
 } from "@/lib/errors/errors";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
@@ -34,6 +35,9 @@ export const SafeRenderWithErrorBlock = ({
             // A dead session cannot be retried; only signing in again fixes it.
             if (isAuthError(normalizedError)) {
               return <RedirectToLogin />;
+            }
+            if (isDeactivatedError(normalizedError)) {
+              return <RedirectToLogin reason="deactivated" />;
             }
             // DEFENSIVE CHECK: Critical errors should be thrown from loaders using ensureQueryData()
             // and caught by RouteErrorBoundary. If a critical error reaches here, it means

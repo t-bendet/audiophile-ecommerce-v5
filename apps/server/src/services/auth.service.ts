@@ -1,5 +1,6 @@
 import { prisma } from "@repo/database";
 import {
+  ACCOUNT_DEACTIVATED_MESSAGE,
   AppError,
   AuthLoginRequest,
   AuthSignUpRequest,
@@ -28,6 +29,9 @@ const emailTakenError = () =>
     { code: "duplicate", message: EMAIL_TAKEN, path: ["body", "email"] },
   ]);
 
+const accountDeactivatedError = () =>
+  new AppError(ACCOUNT_DEACTIVATED_MESSAGE, ErrorCode.ACCOUNT_DEACTIVATED);
+
 /**
  * AuthService handles all authentication business logic
  * Responsibilities:
@@ -51,6 +55,7 @@ export class AuthService {
       email: entity.email,
       role: entity.role,
       emailVerified: entity.emailVerified,
+      active: entity.active,
       createdAt: entity.createdAt,
       v: entity.v,
     } satisfies UserDTO;
@@ -130,6 +135,11 @@ export class AuthService {
         "Incorrect email or password",
         ErrorCode.INVALID_CREDENTIALS,
       );
+    }
+
+    // Only the right password learns that the account is deactivated.
+    if (!user.active) {
+      throw accountDeactivatedError();
     }
 
     // Generate token
@@ -229,6 +239,7 @@ export class AuthService {
       ErrorCode.UNAUTHORIZED,
       ErrorCode.INVALID_TOKEN,
       ErrorCode.TOKEN_EXPIRED,
+      ErrorCode.ACCOUNT_DEACTIVATED,
     ];
     try {
       await this.validateTokenAndGetUser(token);
@@ -245,7 +256,7 @@ export class AuthService {
   }
 
   /**
-   * Resolve a user from a JWT token without throwing. Returns null on any failure.
+   * Resolve the user a JWT token names, or throw the reason the session is over.
    */
   async validateTokenAndGetUser(token: string | null): Promise<UserPublicInfo> {
     //* 1) Validate Token
@@ -269,7 +280,12 @@ export class AuthService {
       );
     }
 
-    // //* 3) check if user changed password after the token was issued
+    // //* 3) a deactivated account's session ends on its next request
+    if (!currentUser.active) {
+      throw accountDeactivatedError();
+    }
+
+    // //* 4) check if user changed password after the token was issued
     if (currentUser.passwordChangedAt) {
       const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
         decoded.iat!,

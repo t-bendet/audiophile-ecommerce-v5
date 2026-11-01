@@ -23,6 +23,7 @@ export enum ErrorCode {
   // Authorization errors (403)
   FORBIDDEN = "FORBIDDEN",
   INSUFFICIENT_PERMISSIONS = "INSUFFICIENT_PERMISSIONS",
+  ACCOUNT_DEACTIVATED = "ACCOUNT_DEACTIVATED",
 
   // Rate limiting errors (429)
   TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS",
@@ -72,6 +73,7 @@ export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
   // Authorization errors (403)
   [ErrorCode.FORBIDDEN]: 403,
   [ErrorCode.INSUFFICIENT_PERMISSIONS]: 403,
+  [ErrorCode.ACCOUNT_DEACTIVATED]: 403,
 
   // Rate limiting errors (429)
   [ErrorCode.TOO_MANY_REQUESTS]: 429,

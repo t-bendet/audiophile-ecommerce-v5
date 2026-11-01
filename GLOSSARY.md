@@ -74,8 +74,12 @@ The person browsing and buying, whether or not they are signed in.
 _Avoid_: customer, client, buyer, visitor
 
 **User**:
-A shopper's account: a name, an email, a password and a role. A shopper without one is a guest.
-_Avoid_: account, member, profile
+A shopper's account: a name, an email, a password, a role and whether it is active. A shopper
+without one is a guest. An admin can deactivate a user and reactivate them later; a deactivated
+account cannot sign in, its open session ends on its next request, and its orders stay. A shopper
+who deletes their own account is a deactivated account too, so its email cannot be reused until an
+admin reactivates it.
+_Avoid_: account, member, profile, deleted user
 
 **Admin**:
 A user whose role lets them manage the catalogue and move orders between statuses.

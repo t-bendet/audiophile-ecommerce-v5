@@ -26,14 +26,26 @@ Read [`product.controller.ts`](src/controllers/product.controller.ts) and
 - Authentication and role authorization live in
   [`auth.middleware.ts`](src/middlewares/auth.middleware.ts). Ownership failures follow
   [ADR 0001](../../docs/adr/0001-ownership-failures-return-403.md).
+- `authenticate` resolves the user through `validateTokenAndGetUser`, which answers a
+  deactivated account's live token with `ACCOUNT_DEACTIVATED` (403) and the message "This account
+  has been deactivated.", so its open session ends on its next request. Login answers the same way
+  for a deactivated account only once the password is right; a wrong password keeps the generic
+  `INVALID_CREDENTIALS`, and `GET /auth/status` reports the account as not authenticated. The
+  database client does not hide a deactivated account, so these checks are the only thing that
+  keeps one out ([database guide](../../packages/database/README.md#roles)).
 
 [`admin.route.ts`](src/routes/admin.route.ts), mounted at `/api/v1/admin`, holds the admin reads
 that cross users: `GET /admin/orders` lists every order newest first, filtered by `status`,
 `paymentStatus`, an exact `orderId`, a case-insensitive `customerEmail` fragment or an exact
 `userId`, and `GET /admin/orders/:orderId` returns any user's order with its customer. The router
 applies `authenticate, authorize("ADMIN")` once, so a guest gets 401 and a shopper 403 on every
-path under it. The order router keeps `GET /orders/:orderId` scoped to the signed-in shopper, and
-admin writes stay in each resource router's admin section: `PATCH /orders/:orderId/status` and
+path under it. The user router's admin section serves the users slice: `GET /users` pages every
+account, deactivated ones included, filtered by `search` (a case-insensitive fragment of the name
+or email), `role` and `active` (`true` or `false`); an unknown value is rejected like an unknown
+sort or field ([ADR 0002](../../docs/adr/0002-unknown-sort-and-fields-values-are-rejected.md)).
+`PATCH /users/:id` with `active: false` for the requesting admin's own id answers `FORBIDDEN`. The
+order router keeps `GET /orders/:orderId` scoped to the signed-in shopper, and admin writes stay in
+each resource router's admin section: `PATCH /orders/:orderId/status` and
 `PATCH /orders/:orderId/payment-status` move an order along the `@repo/domain` transition tables
 (`ORDER_STATUS_TRANSITIONS`, `PAYMENT_STATUS_TRANSITIONS`) and answer a move the table forbids with
 `ORDER_ALREADY_PROCESSED` naming the current and requested values.

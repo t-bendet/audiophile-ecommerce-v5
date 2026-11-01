@@ -33,10 +33,9 @@ export type ROLE = (typeof ROLE)[number];
 
 // * =====  Common Schemas =====
 
-export type UserPublicInfo = Omit<
-  User,
-  "password" | "passwordConfirm" | "active"
->;
+export type UserPublicInfo = Omit<User, "password" | "passwordConfirm">;
+
+export const ACCOUNT_DEACTIVATED_MESSAGE = "This account has been deactivated.";
 
 // * ===== RequestSchemas =====
 
@@ -68,7 +67,11 @@ export const UserDeleteMeRequestSchema = createRequestSchema({
 
 // LIST - Get all Users (pagination + filtering) - admin only
 
-export type UserQueryParams = ExtendedQueryParams<{ role?: ROLE }>;
+export type UserQueryParams = ExtendedQueryParams<{
+  search?: string;
+  role?: ROLE;
+  active?: boolean;
+}>;
 
 export const USER_QUERY_FIELDS = [
   "id",
@@ -81,8 +84,16 @@ export const USER_QUERY_FIELDS = [
   "v",
 ] as const satisfies readonly (keyof UserSelect)[];
 
+/**
+ * `search` is a case-insensitive fragment of the name or email; `active`
+ * arrives as the query string's "true" or "false".
+ */
 export const UserQueryParamsSchema = createQueryParamsSchema(USER_QUERY_FIELDS)
-  .extend({ role: z.enum(ROLE).optional() })
+  .extend({
+    search: z.string().trim().min(1).optional(),
+    role: z.enum(ROLE).optional(),
+    active: z.stringbool().optional(),
+  })
   .strict() satisfies z.ZodType<UserQueryParams>;
 
 export const UserGetAllRequestSchema = createRequestSchema({
@@ -119,7 +130,7 @@ export const UserUpdateByIdRequestSchema = createRequestSchema({
   params: z.object({ id: IdValidator("User") }).strict(),
   body: z
     .object({
-      name: UserNameValidator,
+      name: UserNameValidator.optional(),
       email: EmailValidator.optional(),
       role: z.enum(ROLE).optional(),
       active: z.boolean().optional(),
@@ -142,6 +153,7 @@ export const UserDTOSchema = z
     email: EmailValidator,
     role: z.enum(ROLE),
     emailVerified: z.boolean(),
+    active: z.boolean(),
     createdAt: z.coerce.date(),
     v: z.number(),
   })

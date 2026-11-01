@@ -270,7 +270,7 @@ describe("GET /api/v1/users", () => {
     const { args } = await listUsers("?role=ADMIN&page=3&limit=10");
 
     expect(args).toMatchObject({
-      where: { role: { equals: "ADMIN" } },
+      where: { role: "ADMIN" },
       skip: 20,
       take: 10,
     });

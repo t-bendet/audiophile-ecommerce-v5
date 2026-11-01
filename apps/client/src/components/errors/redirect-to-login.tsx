@@ -1,4 +1,4 @@
-import { paths } from "@/config/paths";
+import { paths, type LoginReason } from "@/config/paths";
 import { markSignedOut } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -6,13 +6,14 @@ import { useLocation, useNavigate } from "react-router";
 
 /**
  * Sends a dead session back to the login page, carrying the current location
- * as `redirectTo` so signing in returns the user where they were.
+ * as `redirectTo` so signing in returns the user where they were, and the
+ * `reason` when the login form has something to explain.
  */
-export const RedirectToLogin = () => {
+export const RedirectToLogin = ({ reason }: { reason?: LoginReason }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
-  const loginHref = paths.auth.login.getHref(pathname + search);
+  const loginHref = paths.auth.login.getHref(pathname + search, reason);
 
   useEffect(() => {
     // Must land before the navigation: the root middleware reads this.

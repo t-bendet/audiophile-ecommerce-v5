@@ -1,14 +1,14 @@
 import { prisma } from "@repo/database";
 import type {
-  ROLE,
   UserCreateInput,
   UserDTO,
   UserPublicInfo,
   UserQueryParams,
   UserSelfUpdateInput,
   UserUpdateInput,
+  UserWhereInput,
 } from "@repo/domain";
-import { USER_QUERY_FIELDS } from "@repo/domain";
+import { AppError, ErrorCode, USER_QUERY_FIELDS } from "@repo/domain";
 import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
@@ -39,6 +39,7 @@ export class UserService extends AbstractCrudService<
       email: entity.email,
       role: entity.role,
       emailVerified: entity.emailVerified,
+      active: entity.active,
       createdAt: entity.createdAt,
       v: entity.v,
     };
@@ -61,8 +62,21 @@ export class UserService extends AbstractCrudService<
     );
   }
 
-  /** Privileged surface: the only path that may write role, emailVerified or active. */
-  async updateAsAdmin(id: string, input: UserUpdateInput): Promise<UserDTO> {
+  /**
+   * Privileged surface: the only path that may write role, emailVerified or
+   * active. An admin cannot deactivate their own account.
+   */
+  async updateAsAdmin(
+    id: string,
+    input: UserUpdateInput,
+    actingUserId?: string,
+  ): Promise<UserDTO> {
+    if (input.active === false && id === actingUserId) {
+      throw new AppError(
+        "You cannot deactivate your own account.",
+        ErrorCode.FORBIDDEN,
+      );
+    }
     return super.update(id, input);
   }
 
@@ -75,9 +89,9 @@ export class UserService extends AbstractCrudService<
   protected async persistFindMany(
     params: Pagination & UserQueryParams,
   ): Promise<{ data: UserPublicInfo[]; total: number }> {
-    const { skip, take, role, sort, fields } = params;
+    const { skip, take, search, role, active, sort, fields } = params;
 
-    const where = this.buildUserWhere(role);
+    const where = this.buildUserWhere({ search, role, active });
     const select = parseSelect(fields, USER_QUERY_FIELDS);
     const orderBy = parseOrderBy(sort, USER_QUERY_FIELDS);
 
@@ -126,12 +140,20 @@ export class UserService extends AbstractCrudService<
 
   // ===== Private Query Builders =====
 
-  private buildUserWhere(role?: ROLE) {
-    if (!role) {
-      return {};
-    }
+  private buildUserWhere({
+    search,
+    role,
+    active,
+  }: Pick<UserQueryParams, "search" | "role" | "active">): UserWhereInput {
     return {
-      role: { equals: role },
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+        ],
+      }),
+      ...(role && { role }),
+      ...(active !== undefined && { active }),
     };
   }
 }

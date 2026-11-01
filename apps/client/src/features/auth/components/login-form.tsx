@@ -18,9 +18,12 @@ import { Input } from "@/components/ui/input";
 import { paths } from "@/config/paths";
 import { useLogin, USER_QUERY_KEY } from "@/lib/auth";
 import { cn } from "@/lib/cn";
-import { normalizeError } from "@/lib/errors/errors";
+import { isDeactivatedError, normalizeError } from "@/lib/errors/errors";
 import { applyServerErrors } from "@/lib/errors/form-errors";
-import { AuthLoginRequestSchema } from "@repo/domain";
+import {
+  ACCOUNT_DEACTIVATED_MESSAGE,
+  AuthLoginRequestSchema,
+} from "@repo/domain";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -32,6 +35,10 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  // Arriving with `reason=deactivated` means a signed-in session just ended this way.
+  const [isDeactivated, setIsDeactivated] = useState(
+    searchParams.get("reason") === "deactivated",
+  );
 
   const queryClient = useQueryClient();
   const { mutate: login, isPending } = useLogin(queryClient);
@@ -52,9 +59,14 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
           );
         },
         onError: async (error) => {
-          const message = applyServerErrors(form, normalizeError(error));
-          if (message) {
-            toast.error("Login Failed", { description: message });
+          const failure = normalizeError(error);
+          // Explained under the form rather than toasted: it is about the account, not the attempt.
+          setIsDeactivated(isDeactivatedError(failure));
+          if (!isDeactivatedError(failure)) {
+            const message = applyServerErrors(form, failure);
+            if (message) {
+              toast.error("Login Failed", { description: message });
+            }
           }
           await queryClient.setQueryData([USER_QUERY_KEY], null);
         },
@@ -150,6 +162,14 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
                 <Button type="submit" form="login-form" disabled={isPending}>
                   Login
                 </Button>
+                {isDeactivated && (
+                  <p
+                    role="alert"
+                    className="text-center text-sm font-medium text-primary-700"
+                  >
+                    {ACCOUNT_DEACTIVATED_MESSAGE}
+                  </p>
+                )}
                 <FieldDescription className="text-center text-primary-500">
                   Don&apos;t have an account?{" "}
                   <Link to={paths.auth.signup.path}>Sign up</Link>

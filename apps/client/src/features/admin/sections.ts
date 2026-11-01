@@ -1,5 +1,5 @@
 import { paths } from "@/config/paths";
-import { Package, type LucideIcon } from "lucide-react";
+import { Package, Users, type LucideIcon } from "lucide-react";
 import { matchPath } from "react-router";
 
 export type AdminSection = {
@@ -17,6 +17,11 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
     label: "Orders",
     href: paths.admin.orders.getHref(),
     icon: Package,
+  },
+  {
+    label: "Users",
+    href: paths.admin.users.getHref(),
+    icon: Users,
   },
 ];
 

@@ -1,5 +1,7 @@
 import { NAME } from "@repo/domain";
 
+export type LoginReason = "deactivated";
+
 export const paths = {
   home: {
     path: "/",
@@ -27,8 +29,17 @@ export const paths = {
     },
     login: {
       path: "/auth/login",
-      getHref: (redirectTo?: string | null | undefined) =>
-        `/auth/login${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}`,
+      /** `reason` names why a signed-in session was sent here; the form explains it. */
+      getHref: (
+        redirectTo?: string | null | undefined,
+        reason?: LoginReason,
+      ) => {
+        const params = new URLSearchParams();
+        if (redirectTo) params.set("redirectTo", redirectTo);
+        if (reason) params.set("reason", reason);
+        const search = params.toString();
+        return `/auth/login${search ? `?${search}` : ""}`;
+      },
     },
   },
   account: {
@@ -72,6 +83,14 @@ export const paths = {
     order: {
       path: "/admin/orders/:orderId",
       getHref: (orderId: string) => `/admin/orders/${orderId}`,
+    },
+    users: {
+      path: "/admin/users",
+      getHref: () => "/admin/users",
+    },
+    user: {
+      path: "/admin/users/:userId",
+      getHref: (userId: string) => `/admin/users/${userId}`,
     },
   },
 } as const;

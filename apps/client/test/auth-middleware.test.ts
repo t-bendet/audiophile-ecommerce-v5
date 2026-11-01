@@ -27,6 +27,7 @@ const shopper: UserDTO = {
   email: "shopper@example.com",
   role: "USER",
   emailVerified: true,
+  active: true,
   createdAt: new Date("2026-01-01T00:00:00.000Z"),
   v: 0,
 };
@@ -57,6 +58,24 @@ const unauthorized = () =>
         code: "UNAUTHORIZED",
         message: "Please log in",
         statusCode: 401,
+      },
+    },
+  });
+
+const deactivated = () =>
+  new AxiosError("Request failed", "ERR_BAD_REQUEST", undefined, undefined, {
+    status: 403,
+    statusText: "Forbidden",
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+    data: {
+      success: false,
+      timestamp: "2026-11-01T12:00:00.000Z",
+      data: null,
+      error: {
+        code: "ACCOUNT_DEACTIVATED",
+        message: "This account has been deactivated.",
+        statusCode: 403,
       },
     },
   });
@@ -203,6 +222,23 @@ describe("auth middleware", () => {
 
     expect(locationOf(router)).toBe(
       "/auth/login?redirectTo=%2Faccount%2Forders",
+    );
+    expect(boundaryStatuses(router)).toEqual([]);
+  });
+
+  it("sends a session whose account was deactivated to login with the reason", async () => {
+    serverSession(shopper);
+    const router = createRouter(queryClient);
+    await router.navigate("/checkout");
+    api.get.mockImplementation(async (url: string) => {
+      if (url === "/users/me") throw deactivated();
+      throw new Error(`Unexpected request: ${url}`);
+    });
+
+    await router.navigate("/account/orders");
+
+    expect(locationOf(router)).toBe(
+      "/auth/login?redirectTo=%2Faccount%2Forders&reason=deactivated",
     );
     expect(boundaryStatuses(router)).toEqual([]);
   });
