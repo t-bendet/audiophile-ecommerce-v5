@@ -13,13 +13,18 @@ remote changes can still require conflict resolution.
 
 Read [the issue-tracker guide](../../../docs/agents/issue-tracker.md) for ticket operations and branching, and [the verification guide](../../../docs/agents/verification.md) for local checks and CI gates. In a cloud session (`CLAUDE_CODE_REMOTE=true`), read its [cloud sessions](../../../docs/agents/issue-tracker.md#cloud-sessions) subsection first: the `gh issue` and `gh pr` commands below fail there.
 
-1. **Confirm the queue.** Resolve `$ARGUMENTS` into a concrete list and print it for the user:
+1. **Confirm the queue and the merge policy.** Resolve `$ARGUMENTS` into a concrete list and print it for the user:
    - a label (`ready-for-agent`) → `gh issue list --state open --label <label> --json number,title`
    - a range (`105-130`) → `gh issue list --state open --json number,title` filtered to that range.
      A range regularly contains closed or non-existent numbers; only work open ones and say which you dropped.
    - bare numbers → use them as given.
      Order the list ascending unless the user gave an order. Do not ask for approval of the list —
      print it and proceed.
+     The **merge policy** is `merge` unless the arguments say `open` (or "stop at PR open"): `merge`
+     lands each PR once its checks are green, as in _Land_; `open` leaves every PR open for a human.
+     Under `open` each ticket must be unblocked by every other ticket in the queue (check with
+     **Count open blockers** in the issue-tracker guide), because a blocked ticket would branch from
+     a `main` that lacks its blocker's change. Abort the batch if one is.
 2. **Check the tree is clean and `main` is current**: `git switch main && git pull`. Abort the whole
    batch if the tree is dirty; that is the user's uncommitted work.
 3. **Announce the gate**: identify the applicable local checks and required CI jobs from the verification guide. Local checks do not replace the image and E2E CI jobs.
@@ -65,16 +70,21 @@ git commit   # conventional-commit subject; body ends with "Closes #N"
 git push -u origin <branch>
 gh pr create --base main --title "<type>: <subject>" --body-file <prepared-body-file>
 gh pr checks <pr> --watch
+# merge policy `merge` only:
 gh pr merge <pr> --squash --delete-branch
 git switch main && git pull && git branch -d <branch>
 git fetch --prune   # gh deletes the remote branch; this clears the stale tracking ref
 ```
 
+Under `open`, stop after the checks: record the PR link and its check result, `git switch main && git pull`,
+and leave the branch for the reviewer. A red check is a miss under either policy.
+
 Read and apply [pr](../pr/SKILL.md) when preparing the PR body. Follow attribution rules only when supplied by the session or repository.
 
 ### 6. Record
 
-Append one row to the running report: ticket, title, outcome, PR link, one-line summary of the change.
+Append one row to the running report: ticket, title, outcome (**shipped**, or **open** under the `open`
+policy), PR link, one-line summary of the change.
 
 ## Handling a miss
 
@@ -86,14 +96,15 @@ Do not stop the batch. For the failed ticket:
 - record it as **failed** with the reason, and continue
 
 The only reasons to abort the whole batch: the working tree was dirty at the start, `main` will not
-pull cleanly, or three tickets in a row fail verification (something systemic is broken).
+pull cleanly, a ticket is blocked by another in the queue under the `open` policy, or three tickets
+in a row fail verification (something systemic is broken).
 
 ## Final report
 
-Print a markdown table — ticket, title, outcome (shipped / failed / skipped), PR link, note — followed
-by:
+Print a markdown table — ticket, title, outcome (shipped / open / failed / skipped), PR link, note —
+followed by:
 
-- what landed on `main`, as a short list of squashed commits
+- what landed on `main`, as a short list of squashed commits, or under `open` the PRs waiting for review
 - every failed ticket with its open PR link and what a human needs to do
 - any ticket whose scope you narrowed, and what you left out
 
