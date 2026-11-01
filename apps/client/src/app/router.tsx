@@ -36,6 +36,16 @@ const convert = (queryClient: QueryClient) => (m: RouteModule) => {
 
 const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
+    // PROTOTYPE (#320): dev-only throwaway route, outside the storefront layout.
+    ...(import.meta.env.DEV
+      ? [
+          {
+            path: "/prototype/admin",
+            lazy: () =>
+              import("./routes/prototype/admin").then(convert(queryClient)),
+          },
+        ]
+      : []),
     {
       element: <RootLayout />,
       HydrateFallback: RootHydrateFallback,
