@@ -13,6 +13,11 @@ interface Env {
 
 const isApiPath = (pathname: string) => /^\/api(\/|$)/.test(pathname);
 
+// The sitemap is built from the live catalogue, so it answers from the API
+// while living at the site root where crawlers look for it.
+const isContainerPath = (pathname: string) =>
+  isApiPath(pathname) || pathname === "/sitemap.xml";
+
 export class ApiContainer extends Container<Env> {
   // The server listens only after its database ping, so an open port equals a passing /api/v1/health.
   defaultPort = 8000;
@@ -35,7 +40,7 @@ export default {
     const url = new URL(request.url);
 
     // Second lock on the rule: an asset request never gets the API's 404.
-    if (!isApiPath(url.pathname)) {
+    if (!isContainerPath(url.pathname)) {
       return env.ASSETS.fetch(request);
     }
 

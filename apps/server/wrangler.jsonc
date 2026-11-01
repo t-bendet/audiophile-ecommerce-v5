@@ -8,7 +8,7 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     // Ahead of any asset lookup, so an API path never hits the SPA fallback.
-    "run_worker_first": ["/api", "/api/*"],
+    "run_worker_first": ["/api", "/api/*", "/sitemap.xml"],
   },
   "containers": [
     {

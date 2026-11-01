@@ -1,4 +1,10 @@
 import { useLocation } from "react-router";
+import {
+  SITE_NAME,
+  serializeStructuredData,
+  toAbsoluteUrl,
+  type StructuredData,
+} from "./structured-data";
 
 type MetadataProps = {
   title?: string;
@@ -6,21 +12,11 @@ type MetadataProps = {
   image?: string;
   type?: "website" | "article" | "product";
   noIndex?: boolean;
+  structuredData?: StructuredData;
 };
 
-const SITE_NAME = "Audiophile";
 const DEFAULT_DESCRIPTION =
   "Discover premium headphones, earphones, and speakers from Audiophile.";
-
-const getAbsoluteUrl = (pathOrUrl: string, origin: string) => {
-  if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
-    return pathOrUrl;
-  }
-  if (!pathOrUrl.startsWith("/")) {
-    return `${origin}/${pathOrUrl}`;
-  }
-  return `${origin}${pathOrUrl}`;
-};
 
 export const Metadata = ({
   title,
@@ -28,13 +24,13 @@ export const Metadata = ({
   image,
   type = "website",
   noIndex = false,
+  structuredData,
 }: MetadataProps) => {
   const location = useLocation();
   const resolvedTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
   const resolvedDescription = description ?? DEFAULT_DESCRIPTION;
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const url = origin ? `${origin}${location.pathname}` : location.pathname;
-  const resolvedImage = image && origin ? getAbsoluteUrl(image, origin) : image;
+  const url = toAbsoluteUrl(location.pathname);
+  const resolvedImage = image && toAbsoluteUrl(image);
 
   return (
     <>
@@ -53,6 +49,14 @@ export const Metadata = ({
       <meta name="twitter:description" content={resolvedDescription} />
       {resolvedImage && <meta name="twitter:image" content={resolvedImage} />}
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
+      {structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: serializeStructuredData(structuredData),
+          }}
+        />
+      )}
     </>
   );
 };

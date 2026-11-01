@@ -27,6 +27,12 @@ Read [`product.controller.ts`](src/controllers/product.controller.ts) and
   [`auth.middleware.ts`](src/middlewares/auth.middleware.ts). Ownership failures follow
   [ADR 0001](../../docs/adr/0001-ownership-failures-return-403.md).
 
+[`sitemap.route.ts`](src/routes/sitemap.route.ts) is the one router mounted outside `/api/v1`:
+`GET /sitemap.xml` renders the home, category and product pages from the live catalogue as
+absolute URLs on the requesting origin, read from `req.protocol` and `req.host` so the Worker's
+forwarded headers apply. The Worker forwards that path to the container
+([deployment](../../docs/deployment.md)); `robots.txt` is a client asset.
+
 The validation responsibilities are distinct: request schemas validate external input,
 controllers/services enforce business rules, Prisma extensions handle persistence
 transformations, database constraints enforce supported invariants, and DTO mapping

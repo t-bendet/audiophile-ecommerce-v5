@@ -157,7 +157,8 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
 
 Home showcase, a category listing, a guest add-to-cart through the mini-cart, the checkout redirect
 to login and back, a guest cart surviving sign-in, a checkout that creates an order and finds it under
-account orders, and the not-found page.
+account orders, the not-found page, and the crawler surface: a product page's JSON-LD, the robots
+file and the sitemap the preview proxies to the server.
 
 The order flow is the one that writes, so `order.spec.ts` signs up its own shopper and asserts the
 orders page holds exactly one order. The checkout form groups its inputs under `Shipping details`,

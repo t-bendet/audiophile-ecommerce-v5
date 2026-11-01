@@ -6,17 +6,19 @@ deployment workflow. The hosting decision and rejected alternatives are in
 
 ## Runtime and configuration
 
-One Worker serves [audiophile.t-bendet.com](https://audiophile.t-bendet.com): `/api/*` goes to the
-Express server in a Cloudflare Container; other paths serve the Vite build with an SPA fallback.
+One Worker serves [audiophile.t-bendet.com](https://audiophile.t-bendet.com): `/api/*` and
+`/sitemap.xml` go to the Express server in a Cloudflare Container; other paths serve the Vite
+build with an SPA fallback, `robots.txt` among them.
 Catalogue images come from R2 at `audiophile-media.t-bendet.com`; MongoDB is on Atlas.
 
 The configuration authorities are:
 
 - [`apps/server/wrangler.jsonc`](../apps/server/wrangler.jsonc): assets, API-first routing,
   container image/binding, instance limits and non-secret environment values.
-- [`apps/server/worker/index.ts`](../apps/server/worker/index.ts): forwards API requests and
-  environment variables to the container. It forwards the original protocol so HTTPS responses
-  can set secure cookies across the Worker-to-container HTTP connection.
+- [`apps/server/worker/index.ts`](../apps/server/worker/index.ts): forwards API and sitemap
+  requests and environment variables to the container. It forwards the original protocol so
+  HTTPS responses can set secure cookies across the Worker-to-container HTTP connection and the
+  sitemap lists `https` URLs.
 - [`apps/server/Dockerfile`](../apps/server/Dockerfile): image build, runtime and health check.
   Keep its Node major aligned with [`.nvmrc`](../.nvmrc); CI checks that agreement.
 - [`apps/client/.env.production`](../apps/client/.env.production): the build-time API URL,
@@ -24,7 +26,8 @@ The configuration authorities are:
 - [`apps/client/public/_headers`](../apps/client/public/_headers): client security headers.
 
 An unknown API path must return the server's JSON 404, not the SPA shell. `run_worker_first`
-and the Worker's path check preserve that boundary.
+and the Worker's path check preserve that boundary; both name `/sitemap.xml` alongside the API
+prefix, so the sitemap is built by the server rather than served as an asset.
 
 ## Production environment
 

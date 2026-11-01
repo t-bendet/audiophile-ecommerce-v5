@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /checkout
+Disallow: /auth/
+Disallow: /account/
+
+Sitemap: https://audiophile.t-bendet.com/sitemap.xml
