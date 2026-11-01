@@ -146,6 +146,113 @@ test.describe("an admin", () => {
   });
 });
 
+test.describe("an admin editing the catalogue", () => {
+  test.use({ storageState: ADMIN_STORAGE_STATE });
+
+  // The storefront prints a whole-dollar price as `$ 4,500`.
+  const shown = (price: number) => `$ ${price.toLocaleString("en-US")}`;
+
+  test("changes a product's price and sees it on the storefront", async ({
+    page,
+    context,
+    catalogue,
+  }) => {
+    // A product no homepage slot renders, so the home page is untouched.
+    const product = await catalogue.productBySlug("xx59-headphones");
+    const edited = product.price + 1;
+
+    try {
+      await page.goto("/admin/products");
+      await page
+        .getByRole("table")
+        .getByRole("link", { name: product.name })
+        .click();
+
+      await expect(page).toHaveURL(`/admin/products/${product.id}`);
+      const form = page.getByRole("form", { name: "Edit product" });
+      const save = form.getByRole("button", { name: "Save" });
+      await expect(save).toBeDisabled();
+      await expect(form.getByText(product.slug)).toBeVisible();
+
+      await form.getByLabel("Price", { exact: true }).fill(String(edited));
+      await expect(save).toBeEnabled();
+      await save.click();
+      await expect(save).toBeDisabled();
+      await expect(form.getByLabel("Price", { exact: true })).toHaveValue(
+        String(edited),
+      );
+
+      await page.goto(`/product/${product.slug}`);
+      await expect(
+        page.getByText(shown(edited), { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByText(shown(product.price), { exact: true }),
+      ).toHaveCount(0);
+    } finally {
+      // Put the price back for every other spec, through the admin's session.
+      const restored = await context.request.patch(
+        `/api/v1/products/${product.id}`,
+        { data: { price: product.price } },
+      );
+      expect(restored.ok(), "restoring the price").toBe(true);
+    }
+  });
+
+  test("is offered for each homepage slot only the products with its image", async ({
+    page,
+    catalogue,
+  }) => {
+    const [featured, showcase, products] = await Promise.all([
+      catalogue.featuredProduct(),
+      catalogue.showCaseProducts(),
+      catalogue.products(),
+    ]);
+    const nameOf = (id: string) =>
+      products.find((product) => product.id === id)?.name ?? id;
+    const cover = showcase.showCaseCover;
+    expect(cover).not.toBeNull();
+
+    await page.goto("/admin/homepage");
+    const form = page.getByRole("form", { name: "Homepage" });
+    await expect(
+      form.getByRole("button", { name: "Save homepage" }),
+    ).toBeDisabled();
+
+    // The seed has one product with a featured image, so the hero can only
+    // be that product and the select says so.
+    const featuredSlot = form.getByRole("region", { name: "Featured" });
+    await expect(featuredSlot).toContainText(nameOf(featured.id));
+    await featuredSlot.getByRole("button", { name: "Change" }).click();
+    await featuredSlot.getByLabel("Product").click();
+    const featuredOptions = page.getByRole("option");
+    await expect(featuredOptions).toHaveCount(1);
+    await expect(featuredOptions.first()).toHaveText(nameOf(featured.id));
+    await page.keyboard.press("Escape");
+
+    // The three showcase images fill the three showcase slots, so the cover
+    // select offers all three and disables the two held elsewhere.
+    const coverSlot = form.getByRole("region", { name: "Showcase cover" });
+    await expect(coverSlot).toContainText(nameOf(cover!.id));
+    await coverSlot.getByRole("button", { name: "Change" }).click();
+    await coverSlot.getByLabel("Product").click();
+    const coverOptions = page.getByRole("option");
+    await expect(coverOptions).toHaveCount(3);
+    await expect(
+      page.getByRole("option", { name: nameOf(cover!.id) }),
+    ).toBeEnabled();
+    for (const slot of [showcase.showCaseWide, showcase.showCaseGrid]) {
+      await expect(
+        page.getByRole("option", { name: nameOf(slot!.id) }),
+      ).toBeDisabled();
+    }
+    await page.keyboard.press("Escape");
+    await expect(
+      form.getByRole("button", { name: "Save homepage" }),
+    ).toBeDisabled();
+  });
+});
+
 test.describe("a shopper", () => {
   test("finds nothing at the admin URL", async ({ page }) => {
     await page.goto("/admin");

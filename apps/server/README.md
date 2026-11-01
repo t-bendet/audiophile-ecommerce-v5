@@ -48,7 +48,15 @@ order router keeps `GET /orders/:orderId` scoped to the signed-in shopper, and a
 each resource router's admin section: `PATCH /orders/:orderId/status` and
 `PATCH /orders/:orderId/payment-status` move an order along the `@repo/domain` transition tables
 (`ORDER_STATUS_TRANSITIONS`, `PAYMENT_STATUS_TRANSITIONS`) and answer a move the table forbids with
-`ORDER_ALREADY_PROCESSED` naming the current and requested values.
+`ORDER_ALREADY_PROCESSED` naming the current and requested values. The products slice and the
+homepage slice reuse the resource routers' admin sections as they stand: `PATCH /products/:id`
+takes any subset of the product's fields, and `PATCH /config/:id` takes any subset of the four
+homepage slots. [`config.service.ts`](src/services/config.service.ts) checks the slots the body
+sends against the stored config before writing: every slot must name a different product, the
+featured slot's product must carry a `featuredImage` and a showcase slot's product a
+`showCaseImage`, and the product must exist. A body that breaks a rule is answered with
+`VALIDATION_ERROR` carrying one detail per offending field at `["body", <slot>]`, so the admin
+form shows it under that select ([ADR 0006](../../docs/adr/0006-server-validation-errors-belong-to-the-form.md)).
 
 [`sitemap.route.ts`](src/routes/sitemap.route.ts) is the one router mounted outside `/api/v1`:
 `GET /sitemap.xml` renders the home, category and product pages from the live catalogue as

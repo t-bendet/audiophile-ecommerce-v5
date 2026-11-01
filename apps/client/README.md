@@ -220,6 +220,44 @@ and a delete would cascade to the orders. The role and active pills are the `adm
 `active` and `deactivated` `Badge` variants, rendered through
 [`user-badges.tsx`](src/features/admin/users/components/user-badges.tsx).
 
+### Products
+
+The third section, under `src/features/admin/products/`. [`routes/products-list.tsx`](src/features/admin/products/routes/products-list.tsx)
+is `/admin/products`: name with thumbnail, category, price and the new-product pill, paged through
+the storefront's own `getAllProductsQueryOptions` with the page read from the URL by
+[`filters.ts`](src/features/admin/products/filters.ts), and `GET /categories` for the names.
+[`routes/product-edit.tsx`](src/features/admin/products/routes/product-edit.tsx) is
+`/admin/products/:productId`, the [product form](src/features/admin/products/components/product-form.tsx):
+a TanStack form over the editable fields in the design note's four panels (Basics, Copy, In the box,
+Labels) with the Save button and a read-only panel beside them. The slug and the three images are
+shown and never sent: images are published from `packages/media` and the slug is a public URL.
+[`product-form.ts`](src/features/admin/products/product-form.ts) owns the shape: the inputs hold
+strings, `ProductFormSchema` validates them on submit, `toFormValues` and `toUpdateBody` convert
+to and from the catalogue's shape. The price is the whole-dollar integer the storefront prints
+(`899` shows as `$ 899`), so the form takes whole dollars and stores the same number; `fullLabel`
+is one line per entry and `featuresText` one paragraph per entry. Server rejections land on fields
+through `applyServerErrors`. A saved product resets the form to the response, and the mutation
+invalidates the storefront's product keys, so the admin list, the product's page, the category
+lists, the showcase and the hero all show the change on their next navigation. There is no create
+and no delete: both wait on image upload.
+
+### Homepage
+
+The fourth section, under `src/features/admin/homepage/`. [`routes/homepage.tsx`](src/features/admin/homepage/routes/homepage.tsx)
+is `/admin/homepage`: `GET /config` through [`get-admin-config.ts`](src/features/admin/homepage/api/get-admin-config.ts)
+and every product. The [homepage form](src/features/admin/homepage/components/homepage-form.tsx)
+renders the four slots of [`slots.ts`](src/features/admin/homepage/slots.ts) as image cards
+([`slot-card.tsx`](src/features/admin/homepage/components/slot-card.tsx), the featured slot on the
+orange), each with a Change button that gives way to the slot's select in place. `slotOptions`
+offers a slot only the products carrying the image it renders and disables a product chosen in
+another slot, so the server never has to refuse a choice the page offered; when it does (the
+[server guide](../server/README.md#request-lifecycle) lists the rules), the detail lands under
+that slot's select. Save is one `PATCH /config/:id` of the four ids, after which the config and
+product keys are invalidated, so the home hero and showcase show the change on the next visit.
+
+Both slices add `textarea` and `checkbox` to `components/ui`, written to the registry's
+`new-york-v4` output with the design note's corrections, as `badge`, `select` and `table` were.
+
 The [logged-in user dropdown](src/components/layouts/content-layout/nav-bar/user-dropdown/logged-in-user-dropdown.tsx)
 shows an Admin item linking to `/admin` when the rendered user's role is `ADMIN` and nothing for a
 shopper. The first admin account comes from the database's `db:role` script
@@ -249,7 +287,10 @@ deactivated since the last status check, and a role change seen on the next navi
 the header title and the active entry,
 [`test/admin-order-transitions.test.ts`](test/admin-order-transitions.test.ts) the fulfilment
 select options, the refund reminder and the order filters read from and written to the URL, and
-[`test/admin-user-filters.test.ts`](test/admin-user-filters.test.ts) the same for the user filters.
+[`test/admin-user-filters.test.ts`](test/admin-user-filters.test.ts) the same for the user filters,
+[`test/admin-product-form.test.ts`](test/admin-product-form.test.ts) the product form's conversions
+and submit validation, and [`test/admin-homepage-slots.test.ts`](test/admin-homepage-slots.test.ts)
+what each homepage slot's select offers and disables.
 [`test/form-errors.test.ts`](test/form-errors.test.ts) drives
 `applyServerErrors` against a headless TanStack form with a stubbed `document`. Run the
 client suite with `pnpm --filter client test` after its workspace dependencies are built,

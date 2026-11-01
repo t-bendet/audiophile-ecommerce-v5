@@ -173,8 +173,10 @@ jobs:
       - run: pnpm deploy:app
         timeout-minutes: 30
 
-  # The catalogue the repo owns, onto Atlas, once the new server is live. Every
-  # write is an upsert on a unique key: no drop, no delete, no user touched.
+  # The catalogue the repo owns, onto Atlas, once the new server is live. The
+  # sync is insert-only: a document whose unique key is missing is created and
+  # an existing one is left alone, so an admin's edits survive (ADR 0007). The
+  # `--overwrite` flag is never passed here. No drop, no delete, no user touched.
   # The index push that follows changes indexes only, never documents.
   sync-catalogue:
     name: Sync catalogue

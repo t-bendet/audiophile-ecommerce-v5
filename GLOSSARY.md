@@ -7,8 +7,9 @@ orders through their statuses.
 ## Catalogue
 
 **Catalogue**:
-The categories, products and site config the repo owns. It is authored in the repo and written
-to the database, never edited in place.
+The categories, products and site config. The repo authors and publishes the first version of
+each document through `db:sync`; from then on the database owns it, and an admin edits products
+and the site config in place through the dashboard. A later sync only adds what is missing.
 _Avoid_: inventory, stock, content
 
 **Category**:

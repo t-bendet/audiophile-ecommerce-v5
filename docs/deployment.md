@@ -73,10 +73,13 @@ The workflow uses these repository secrets:
 One repository variable, `SYNC_SCHEMA_INDEXES`, opts the post-deploy job into pushing the schema's
 indexes. Set it to `true` only while Atlas has no duplicates for any schema unique index.
 
-After deployment, `sync-catalogue` runs `pnpm db:generate && pnpm db:sync`. If the repository's `DATABASE_URL`
-secret is missing, that job warns and skips the sync; a green deploy alone does not prove the
-catalogue was updated. Follow [seeding vs syncing](../packages/database/README.md#seeding-vs-syncing)
-for manual publication or schema-shape changes. `db:seed` and `db:reset` are local-only.
+After deployment, `sync-catalogue` runs `pnpm db:generate && pnpm db:sync`, which only creates
+catalogue documents that are missing and never rewrites an existing one, so the admin's dashboard
+edits survive a deploy ([ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md)).
+If the repository's `DATABASE_URL` secret is missing, that job warns and skips the sync; a green
+deploy alone does not prove the catalogue was updated. Follow
+[seeding vs syncing](../packages/database/README.md#seeding-vs-syncing) for manual publication,
+including the hand-run `db:sync -- --overwrite` a field-shape change needs. `db:seed` and `db:reset` are local-only.
 The first admin: sign up through the storefront, then run `db:role` with the Atlas prefix as
 [roles](../packages/database/README.md#roles) shows; no page grants the role.
 

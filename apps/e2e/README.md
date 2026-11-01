@@ -173,7 +173,11 @@ the admin, not-found there for a shopper, the login redirect and return for a gu
 fulfilment (a fresh shopper's order found by email, moved to Processing and marked Paid, after which
 the select no longer offers Pending), admin user management (a fresh shopper found by email,
 deactivated, told so by the login form in a browser context of their own, reactivated and signed
-in), and the crawler surface: a product page's JSON-LD, the robots
+in), admin catalogue edits (a seeded product's price raised on its edit page and shown on its
+storefront page, then put back through the API; and the homepage slot picker offering the featured
+slot only the one seeded product with a featured image and a showcase slot the three showcase
+products with the two held elsewhere disabled; the seed has no spare image, so no slot can be
+saved to another product and the spec does not try), and the crawler surface: a product page's JSON-LD, the robots
 file and the sitemap the preview proxies to the server.
 
 The order flow is the one that writes, so `order.spec.ts` signs up its own shopper and asserts the

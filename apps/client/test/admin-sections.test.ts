@@ -27,6 +27,15 @@ describe("admin sections", () => {
     ).toBe("Users");
   });
 
+  it("puts Products third, active on an edit page, and Homepage fourth", () => {
+    expect(ADMIN_SECTIONS[2]?.label).toBe("Products");
+    expect(
+      activeAdminSection("/admin/products/0123456789abcdef01234567")?.label,
+    ).toBe("Products");
+    expect(ADMIN_SECTIONS[3]?.label).toBe("Homepage");
+    expect(activeAdminSection("/admin/homepage")?.label).toBe("Homepage");
+  });
+
   it("keeps every section under the guarded group", () => {
     for (const section of ADMIN_SECTIONS) {
       expect(section.href).toMatch(/^\/admin(\/|$)/);
