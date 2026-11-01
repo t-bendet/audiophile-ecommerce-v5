@@ -168,11 +168,50 @@ describe("applyServerErrors", () => {
     ErrorCode.INVALID_CREDENTIALS,
     ErrorCode.DUPLICATE_ENTRY,
     ErrorCode.INTERNAL_ERROR,
-  ])("returns the message of %s and leaves the fields alone", async (code) => {
-    const { form, fields } = await createSubmittedForm();
-    const error = axiosServerError(code);
+  ])(
+    "returns the message of %s without details and leaves the fields alone",
+    async (code) => {
+      const { form, fields } = await createSubmittedForm();
+      const error = axiosServerError(code);
 
-    expect(applyServerErrors(form, error)).toBe(error.message);
+      expect(applyServerErrors(form, error)).toBe(error.message);
+      for (const field of Object.values(fields)) {
+        expect(field.state.meta.errors).toEqual([]);
+      }
+      expect(focused).toEqual([]);
+    },
+  );
+
+  it("puts a DUPLICATE_ENTRY detail on its field and focuses it, with no toast", async () => {
+    const { form, fields } = await createSubmittedForm();
+    const error = axiosServerError(ErrorCode.DUPLICATE_ENTRY, [
+      {
+        code: "duplicate",
+        message: "An account with this email already exists.",
+        path: ["body", "email"],
+      },
+    ]);
+
+    const message = applyServerErrors(form, error);
+
+    expect(message).toBeUndefined();
+    expect(fields.email.state.meta.errors).toEqual([
+      { message: "An account with this email already exists." },
+    ]);
+    expect(fields.password.state.meta.errors).toEqual([]);
+    expect(focused).toEqual(["email"]);
+  });
+
+  it("returns the error message, not the refresh message, for an unmatched DUPLICATE_ENTRY detail", async () => {
+    const { form, fields } = await createSubmittedForm();
+    const error = axiosServerError(ErrorCode.DUPLICATE_ENTRY, [
+      detail(["body", "role"], "Duplicate role"),
+    ]);
+
+    const message = applyServerErrors(form, error);
+
+    expect(message).toBe(error.message);
+    expect(message).not.toBe(UNMATCHED_MESSAGE);
     for (const field of Object.values(fields)) {
       expect(field.state.meta.errors).toEqual([]);
     }

@@ -10,11 +10,23 @@ import {
 import jwt from "jsonwebtoken";
 import { env } from "../utils/env.js";
 import { isJwtError, toJwtAppError } from "../utils/jwt-errors.js";
+import { isUniqueConstraintError } from "../utils/prisma-errors.js";
 
 type AuthSessionDTO = {
   user: UserDTO;
   token: string;
 };
+
+const EMAIL_UNIQUE_INDEX = "email_1";
+const EMAIL_TAKEN = "An account with this email already exists.";
+
+const isEmailTakenError = (err: unknown): boolean =>
+  isUniqueConstraintError(err) && err.meta?.target === EMAIL_UNIQUE_INDEX;
+
+const emailTakenError = () =>
+  new AppError(EMAIL_TAKEN, ErrorCode.DUPLICATE_ENTRY, undefined, [
+    { code: "duplicate", message: EMAIL_TAKEN, path: ["body", "email"] },
+  ]);
 
 /**
  * AuthService handles all authentication business logic
@@ -61,14 +73,20 @@ export class AuthService {
     data: AuthSignUpRequest,
   ): Promise<{ user: UserDTO; token: string }> {
     // Create user with Prisma (password hashing happens via schema defaults)
-    const user = await prisma.user.create({
-      data: {
-        email: data.email,
-        password: data.password,
-        passwordConfirm: data.passwordConfirm,
-        name: data.name,
-      },
-    });
+    const user = await prisma.user
+      .create({
+        data: {
+          email: data.email,
+          password: data.password,
+          passwordConfirm: data.passwordConfirm,
+          name: data.name,
+        },
+      })
+      .catch((err: unknown) => {
+        // Other unique failures keep the generic duplicate handling at the boundary.
+        if (isEmailTakenError(err)) throw emailTakenError();
+        throw err;
+      });
 
     // Generate token
     const token = this.signToken(user.id);

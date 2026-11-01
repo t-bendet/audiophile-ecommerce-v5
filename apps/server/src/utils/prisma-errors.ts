@@ -18,5 +18,7 @@ export const isPrismaValidationError = (
 export const isRecordNotFoundError = (err: unknown): boolean =>
   isPrismaKnownRequestError(err) && err.code === RECORD_NOT_FOUND;
 
-export const isUniqueConstraintError = (err: unknown): boolean =>
+export const isUniqueConstraintError = (
+  err: unknown,
+): err is Prisma.PrismaClientKnownRequestError =>
   isPrismaKnownRequestError(err) && err.code === UNIQUE_CONSTRAINT_VIOLATION;
