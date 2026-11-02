@@ -22,12 +22,17 @@ the group block.
 - No open decision (group 0): write the issues directly from this file. Run
   [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) only when they should also be shipped in
   the same session; it hands the queue to batch-tickets.
-- One decision or one design pass (groups 1, 2, 3, 7): resolve it first with the matching skill:
+- One decision or one design pass (groups 1, 2, 3, 7): write the parent issue first, then run
+  [to-tickets](../.agents/skills/to-tickets/SKILL.md) against it so the human session becomes its
+  first sub-issue, labelled `ready-for-human`, and the agent slices are specced in the same pass,
+  as [#319](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/319) was with its design
+  pass #320. The human ticket runs the matching skill:
   [research](../.agents/skills/research/SKILL.md) for a provider comparison,
   [prototype](../.agents/skills/prototype/SKILL.md) for a UI question,
-  [grilling](../.agents/skills/grilling/SKILL.md) for semantics. Then write the parent issue, run
-  [to-tickets](../.agents/skills/to-tickets/SKILL.md) against it so the slices become its
-  sub-issues, and hand the numbers to [batch-tickets](../.agents/skills/batch-tickets/SKILL.md).
+  [grilling](../.agents/skills/grilling/SKILL.md) for semantics. Its close amends the slices the
+  decision changed; then the slice numbers go to
+  [batch-tickets](../.agents/skills/batch-tickets/SKILL.md), or the parent number alone, which it
+  resolves to the open sub-issues in blocking order.
 - Several interlocking decisions of different kinds (groups 4, 5, 6, 8): open a
   [wayfinder](../.agents/skills/wayfinder/SKILL.md) map for that group only. Group 4 is the model
   case: the upload shape, the variant strategy, the upload path and the category question each
@@ -40,8 +45,8 @@ the group block.
 
 **Handling change midway.**
 
-- Humans decide for group N+1 while agents ship group N. Human sessions go first in every group so
-  the agent slices can run as one batch.
+- Humans decide for group N+1 while agents ship group N. The human ticket is the first sub-issue of
+  every group, so the agent slices it blocks can run as one batch once it closes.
 - The first slice of a group that introduces a new seam (an email transport, an upload path, a
   payment webhook) stops at PR open for a hand review; the rest of the batch auto-merges on green.
 - Group-scoped decisions live in the parent issue and its comments. Durable ones become ADRs, as the
