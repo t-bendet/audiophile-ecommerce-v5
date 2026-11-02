@@ -15,6 +15,9 @@ import {
   AuthLoginRequest,
   AuthLogoutResponse,
   AuthLogoutResponseSchema,
+  AuthResetPasswordRequest,
+  AuthResetPasswordResponse,
+  AuthResetPasswordResponseSchema,
   AuthSignUpRequest,
   UserDTOResponse,
   UserDTOResponseSchema,
@@ -33,6 +36,7 @@ export const AUTH_LOGOUT_MUTATION_KEY = "auth-logout";
 export const AUTH_LOGIN_MUTATION_KEY = "auth-login";
 export const AUTH_SIGNUP_MUTATION_KEY = "auth-signup";
 export const AUTH_FORGOT_PASSWORD_MUTATION_KEY = "auth-forgot-password";
+export const AUTH_RESET_PASSWORD_MUTATION_KEY = "auth-reset-password";
 
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
@@ -231,4 +235,43 @@ export const useForgotPassword = () =>
   useMutation({
     mutationFn: postForgotPassword,
     mutationKey: [AUTH_FORGOT_PASSWORD_MUTATION_KEY],
+  });
+
+// ** Reset Password
+
+type TPostResetPassword = TMutationHandler<
+  AuthResetPasswordResponse,
+  AuthResetPasswordRequest
+>;
+
+const postResetPassword: TPostResetPassword = async ({
+  token,
+  password,
+  passwordConfirm,
+}) => {
+  const api = getApi();
+  const response = await api.post("/auth/reset-password", {
+    token,
+    password,
+    passwordConfirm,
+  });
+  const result = AuthResetPasswordResponseSchema.safeParse(response.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
+};
+
+/** A successful reset signs the shopper in, so it settles the cache the way login does. */
+export const useResetPassword = (queryClient: QueryClient) =>
+  useMutation({
+    mutationFn: postResetPassword,
+    mutationKey: [AUTH_RESET_PASSWORD_MUTATION_KEY],
+    onSuccess: async () => {
+      await syncGuestCartToServer(queryClient);
+      await queryClient.invalidateQueries({
+        queryKey: [AUTH_STATUS_QUERY_KEY],
+      });
+    },
   });

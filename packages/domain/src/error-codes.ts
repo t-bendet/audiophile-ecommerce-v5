@@ -43,6 +43,9 @@ export enum ErrorCode {
   INVALID_ORDER_STATUS = "INVALID_ORDER_STATUS",
   ORDER_ALREADY_PROCESSED = "ORDER_ALREADY_PROCESSED",
 
+  // Password reset errors (400)
+  PASSWORD_RESET_TOKEN_INVALID = "PASSWORD_RESET_TOKEN_INVALID",
+
   // Server errors (500, 502, 503)
   INTERNAL_ERROR = "INTERNAL_ERROR",
   DATABASE_ERROR = "DATABASE_ERROR",
@@ -93,6 +96,9 @@ export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.ORDER_NOT_FOUND]: 404,
   [ErrorCode.INVALID_ORDER_STATUS]: 400,
   [ErrorCode.ORDER_ALREADY_PROCESSED]: 400,
+
+  // Password reset errors
+  [ErrorCode.PASSWORD_RESET_TOKEN_INVALID]: 400,
 
   // Server errors (500)
   [ErrorCode.INTERNAL_ERROR]: 500,

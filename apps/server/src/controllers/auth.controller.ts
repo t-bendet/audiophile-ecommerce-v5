@@ -2,6 +2,7 @@ import {
   AppError,
   AuthForgotPasswordRequestSchema,
   AuthLoginRequestSchema,
+  AuthResetPasswordRequestSchema,
   AuthSignUpRequestSchema,
   AuthUpdatePasswordRequestSchema,
   createEmptyResponse,
@@ -100,6 +101,22 @@ export const forgotPassword: ValidatedHandler = defineHandler(
     // a failed send is logged inside and the answer stays the same.
     if (issue) await emailService.sendPasswordReset(issue, req.log);
     res.status(200).json(createEmptyResponse());
+  },
+);
+
+/**
+ * Set a new password from an emailed reset link
+ * Signs the user in with a fresh cookie, as login does.
+ */
+export const resetPassword: ValidatedHandler = defineHandler(
+  AuthResetPasswordRequestSchema,
+  async (req, res) => {
+    const { token, password } = req.verified.body;
+    const { user, token: jwt } = await authService.resetPassword(
+      token,
+      password,
+    );
+    createAndSendAuthCookie(user, jwt, 200, req, res);
   },
 );
 

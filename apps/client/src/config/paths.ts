@@ -45,6 +45,10 @@ export const paths = {
       path: "/auth/forgot-password",
       getHref: () => "/auth/forgot-password",
     },
+    resetPassword: {
+      path: "/auth/reset-password",
+      getHref: () => "/auth/reset-password",
+    },
   },
   account: {
     root: {

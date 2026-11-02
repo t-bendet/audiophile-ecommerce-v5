@@ -115,11 +115,6 @@ the group block.
 
 ### 1. Email foundation and account recovery
 
-- Forgot password and reset flow. The `User` model already has `passwordResetToken` /
-  `passwordResetExpires`; the forgot and reset routes sit commented out in the auth router and a
-  reset rate limiter is defined but not mounted; there are no reset schemas in the domain package
-  and no email code anywhere. The "Forgot your password?" link in `login-form.tsx` is a dead
-  `href="#"` until this lands.
 - Auth layout visuals. The layout is a bare muted background with a form card; it gains two reset
   pages in this group.
 
