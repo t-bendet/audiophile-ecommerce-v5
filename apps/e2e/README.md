@@ -52,8 +52,11 @@ a change to how a shopper signs in touches one file.
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `login(credentials?)`        | Signs in through the API on the browser context's cookie jar; defaults to the seeded `doe@example.com`      |
 | `SEEDED_ADMIN`               | The seeded `admin@example.com` credentials, for `login` or the login form                                   |
+| `freshShopper()`             | A unique name, email and password, not yet signed up, for a spec that drives the signup form                |
 | `signUpFreshShopper()`       | Creates a user with a unique email and name and returns its credentials                                     |
 | `placeOrderAsFreshShopper()` | Signs up a shopper in its own cookie jar, orders one catalogue product and returns the shopper and order id |
+| `placeOrder(product?)`       | Orders one of `product` (the first catalogue product by default) as the signed-in context; returns its id   |
+| `listOrders()`               | `GET /api/v1/orders` for the signed-in context                                                              |
 | `resetCart()`                | `DELETE /api/v1/cart` for the signed-in context                                                             |
 | `catalogue`                  | Reads the catalogue through the products and categories API                                                 |
 
@@ -166,26 +169,41 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
 
 ## What it covers
 
-Home showcase, a category listing, a guest add-to-cart through the mini-cart, the checkout redirect
-to login and back, a guest cart surviving sign-in, a checkout that creates an order and finds it under
-account orders, the not-found page, the admin shell (the account menu's Admin item and `/admin` for
-the admin, not-found there for a shopper, the login redirect and return for a guest), admin order
-fulfilment (a fresh shopper's order found by email, moved to Processing and marked Paid, after which
-the select no longer offers Pending), admin user management (a fresh shopper found by email,
-deactivated, told so by the login form in a browser context of their own, reactivated and signed
-in), admin catalogue edits (a seeded product's price raised on its edit page and shown on its
-storefront page, then put back through the API; and the homepage slot picker offering the featured
-slot only the one seeded product with a featured image and a showcase slot the three showcase
-products with the two held elsewhere disabled; the seed has no spare image, so no slot can be
-saved to another product and the spec does not try), admin stats (the week's orders count and
-revenue read from the stat cards, then read again after a fresh shopper's order is placed and
-marked Paid through the API, each up by that one order), and the crawler surface: a product page's
-JSON-LD, the robots file and the sitemap the preview proxies to the server.
+Home showcase, the Headphones, Earphones and Speakers listings (one parametrised spec, with the "new
+product" overline on the cards the catalogue flags), signup through the form (signed in with the
+name in the account menu, then the same email refused under the email field), logout from the
+account menu (login offered again, checkout redirecting to login), a guest add-to-cart through the
+mini-cart, the checkout redirect to login and back, a guest cart surviving sign-in, a checkout that
+creates an order and finds it under account orders, checkout validation (an empty submit stopped by
+the browser, then an email the browser accepts but the shared schema rejects shown inside the
+shipping fieldset, with no order either way), account orders' empty state and then two orders placed
+through the API listed newest first, the not-found page, the admin shell (the account menu's Admin
+item and `/admin` for the admin, not-found there for a shopper, the login redirect and return for a
+guest), admin order fulfilment (a fresh shopper's order found by email, moved to Processing and
+marked Paid, after which the select no longer offers Pending), admin user management (a fresh
+shopper found by email, deactivated, told so by the login form in a browser context of their own,
+reactivated and signed in), admin catalogue edits (a seeded product's price raised on its edit page
+and shown on its storefront page, then put back through the API; and the homepage slot picker
+offering the featured slot only the one seeded product with a featured image and a showcase slot the
+three showcase products with the two held elsewhere disabled; the seed has no spare image, so no
+slot can be saved to another product and the spec does not try), admin stats (the week's orders
+count and revenue read from the stat cards, then read again after a fresh shopper's order is placed
+and marked Paid through the API, each up by that one order), and the crawler surface: a product
+page's JSON-LD, the robots file and the sitemap the preview proxies to the server.
 
-The order flow is the one that writes, so `order.spec.ts` signs up its own shopper and asserts the
-orders page holds exactly one order. The checkout form groups its inputs under `Shipping details`,
-`Billing address` and `Payment method` fieldsets, so a label such as `City` is reached through its
-group rather than on the page.
+Every checkout input is `required`, so the browser's constraint validation stops an empty submit
+before the form's schema runs: the spec asserts the focus move and every field `:invalid`, not the
+schema's own "is required" messages, which a shopper cannot reach. The server-field-error path of
+[ADR 0006](../../docs/adr/0006-server-validation-errors-belong-to-the-form.md) is driven through
+signup's taken email. Checkout validates with the server's own body schema, so the real server never
+rejects a field the client passed; that path stays in
+[the order route tests](../server/test/order.route.test.ts) and
+[the client's form-error tests](../client/test/form-errors.test.ts).
+
+The order flows are the ones that write, so each test in `order.spec.ts` signs up its own shopper
+and counts that shopper's orders exactly. The checkout form groups its inputs under
+`Shipping details`, `Billing address` and `Payment method` fieldsets, so a label such as `City` is
+reached through its group rather than on the page.
 
 ## Cloud sessions
 

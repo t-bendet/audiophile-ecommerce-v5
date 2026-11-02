@@ -66,6 +66,7 @@ export type CategoryProduct = {
   id: string;
   slug: string;
   fullLabel: string[];
+  isNewProduct: boolean;
 };
 
 export type Catalogue = {
@@ -81,10 +82,17 @@ export type PlacedOrder = {
   orderId: string;
 };
 
+export type ShopperOrder = {
+  id: string;
+  items: { productId: string; productName: string }[];
+};
+
 type Fixtures = {
   login: (credentials?: Credentials) => Promise<void>;
   signUpFreshShopper: () => Promise<Shopper>;
   placeOrderAsFreshShopper: () => Promise<PlacedOrder>;
+  placeOrder: (product?: Pick<CatalogueProduct, "id">) => Promise<string>;
+  listOrders: () => Promise<ShopperOrder[]>;
   resetCart: () => Promise<void>;
   catalogue: Catalogue;
 };
@@ -111,7 +119,7 @@ const CHECKOUT = {
   paymentMethod: "Cash on Delivery",
 };
 
-const freshShopper = (): Shopper => {
+export const freshShopper = (): Shopper => {
   // `User.name` is unique too, and capped at 30 characters.
   const id = randomUUID();
   return {
@@ -150,6 +158,22 @@ const writeData = async (
   );
 };
 
+// Orders whatever the context's cart holds plus one of `product`, the first
+// catalogue product by default, and returns the order id.
+const placeOrder = async (
+  api: APIRequestContext,
+  product?: Pick<CatalogueProduct, "id">,
+): Promise<string> => {
+  const productId =
+    product?.id ??
+    (await readData<CatalogueProduct[]>(api, "/api/v1/products"))[0].id;
+  await writeData(api, "post", "/api/v1/cart", { productId, quantity: 1 });
+  const response = await api.post("/api/v1/orders", { data: CHECKOUT });
+  expect(response.status(), "POST /api/v1/orders").toBe(201);
+  const body = (await response.json()) as { data: { id: string } };
+  return body.data.id;
+};
+
 export const test = base.extend<Fixtures>({
   // `context.request` shares the browser context's cookie jar, so an API login
   // leaves the page signed in.
@@ -184,22 +208,21 @@ export const test = base.extend<Fixtures>({
       try {
         const shopper = freshShopper();
         await signUp(api, shopper);
-        const [product] = await readData<CatalogueProduct[]>(
-          api,
-          "/api/v1/products",
-        );
-        await writeData(api, "post", "/api/v1/cart", {
-          productId: product.id,
-          quantity: 1,
-        });
-        const response = await api.post("/api/v1/orders", { data: CHECKOUT });
-        expect(response.status(), "POST /api/v1/orders").toBe(201);
-        const body = (await response.json()) as { data: { id: string } };
-        return { shopper, orderId: body.data.id };
+        return { shopper, orderId: await placeOrder(api) };
       } finally {
         await api.dispose();
       }
     });
+  },
+
+  placeOrder: async ({ context }, use) => {
+    await use((product) => placeOrder(context.request, product));
+  },
+
+  listOrders: async ({ context }, use) => {
+    await use(() =>
+      readData<ShopperOrder[]>(context.request, "/api/v1/orders"),
+    );
   },
 
   resetCart: async ({ context }, use) => {
