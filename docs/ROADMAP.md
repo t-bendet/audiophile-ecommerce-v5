@@ -102,7 +102,6 @@ Agent-only. Filed as [#340](https://github.com/t-bendet/audiophile-ecommerce-v5/
 six sub-issues; the last, [#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347), is
 the closing re-triage.
 
-- A complete test suite, read as the known E2E gap: a mobile viewport project.
 - Role changes from the user management UI, with a self-demotion guard and a last-admin guard.
   Promotion and demotion are the `db:role` script until it lands.
 - Retire the admin hard user delete and refuse product delete cleanly. Added in this triage: the

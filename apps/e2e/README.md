@@ -14,6 +14,7 @@ keeps running Vitest without Docker or browser servers; server tests boot an in-
 pnpm test:e2e                               # the whole thing, from the repo root
 pnpm --filter e2e run e2e:ui                # UI mode, against servers it starts
 pnpm --filter e2e run e2e cart.spec.ts      # one file
+pnpm --filter e2e run e2e --project=mobile  # only the phone specs
 pnpm --filter e2e run e2e:report            # open the HTML report of the last run
 ```
 
@@ -87,7 +88,7 @@ there should not be one.
 - **Own your user when you write.** Anything that mutates cart or order state on the server calls
   `signUpFreshShopper()` first, so tests never share a cart and the suite can raise its worker count
   later. Read-only signed-in flows get the seeded shopper for free: the `setup` project signs in once
-  and the `chromium` project loads its storage state.
+  and the `chromium` and `mobile` projects load its storage state.
 - **Arrive as the admin with `test.use({ storageState: ADMIN_STORAGE_STATE })`.** The same setup
   signs in the seeded `admin@example.com` into a second state file beside the shopper's. It is
   read-only too: an admin flow that writes gets the data it changes from `placeOrderAsFreshShopper()`,
@@ -117,8 +118,32 @@ there should not be one.
 - **Web-first assertions only.** `expect(locator).toBeVisible()` retries; `expect(await locator.isVisible())`
   does not, and `page.waitForTimeout` is a flake waiting to happen. TanStack Query refetches behind
   most of these pages, so this is the rule that matters most.
+- **Put a phone flow under `tests/mobile/`.** See [Projects](#projects).
 - **Nothing below the browser.** No database reads, no imports of server or client code, no
   assertions on request counts or component names.
+
+## Projects
+
+| Project    | Device profile   | Runs                                 |
+| ---------- | ---------------- | ------------------------------------ |
+| `setup`    | none             | `*.setup.ts`: the two sign-ins       |
+| `chromium` | `Desktop Chrome` | every spec outside `tests/mobile/`   |
+| `mobile`   | `Pixel 7`        | the specs under `tests/mobile/` only |
+
+`chromium` and `mobile` both depend on `setup` and load the shopper's storage state. A spec opts
+into the phone by living under `tests/mobile/`: `mobile` takes that directory as its `testDir`,
+and `chromium` ignores it, so a spec runs in exactly one of the two by where its file is, with no
+tag to forget or to leave on a desktop spec. A phone spec imports from `../fixtures.js` and follows
+every rule above. It covers what only the phone layout shows; a desktop flow is not repeated there,
+which keeps the extra time to a few seconds.
+
+`Pixel 7` is a Chromium profile with `isMobile` and `hasTouch` set, so a phone spec taps
+(`locator.tap()`) where a desktop spec clicks, and it runs on the one browser a
+[cloud session](#cloud-sessions) and CI have; an iPhone profile would need WebKit. Its 412px
+viewport is below every breakpoint the client reads (`sm`, `md`, `lg`): the storefront shows the
+menu button instead of the category links and the admin shows its tab bar instead of the sidebar.
+Assert those through roles, accessible names and URLs, not their markup, which a later roadmap
+group reworks.
 
 ## Agents
 
@@ -224,6 +249,11 @@ on the 30 days, 90 days and All time tabs against the API's numbers from before 
 surface: a product
 page's JSON-LD, the robots file and the sitemap the preview proxies to the server.
 
+On the phone profile: the storefront menu opened from its button, listing the three categories and
+closing on the way to one; a guest mini-cart opened from the cart button and closed with Continue
+Shopping; and the admin tab bar, the only `Admin sections` navigation the phone shows, moving
+through Orders, Users, Products, Homepage and Stats.
+
 Every checkout input is `required`, so the browser's constraint validation stops an empty submit
 before the form's schema runs: the spec asserts the focus move and every field `:invalid`, not the
 schema's own "is required" messages, which a shopper cannot reach. The server-field-error path of
@@ -271,7 +301,7 @@ needs all three, so a red suite blocks a deploy. It brings up the same compose d
 development uses, seeds and pushes, installs Chromium with `--with-deps` and no browser cache, and
 uploads `playwright-report/` as an artifact with thirty-day retention.
 
-On CI the suite runs with two retries, one worker, the `github` reporter for failure annotations on
-the run, and `trace: "on-first-retry"`. So a failure gives a step annotation in the PR checks and a
+The job runs every project, the phone specs included. On CI the suite runs with two retries, one
+worker, the `github` reporter for failure annotations on the run, and `trace: "on-first-retry"`. So a failure gives a step annotation in the PR checks and a
 trace inside the downloaded report; unzip it and open it with `pnpm --filter e2e exec playwright show-report <dir>`
 or at `trace.playwright.dev`.

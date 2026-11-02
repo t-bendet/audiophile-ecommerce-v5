@@ -9,6 +9,10 @@ const PREVIEW_ORIGIN = `http://localhost:${PREVIEW_PORT}`;
 const E2E_DATABASE_URL =
   "mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true";
 
+// Specs under here run on a phone profile only, and every other spec on the
+// desktop one only, so a spec opts in by where it lives.
+const MOBILE_DIR = "tests/mobile";
+
 const isCI = !!process.env.CI;
 
 export default defineConfig({
@@ -32,7 +36,14 @@ export default defineConfig({
     },
     {
       name: "chromium",
+      testIgnore: `${MOBILE_DIR}/**`,
       use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
+      dependencies: ["setup"],
+    },
+    {
+      name: "mobile",
+      testDir: MOBILE_DIR,
+      use: { ...devices["Pixel 7"], storageState: STORAGE_STATE },
       dependencies: ["setup"],
     },
   ],
