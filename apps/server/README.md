@@ -113,7 +113,9 @@ persistence; asset publication follows the [media guide](../../packages/media/RE
 
 ## Email
 
-Every email leaves through one seam, [`email.ts`](src/utils/email.ts): a rendered `EmailMessage`
+Every email leaves through one seam
+([ADR 0011](../../docs/adr/0011-email-leaves-through-one-transport-that-node-env-selects.md)),
+[`email.ts`](src/utils/email.ts): a rendered `EmailMessage`
 (`to`, `subject`, `text`, `html`, `idempotencyKey`) handed to the transport `NODE_ENV` selects.
 Under `test` it is the in-memory `outbox`; elsewhere it is Resend over its HTTPS send endpoint with
 a plain `fetch` when `EMAIL_API_KEY` is set, and the pino logger otherwise, so a fresh clone in

@@ -1,67 +1,13 @@
 import { AppError, ErrorCode } from "@repo/domain";
 import express from "express";
-import { pino } from "pino";
 import { pinoHttp } from "pino-http";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import globalErrorHandler from "../src/middlewares/error.middleware.js";
-import { httpLoggerOptions, loggerOptions } from "../src/utils/logger.js";
+import { httpLoggerOptions } from "../src/utils/logger.js";
+import { collectLogLines, type CollectedLogger } from "./helpers/log-lines.js";
 
-// The exported option objects are the unit under test: production wires them
-// into a logger writing to stdout, so here they are wired into an in-memory
-// stream instead. `level` is overridden because the test environment runs the
-// logger silent - everything else is exactly the production configuration.
-type LogLine = {
-  level?: number;
-  err?: { type?: string; message?: string };
-  requestId?: string;
-  responseTime?: number;
-  req?: {
-    id?: string;
-    method?: string;
-    url?: string;
-    headers: Record<string, string>;
-  };
-  res?: { statusCode?: number; headers: Record<string, string> };
-};
-
-const collect = () => {
-  const lines: LogLine[] = [];
-  let arrived: (() => void) | undefined;
-  const stream = {
-    write(chunk: string) {
-      lines.push(JSON.parse(chunk));
-      arrived?.();
-    },
-  };
-  const logger = pino({ ...loggerOptions, level: "info" }, stream);
-
-  // pino-http writes the completion line from the response's `finish` event,
-  // which nothing orders against supertest resolving on the client side.
-  const linesReaching = (expected: number, timeoutMs = 1000) =>
-    new Promise<[LogLine, ...LogLine[]]>((resolve, reject) => {
-      const settle = () => {
-        if (lines.length < expected) return;
-        clearTimeout(timer);
-        arrived = undefined;
-        resolve(lines as [LogLine, ...LogLine[]]);
-      };
-      const timer = setTimeout(() => {
-        arrived = undefined;
-        reject(
-          new Error(
-            `Timed out after ${timeoutMs}ms waiting for ${expected} log line(s); ${lines.length} arrived`,
-          ),
-        );
-      }, timeoutMs);
-      arrived = settle;
-      settle();
-    });
-
-  return { lines, logger, linesReaching };
-};
-
-const appWith = (logger: ReturnType<typeof collect>["logger"]) => {
+const appWith = (logger: CollectedLogger) => {
   const app = express();
   app.use(pinoHttp({ ...httpLoggerOptions, logger }));
   app.get("/hello", (_req, res) => {
@@ -72,7 +18,7 @@ const appWith = (logger: ReturnType<typeof collect>["logger"]) => {
 
 describe("http logger", () => {
   it("emits one line per request with method, url, status, duration and requestId", async () => {
-    const { lines, logger, linesReaching } = collect();
+    const { lines, logger, linesReaching } = collectLogLines();
 
     await request(appWith(logger)).get("/hello");
     const [line] = await linesReaching(1);
@@ -87,7 +33,7 @@ describe("http logger", () => {
   });
 
   it("reuses a client-sent x-request-id and echoes it back", async () => {
-    const { logger, linesReaching } = collect();
+    const { logger, linesReaching } = collectLogLines();
 
     const res = await request(appWith(logger))
       .get("/hello")
@@ -99,7 +45,7 @@ describe("http logger", () => {
   });
 
   it("generates a request id when the client sends none", async () => {
-    const { logger, linesReaching } = collect();
+    const { logger, linesReaching } = collectLogLines();
 
     const res = await request(appWith(logger)).get("/hello");
     const [line] = await linesReaching(1);
@@ -111,7 +57,7 @@ describe("http logger", () => {
   });
 
   it("redacts credential headers on the request and the response", async () => {
-    const { lines, logger, linesReaching } = collect();
+    const { lines, logger, linesReaching } = collectLogLines();
     const app = appWith(logger);
     app.get("/secret", (_req, res) => {
       res.setHeader("set-cookie", "jwt=super-secret-token; HttpOnly");
@@ -132,7 +78,7 @@ describe("http logger", () => {
   });
 
   it("redacts password fields wherever they are logged", () => {
-    const { lines, logger } = collect();
+    const { lines, logger } = collectLogLines();
 
     logger.info({ password: "hunter2", passwordConfirm: "hunter2" }, "top");
     logger.info(
@@ -146,10 +92,7 @@ describe("http logger", () => {
 });
 
 describe("error boundary logging", () => {
-  const appThatFailsWith = (
-    logger: ReturnType<typeof collect>["logger"],
-    fail: () => never,
-  ) => {
+  const appThatFailsWith = (logger: CollectedLogger, fail: () => never) => {
     const app = express();
     app.use(pinoHttp({ ...httpLoggerOptions, logger }));
     app.get("/boom", () => fail());
@@ -158,7 +101,7 @@ describe("error boundary logging", () => {
   };
 
   it("logs a server failure once, at error level, carrying the real error", async () => {
-    const { lines, logger, linesReaching } = collect();
+    const { lines, logger, linesReaching } = collectLogLines();
 
     const res = await request(
       appThatFailsWith(logger, () => {
@@ -175,7 +118,7 @@ describe("error boundary logging", () => {
   });
 
   it("logs a server failure the client asked for at error level", async () => {
-    const { lines, logger, linesReaching } = collect();
+    const { lines, logger, linesReaching } = collectLogLines();
 
     const res = await request(
       appThatFailsWith(logger, () => {
@@ -190,7 +133,7 @@ describe("error boundary logging", () => {
   });
 
   it("downgrades a client fault to warn instead of dropping it", async () => {
-    const { lines, logger, linesReaching } = collect();
+    const { lines, logger, linesReaching } = collectLogLines();
 
     const res = await request(
       appThatFailsWith(logger, () => {
@@ -209,7 +152,7 @@ describe("error boundary logging", () => {
   // launders it into an ordinary validation error - so only the origin flag can
   // still tell the boundary this one is a bug of ours.
   it("logs a programmer error at error level even when it maps to a 4xx", async () => {
-    const { lines, logger, linesReaching } = collect();
+    const { lines, logger, linesReaching } = collectLogLines();
     const prismaValidationError = Object.assign(
       new Error("Invalid `prisma.product.findMany()` invocation"),
       { name: "PrismaClientValidationError" },
@@ -229,7 +172,7 @@ describe("error boundary logging", () => {
   });
 
   it("keeps the operational flag out of the response body", async () => {
-    const { logger } = collect();
+    const { logger } = collectLogLines();
 
     const res = await request(
       appThatFailsWith(logger, () => {
@@ -241,7 +184,7 @@ describe("error boundary logging", () => {
   });
 
   it("keeps a failure at error level when the response already went out", async () => {
-    const { lines, logger, linesReaching } = collect();
+    const { lines, logger, linesReaching } = collectLogLines();
     const app = express();
     app.use(pinoHttp({ ...httpLoggerOptions, logger }));
     // A double send: the client already has its 200, so the boundary can no
