@@ -240,6 +240,15 @@ export type ShopperOrder = {
   items: { productId: string; productName: string }[];
 };
 
+/** A message the server's test outbox holds, as `GET /api/v1/test/outbox` answers it. */
+export type OutboxMessage = {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  idempotencyKey: string;
+};
+
 type Fixtures = {
   login: (credentials?: Credentials) => Promise<void>;
   signUpFreshShopper: () => Promise<Shopper>;
@@ -247,6 +256,7 @@ type Fixtures = {
   placeOrderAsFreshShopper: () => Promise<PlacedOrder>;
   placeOrder: (product?: Pick<CatalogueProduct, "id">) => Promise<string>;
   listOrders: () => Promise<ShopperOrder[]>;
+  outbox: (to: string) => Promise<OutboxMessage[]>;
   resetCart: () => Promise<void>;
   catalogue: Catalogue;
   admin: AdminApi;
@@ -469,6 +479,18 @@ export const test = base.extend<Fixtures>({
   listOrders: async ({ context }, use) => {
     await use(() =>
       readData<ShopperOrder[]>(context.request, "/api/v1/orders"),
+    );
+  },
+
+  // The server runs under NODE_ENV=test, so nothing leaves the process: the
+  // test-only route is the only way a spec sees what checkout sent. Filtered
+  // by recipient because every shopper here has an email of its own.
+  outbox: async ({ request }, use) => {
+    await use((to) =>
+      readData<OutboxMessage[]>(
+        request,
+        `/api/v1/test/outbox?to=${encodeURIComponent(to)}`,
+      ),
     );
   },
 

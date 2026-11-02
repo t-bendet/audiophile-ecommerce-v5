@@ -9,7 +9,9 @@ import {
   GetOrderRequestSchema,
   ORDER_STATUS_TRANSITIONS,
   OrderQueryParamsSchema,
+  PAYMENT_METHODS,
   PAYMENT_STATUS_TRANSITIONS,
+  paymentInstructions,
   UpdateOrderStatusRequestSchema,
 } from "../src/index.js";
 
@@ -120,5 +122,23 @@ describe("AdminOrderQueryParamsSchema", () => {
     expect(() => AdminOrderQueryParamsSchema.parse({ status: "LOST" })).toThrow(
       ZodError,
     );
+  });
+});
+
+describe("paymentInstructions", () => {
+  it("tells a Cash on Delivery shopper they pay the courier", () => {
+    expect(paymentInstructions("Cash on Delivery")).toBe(
+      "You pay in cash when your order is delivered.",
+    );
+  });
+
+  it("tells any other method's shopper payment is taken at dispatch", () => {
+    expect(paymentInstructions("e-Money")).toBe(
+      "Payment by e-Money is taken when your order is dispatched.",
+    );
+  });
+
+  it("names the two methods the checkout offers, cash last", () => {
+    expect(PAYMENT_METHODS).toEqual(["e-Money", "Cash on Delivery"]);
   });
 });

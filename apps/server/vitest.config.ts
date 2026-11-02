@@ -25,6 +25,7 @@ export default defineConfig({
       JWT_EXPIRES_IN: "90d",
       JWT_COOKIE_EXPIRES_IN: "1",
       MEDIA_BASE_URL: "https://audiophile-media.t-bendet.com",
+      EMAIL_FROM: "no-reply@audiophile.t-bendet.com",
     },
   },
 });

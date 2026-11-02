@@ -8,6 +8,7 @@ import {
   UpdateOrderStatusRequestSchema,
   UpdatePaymentStatusRequestSchema,
 } from "@repo/domain";
+import { emailService } from "../services/email.service.js";
 import { orderService } from "../services/order.service.js";
 import { defineHandler, ValidatedHandler } from "../utils/define-handler.js";
 
@@ -21,6 +22,9 @@ export const createOrder: ValidatedHandler = defineHandler(
     const orderInput = req.verified.body;
 
     const dto = await orderService.createOrder(userId, orderInput);
+    // Awaited so the outbox holds the message by the time the response lands;
+    // a failed send is logged inside and never fails the checkout.
+    await emailService.sendOrderConfirmation(dto, req.log);
     res.status(201).json(createSingleItemResponse(dto));
   },
 );

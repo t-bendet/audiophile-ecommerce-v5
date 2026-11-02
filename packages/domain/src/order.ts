@@ -73,6 +73,17 @@ type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
 export { ORDER_STATUS, PAYMENT_STATUS };
 export type { BillingAddress, ShippingAddress, OrderStatus, PaymentStatus };
 
+// * ===== Payment Methods =====
+
+/** The methods the checkout offers; an admin marks payment by hand. */
+export const PAYMENT_METHODS = ["e-Money", "Cash on Delivery"] as const;
+
+/** How payment is taken, as the confirmation page and email both say it. */
+export const paymentInstructions = (paymentMethod: string): string =>
+  paymentMethod === "Cash on Delivery"
+    ? "You pay in cash when your order is delivered."
+    : `Payment by ${paymentMethod} is taken when your order is dispatched.`;
+
 // * ===== Status Transitions =====
 
 /**

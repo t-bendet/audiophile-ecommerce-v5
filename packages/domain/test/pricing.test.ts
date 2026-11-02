@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { SHIPPING_COST, TAX_RATE, calculateOrderTotals } from "../src/index.js";
+import {
+  SHIPPING_COST,
+  TAX_RATE,
+  calculateOrderTotals,
+  formatPrice,
+} from "../src/index.js";
+
+describe("formatPrice", () => {
+  it("writes whole dollars with a space after the sign", () => {
+    expect(formatPrice(1250)).toBe("$ 1,250");
+    expect(formatPrice(0)).toBe("$ 0");
+  });
+});
 
 describe("calculateOrderTotals", () => {
   it("returns only shipping for an empty subtotal", () => {

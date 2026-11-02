@@ -111,6 +111,38 @@ Persisted images contain storage keys. [`media.ts`](src/utils/media.ts) resolves
 against the required `MEDIA_BASE_URL` during DTO mapping. Keep public URLs out of
 persistence; asset publication follows the [media guide](../../packages/media/README.md).
 
+## Email
+
+Every email leaves through one seam
+([ADR 0011](../../docs/adr/0011-email-leaves-through-one-transport-that-node-env-selects.md)),
+[`email.ts`](src/utils/email.ts): a rendered `EmailMessage`
+(`to`, `subject`, `text`, `html`, `idempotencyKey`) handed to the transport `NODE_ENV` selects.
+Under `test` it is the in-memory `outbox`; elsewhere it is Resend over its HTTPS send endpoint with
+a plain `fetch` when `EMAIL_API_KEY` is set, and the pino logger otherwise, so a fresh clone in
+development sees the rendered text in the terminal and never needs a key. There is no second
+toggle. The sender is `Audiophile <EMAIL_FROM>`: the address is configuration, the display name is
+code. Every send carries Resend's `Idempotency-Key` named after the business event
+(`order-confirmation/<orderId>`), so a retried request cannot send twice. The env schema in
+[`env.ts`](src/utils/env.ts) requires `EMAIL_API_KEY` only under `production`; the Worker and
+secret wiring is in the [deployment runbook](../../docs/deployment.md#production-environment).
+
+Templates are small functions in [`src/emails`](src/emails), raw HTML plus a plain-text part, no
+template library. [`email.service.ts`](src/services/email.service.ts) renders and sends: a
+transport failure is logged through the request logger it is given, so the line carries the request
+id, and the caller's response is unchanged. `POST /orders` awaits `sendOrderConfirmation` after the
+order is created, so the outbox holds the message when the 201 lands; the email says the order is
+received and how payment is taken (`paymentInstructions` in `@repo/domain`, the sentence the
+confirmation page shows too), never that payment was taken, because an admin sets payment status by
+hand.
+
+Route tests import `outbox` and read it directly, clearing it in `beforeEach` beside
+`resetDatabase`; [`order.route.test.ts`](test/order.route.test.ts) asserts the recipient, subject,
+body and idempotency key, and makes the transport reject to show the order is still created. The
+E2E suite imports no server code, so [`test.route.ts`](src/routes/test.route.ts) is mounted at
+`/api/v1/test` only under `NODE_ENV=test`: `GET /test/outbox?to=<email>` returns that recipient's
+messages (every message without `to`) and `DELETE /test/outbox` empties it. In every other
+environment the path is the JSON 404 any unknown API path gets.
+
 ## Errors and logging
 
 Raise expected application failures with `new AppError(message, ErrorCode.X)` from

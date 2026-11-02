@@ -1,7 +1,8 @@
 import { DEFAULT_LIMIT, DEFAULT_PAGE, ErrorCode } from "@repo/domain";
 import request from "supertest";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import app from "../src/app.js";
+import { emailTransport, outbox } from "../src/utils/email.js";
 import {
   ABSENT_ID,
   authCookie,
@@ -60,7 +61,14 @@ const orderFromCart = async (userId: string, price: number) => {
   return { cookie, product, res };
 };
 
-beforeEach(resetDatabase);
+beforeEach(async () => {
+  await resetDatabase();
+  outbox.clear();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("POST /api/v1/orders", () => {
   it("turns the cart into an order and empties it", async () => {
@@ -92,6 +100,46 @@ describe("POST /api/v1/orders", () => {
     expect(res.body.data.items[0].productImage).toEqual(
       resolvedVariant(product.images.thumbnail.image),
     );
+  });
+
+  it("sends one 'order received' email to the order's email address", async () => {
+    const user = await createUser();
+    const { product, res } = await orderFromCart(user.id, 1000);
+    const order = res.body.data;
+
+    expect(outbox.messages).toHaveLength(1);
+    const [email] = outbox.addressedTo("ada@example.com");
+    expect(email).toMatchObject({
+      to: "ada@example.com",
+      subject: `Order received: ${order.id}`,
+      idempotencyKey: `order-confirmation/${order.id}`,
+    });
+    for (const body of [email!.text, email!.html]) {
+      expect(body).toContain(order.id);
+      expect(body).toContain(product.cartLabel);
+      expect(body).toContain("$ 1,000");
+      expect(body).toContain("$ 1,250");
+      expect(body).toContain(
+        "Payment by e-Money is taken when your order is dispatched.",
+      );
+    }
+  });
+
+  it("still creates the order when the email cannot be sent", async () => {
+    vi.spyOn(emailTransport, "send").mockRejectedValueOnce(
+      new Error("Resend answered 500: Internal server error"),
+    );
+    const user = await createUser();
+    const { cookie, res } = await orderFromCart(user.id, 1000);
+
+    expect(res.status).toBe(201);
+    expect(res.body.data).toMatchObject({ userId: user.id, total: 1250 });
+    expect(outbox.messages).toEqual([]);
+
+    const read = await request(app)
+      .get(`/api/v1/orders/${res.body.data.id}`)
+      .set("Cookie", cookie);
+    expect(read.status).toBe(200);
   });
 
   it("refuses to order from an empty cart", async () => {
