@@ -105,10 +105,11 @@ describe("GET /api/v1/categories", () => {
     expect(findMany).not.toHaveBeenCalled();
   });
 
-  it("selects the requested fields when all are whitelisted", async () => {
-    const { args } = await listCategories("?fields=id,name");
+  it("reads the full row whatever fields asks for", async () => {
+    const { res, args } = await listCategories("?fields=id,name");
 
-    expect(args.select).toEqual({ id: true, name: true });
+    expect(res.status).toBe(200);
+    expect(args).not.toHaveProperty("select");
   });
 
   it("rejects an unknown field and names it in the error details", async () => {
@@ -186,15 +187,15 @@ describe("GET /api/v1/products", () => {
     expect(productFindMany).not.toHaveBeenCalled();
   });
 
-  it("keeps a valid sort list and field selection", async () => {
+  it("keeps a valid sort list and reads the full row for a field selection", async () => {
     const { args } = await listProducts("?sort=-price,name&fields=id,price");
 
     expect(args).toMatchObject({
       orderBy: [{ price: "desc" }, { name: "asc" }],
-      select: { id: true, price: true },
       skip: 0,
       take: 20,
     });
+    expect(args).not.toHaveProperty("select");
   });
 
   it("names every unknown sort and field value in one response", async () => {
@@ -247,13 +248,13 @@ describe("GET /api/v1/users", () => {
     expect(userFindMany).not.toHaveBeenCalled();
   });
 
-  it("keeps a valid sort list and field selection", async () => {
+  it("keeps a valid sort list and reads the full row for a field selection", async () => {
     const { args } = await listUsers("?sort=-createdAt,email&fields=id,email");
 
     expect(args).toMatchObject({
       orderBy: [{ createdAt: "desc" }, { email: "asc" }],
-      select: { id: true, email: true },
     });
+    expect(args).not.toHaveProperty("select");
   });
 
   it("rejects a field the user list does not expose", async () => {

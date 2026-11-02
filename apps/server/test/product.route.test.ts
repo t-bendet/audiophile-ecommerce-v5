@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { ErrorCode } from "@repo/domain";
+import { ErrorCode, ProductGetAllResponseSchema } from "@repo/domain";
 import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 import app from "../src/app.js";
@@ -56,6 +56,20 @@ describe("GET /api/v1/products", () => {
     expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0].id).toBe(product.id);
     expect(res.body.meta).toMatchObject({ page: 1, total: 1 });
+  });
+
+  it("answers a field selection with full rows, images resolved", async () => {
+    const product = await createProduct();
+
+    const res = await request(app).get("/api/v1/products?fields=id,name");
+
+    expect(res.status).toBe(200);
+    const parsed = ProductGetAllResponseSchema.safeParse(res.body);
+    expect(parsed.error?.issues).toBeUndefined();
+    expect(res.body.data[0]).toMatchObject({
+      id: product.id,
+      images: { thumbnail: resolvedImage(product.images.thumbnail) },
+    });
   });
 });
 

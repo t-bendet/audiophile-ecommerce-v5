@@ -9,7 +9,11 @@ import type {
   UserWhereInput,
 } from "@repo/domain";
 import { AppError, ErrorCode, USER_QUERY_FIELDS } from "@repo/domain";
-import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
+import {
+  parseOrderBy,
+  rejectUnknownFields,
+  type Pagination,
+} from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const SELF_UPDATE_FIELDS = [
@@ -99,7 +103,7 @@ export class UserService extends AbstractCrudService<
     const { skip, take, search, role, active, sort, fields } = params;
 
     const where = this.buildUserWhere({ search, role, active });
-    const select = parseSelect(fields, USER_QUERY_FIELDS);
+    rejectUnknownFields(fields, USER_QUERY_FIELDS);
     const orderBy = parseOrderBy(sort, USER_QUERY_FIELDS);
 
     const [data, total] = await prisma.$transaction([
@@ -108,7 +112,6 @@ export class UserService extends AbstractCrudService<
         skip,
         take,
         orderBy,
-        select,
       }),
       prisma.user.count({ where }),
     ]);

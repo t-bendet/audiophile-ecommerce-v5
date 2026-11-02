@@ -72,20 +72,15 @@ const rejectUnknownMembers = (
   );
 };
 
-export const parseSelect = <Field extends string>(
+// Field selection is a lower bound (ADR 0009): the list is checked against the
+// whitelist and the full row is read, so no DTO member goes missing.
+export const rejectUnknownFields = (
   fields: unknown,
-  allowedFields: readonly Field[],
-): Record<Field, true> | undefined => {
-  if (typeof fields !== "string") return undefined;
+  allowedFields: readonly string[],
+): void => {
+  if (typeof fields !== "string") return;
 
   rejectUnknownMembers("fields", fields, allowedFields);
-
-  const select = {} as Record<Field, true>;
-  for (const field of fields.split(",")) {
-    select[field as Field] = true;
-  }
-
-  return select;
 };
 
 export const parseOrderBy = <Field extends string>(

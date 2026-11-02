@@ -10,7 +10,7 @@ import {
   type ConfigUpdateInput,
   type ErrorDetail,
 } from "@repo/domain";
-import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
+import { parseOrderBy, type Pagination } from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const CONFIG_QUERY_FIELDS = [
@@ -69,10 +69,9 @@ export class ConfigService extends AbstractCrudService<
   protected async persistFindMany(
     params: Pagination & ConfigQueryParams,
   ): Promise<{ data: Config[]; total: number }> {
-    const { skip, take, sort, fields } = params;
+    const { skip, take, sort } = params;
 
     const where = this.buildConfigWhere();
-    const select = parseSelect(fields, CONFIG_QUERY_FIELDS);
     const orderBy = parseOrderBy(sort, CONFIG_QUERY_FIELDS);
 
     const [data, total] = await prisma.$transaction([
@@ -81,7 +80,6 @@ export class ConfigService extends AbstractCrudService<
         skip,
         take,
         orderBy,
-        select,
       }),
       prisma.config.count({ where }),
     ]);

@@ -85,10 +85,14 @@ parameters (`Entity`, `CreateInput`, `UpdateInput`, `DTO`) and an optional fifth
 parameter defaulting to `baseQueryParams`. Implement `toDTO`, `persistFindMany`,
 `persistFindById`, `persistCreate`, `persistUpdate`, and `persistDelete`.
 
-Query building (`where`, `select`, `orderBy`) belongs inside `persistFindMany` and its
+Query building (`where`, `orderBy`) belongs inside `persistFindMany` and its
 private helpers, not new abstract base-class hooks. Use the shared parsers in
 [`query.ts`](src/utils/query.ts); [`product.service.ts`](src/services/product.service.ts)
-shows the current implementation. When changing list-query behavior, read
+shows the current implementation. A list's `fields=` is a lower bound, not a projection: the
+service checks it against the entity's whitelist with `rejectUnknownFields` and reads the full
+row, so every response is the complete `*DTO` and no service passes a `select` to Prisma
+([ADR 0009](../../docs/adr/0009-field-selection-never-drops-a-required-member.md)). When changing
+list-query behavior, read
 [ADR 0002](../../docs/adr/0002-unknown-sort-and-fields-values-are-rejected.md) for unknown
 sort/field rejection and [ADR 0003](../../docs/adr/0003-one-default-page-size-for-every-list.md)
 for the default page size.

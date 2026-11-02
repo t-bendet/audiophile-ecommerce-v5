@@ -9,7 +9,11 @@ import type {
 } from "@repo/domain";
 import { CATEGORY_QUERY_FIELDS } from "@repo/domain";
 import { toSingleImageDTO } from "../utils/media.js";
-import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
+import {
+  parseOrderBy,
+  rejectUnknownFields,
+  type Pagination,
+} from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const CATEGORY_UPDATE_FIELDS = [
@@ -25,8 +29,6 @@ export class CategoryService extends AbstractCrudService<
   CategoryQueryParams
 > {
   protected toDTO(entity: Category): CategoryDTO {
-    // A `fields` selection can leave the row without a thumbnail to resolve.
-    if (!entity.thumbnail) return entity as unknown as CategoryDTO;
     return { ...entity, thumbnail: toSingleImageDTO(entity.thumbnail) };
   }
 
@@ -36,7 +38,7 @@ export class CategoryService extends AbstractCrudService<
     const { skip, take, name, sort, fields } = params;
 
     const where = this.buildCategoryWhere(name);
-    const select = parseSelect(fields, CATEGORY_QUERY_FIELDS);
+    rejectUnknownFields(fields, CATEGORY_QUERY_FIELDS);
     const orderBy = parseOrderBy(sort, CATEGORY_QUERY_FIELDS);
 
     const [data, total] = await prisma.$transaction([
@@ -45,7 +47,6 @@ export class CategoryService extends AbstractCrudService<
         skip,
         take,
         orderBy,
-        select,
       }),
       prisma.category.count({ where }),
     ]);
