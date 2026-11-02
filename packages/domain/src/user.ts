@@ -139,11 +139,6 @@ export const UserUpdateByIdRequestSchema = createRequestSchema({
     .strict() satisfies z.ZodType<UserUpdateInput>,
 });
 
-// DELETE - Delete user by ID
-export const UserDeleteByIdRequestSchema = createRequestSchema({
-  params: z.object({ id: IdValidator("User") }).strict(),
-});
-
 // * =====  DTO Schemas ( base and others if needed)=====
 
 export const UserDTOSchema = z

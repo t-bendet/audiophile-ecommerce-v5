@@ -73,8 +73,10 @@ test.describe("an admin", () => {
     );
     await expect(fulfilment.getByLabel("Payment status")).toHaveText("Paid");
 
-    // The page remounts the form once the saved order is refetched, which
-    // would close a select opened a moment earlier; a reload lands after it.
+    // The toast follows the second of the two saves. The page remounts the
+    // form once the saved order is refetched, which would close a select
+    // opened a moment earlier; a reload lands after it.
+    await expect(page.getByText("Order updated")).toBeVisible();
     await page.reload();
     await fulfilment.getByLabel("Move order to").click();
     await expect(page.getByRole("option", { name: "Shipped" })).toBeVisible();

@@ -85,7 +85,6 @@ describe("route manifest", () => {
           post / [2 handlers]
           get /:id [2 handlers]
           patch /:id [2 handlers]
-          delete /:id [2 handlers]
         auth
           post /signup [3 handlers]
           post /login [3 handlers]

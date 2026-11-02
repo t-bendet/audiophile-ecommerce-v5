@@ -13,6 +13,7 @@ export enum ErrorCode {
   // Resource errors (404, 409)
   NOT_FOUND = "NOT_FOUND",
   DUPLICATE_ENTRY = "DUPLICATE_ENTRY",
+  RESOURCE_IN_USE = "RESOURCE_IN_USE",
 
   // Authentication errors (401)
   UNAUTHORIZED = "UNAUTHORIZED",
@@ -63,6 +64,7 @@ export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
   // Resource errors
   [ErrorCode.NOT_FOUND]: 404,
   [ErrorCode.DUPLICATE_ENTRY]: 409,
+  [ErrorCode.RESOURCE_IN_USE]: 409,
 
   // Authentication errors (401)
   [ErrorCode.UNAUTHORIZED]: 401,

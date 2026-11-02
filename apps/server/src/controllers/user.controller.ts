@@ -3,7 +3,6 @@ import {
   createListResponse,
   createSingleItemResponse,
   UserCreateRequestSchema,
-  UserDeleteByIdRequestSchema,
   UserDeleteMeRequestSchema,
   UserGetAllRequestSchema,
   UserGetByIdRequestSchema,
@@ -46,15 +45,6 @@ export const getAllUsers: ValidatedHandler = defineHandler(
   async (req, res, _next) => {
     const result = await userService.getAll(req.verified.query);
     res.status(200).json(createListResponse(result.data, result.meta));
-  },
-);
-
-// deleting a user
-export const deleteUser: ValidatedHandler = defineHandler(
-  UserDeleteByIdRequestSchema,
-  async (req, res, _next) => {
-    await userService.delete(req.verified.params.id);
-    res.status(200).json(createEmptyResponse());
   },
 );
 

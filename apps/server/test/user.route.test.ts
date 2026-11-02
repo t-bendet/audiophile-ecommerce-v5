@@ -184,6 +184,27 @@ describe("DELETE /api/v1/users/deleteMe", () => {
   });
 });
 
+// Deactivation is the soft delete; the API offers no hard delete.
+describe("DELETE /api/v1/users/:id", () => {
+  it("is not a route, and the user stays", async () => {
+    const admin = await createAdmin();
+    const user = await createUser();
+
+    const res = await request(app)
+      .delete(`/api/v1/users/${user.id}`)
+      .set("Cookie", authCookie(admin.id));
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe(ErrorCode.NOT_FOUND);
+
+    const after = await request(app)
+      .get(`/api/v1/users/${user.id}`)
+      .set("Cookie", authCookie(admin.id));
+    expect(after.status).toBe(200);
+    expect(after.body.data).toMatchObject({ id: user.id, active: true });
+  });
+});
+
 describe("PATCH /api/v1/users/:id", () => {
   it("lets an admin promote a user", async () => {
     const admin = await createAdmin();
