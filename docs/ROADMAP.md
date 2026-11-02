@@ -161,11 +161,11 @@ Size: M, four or five agent tickets and one design pass.
   for the thank-you. The shared dialog overlay hardcodes the storefront nav offset, which admin
   inherits. The phone specs under `apps/e2e/tests/mobile/` find the menu and the mini-cart by role,
   accessible name and URL only, so the rework keeps them green by keeping those names. The admin
-  order fulfilment form in `apps/client/src/features/admin/orders/routes/order-detail.tsx` is keyed
-  on `status:paymentStatus` and remounts when the saved order is refetched, closing a select opened
-  a moment earlier ([#366](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/366)); the
-  E2E waits for the "Order updated" toast and reloads meanwhile, and the same state pass decides
-  whether a form survives a refetch.
+  order fulfilment form rebases in place after a save
+  ([#366](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/366)): it resets to the order
+  the save answered and keeps it as the starting point until the refetched one catches up, the
+  pattern the product and homepage forms follow. A dialog or form the rework gives a refetch to
+  survive follows it too.
 
 Why second: client-only, no external dependency, and it settles the route-level loading pattern
 that order detail, wishlist and search results build on later.
@@ -388,7 +388,8 @@ mini-cart is a vaul Drawer; the thank-you is inline content; the shared Dialog o
 the nav-bar offset that admin inherits. The phone E2E specs under apps/e2e/tests/mobile/ find the
 menu ("Open main menu", dialog "Main menu") and the mini-cart ("Open cart", dialog "cart (n)") by
 role and accessible name, so keep those names or update the specs in the same slice. The admin
-order fulfilment form is keyed on status:paymentStatus and remounts on refetch (#366).
+order fulfilment form rebases in place after a save, as the product and homepage forms do (#366);
+a form that must survive a refetch follows that pattern.
 
 Decide, per route (home, category, product, account orders, checkout): await in the loader with a
 skeleton, or stream with a route-level Suspense fallback; and whether the home loader awaits the
