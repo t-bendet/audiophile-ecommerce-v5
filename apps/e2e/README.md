@@ -187,6 +187,32 @@ orders page holds exactly one order. The checkout form groups its inputs under `
 `Billing address` and `Payment method` fieldsets, so a label such as `City` is reached through its
 group rather than on the page.
 
+## Cloud sessions
+
+A Claude Code cloud session cannot download a browser. The container image preinstalls one Playwright
+and one Chromium build under `PLAYWRIGHT_BROWSERS_PATH`, sets `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD`, and
+the session proxy refuses the Playwright CDN, so `playwright install chromium` fails there. When the
+`@playwright/test` pin here moves ahead of the image, `playwright-core` asks for a Chromium revision
+the image does not have and every launch fails with
+`Executable doesn't exist at .../chromium_headless_shell-<revision>/...`.
+
+The SessionStart hook in `.claude/hooks/session-start.sh` closes that gap. After installing
+dependencies it reads the `chromium`, `chromium-headless-shell` and `ffmpeg` revisions the installed
+`playwright-core` wants from its `browsers.json` and, for each one missing under
+`PLAYWRIGHT_BROWSERS_PATH`, symlinks the single installed build of that browser under the wanted
+name. It creates nothing when the revision is already installed, when the path is unset or
+unwritable, or when there is no build to alias, and says so on one line without failing the rest of
+session setup. The `e2e` task in `turbo.json` passes `PLAYWRIGHT_BROWSERS_PATH` through, since Turbo's
+strict environment would otherwise hide it and Playwright would look in its default cache. So a fresh
+session runs `pnpm test:e2e` without a manual step, given the local replica set the same hook brings
+up.
+
+The suite therefore runs against the image's Chromium, which can be older than the one CI downloads
+with `--with-deps`. Nothing needs doing when the pin moves: the hook re-aliases on the next session.
+If a spec ever needs a Chromium feature the image's build lacks, wait for the image to catch up or
+pin `@playwright/test` to the image's version; and confirm a failure that reproduces only in a cloud
+session against CI's downloaded Chromium before treating it as a product bug.
+
 ## CI
 
 The `e2e` job in `.github/workflows/ci.yml` runs in parallel with `verify` and `image`, and `deploy`

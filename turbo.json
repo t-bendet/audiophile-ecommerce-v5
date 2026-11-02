@@ -86,7 +86,8 @@
       "dependsOn": ["server#build", "client#build"],
       "cache": false,
       "outputs": [],
-      "env": ["CI"]
+      "env": ["CI"],
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     }
   }
 }
