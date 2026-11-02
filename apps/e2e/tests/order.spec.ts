@@ -1,5 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import {
+  ORDERS_LOCK,
   expect,
   test,
   type CatalogueProduct,
@@ -7,6 +8,8 @@ import {
 } from "./fixtures.js";
 
 test.use({ storageState: { cookies: [], origins: [] } });
+// These tests place orders, which the admin stats tests count.
+test.describe.configure({ lock: ORDERS_LOCK });
 
 const openCheckoutWith = async (page: Page, product: CatalogueProduct) => {
   await page.goto(`/product/${product.slug}`);

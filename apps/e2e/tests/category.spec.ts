@@ -1,4 +1,7 @@
-import { expect, test, type CategoryName } from "./fixtures.js";
+import { CATALOGUE_LOCK, expect, test, type CategoryName } from "./fixtures.js";
+
+// The admin catalogue specs edit a listed product and add a disposable one.
+test.describe.configure({ lock: CATALOGUE_LOCK });
 
 const CATEGORIES: CategoryName[] = ["Headphones", "Earphones", "Speakers"];
 
