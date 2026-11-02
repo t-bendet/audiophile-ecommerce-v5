@@ -11,11 +11,11 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 const signUpThroughForm = async (page: Page, shopper: Shopper) => {
   await page.goto("/auth/signup");
-  await page.getByLabel("Full Name").fill(shopper.name);
+  await page.getByLabel("Full name").fill(shopper.name);
   await page.getByLabel("Email").fill(shopper.email);
   await page.getByLabel("Password", { exact: true }).fill(shopper.password);
-  await page.getByLabel("Confirm Password").fill(shopper.password);
-  await page.getByRole("button", { name: "Create Account" }).click();
+  await page.getByLabel("Confirm password").fill(shopper.password);
+  await page.getByRole("button", { name: "Create account" }).click();
 };
 
 test("a fresh shopper signs up through the form and a second signup with that email is refused", async ({

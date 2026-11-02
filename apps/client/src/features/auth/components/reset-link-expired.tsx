@@ -1,9 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { paths } from "@/config/paths";
+import { cn } from "@/lib/cn";
 import { PASSWORD_RESET_EXPIRY_LABEL } from "@repo/domain";
 import { TimerOff } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Link } from "react-router";
+import {
+  authLeadClass,
+  authLinkClass,
+  authOverlineClass,
+  authTitleClass,
+} from "./auth-styles";
 
 /** One state for an invalid, expired or used link: the shopper's next step is the same. */
 export function ResetLinkExpired() {
@@ -17,28 +24,23 @@ export function ResetLinkExpired() {
         <TimerOff className="size-6" aria-hidden />
       </div>
       <div className="flex flex-col gap-3">
-        <p className="text-xs font-bold tracking-600 text-primary-500 uppercase">
-          Account recovery
-        </p>
+        <p className={authOverlineClass}>Account recovery</p>
         <h1
           ref={headingRef}
           tabIndex={-1}
-          className="text-2xl font-bold tracking-300 uppercase outline-none md:text-3xl"
+          className={cn(authTitleClass, "outline-none")}
         >
           This link has expired
         </h1>
       </div>
-      <p className="opacity-50">
+      <p className={authLeadClass}>
         Reset links work once and expire after {PASSWORD_RESET_EXPIRY_LABEL}.
         Request a new one and we will email it to you.
       </p>
       <Button variant="accent" size="lg" asChild>
         <Link to={paths.auth.forgotPassword.path}>Request a new link</Link>
       </Button>
-      <Link
-        to={paths.auth.login.path}
-        className="text-center text-sm font-bold text-primary-500"
-      >
+      <Link to={paths.auth.login.path} className={cn(authLinkClass, "text-sm")}>
         Back to login
       </Link>
     </div>

@@ -117,6 +117,19 @@ the toast title "Reset failed". Pending is the disabled submit with a `Spinner` 
 and toasts "Password updated". A signed-in shopper who opens a link is sent to the profile by the
 auth layout loader, like the other auth pages.
 
+The four auth pages render inside [`AuthLayout`](src/components/layouts/auth-layout.tsx), built to
+the [design note](../../docs/research/auth-layout-design.md). From `lg` up it is a split pane: a
+`neutral-900` brand pane with the logo, the ZX9 speaker on the pattern circles and the tagline, and
+the form on white, left-aligned at `max-w-md` with no card. Below `lg` the pane collapses to a
+4.5rem logo band with a "Home" link and the form fills the width. The speaker is UI chrome copied to
+`src/assets/desktop/image-auth-speaker.png`, like the best-gear hero, not a catalogue image. The
+storefront `<body>` text is white, so the layout root sets `text-neutral-900`. The forms take the
+storefront's overline, uppercase title, overline labels and square 3rem inputs from
+[`auth-styles.ts`](src/features/auth/components/auth-styles.ts), applied through `className` so
+the shared `Input` and `Field` keep their look elsewhere. Pending on all four forms is the disabled
+`accent` submit with a `Spinner` and a progress label ("Signing in", "Creating account", "Sending",
+"Saving"); the root layout's full-page overlay covers only the logout mutation and the user fetch.
+
 Keep feedback at the feature that owns the action. Query retry classification does not
 display an error, and adding a transport-level toast would duplicate feedback from
 forms or boundaries.

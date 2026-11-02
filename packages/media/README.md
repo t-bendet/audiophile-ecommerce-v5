@@ -18,7 +18,8 @@ categories/<slug>/thumbnail.<ext>
 `<role>` is one of `primary`, `intro`, `featured`, `showcase`, `related`,
 `gallery`; only `gallery` carries the `-<n>`. `<breakpoint>` is `mobile`,
 `tablet` or `desktop`. The client's best-gear hero is UI chrome, not catalogue
-content, and stays in `apps/client`.
+content, and stays in `apps/client`. So does the auth layout's speaker,
+copied from `products/zx9-speaker/showcase-desktop.png`.
 
 There are 129 files for 128 pre-migration ImgBB URLs. XX99 Mark II's desktop
 primary image used to point at the same URL as its desktop intro image — the
