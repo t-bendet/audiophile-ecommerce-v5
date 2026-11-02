@@ -468,35 +468,36 @@ and SPF, so the store's bounces and complaints should build their own reputation
 the portfolio's, and the From address reads as the store: `Audiophile <no-reply@audiophile.t-bendet.com>`.
 The hostname is a Worker custom domain, which does not prevent TXT and MX records on names beneath
 it; a later project on `t-bendet.com` takes its own subdomain.
-These are plain DNS records, so the Universal SSL one-level limit recorded in ADR 0005 does not
-apply; it would only matter for the optional click-tracking CNAME, which this plan omits.
+The Universal SSL one-level limit recorded in ADR 0005 does not apply; these names never serve
+HTTPS.
 
-Add the domain `audiophile.t-bendet.com` in Resend, pick the region, then add these records in the
-Cloudflare DNS editor. The Name column is what goes in Cloudflare's Name field, which appends the
-zone ("Use `send`, not `send.example.com`" per the [Cloudflare guide](https://resend.com/docs/dashboard/domains/cloudflare)).
-Values in angle brackets are issued by Resend at setup time and must be copied from its dashboard.
+Provisioned 2026-11-02 through Resend's **Auto configure** flow, which signs in to Cloudflare and
+writes the records itself under a one-time authorization ("It does not grant Resend permission to
+make future changes", per the authorization screen). The records it wrote differ from the MX-plus-SPF
+pair on Resend's docs page: the return path is now two CNAMEs into Resend's own `forge.rmta.net`
+infrastructure, and the MX and SPF records are resolved through those targets. The table below is
+what the zone publishes, checked by DNS lookup after verification; the Name column is Cloudflare's
+Name field, which appends the zone.
 
-| Type | Name                           | Value                                               | Proxy status                     | Note                                                                                                                                                                        |
-| ---- | ------------------------------ | --------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TXT  | `resend._domainkey.audiophile` | `p=<DKIM public key issued by Resend>`              | DNS only (TXT cannot be proxied) | DKIM. One TXT, not a CNAME.                                                                                                                                                 |
-| MX   | `send.audiophile`              | `feedback-smtp.<region>.amazonses.com`, priority 10 | DNS only (MX cannot be proxied)  | Return path. `<region>` is `eu-west-1` or `us-east-1` and must match the region chosen in Resend; if Cloudflare appends the zone, end the value with a dot.                 |
-| TXT  | `send.audiophile`              | `v=spf1 include:amazonses.com ~all`                 | DNS only                         | SPF for the return-path host. New name, so nothing to merge.                                                                                                                |
-| TXT  | `_dmarc`                       | existing `v=DMARC1; p=none; rua=…`                  | n/a                              | Already present. No `sp=` tag, so the `p=none` policy applies to `audiophile.t-bendet.com` as well (RFC 7489 §6.3). Tighten to `quarantine` after a clean month of reports. |
+| Type  | Name                           | Value                                  | Proxy status | Note                                                                                                                                                                           |
+| ----- | ------------------------------ | -------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CNAME | `send.audiophile`              | `send.forge.rmta.net`                  | DNS only     | Return path. Resolves to MX `10 feedback.forge.rmta.net` and an SPF TXT listing Resend's own sending IPs.                                                                      |
+| CNAME | `rsend.audiophile`             | `rsend-euw1.forge.rmta.net`            | DNS only     | Regional return path; `euw1` is the `eu-west-1` region chosen at setup. Resolves to MX `10 feedback-smtp.eu-west-1.amazonses.com` and SPF `v=spf1 include:amazonses.com ~all`. |
+| TXT   | `resend._domainkey.audiophile` | `p=<DKIM public key issued by Resend>` | DNS only     | DKIM. One TXT, not a CNAME.                                                                                                                                                    |
+| TXT   | `_dmarc`                       | existing `v=DMARC1; p=none; rua=…`     | n/a          | Already present. No `sp=` tag, so the `p=none` policy applies to `audiophile.t-bendet.com` as well (RFC 7489 §6.3). Tighten to `quarantine` after a clean month of reports.    |
 
 Cloudflare's own reference states the proxy rule: "Only records used for IP address resolution — A,
 AAAA, and CNAME records — can be proxied", and "Records used for other purposes, such as CNAME
 records that prove your domain ownership, should not be proxied"
 ([proxied DNS records](https://developers.cloudflare.com/dns/manage-dns-records/reference/proxied-dns-records/)).
-TXT and MX records therefore cannot be set wrong; the orange cloud only becomes a trap if the
-optional `links.audiophile` CNAME → `links1.resend-dns.com` is ever added for click tracking, and that
-record must be DNS only.
+The two return-path CNAMEs are therefore the records that can be set wrong: Auto configure created
+them DNS only, and they must stay grey-cloud if ever edited by hand. The optional click-tracking
+CNAME `links.audiophile` → `links1.resend-dns.com` is not added.
 
 Existing-record check: the SPF merge rule ("if the domain already has an SPF TXT, extend it rather
-than adding a second") does not bite because Resend's SPF lives on `send.audiophile.t-bendet.com`, a name
-with no records today. The same is true if the apex were used as the sending domain instead
-(records would land on `send.t-bendet.com` and `resend._domainkey.t-bendet.com`). The apex SPF and
-Porkbun MX stay untouched either way. The DMARC record already exists; do not add a second
-`_dmarc` TXT.
+than adding a second") does not bite because Resend's SPF is reached through CNAMEs on
+`send.audiophile` and `rsend.audiophile`, names that had no records before. The apex SPF and Porkbun
+MX are untouched. The DMARC record already existed; no second `_dmarc` TXT was added.
 
 ## Secrets and configuration the server will need
 
