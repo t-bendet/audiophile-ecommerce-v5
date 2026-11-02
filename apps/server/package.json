@@ -50,7 +50,7 @@
     "tsup": "^8.5.1",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
-    "vitest": "^5.0.0",
+    "vitest": "^5.0.5",
     "wrangler": "^4.131.0"
   },
   "keywords": [],
