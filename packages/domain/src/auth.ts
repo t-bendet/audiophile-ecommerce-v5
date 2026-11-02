@@ -66,6 +66,26 @@ export type AuthUpdateUserPasswordRequest = z.infer<
   typeof AuthUpdatePasswordRequestSchema.shape.body
 >;
 
+export const AuthForgotPasswordRequestSchema = z.object({
+  body: z
+    .object({
+      email: EmailValidator,
+    })
+    .strict(),
+});
+
+export type AuthForgotPasswordRequest = z.infer<
+  typeof AuthForgotPasswordRequestSchema.shape.body
+>;
+
+// * ===== Password reset =====
+
+/** How long a password reset link works after it is sent. */
+export const PASSWORD_RESET_EXPIRY_MS = 60 * 60 * 1000;
+
+/** `PASSWORD_RESET_EXPIRY_MS` in the words the email and the forgot page print. */
+export const PASSWORD_RESET_EXPIRY_LABEL = "one hour";
+
 // * =====   Response Schemas & Types ( For Frontend)=====
 
 export const AuthResponseSchema = SingleItemResponseSchema(UserDTOSchema);
@@ -75,6 +95,10 @@ export type AuthResponse = SingleItemResponse<UserDTO>;
 export const AuthLogoutResponseSchema = EmptyResponseSchema;
 
 export type AuthLogoutResponse = EmptyResponse;
+
+export const AuthForgotPasswordResponseSchema = EmptyResponseSchema;
+
+export type AuthForgotPasswordResponse = EmptyResponse;
 
 export const AuthCheckStatusResponseSchema = SingleItemResponseSchema(
   z

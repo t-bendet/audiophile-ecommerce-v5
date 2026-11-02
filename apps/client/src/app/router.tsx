@@ -227,6 +227,13 @@ const createAppRouter = (queryClient: QueryClient) =>
                 import("./routes/auth/signup").then(convert(queryClient)),
               path: paths.auth.signup.path,
             },
+            {
+              lazy: () =>
+                import("./routes/auth/forgot-password").then(
+                  convert(queryClient),
+                ),
+              path: paths.auth.forgotPassword.path,
+            },
           ],
         },
       ],

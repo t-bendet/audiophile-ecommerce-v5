@@ -8,7 +8,7 @@ import { env } from "./env.js";
  * stricter per-route quotas on the endpoints worth abusing.
  */
 
-type RateLimiterOptions = {
+export type RateLimiterOptions = {
   /** Requests allowed per window, per IP. */
   limit: number;
   windowMs: number;
@@ -95,12 +95,12 @@ export const createOrderLimiter: RequestHandler = defineLimiter({
 /**
  * Password reset limiter - prevents email spam
  * 3 requests per hour per IP
- *
- * Not mounted yet: the routes it guards are still commented out in
- * `routes/auth.route.ts`. It holds the intended policy until they land.
  */
-export const passwordResetLimiter: RequestHandler = defineLimiter({
+export const PASSWORD_RESET_LIMIT: RateLimiterOptions = {
   limit: 3,
   windowMs: 60 * 60 * 1000,
   message: "Too many password reset requests. Please try again in an hour.",
-});
+};
+
+export const passwordResetLimiter: RequestHandler =
+  defineLimiter(PASSWORD_RESET_LIMIT);

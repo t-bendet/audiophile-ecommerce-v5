@@ -41,6 +41,10 @@ export const paths = {
         return `/auth/login${search ? `?${search}` : ""}`;
       },
     },
+    forgotPassword: {
+      path: "/auth/forgot-password",
+      getHref: () => "/auth/forgot-password",
+    },
   },
   account: {
     root: {

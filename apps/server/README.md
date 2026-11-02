@@ -76,6 +76,14 @@ absolute URLs on the requesting origin, read from `req.protocol` and `req.host` 
 forwarded headers apply. The Worker forwards that path to the container
 ([deployment](../../docs/deployment.md)); `robots.txt` is a client asset.
 
+[`rateLimiters.ts`](src/utils/rateLimiters.ts) holds the limiters: a global flood cap on `/api` and
+stricter per-route quotas mounted in the route files (login, signup, order creation, the forgot
+password request). A rejection leaves through `next()`, so it is the standard envelope with
+`TOO_MANY_REQUESTS` (429), the limiter's own `message` and the `requestId`, and the response keeps
+the `RateLimit-*` (draft-6) and `Retry-After` headers. Every limiter stands down under
+`NODE_ENV=test`; [`rate-limit.test.ts`](test/rate-limit.test.ts) and a route test that needs a
+limiter's policy build a small app with `createRateLimiter` and the exported options instead.
+
 The validation responsibilities are distinct: request schemas validate external input,
 controllers/services enforce business rules, Prisma extensions handle persistence
 transformations, database constraints enforce supported invariants, and DTO mapping
@@ -135,10 +143,22 @@ received and how payment is taken (`paymentInstructions` in `@repo/domain`, the 
 confirmation page shows too), never that payment was taken, because an admin sets payment status by
 hand.
 
+`POST /auth/forgot-password` validates its body with `AuthForgotPasswordRequestSchema` and answers
+200 with the empty envelope for a known, unknown or deactivated email alike, so the response never
+says whether an account exists. Only an active user is issued a token: 32 random bytes, emailed raw
+and stored on the user as its SHA-256 hash in `passwordResetToken` beside `passwordResetExpires`,
+which is `PASSWORD_RESET_EXPIRY_MS` from `@repo/domain` (one hour) after the request. A new request
+overwrites both, so only the latest link works. The link is
+`<CLIENT_URL>/auth/reset-password?token=<token>`; `CLIENT_URL` is the storefront origin from the env
+schema, never the request's `Host`, which a caller controls. The send is awaited like the order
+confirmation, under the key `password-reset/<userId>/<expiry epoch ms>`, and the route is behind
+`passwordResetLimiter` (three requests per hour per IP).
+
 Route tests import `outbox` and read it directly, clearing it in `beforeEach` beside
 `resetDatabase`; [`order.route.test.ts`](test/order.route.test.ts) asserts the recipient, subject,
-body and idempotency key, and makes the transport reject to show the order is still created. The
-E2E suite imports no server code, so [`test.route.ts`](src/routes/test.route.ts) is mounted at
+body and idempotency key, and makes the transport reject to show the order is still created;
+[`password-reset.route.test.ts`](test/password-reset.route.test.ts) reads the token out of the
+link and compares its hash with the stored one. The E2E suite imports no server code, so [`test.route.ts`](src/routes/test.route.ts) is mounted at
 `/api/v1/test` only under `NODE_ENV=test`: `GET /test/outbox?to=<email>` returns that recipient's
 messages (every message without `to`) and `DELETE /test/outbox` empties it. In every other
 environment the path is the JSON 404 any unknown API path gets.

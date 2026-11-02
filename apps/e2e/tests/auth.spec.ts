@@ -1,5 +1,11 @@
 import type { Page } from "@playwright/test";
-import { expect, freshShopper, test, type Shopper } from "./fixtures.js";
+import {
+  expect,
+  freshShopper,
+  SEEDED_SHOPPER,
+  test,
+  type Shopper,
+} from "./fixtures.js";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -54,4 +60,64 @@ test("a shopper who logs out from the account menu is a guest again", async ({
 
   await page.goto("/checkout");
   await expect(page).toHaveURL("/auth/login?redirectTo=%2Fcheckout");
+});
+
+const requestResetLink = async (page: Page, email: string) => {
+  await page.getByRole("textbox", { name: "Email" }).fill(email);
+  await page.getByRole("button", { name: "Send reset link" }).click();
+};
+
+const RESET_LINK = /\/auth\/reset-password\?token=[a-f0-9]{64}/;
+
+test("a seeded shopper requests a reset link from the login page and is emailed one", async ({
+  page,
+  outbox,
+}) => {
+  await page.goto("/auth/login");
+  await page.getByRole("link", { name: "Forgot your password?" }).click();
+  await expect(page).toHaveURL("/auth/forgot-password");
+  await expect(
+    page.getByRole("heading", { name: "Forgot your password?" }),
+  ).toBeVisible();
+
+  await requestResetLink(page, SEEDED_SHOPPER.email);
+
+  await expect(
+    page.getByRole("heading", { name: "Check your inbox" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(SEEDED_SHOPPER.email, { exact: true }),
+  ).toBeVisible();
+  // The email is sent before the route answers, so it is already in the outbox.
+  // The seeded shopper is shared, so a retry may have left an earlier one too.
+  const emails = await outbox(SEEDED_SHOPPER.email);
+  expect(
+    emails.some(
+      (email) =>
+        email.subject === "Reset your Audiophile password" &&
+        RESET_LINK.test(email.text),
+    ),
+  ).toBe(true);
+});
+
+test("an unknown email sees the same sent state, is sent nothing, and can try another email", async ({
+  page,
+  outbox,
+}) => {
+  const { email } = freshShopper();
+
+  await page.goto("/auth/forgot-password");
+  await requestResetLink(page, email);
+
+  await expect(
+    page.getByRole("heading", { name: "Check your inbox" }),
+  ).toBeVisible();
+  await expect(page.getByText(email, { exact: true })).toBeVisible();
+  expect(await outbox(email)).toEqual([]);
+
+  await page.getByRole("button", { name: "try another email" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Forgot your password?" }),
+  ).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Email" })).toHaveValue(email);
 });

@@ -35,6 +35,16 @@ describe("env", () => {
     );
   });
 
+  it("requires CLIENT_URL to be an absolute URL without a trailing slash", async () => {
+    vi.stubEnv("CLIENT_URL", "audiophile.t-bendet.com");
+    await expect(loadEnv()).rejects.toThrow(
+      /CLIENT_URL must be an absolute URL/,
+    );
+
+    vi.stubEnv("CLIENT_URL", "https://audiophile.t-bendet.com/");
+    await expect(loadEnv()).rejects.toThrow(/CLIENT_URL must not end in \//);
+  });
+
   it("still lists every other invalid variable", async () => {
     vi.stubEnv("JWT_SECRET", "short");
     await expect(loadEnv()).rejects.toThrow(/JWT_SECRET/);

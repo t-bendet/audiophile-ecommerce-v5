@@ -9,6 +9,7 @@ interface Env {
   JWT_EXPIRES_IN: string;
   JWT_COOKIE_EXPIRES_IN: string;
   MEDIA_BASE_URL: string;
+  CLIENT_URL: string;
   EMAIL_FROM: string;
   EMAIL_API_KEY: string;
 }
@@ -33,6 +34,7 @@ export class ApiContainer extends Container<Env> {
       JWT_EXPIRES_IN: env.JWT_EXPIRES_IN,
       JWT_COOKIE_EXPIRES_IN: env.JWT_COOKIE_EXPIRES_IN,
       MEDIA_BASE_URL: env.MEDIA_BASE_URL,
+      CLIENT_URL: env.CLIENT_URL,
       EMAIL_FROM: env.EMAIL_FROM,
       EMAIL_API_KEY: env.EMAIL_API_KEY,
     };
