@@ -1,4 +1,7 @@
-import { expect, test } from "./fixtures.js";
+import { CATALOGUE_LOCK, expect, test } from "./fixtures.js";
+
+// The admin catalogue specs change the showcase slots.
+test.describe.configure({ lock: CATALOGUE_LOCK });
 
 test("the home page shows the showcase products", async ({
   page,

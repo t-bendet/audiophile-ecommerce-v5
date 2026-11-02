@@ -48,21 +48,36 @@ a 429 no matter how many retries it takes. The vitest suite owns that behaviour.
 Every spec imports `test` and `expect` from `tests/fixtures.ts`, never from `@playwright/test`, so
 a change to how a shopper signs in touches one file.
 
-| Fixture                      | What it does                                                                                                |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `login(credentials?)`        | Signs in through the API on the browser context's cookie jar; defaults to the seeded `doe@example.com`      |
-| `SEEDED_ADMIN`               | The seeded `admin@example.com` credentials, for `login` or the login form                                   |
-| `freshShopper()`             | A unique name, email and password, not yet signed up, for a spec that drives the signup form                |
-| `signUpFreshShopper()`       | Creates a user with a unique email and name and returns its credentials                                     |
-| `placeOrderAsFreshShopper()` | Signs up a shopper in its own cookie jar, orders one catalogue product and returns the shopper and order id |
-| `placeOrder(product?)`       | Orders one of `product` (the first catalogue product by default) as the signed-in context; returns its id   |
-| `listOrders()`               | `GET /api/v1/orders` for the signed-in context                                                              |
-| `resetCart()`                | `DELETE /api/v1/cart` for the signed-in context                                                             |
-| `catalogue`                  | Reads the catalogue through the products and categories API                                                 |
+| Fixture                            | What it does                                                                                                     |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `login(credentials?)`              | Signs in through the API on the browser context's cookie jar; defaults to the seeded `doe@example.com`           |
+| `SEEDED_ADMIN`                     | The seeded `admin@example.com` credentials, for `login` or the login form                                        |
+| `freshShopper()`                   | A unique name, email and password, not yet signed up, for a spec that drives the signup form                     |
+| `signUpFreshShopper()`             | Creates a user with a unique email and name and returns its credentials                                          |
+| `placeOrdersAsFreshShopper(count)` | Signs up one shopper in its own cookie jar, places `count` orders one after another, returns the shopper and ids |
+| `placeOrderAsFreshShopper()`       | The same with one order; returns the shopper and that order's id                                                 |
+| `placeOrder(product?)`             | Orders one of `product` (the first catalogue product by default) as the signed-in context; returns its id        |
+| `listOrders()`                     | `GET /api/v1/orders` for the signed-in context                                                                   |
+| `resetCart()`                      | `DELETE /api/v1/cart` for the signed-in context                                                                  |
+| `catalogue`                        | Reads the catalogue through the products and categories API                                                      |
+| `admin`                            | Admin writes and reads through the API on the browser context's session, for a test that arrives as the admin    |
+| `disposableProduct(source)`        | A create body with unique names and slug, in `source`'s category and borrowing its images                        |
+| `ORDERS_LOCK`, `CATALOGUE_LOCK`    | Playwright lock names; see [Writing a test](#writing-a-test)                                                     |
 
 `catalogue` is how a spec learns what to assert: `showCaseProducts()`, `featuredProduct()`,
 `products()`, `productBySlug(slug)` and `productsByCategory(category)`. Assert against what the API
 says the catalogue holds rather than against literals, and a reseeded product does not break a test.
+`products()` leaves out disposable products, so "the first product" stays a seeded one while a
+slot test has one in the catalogue.
+
+`admin` holds `setOrderStatus`, `setPaymentStatus` (both answer the order, `total` included),
+`updateProduct`, `createProduct`, `deleteProduct`, `config`, `updateConfig` and `stats(period)`.
+It is how an admin spec arranges state before driving a page and puts back what it changed in a
+`finally`. The API answers with image URLs but stores and accepts bucket keys, which are the URL's
+path; `disposableProduct` converts them back with `imageKeysOf`. The server does not check the
+bucket, so borrowing another product's keys is how a spec gets a product with a showcase image the
+seed has no spare of. A homepage slot cannot point at a missing product, so a spec puts the slot
+back before it deletes the product, and never orders a disposable product.
 
 State goes through the API, never the database. There is no Prisma client in this workspace and
 there should not be one.
@@ -77,7 +92,15 @@ there should not be one.
   signs in the seeded `admin@example.com` into a second state file beside the shopper's. It is
   read-only too: an admin flow that writes gets the data it changes from `placeOrderAsFreshShopper()`,
   which keeps the shopper's session out of the admin's cookie jar, and finds it by that shopper's
-  email rather than by position in the list.
+  email rather than by position in the list. A list assertion filters by that email too, so a
+  count is the spec's own however many orders other specs place.
+- **Take a lock for shared counts and slots.** Local runs are fully parallel. The stats cards count
+  the whole shop's orders, so the stats tests and every test that places an order declare
+  `test.describe.configure({ lock: ORDERS_LOCK })`, and a stats test expects exactly its own order
+  on top. The catalogue edits, the homepage slot tests and the storefront tests that assert what the
+  catalogue API said a moment before (home, categories) declare `CATALOGUE_LOCK`. Tests sharing a
+  lock never run at the same time; everything else stays parallel. A new test that places an order
+  or changes the catalogue takes the matching lock.
 - **Opt out of that state for a guest flow.** `test.use({ storageState: { cookies: [], origins: [] } })`
   at the top of the file. A guest cart lives in `localStorage` under `audiophile_cart`, which every
   fresh context starts without. To hold credentials and still arrive signed out, sign up and then
@@ -180,15 +203,25 @@ shipping fieldset, with no order either way), account orders' empty state and th
 through the API listed newest first, the not-found page, the admin shell (the account menu's Admin
 item and `/admin` for the admin, not-found there for a shopper, the login redirect and return for a
 guest), admin order fulfilment (a fresh shopper's order found by email, moved to Processing and
-marked Paid, after which the select no longer offers Pending), admin user management (a fresh
-shopper found by email, deactivated, told so by the login form in a browser context of their own,
-reactivated and signed in), admin catalogue edits (a seeded product's price raised on its edit page
-and shown on its storefront page, then put back through the API; and the homepage slot picker
-offering the featured slot only the one seeded product with a featured image and a showcase slot the
-three showcase products with the two held elsewhere disabled; the seed has no spare image, so no
-slot can be saved to another product and the spec does not try), admin stats (the week's orders
-count and revenue read from the stat cards, then read again after a fresh shopper's order is placed
-and marked Paid through the API, each up by that one order), and the crawler surface: a product
+marked Paid, after which the select no longer offers Pending), admin order lists (a fresh shopper's two
+orders, one moved to Processing and the other marked Paid through the API, each found alone by the
+status filter and by the payment status filter; twenty-one orders of one shopper paged as "Showing
+1–20 of 21" and then the oldest alone on page two, with Prev and Next disabled at each end), the
+cancel path (a Paid order moved to Cancelled shows the refund reminder, after which the order select
+is disabled and the payment select offers Refunded and neither Pending nor Failed), admin user
+management (a fresh shopper found by email, deactivated, told so by the login form in a browser
+context of their own, reactivated and signed in), admin catalogue edits (a seeded product's price
+raised on its edit page and shown on its storefront page; another's description, first in-the-box
+quantity, full label and new-product flag changed and shown there, the "new product" overline
+appearing and then disappearing when the flag is cleared again; each put back through the API), the
+homepage slots (the picker offering the featured slot only the one seeded product with a featured
+image and a showcase slot the three showcase products with the two held elsewhere disabled; and a
+disposable product created through the API with the grid product's images, saved into the grid slot
+and shown on the home page, then the slot put back and the product deleted), admin stats (the week's
+orders count and revenue read from the stat cards, then read again after a fresh shopper's order is
+placed and marked Paid through the API, each up by that one order; and the same order counted once
+on the 30 days, 90 days and All time tabs against the API's numbers from before it), and the crawler
+surface: a product
 page's JSON-LD, the robots file and the sitemap the preview proxies to the server.
 
 Every checkout input is `required`, so the browser's constraint validation stops an empty submit

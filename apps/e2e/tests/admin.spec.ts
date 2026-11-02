@@ -1,5 +1,11 @@
 import type { Page } from "@playwright/test";
-import { ADMIN_STORAGE_STATE, SEEDED_ADMIN, expect, test } from "./fixtures.js";
+import {
+  ADMIN_STORAGE_STATE,
+  ORDERS_LOCK,
+  SEEDED_ADMIN,
+  expect,
+  test,
+} from "./fixtures.js";
 
 const openUserMenu = (page: Page) =>
   page.getByRole("button", { name: "Open user menu" }).click();
@@ -7,17 +13,9 @@ const openUserMenu = (page: Page) =>
 const statsHeading = (page: Page) =>
   page.getByRole("heading", { name: "Stats", level: 1 });
 
-// A stat card prints one number: a count as `1,234`, revenue as `$ 1,234`.
-const statValue = (page: Page, label: string) =>
-  page.getByRole("region", { name: label, exact: true }).getByRole("paragraph");
-
-const readNumber = async (page: Page, label: string) =>
-  Number((await statValue(page, label).innerText()).replace(/[^\d]/g, ""));
-
-const shownCount = (count: number) => count.toLocaleString("en-US");
-const shownMoney = (amount: number) => `$ ${shownCount(amount)}`;
-
 test.describe("an admin", () => {
+  // The fulfilment and user tests place orders, which the stats tests count.
+  test.describe.configure({ lock: ORDERS_LOCK });
   test.use({ storageState: ADMIN_STORAGE_STATE });
 
   test("reaches the dashboard from the account menu", async ({ page }) => {
@@ -35,45 +33,6 @@ test.describe("an admin", () => {
     await expect(page.getByRole("button", { name: "Open cart" })).toHaveCount(
       0,
     );
-  });
-
-  test("counts a fresh shopper's paid order in the week's stats", async ({
-    page,
-    context,
-    placeOrderAsFreshShopper,
-  }) => {
-    await page.goto("/admin/stats?period=7d");
-    await expect(page.getByRole("tab", { name: "7 days" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    await expect(
-      page.getByRole("region", { name: "Orders by status" }),
-    ).toBeVisible();
-    const before = {
-      orders: await readNumber(page, "Orders"),
-      revenue: await readNumber(page, "Revenue"),
-    };
-
-    const { orderId } = await placeOrderAsFreshShopper();
-    // Paid by the admin through the API, the way the fulfilment form does it.
-    const paid = await context.request.patch(
-      `/api/v1/orders/${orderId}/payment-status`,
-      { data: { paymentStatus: "PAID" } },
-    );
-    expect(paid.ok(), "marking the order paid").toBe(true);
-    const { total } = ((await paid.json()) as { data: { total: number } }).data;
-
-    await page.goto("/admin/stats?period=7d");
-    await expect(statValue(page, "Orders")).toHaveText(
-      shownCount(before.orders + 1),
-    );
-    await expect(statValue(page, "Revenue")).toHaveText(
-      shownMoney(before.revenue + total),
-    );
-    await expect(
-      page.getByRole("region", { name: "Best sellers" }).getByRole("link"),
-    ).not.toHaveCount(0);
   });
 
   test("finds a fresh shopper's order and moves it along", async ({
@@ -192,113 +151,6 @@ test.describe("an admin", () => {
     await signIn();
     await expect(shopperPage).toHaveURL(/\/account/);
     await shopperContext.close();
-  });
-});
-
-test.describe("an admin editing the catalogue", () => {
-  test.use({ storageState: ADMIN_STORAGE_STATE });
-
-  // The storefront prints a whole-dollar price as `$ 4,500`.
-  const shown = (price: number) => `$ ${price.toLocaleString("en-US")}`;
-
-  test("changes a product's price and sees it on the storefront", async ({
-    page,
-    context,
-    catalogue,
-  }) => {
-    // A product no homepage slot renders, so the home page is untouched.
-    const product = await catalogue.productBySlug("xx59-headphones");
-    const edited = product.price + 1;
-
-    try {
-      await page.goto("/admin/products");
-      await page
-        .getByRole("table")
-        .getByRole("link", { name: product.name })
-        .click();
-
-      await expect(page).toHaveURL(`/admin/products/${product.id}`);
-      const form = page.getByRole("form", { name: "Edit product" });
-      const save = form.getByRole("button", { name: "Save" });
-      await expect(save).toBeDisabled();
-      await expect(form.getByText(product.slug)).toBeVisible();
-
-      await form.getByLabel("Price", { exact: true }).fill(String(edited));
-      await expect(save).toBeEnabled();
-      await save.click();
-      await expect(save).toBeDisabled();
-      await expect(form.getByLabel("Price", { exact: true })).toHaveValue(
-        String(edited),
-      );
-
-      await page.goto(`/product/${product.slug}`);
-      await expect(
-        page.getByText(shown(edited), { exact: true }),
-      ).toBeVisible();
-      await expect(
-        page.getByText(shown(product.price), { exact: true }),
-      ).toHaveCount(0);
-    } finally {
-      // Put the price back for every other spec, through the admin's session.
-      const restored = await context.request.patch(
-        `/api/v1/products/${product.id}`,
-        { data: { price: product.price } },
-      );
-      expect(restored.ok(), "restoring the price").toBe(true);
-    }
-  });
-
-  test("is offered for each homepage slot only the products with its image", async ({
-    page,
-    catalogue,
-  }) => {
-    const [featured, showcase, products] = await Promise.all([
-      catalogue.featuredProduct(),
-      catalogue.showCaseProducts(),
-      catalogue.products(),
-    ]);
-    const nameOf = (id: string) =>
-      products.find((product) => product.id === id)?.name ?? id;
-    const cover = showcase.showCaseCover;
-    expect(cover).not.toBeNull();
-
-    await page.goto("/admin/homepage");
-    const form = page.getByRole("form", { name: "Homepage" });
-    await expect(
-      form.getByRole("button", { name: "Save homepage" }),
-    ).toBeDisabled();
-
-    // The seed has one product with a featured image, so the hero can only
-    // be that product and the select says so.
-    const featuredSlot = form.getByRole("region", { name: "Featured" });
-    await expect(featuredSlot).toContainText(nameOf(featured.id));
-    await featuredSlot.getByRole("button", { name: "Change" }).click();
-    await featuredSlot.getByLabel("Product").click();
-    const featuredOptions = page.getByRole("option");
-    await expect(featuredOptions).toHaveCount(1);
-    await expect(featuredOptions.first()).toHaveText(nameOf(featured.id));
-    await page.keyboard.press("Escape");
-
-    // The three showcase images fill the three showcase slots, so the cover
-    // select offers all three and disables the two held elsewhere.
-    const coverSlot = form.getByRole("region", { name: "Showcase cover" });
-    await expect(coverSlot).toContainText(nameOf(cover!.id));
-    await coverSlot.getByRole("button", { name: "Change" }).click();
-    await coverSlot.getByLabel("Product").click();
-    const coverOptions = page.getByRole("option");
-    await expect(coverOptions).toHaveCount(3);
-    await expect(
-      page.getByRole("option", { name: nameOf(cover!.id) }),
-    ).toBeEnabled();
-    for (const slot of [showcase.showCaseWide, showcase.showCaseGrid]) {
-      await expect(
-        page.getByRole("option", { name: nameOf(slot!.id) }),
-      ).toBeDisabled();
-    }
-    await page.keyboard.press("Escape");
-    await expect(
-      form.getByRole("button", { name: "Save homepage" }),
-    ).toBeDisabled();
   });
 });
 
