@@ -5,8 +5,11 @@ not specced work: a group becomes GitHub issues when its turn comes, following t
 [issue workflow](agents/issue-tracker.md). Dark mode and multi-language support are not planned.
 
 The grouping was drawn up on 2026-11-02 against the code at that date; the facts quoted in each
-group were checked then. Groups 0 to 4 are ordered with intent. The order of groups 5 to 9 is
-provisional and is reconsidered at every group boundary.
+group were checked then. Group 0, the debt sprint, closed in
+[#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340) on 2026-11-02; what it
+settled is folded into the blocks below, which were checked again at its close. Groups 1 to 4 are
+ordered with intent. The order of groups 5 to 9 is provisional and is reconsidered at every group
+boundary.
 
 ## How the roadmap is worked
 
@@ -19,7 +22,8 @@ the group block.
 
 **Pick the entry skill by how many decisions the group has open.**
 
-- No open decision (group 0): write the issues directly from this file. Run
+- No open decision: write the issues directly from this file, as group 0
+  ([#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340)) was. Run
   [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) only when they should also be shipped in
   the same session; it hands the queue to batch-tickets.
 - One decision or one design pass (groups 1, 2, 3, 7): write the parent issue first, then run
@@ -58,8 +62,11 @@ the group block.
   group's block, carries every decision the group settled back into this file and the ADRs, reads
   every remaining group against what shipped, and states whether the remaining order holds. The
   checklist under "Closing re-triage" is its acceptance criteria.
-- Every slice ships its own E2E. The test suite is not an epic of its own; group 0 clears the known
-  gaps once.
+- Every slice ships its own E2E. The test suite is not an epic of its own; group 0 cleared the known
+  gaps once ([#341](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/341) to
+  [#343](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/343)). A flow only the phone
+  layout shows gets its spec under `apps/e2e/tests/mobile/`, as the E2E guide's
+  [Projects](../apps/e2e/README.md#projects) section describes.
 
 **Constraints every group inherits.**
 
@@ -74,9 +81,19 @@ the group block.
 - Test doubles for email and payments switch on `NODE_ENV=test` only, never on a second variable.
 - `media:sync --prune` deletes any bucket key the repo does not have. The first dashboard upload
   makes it destructive, so the upload slice scopes or retires it.
+- A per-row state the UI needs is not a new DTO member: every member is required and the schema is
+  strict ([ADR 0009](adr/0009-field-selection-never-drops-a-required-member.md)). The admin role
+  change derived the last-active-admin state from an active-admins list total instead.
+- Nothing an order references is hard-deleted
+  ([ADR 0010](adr/0010-nothing-an-order-references-is-hard-deleted.md)): users are deactivated, and
+  `DELETE /products/:id` answers `RESOURCE_IN_USE` (409) for a product with order items or in a site
+  config slot.
+- An E2E spec that places an order or changes the catalogue holds `ORDERS_LOCK` or
+  `CATALOGUE_LOCK`, puts back through the API what it changed, and never orders a disposable
+  product ([E2E fixtures](../apps/e2e/README.md#fixtures)).
 
-**Closing re-triage.** The checklist each group's last sub-issue carries; the first one is
-[#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347).
+**Closing re-triage.** The checklist each group's last sub-issue carries; it first ran as
+[#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347) for group 0.
 
 1. The closed group's block and any item lines still standing are removed.
 2. Every decision settled in the parent issue, its slices or their PR reviews that differs from what
@@ -95,14 +112,6 @@ the group block.
 8. The PR carries `Closes #<parent>` and waits at PR open for review.
 
 ## Groups in order
-
-### 0. Debt sprint
-
-Agent-only. Filed as [#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340) with
-six sub-issues; the last, [#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347), is
-the closing re-triage.
-
-Depends on nothing. Size: S, five tickets. Runs while the human sessions for groups 1 and 2 happen.
 
 ### 1. Email foundation and account recovery
 
@@ -125,8 +134,10 @@ sending domain's DNS records, the secret, and a design pass on the auth layout. 
 "Session briefs" below.
 
 Agent-decidable with guidance: a transport that becomes an in-memory outbox under `NODE_ENV=test`,
-readable by route tests and E2E; a hashed reset token at rest; the existing reset limiter mounted;
-the confirmation sent at checkout as "order received", since payment is still set by hand.
+readable by route tests and E2E. `apps/e2e` imports nothing from the apps, so E2E reads it over
+HTTP, and the parent issue decides that test-only route. Also: a hashed reset token at rest; the
+existing reset limiter mounted; the confirmation sent at checkout as "order received", since
+payment is still set by hand.
 
 Size: M, four or five agent tickets and one design pass.
 
@@ -148,7 +159,13 @@ Size: M, four or five agent tickets and one design pass.
   dialog with heavy overrides for the mobile menu, including a leftover placeholder description and
   an `aria-describedby` that points at nothing; a vaul drawer for the mini-cart; inline page content
   for the thank-you. The shared dialog overlay hardcodes the storefront nav offset, which admin
-  inherits.
+  inherits. The phone specs under `apps/e2e/tests/mobile/` find the menu and the mini-cart by role,
+  accessible name and URL only, so the rework keeps them green by keeping those names. The admin
+  order fulfilment form in `apps/client/src/features/admin/orders/routes/order-detail.tsx` is keyed
+  on `status:paymentStatus` and remounts when the saved order is refetched, closing a select opened
+  a moment earlier ([#366](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/366)); the
+  E2E waits for the "Order updated" toast and reloads meanwhile, and the same state pass decides
+  whether a form survives a refetch.
 
 Why second: client-only, no external dependency, and it settles the route-level loading pattern
 that order detail, wishlist and search results build on later.
@@ -176,9 +193,12 @@ in analytics (group 9).
 
 Human first: a short design pass for the shopper's order detail page and timeline. The account
 area's profile and security pages are placeholder cards today, so this pass sets the account area's
-pattern. Agent default unless overruled: tracking number and carrier as free text, captured at the
-Shipped transition. Give the event an actor that can be a user or "system" so group 8's webhooks
-reuse it.
+pattern. The security page closes a gap reported in
+[#344](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/344): `DELETE /users/deleteMe`
+deactivates through `UserService.deactivate`, which calls `updateAsAdmin` without an acting user, so
+the sole active admin can still deactivate themselves there. Agent default unless overruled:
+tracking number and carrier as free text, captured at the Shipped transition. Give the event an
+actor that can be a user or "system" so group 8's webhooks reuse it.
 
 Size: M, four or five agent tickets and one short design pass.
 
@@ -189,9 +209,12 @@ Size: M, four or five agent tickets and one short design pass.
   has no R2 credential. The global JSON body limit is 10 kB. A full product is seven image roles
   with three hand-cut crops each, so a naive upload form means around twenty files per product. The
   domain's image key pattern already accepts `webp` and `avif`.
-- Product creation from the dashboard. The server's admin create endpoint exists and is unused. A
-  new product needs image keys that exist in the bucket, which is why this waits on uploads
-  ([ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md)).
+- Product creation from the dashboard. The server's admin create endpoint exists and nothing in the
+  client calls it; the E2E suite creates disposable products through it, borrowing a showcase
+  product's image keys. A new product needs image keys that exist in the bucket, which is why this
+  waits on uploads ([ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md)).
+  The server does not check that today, so a slice that adds bucket validation keeps an E2E way to
+  create a product, or `apps/e2e/tests/admin-catalogue.spec.ts` breaks.
 - Category management. Three fixed categories are a product decision; category thumbnails are
   images, so this also waits on uploads. The server's category create, update and delete endpoints
   exist and are unused.
@@ -221,10 +244,14 @@ Size: L, six to eight agent tickets, one map, one design pass.
 
 ### 5. Product lifecycle: archive, inventory, availability
 
-- Product delete or archive. Cart items cascade on product delete and silently vanish; order items
-  and homepage slots declare no rule, so Prisma refuses the delete. Archive is still the answer:
-  order lines read the product's name and image live, so an ordered product can never be removed.
-  Needs an "unavailable" or "archived" state.
+- Product delete or archive. Since
+  [#345](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/345), deleting a product with
+  order items or in a homepage slot answers `RESOURCE_IN_USE` (409)
+  ([ADR 0010](adr/0010-nothing-an-order-references-is-hard-deleted.md)). Cart items still cascade
+  and silently vanish; the route test "removes the product's cart items and leaves the other lines"
+  in `apps/server/test/product.route.test.ts` records that as the baseline this group changes.
+  Archive is still the answer: order lines read the product's name and image live, so an ordered
+  product can never be removed. Needs an "unavailable" or "archived" state.
 - Inventory management. No stock field exists. Checkout creates the order and empties the cart in
   one transaction with no stock check; that transaction is where a decrement with an oversell guard
   goes.
@@ -232,7 +259,8 @@ Size: L, six to eight agent tickets, one map, one design pass.
   must exclude archived products.
 
 Depends on: group 4's migration pattern, and a catalogue to manage. Swap it ahead of group 4 if the
-upload decisions stall. Unblocks: the availability filter, a safe delete button, hiding archived
+upload decisions stall. Unblocks: the availability filter, a dashboard delete button (the API
+already refuses an ordered product; archive is what that product gets instead), hiding archived
 products from wishlists.
 
 Human first: a wayfinder map or a single grilling session on semantics, not visuals: cart lines
@@ -282,7 +310,11 @@ Size: M to L, five or six agent tickets and one design pass.
 - Checkout enhancement: address book, multiple payment methods. The address book is user-owned
   addresses, an account page, checkout prefill and the missing "same as shipping" toggle; it does
   not need the gateway and can be pulled into group 3's account design pass if wanted sooner.
-  Checkout stays login-only; guest checkout is not planned.
+  Checkout stays login-only; guest checkout is not planned. Observed in
+  [#341](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/341) and not fixed: the address
+  schemas accept whitespace-only values, and every checkout input is `required` without
+  `noValidate`, so the form's own "is required" messages never show. The checkout design pass
+  decides whether the browser or the schema reports an empty field.
 
 Why late: the highest risk and the most human setup, while the manual flow works. For a webhook: a
 raw-body route mounted before the global JSON parser; the container is single-instance, sleeps after
@@ -353,7 +385,10 @@ shows a spinner and its image URL is unknown at loader time, which blocks a reac
 call. The signed-in dropdown renders the text "Loading...". The mobile menu is a Radix Dialog with
 overrides (a leftover placeholder description, an aria-describedby pointing at nothing); the
 mini-cart is a vaul Drawer; the thank-you is inline content; the shared Dialog overlay hardcodes
-the nav-bar offset that admin inherits.
+the nav-bar offset that admin inherits. The phone E2E specs under apps/e2e/tests/mobile/ find the
+menu ("Open main menu", dialog "Main menu") and the mini-cart ("Open cart", dialog "cart (n)") by
+role and accessible name, so keep those names or update the specs in the same slice. The admin
+order fulfilment form is keyed on status:paymentStatus and remounts on refetch (#366).
 
 Decide, per route (home, category, product, account orders, checkout): await in the loader with a
 skeleton, or stream with a route-level Suspense fallback; and whether the home loader awaits the
@@ -382,7 +417,9 @@ new catalogue fields and group 6's attributes question in its fog.
 - Hard user delete from the UI. Deactivation already is the soft delete ([glossary](../GLOSSARY.md),
   **User**), and the user-to-order cascade means a hard delete erases order history. The only driver
   is a legal erasure request, which wants anonymisation that keeps orders and scrubs personal data,
-  not a delete button. Group 0 removes the API path meanwhile.
+  not a delete button. [#345](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/345)
+  removed the API path; `DELETE /users/deleteMe`, which deactivates, is the only self-service path
+  left ([ADR 0010](adr/0010-nothing-an-order-references-is-hard-deleted.md)).
 - Dark mode and multi-language support. Not planned.
 
 ## Removed in the #162 triage
