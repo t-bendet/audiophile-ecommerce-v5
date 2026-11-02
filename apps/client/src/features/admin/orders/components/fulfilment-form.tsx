@@ -11,16 +11,19 @@ import { normalizeError } from "@/lib/errors/errors";
 import { applyServerErrors } from "@/lib/errors/form-errors";
 import type { AdminOrderDTO, OrderStatus, PaymentStatus } from "@repo/domain";
 import { useForm } from "@tanstack/react-form";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   useUpdateOrderStatus,
   useUpdatePaymentStatus,
 } from "../api/get-admin-orders";
 import {
+  latestStatuses,
   orderStatusOptions,
   paymentStatusOptions,
   refundMayBeDue,
   statusLabel,
+  type FulfilmentStatuses,
 } from "../transitions";
 import { OrderStatusBadge, PaymentStatusBadge } from "./status-badges";
 
@@ -29,28 +32,41 @@ const overline = "text-xs font-bold tracking-600 uppercase text-neutral-500";
 /**
  * The sticky panel on the order detail. Each select offers the current value
  * plus the moves the domain tables allow; the server enforces the same tables.
- * Mount it with a key that changes when the order's statuses do, so a saved
- * move becomes the new starting point.
+ * A saved move resets the form to the order the save answered, so it becomes
+ * the new starting point in place.
  */
 export function FulfilmentForm({ order }: { order: AdminOrderDTO }) {
   const updateStatus = useUpdateOrderStatus(order.id);
   const updatePayment = useUpdatePaymentStatus(order.id);
+  const [saved, setSaved] = useState<FulfilmentStatuses>();
+  const current = latestStatuses(order, saved);
 
   const form = useForm({
     defaultValues: {
-      status: order.status,
-      paymentStatus: order.paymentStatus,
+      status: current.status,
+      paymentStatus: current.paymentStatus,
     },
     onSubmit: async ({ value }) => {
       try {
-        if (value.status !== order.status) {
-          await updateStatus.mutateAsync({ status: value.status });
+        let latest = current;
+        if (value.status !== current.status) {
+          const response = await updateStatus.mutateAsync({
+            status: value.status,
+          });
+          latest = response.data;
+          setSaved(latest);
         }
-        if (value.paymentStatus !== order.paymentStatus) {
-          await updatePayment.mutateAsync({
+        if (value.paymentStatus !== current.paymentStatus) {
+          const response = await updatePayment.mutateAsync({
             paymentStatus: value.paymentStatus,
           });
+          latest = response.data;
+          setSaved(latest);
         }
+        form.reset({
+          status: latest.status,
+          paymentStatus: latest.paymentStatus,
+        });
         toast.success("Order updated");
       } catch (error) {
         const message = applyServerErrors(form, normalizeError(error));
@@ -61,8 +77,8 @@ export function FulfilmentForm({ order }: { order: AdminOrderDTO }) {
     },
   });
 
-  const statusOptions = orderStatusOptions(order.status);
-  const paymentOptions = paymentStatusOptions(order.paymentStatus);
+  const statusOptions = orderStatusOptions(current.status);
+  const paymentOptions = paymentStatusOptions(current.paymentStatus);
 
   return (
     <form
@@ -75,8 +91,8 @@ export function FulfilmentForm({ order }: { order: AdminOrderDTO }) {
     >
       <h2 className={overline}>Fulfilment</h2>
       <div className="flex gap-2">
-        <OrderStatusBadge status={order.status} />
-        <PaymentStatusBadge status={order.paymentStatus} />
+        <OrderStatusBadge status={current.status} />
+        <PaymentStatusBadge status={current.paymentStatus} />
       </div>
 
       <form.Field
@@ -117,7 +133,7 @@ export function FulfilmentForm({ order }: { order: AdminOrderDTO }) {
       <form.Subscribe
         selector={(state) => state.values.status}
         children={(status) =>
-          refundMayBeDue(order, status) && (
+          refundMayBeDue(current, status) && (
             <p
               role="note"
               className="rounded-md border-l-4 border-primary-500 bg-primary-400/30 p-3 text-sm"
@@ -166,8 +182,8 @@ export function FulfilmentForm({ order }: { order: AdminOrderDTO }) {
 
       <form.Subscribe
         selector={(state) => [
-          state.values.status !== order.status ||
-            state.values.paymentStatus !== order.paymentStatus,
+          state.values.status !== current.status ||
+            state.values.paymentStatus !== current.paymentStatus,
           state.isSubmitting,
         ]}
         children={([isChanged, isSubmitting]) => (
