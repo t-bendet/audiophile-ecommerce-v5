@@ -26,8 +26,10 @@ Read [the issue-tracker guide](../../../docs/agents/issue-tracker.md) for ticket
      and proceed.
      The **merge policy** is `merge` unless the arguments say `open` (or "stop at PR open"): `merge`
      lands each PR once its checks are green, as in _Land_; `open` leaves every PR open for a human.
-     Under `merge`, a ticket whose body says its PR closes the parent (a group's closing re-triage)
-     is the exception: it stops at PR open, so a human reviews the roadmap edit it carries.
+     Under `merge`, a ticket whose body says it stops at PR open (a group's closing re-triage, or
+     the first slice that introduces a new seam) is the exception: its PR is left open for review.
+     Tickets it blocks wait for that merge; when the review has not landed by the time the rest of
+     the queue is done, record them as **skipped** with the blocker and end the batch.
      Under `open` each ticket must be unblocked by every other ticket in the queue (check with
      **Count open blockers** in the issue-tracker guide), because a blocked ticket would branch from
      a `main` that lacks its blocker's change. Abort the batch if one is.
