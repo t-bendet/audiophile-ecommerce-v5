@@ -4,7 +4,7 @@ import {
   buildMeta,
   parseOrderBy,
   parsePagination,
-  parseSelect,
+  rejectUnknownFields,
 } from "../src/utils/query.js";
 
 const ALLOWED = ["id", "name", "createdAt", "v", "thumbnail"] as const;
@@ -103,25 +103,24 @@ const detailsOf = (run: () => unknown) => {
   throw new Error("expected the call to throw");
 };
 
-describe("parseSelect", () => {
-  it("returns undefined when no fields are requested", () => {
-    expect(parseSelect(undefined, ALLOWED)).toBeUndefined();
-    expect(parseSelect(42, ALLOWED)).toBeUndefined();
+describe("rejectUnknownFields", () => {
+  it("ignores a missing or non-string value", () => {
+    expect(() => rejectUnknownFields(undefined, ALLOWED)).not.toThrow();
+    expect(() => rejectUnknownFields(42, ALLOWED)).not.toThrow();
   });
 
   it("rejects an empty value, as the request schema does", () => {
-    expect(() => parseSelect("", ALLOWED)).toThrow(AppError);
+    expect(() => rejectUnknownFields("", ALLOWED)).toThrow(AppError);
   });
 
-  it("keeps every requested field when all are allowed", () => {
-    expect(parseSelect("id,name", ALLOWED)).toEqual({
-      id: true,
-      name: true,
-    });
+  it("accepts a list of whitelisted fields without building a select", () => {
+    expect(rejectUnknownFields("id,name", ALLOWED)).toBeUndefined();
   });
 
   it("rejects the whole list when one field is outside the whitelist", () => {
-    const details = detailsOf(() => parseSelect("id,name,secret", ALLOWED));
+    const details = detailsOf(() =>
+      rejectUnknownFields("id,name,secret", ALLOWED),
+    );
 
     expect(details).toEqual([
       {
@@ -132,16 +131,17 @@ describe("parseSelect", () => {
     ]);
   });
 
-  it("names every field outside the whitelist", () => {
-    const details = detailsOf(() => parseSelect("secret,password", ALLOWED));
+  it("names every unknown field", () => {
+    const details = detailsOf(() =>
+      rejectUnknownFields("secret,password", ALLOWED),
+    );
 
-    expect(details.map((detail) => detail.message)).toEqual([
-      expect.stringContaining('"secret"'),
-      expect.stringContaining('"password"'),
+    expect(details.map((detail) => detail.path)).toEqual([
+      ["query", "fields"],
+      ["query", "fields"],
     ]);
   });
 });
-
 describe("parseOrderBy", () => {
   it("defaults to descending id", () => {
     expect(parseOrderBy(undefined, ALLOWED)).toEqual([{ id: "desc" }]);

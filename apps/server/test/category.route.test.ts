@@ -1,4 +1,4 @@
-import { ErrorCode } from "@repo/domain";
+import { CategoryGetAllResponseSchema, ErrorCode } from "@repo/domain";
 import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 import app from "../src/app.js";
@@ -30,6 +30,19 @@ describe("GET /api/v1/categories", () => {
       id: category.id,
       name: "Earphones",
     });
+  });
+
+  it("answers a field selection with full rows, thumbnail resolved", async () => {
+    await createCategory("Earphones");
+
+    const res = await request(app).get("/api/v1/categories?fields=id,name");
+
+    expect(res.status).toBe(200);
+    const parsed = CategoryGetAllResponseSchema.safeParse(res.body);
+    expect(parsed.error?.issues).toBeUndefined();
+    expect(res.body.data[0].thumbnail).toEqual(
+      resolvedImage(singleImage("earphones")),
+    );
   });
 });
 

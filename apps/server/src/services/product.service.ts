@@ -19,7 +19,11 @@ import {
   SlugValidator,
 } from "@repo/domain";
 import { toResponsiveImageDTO, toSingleImageDTO } from "../utils/media.js";
-import { parseOrderBy, parseSelect, type Pagination } from "../utils/query.js";
+import {
+  parseOrderBy,
+  rejectUnknownFields,
+  type Pagination,
+} from "../utils/query.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const PRODUCT_SLUG = SlugValidator("Product");
@@ -62,8 +66,6 @@ export class ProductService extends AbstractCrudService<
   ProductQueryParams
 > {
   protected toDTO(entity: Product): ProductDTO {
-    // A `fields` selection can leave the row without images to resolve.
-    if (!entity.images) return entity as unknown as ProductDTO;
     const images = entity.images;
     return {
       ...entity,
@@ -101,7 +103,7 @@ export class ProductService extends AbstractCrudService<
     const { skip, take, sort, fields, name } = params;
 
     const where = this.buildProductWhere(name);
-    const select = parseSelect(fields, PRODUCT_QUERY_FIELDS);
+    rejectUnknownFields(fields, PRODUCT_QUERY_FIELDS);
     const orderBy = parseOrderBy(sort, PRODUCT_QUERY_FIELDS);
 
     const [data, total] = await prisma.$transaction([
@@ -110,7 +112,6 @@ export class ProductService extends AbstractCrudService<
         skip,
         take,
         orderBy,
-        select,
       }),
       prisma.product.count({ where }),
     ]);

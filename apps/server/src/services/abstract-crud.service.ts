@@ -16,7 +16,7 @@ import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
  * @description
  * This class provides a standardized interface for CRUD operations.
  * Subclasses implement 6 core persistence methods only - all query building
- * (where, select, orderBy) happens inside persistFindMany, using the shared
+ * (where, orderBy) happens inside persistFindMany, using the shared
  * parsers in `utils/query.ts`.
  *
  * Benefits:
@@ -43,11 +43,11 @@ import { buildMeta, parsePagination, type Pagination } from "../utils/query.js";
  *     const { skip, take, name, sort, fields } = params;
  *
  *     const where = this.buildProductWhere(name);
- *     const select = parseSelect(fields, PRODUCT_QUERY_FIELDS);
+ *     rejectUnknownFields(fields, PRODUCT_QUERY_FIELDS);
  *     const orderBy = parseOrderBy(sort, PRODUCT_QUERY_FIELDS);
  *
  *     const [data, total] = await prisma.$transaction([
- *       prisma.product.findMany({ where, select, orderBy, skip, take }),
+ *       prisma.product.findMany({ where, orderBy, skip, take }),
  *       prisma.product.count({ where }),
  *     ]);
  *

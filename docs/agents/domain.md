@@ -6,16 +6,17 @@ Read this guide when changing shared schemas or types, naming domain concepts, o
 
 Read the glossary entries relevant to your task and use their terms in code, tests, issues, and proposals. Before changing behavior governed by a decision, read its ADR:
 
-| Change                                      | Decision                                                                                                      |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Ownership checks and their HTTP response    | [0001: ownership failures return 403](../adr/0001-ownership-failures-return-403.md)                           |
-| List sorting and field selection validation | [0002: reject unknown sort and fields values](../adr/0002-unknown-sort-and-fields-values-are-rejected.md)     |
-| List pagination defaults                    | [0003: one default page size](../adr/0003-one-default-page-size-for-every-list.md)                            |
-| MongoDB topology or version                 | [0004: local replica set](../adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md)                        |
-| Hosting boundaries                          | [0005: Cloudflare deployment](../adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md)                |
-| Client feedback for server validation       | [0006: errors belong to the form](../adr/0006-server-validation-errors-belong-to-the-form.md)                 |
-| Catalogue sync or runtime catalogue edits   | [0007: the database owns the catalogue](../adr/0007-the-database-owns-the-catalogue-after-first-publish.md)   |
-| Client route guards and a role mismatch     | [0008: a route the role cannot reach is not found](../adr/0008-a-route-the-role-cannot-reach-is-not-found.md) |
+| Change                                      | Decision                                                                                                            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Ownership checks and their HTTP response    | [0001: ownership failures return 403](../adr/0001-ownership-failures-return-403.md)                                 |
+| List sorting and field selection validation | [0002: reject unknown sort and fields values](../adr/0002-unknown-sort-and-fields-values-are-rejected.md)           |
+| List field selection and the DTO it returns | [0009: field selection never drops a required member](../adr/0009-field-selection-never-drops-a-required-member.md) |
+| List pagination defaults                    | [0003: one default page size](../adr/0003-one-default-page-size-for-every-list.md)                                  |
+| MongoDB topology or version                 | [0004: local replica set](../adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md)                              |
+| Hosting boundaries                          | [0005: Cloudflare deployment](../adr/0005-audiophile-runs-on-cloudflare-under-t-bendet-com.md)                      |
+| Client feedback for server validation       | [0006: errors belong to the form](../adr/0006-server-validation-errors-belong-to-the-form.md)                       |
+| Catalogue sync or runtime catalogue edits   | [0007: the database owns the catalogue](../adr/0007-the-database-owns-the-catalogue-after-first-publish.md)         |
+| Client route guards and a role mismatch     | [0008: a route the role cannot reach is not found](../adr/0008-a-route-the-role-cannot-reach-is-not-found.md)       |
 
 Surface a conflict with an existing decision explicitly. For a new settled term or decision, read and apply the [domain-modeling skill](../../.agents/skills/domain-modeling/SKILL.md); it owns glossary and ADR formats. Proposals remain proposals until a decision is made.
 
@@ -34,5 +35,7 @@ Surface a conflict with an existing decision explicitly. For a new settled term 
 | `*Schema`                      | Zod schema paired with its inferred type: `ProductDTOSchema` / `ProductDTO`    |
 | `*Response`, `*ResponseSchema` | Response envelopes the client validates against: `ProductGetAllResponseSchema` |
 | `*Params`, `*ParamsSchema`     | Route params: `RemoveFromCartParamsSchema`                                     |
+
+Every `*DTO` member is required and the schema is `.strict()`, so a list answers `fields=` with the full DTO: the value is validated against the entity's `*_QUERY_FIELDS` whitelist and treated as a lower bound ([ADR 0009](../adr/0009-field-selection-never-drops-a-required-member.md)). A member that may be left out of a response needs its own decision before it can be optional here.
 
 Use the package's existing schema/type pairs as examples rather than introducing parallel definitions in client and server. Run the domain tests and type-check affected consumers when a shared contract changes; see [verification](verification.md).

@@ -1,4 +1,4 @@
-import { ErrorCode } from "@repo/domain";
+import { ErrorCode, UserGetAllResponseSchema } from "@repo/domain";
 import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 import app from "../src/app.js";
@@ -77,6 +77,20 @@ describe("GET /api/v1/users", () => {
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(2);
     expect(res.body.meta).toMatchObject({ page: 1, total: 2 });
+    expect(res.body.data).toContainEqual(
+      expect.objectContaining({ email: "gone@example.com", active: false }),
+    );
+  });
+
+  it("answers a field selection with full rows the users table can render", async () => {
+    const admin = await createAdmin();
+    await createUser({ email: "gone@example.com", active: false });
+
+    const res = await listUsers(admin.id, "?fields=id,name");
+
+    expect(res.status).toBe(200);
+    const parsed = UserGetAllResponseSchema.safeParse(res.body);
+    expect(parsed.error?.issues).toBeUndefined();
     expect(res.body.data).toContainEqual(
       expect.objectContaining({ email: "gone@example.com", active: false }),
     );
