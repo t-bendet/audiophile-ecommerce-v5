@@ -28,6 +28,7 @@
     "JWT_EXPIRES_IN": "7d",
     "JWT_COOKIE_EXPIRES_IN": "7",
     "MEDIA_BASE_URL": "https://audiophile-media.t-bendet.com",
+    "CLIENT_URL": "https://audiophile.t-bendet.com",
     "EMAIL_FROM": "no-reply@audiophile.t-bendet.com",
   },
 }

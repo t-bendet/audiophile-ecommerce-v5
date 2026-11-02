@@ -4,3 +4,4 @@ LOG_LEVEL=info
 DATABASE_URL=mongodb://host.docker.internal:27017/audiophile?replicaSet=rs0&directConnection=true
 JWT_SECRET=AtLeast32CharactersLongSecretKeyForJWTs
 EMAIL_FROM=no-reply@audiophile.t-bendet.com
+CLIENT_URL=http://localhost:8787

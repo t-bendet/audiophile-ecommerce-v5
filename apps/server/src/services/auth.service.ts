@@ -5,12 +5,17 @@ import {
   AuthLoginRequest,
   AuthSignUpRequest,
   ErrorCode,
+  PASSWORD_RESET_EXPIRY_MS,
   UserDTO,
   UserPublicInfo,
 } from "@repo/domain";
 import jwt from "jsonwebtoken";
 import { env } from "../utils/env.js";
 import { isJwtError, toJwtAppError } from "../utils/jwt-errors.js";
+import {
+  generatePasswordResetToken,
+  type PasswordResetIssue,
+} from "../utils/password-reset-token.js";
 import { isUniqueConstraintError } from "../utils/prisma-errors.js";
 
 type AuthSessionDTO = {
@@ -211,6 +216,31 @@ export class AuthService {
     return {
       user: userDTO,
       token,
+    };
+  }
+
+  /**
+   * Issue a password reset token for the active user with this email, replacing
+   * any earlier one, so only the latest link works. Answers null for an unknown
+   * or deactivated email; the caller responds the same either way.
+   */
+  async issuePasswordResetToken(
+    email: string,
+  ): Promise<PasswordResetIssue | null> {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.active) return null;
+
+    const { token, tokenHash } = generatePasswordResetToken();
+    const expiresAt = new Date(Date.now() + PASSWORD_RESET_EXPIRY_MS);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetToken: tokenHash, passwordResetExpires: expiresAt },
+    });
+
+    return {
+      user: { id: user.id, email: user.email, name: user.name },
+      token,
+      expiresAt,
     };
   }
 

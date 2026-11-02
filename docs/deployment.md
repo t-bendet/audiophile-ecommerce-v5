@@ -31,8 +31,8 @@ prefix, so the sitemap is built by the server rather than served as an asset.
 
 ## Production environment
 
-No server `.env` file is deployed. The Worker passes its five `vars` (`NODE_ENV`,
-`JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN`, `MEDIA_BASE_URL`, `EMAIL_FROM`) and three secrets
+No server `.env` file is deployed. The Worker passes its six `vars` (`NODE_ENV`,
+`JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN`, `MEDIA_BASE_URL`, `CLIENT_URL`, `EMAIL_FROM`) and three secrets
 (`DATABASE_URL`, `JWT_SECRET`, `EMAIL_API_KEY`) into the container. Read their current plain values
 in `wrangler.jsonc`. `PORT` comes from the Dockerfile and must match the Worker's `defaultPort`.
 
@@ -52,6 +52,8 @@ and region are recorded in the [email provider note](research/email-provider.md)
 `mongodb+srv://.../<database>?retryWrites=true&w=majority&appName=<name>` shape validated by
 [`src/utils/env.ts`](../apps/server/src/utils/env.ts); copy the supplied Atlas string with the
 intended database name. `MEDIA_BASE_URL` must be an absolute URL without a trailing slash.
+`CLIENT_URL` is the storefront's origin, the same shape, which the links in emails (the password
+reset link) point at; the server never derives it from a request's `Host`.
 
 The Atlas database user needs read/write access. The current deployment has no fixed container
 egress IP, so its Atlas network configuration permits `0.0.0.0/0`; database credentials control
@@ -136,7 +138,8 @@ Use a Cloudflare account with Containers enabled, an Atlas database/user, an R2 
 a public custom domain, and a Resend domain verified for the sender address. Configure the Worker
 secrets and plain values above, set `MEDIA_BASE_URL` to the bucket hostname and `EMAIL_FROM` to
 that sender, publish media using the [media guide](../packages/media/README.md), and deploy.
-Attach the application's custom domain to the Worker; the API uses that same hostname. The
+Attach the application's custom domain to the Worker and set `CLIENT_URL` to it; the API uses that
+same hostname. The
 Worker's custom domain and the bucket's custom domain are configured in the Cloudflare
 dashboard and are not recorded in `apps/server/wrangler.jsonc`, so a fresh clone cannot read them
 from the repo.

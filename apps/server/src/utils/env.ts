@@ -65,6 +65,11 @@ const createEnv = () => {
     MEDIA_BASE_URL: z
       .url("MEDIA_BASE_URL must be an absolute URL")
       .refine((url) => !url.endsWith("/"), "MEDIA_BASE_URL must not end in /"),
+    // The storefront origin emailed links point at. Configured rather than read
+    // from the request, whose Host a caller controls.
+    CLIENT_URL: z
+      .url("CLIENT_URL must be an absolute URL")
+      .refine((url) => !url.endsWith("/"), "CLIENT_URL must not end in /"),
     LOG_LEVEL: LogLevelSchema.optional(),
     // The bare sender address; the display name lives in the email transport.
     EMAIL_FROM: z.email("EMAIL_FROM must be a bare email address"),

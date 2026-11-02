@@ -96,6 +96,15 @@ recorded in
 [ADR 0006](../../docs/adr/0006-server-validation-errors-belong-to-the-form.md). There is no
 global rule that all 4xx responses appear inline or all 5xx responses produce a toast.
 
+The [forgot-password form](src/features/auth/components/forgot-password-form.tsx) at
+`/auth/forgot-password` follows the same pattern with `AuthForgotPasswordRequestSchema`. The server
+answers the same for every email, so a success replaces the form in place with
+[`ResetLinkSent`](src/features/auth/components/reset-link-sent.tsx), whose copy names the email and
+renders `PASSWORD_RESET_EXPIRY_LABEL` from `@repo/domain`; "try another email" brings the form back
+with the address still in it. Pending is the disabled submit with a `Spinner` and "Sending". A 429
+from the route's limiter has no details, so its message is toasted under the title "Too many
+requests". The login form's "Forgot your password?" link in the Password label row leads there.
+
 Keep feedback at the feature that owns the action. Query retry classification does not
 display an error, and adding a transport-level toast would duplicate feedback from
 forms or boundaries.
@@ -122,7 +131,7 @@ The root route in [`router.tsx`](src/app/router.tsx) registers two middlewares, 
    failure keeps the user already in the cache, and the components that render the user surface
    it. The
    [auth layout](src/components/layouts/auth-layout.tsx) loader reads the key to send a signed-in
-   user away from the login and signup pages.
+   user away from the login, signup and forgot-password pages.
 
 A route group opts in by listing guards in its route's `middleware` array, which run after the
 root's:

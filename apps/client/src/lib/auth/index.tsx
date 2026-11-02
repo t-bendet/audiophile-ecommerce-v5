@@ -9,6 +9,9 @@ import {
 import {
   AuthCheckStatusResponse,
   AuthCheckStatusResponseSchema,
+  AuthForgotPasswordRequest,
+  AuthForgotPasswordResponse,
+  AuthForgotPasswordResponseSchema,
   AuthLoginRequest,
   AuthLogoutResponse,
   AuthLogoutResponseSchema,
@@ -29,6 +32,7 @@ export const AUTH_STATUS_QUERY_KEY = "auth-status";
 export const AUTH_LOGOUT_MUTATION_KEY = "auth-logout";
 export const AUTH_LOGIN_MUTATION_KEY = "auth-login";
 export const AUTH_SIGNUP_MUTATION_KEY = "auth-signup";
+export const AUTH_FORGOT_PASSWORD_MUTATION_KEY = "auth-forgot-password";
 
 // api call definitions for auth (types, schemas, requests):
 // these are not part of features as this is a module shared across features
@@ -203,3 +207,28 @@ export const useSignup = (queryClient: QueryClient) => {
     },
   });
 };
+
+// ** Forgot Password
+
+type TPostForgotPassword = TMutationHandler<
+  AuthForgotPasswordResponse,
+  AuthForgotPasswordRequest
+>;
+
+const postForgotPassword: TPostForgotPassword = async ({ email }) => {
+  const api = getApi();
+  const response = await api.post("/auth/forgot-password", { email });
+  const result = AuthForgotPasswordResponseSchema.safeParse(response.data);
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
+  }
+};
+
+/** The answer is the same whether or not the email has an account, so there is no cache to touch. */
+export const useForgotPassword = () =>
+  useMutation({
+    mutationFn: postForgotPassword,
+    mutationKey: [AUTH_FORGOT_PASSWORD_MUTATION_KEY],
+  });

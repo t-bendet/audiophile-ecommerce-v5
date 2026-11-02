@@ -91,6 +91,7 @@ describe("route manifest", () => {
         auth
           post /signup [3 handlers]
           post /login [3 handlers]
+          post /forgot-password [3 handlers]
           get /status [1 handlers]
           use <anonymous>
           post /logout [1 handlers]

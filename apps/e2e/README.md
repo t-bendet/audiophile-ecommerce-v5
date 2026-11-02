@@ -221,7 +221,10 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
 Home showcase, the Headphones, Earphones and Speakers listings (one parametrised spec, with the "new
 product" overline on the cards the catalogue flags), signup through the form (signed in with the
 name in the account menu, then the same email refused under the email field), logout from the
-account menu (login offered again, checkout redirecting to login), a guest add-to-cart through the
+account menu (login offered again, checkout redirecting to login), forgot password (the login page's
+link to the forgot page, the seeded shopper's request answered with the "Check your inbox" state and
+a reset link in the outbox; an unknown email answered with the same state and no email, and "try
+another email" bringing the form back with the address in it), a guest add-to-cart through the
 mini-cart, the checkout redirect to login and back, a guest cart surviving sign-in, a checkout that
 creates an order (the confirmation page saying the order is received and that cash is paid on
 delivery, one "order received" email to the shopper in the server's outbox naming that order, then

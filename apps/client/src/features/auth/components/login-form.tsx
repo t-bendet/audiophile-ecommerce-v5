@@ -123,14 +123,14 @@ export function LoginForm({ className }: React.ComponentProps<"div">) {
                     field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
-                      <div className="flex flex-wrap justify-between">
+                      <div className="flex flex-wrap items-center justify-between">
                         <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                        <a
-                          href="#"
-                          className="text-sm underline-offset-4 hover:underline"
+                        <Link
+                          to={paths.auth.forgotPassword.path}
+                          className="text-sm font-bold text-primary-500"
                         >
                           Forgot your password?
-                        </a>
+                        </Link>
                       </div>
                       <div className="relative">
                         <Input

@@ -1,17 +1,11 @@
 import { formatPrice, paymentInstructions, type OrderDTO } from "@repo/domain";
 import type { EmailMessage } from "../utils/email.js";
+import { escapeHtml } from "./escape-html.js";
 
 /**
  * The "order received" email a checkout sends. Payment status is set by an
  * admin later, so the copy says how payment is taken, never that it was.
  */
-
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 
 const totalsOf = (order: OrderDTO): [label: string, amount: number][] => [
   ["Subtotal", order.subtotal],

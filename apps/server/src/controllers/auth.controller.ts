@@ -1,5 +1,6 @@
 import {
   AppError,
+  AuthForgotPasswordRequestSchema,
   AuthLoginRequestSchema,
   AuthSignUpRequestSchema,
   AuthUpdatePasswordRequestSchema,
@@ -10,6 +11,7 @@ import {
 } from "@repo/domain";
 import { CookieOptions, Request, RequestHandler, Response } from "express";
 import { authService } from "../services/auth.service.js";
+import { emailService } from "../services/email.service.js";
 import catchAsync from "../utils/catchAsync.js";
 import { defineHandler, ValidatedHandler } from "../utils/define-handler.js";
 import { env } from "../utils/env.js";
@@ -80,6 +82,24 @@ export const login: ValidatedHandler = defineHandler(
     const { email, password } = req.verified.body;
     const { user, token } = await authService.login({ email, password });
     createAndSendAuthCookie(user, token, 200, req, res);
+  },
+);
+
+/**
+ * Request a password reset link
+ * Answers the same for a known, unknown or deactivated email, so the response
+ * never says whether an account exists; only an active user is sent the link.
+ */
+export const forgotPassword: ValidatedHandler = defineHandler(
+  AuthForgotPasswordRequestSchema,
+  async (req, res) => {
+    const issue = await authService.issuePasswordResetToken(
+      req.verified.body.email,
+    );
+    // Awaited so the outbox holds the message by the time the response lands;
+    // a failed send is logged inside and the answer stays the same.
+    if (issue) await emailService.sendPasswordReset(issue, req.log);
+    res.status(200).json(createEmptyResponse());
   },
 );
 

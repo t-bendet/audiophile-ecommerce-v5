@@ -181,6 +181,11 @@ const cases: Case[] = [
     path: ["body", "email"],
   },
   {
+    route: "POST /auth/forgot-password",
+    send: () => request(app).post("/api/v1/auth/forgot-password").send({}),
+    path: ["body", "email"],
+  },
+  {
     route: "PATCH /auth/updateMyPassword",
     send: () => request(app).patch("/api/v1/auth/updateMyPassword").send({}),
     path: ["body", "currentPassword"],

@@ -1,7 +1,11 @@
 import express from "express";
 import * as authController from "../controllers/auth.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
-import { loginLimiter, signupLimiter } from "../utils/rateLimiters.js";
+import {
+  loginLimiter,
+  passwordResetLimiter,
+  signupLimiter,
+} from "../utils/rateLimiters.js";
 
 const authRouter: express.Router = express.Router();
 
@@ -11,10 +15,13 @@ authRouter.post("/signup", signupLimiter, ...authController.signup);
 
 authRouter.post("/login", loginLimiter, ...authController.login);
 
-authRouter.get("/status", authController.getUserAuthStatus);
+authRouter.post(
+  "/forgot-password",
+  passwordResetLimiter,
+  ...authController.forgotPassword,
+);
 
-// authRouter.post('/forgotPassword', forgotPassword);
-// authRouter.patch('/resetPassword/:token', resetPassword);
+authRouter.get("/status", authController.getUserAuthStatus);
 
 // * USER ROUTES (protected)
 
