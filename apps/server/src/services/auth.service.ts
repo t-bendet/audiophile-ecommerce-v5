@@ -14,9 +14,13 @@ import { env } from "../utils/env.js";
 import { isJwtError, toJwtAppError } from "../utils/jwt-errors.js";
 import {
   generatePasswordResetToken,
+  hashPasswordResetToken,
   type PasswordResetIssue,
 } from "../utils/password-reset-token.js";
-import { isUniqueConstraintError } from "../utils/prisma-errors.js";
+import {
+  isRecordNotFoundError,
+  isUniqueConstraintError,
+} from "../utils/prisma-errors.js";
 
 type AuthSessionDTO = {
   user: UserDTO;
@@ -34,6 +38,23 @@ const emailTakenError = () =>
     { code: "duplicate", message: EMAIL_TAKEN, path: ["body", "email"] },
   ]);
 
+const RESET_TOKEN_INVALID = "This reset link is invalid or has expired.";
+
+// One answer for an unknown, expired or used token: the shopper's next step is the same.
+const resetTokenInvalidError = () =>
+  new AppError(
+    RESET_TOKEN_INVALID,
+    ErrorCode.PASSWORD_RESET_TOKEN_INVALID,
+    undefined,
+    [
+      {
+        code: "invalid",
+        message: RESET_TOKEN_INVALID,
+        path: ["body", "token"],
+      },
+    ],
+  );
+
 const accountDeactivatedError = () =>
   new AppError(ACCOUNT_DEACTIVATED_MESSAGE, ErrorCode.ACCOUNT_DEACTIVATED);
 
@@ -45,6 +66,7 @@ const accountDeactivatedError = () =>
  * - Password validation
  * - Token generation
  * - Password updates
+ * - Password reset
  * - Token verification
  *
  * Does NOT handle:
@@ -241,6 +263,50 @@ export class AuthService {
       user: { id: user.id, email: user.email, name: user.name },
       token,
       expiresAt,
+    };
+  }
+
+  /**
+   * Set a new password from an emailed reset token and sign the user in. The
+   * token is cleared in the same write, so it works once; the password change
+   * moves `passwordChangedAt`, which ends every session signed in before it.
+   */
+  async resetPassword(
+    token: string,
+    password: string,
+  ): Promise<AuthSessionDTO> {
+    const tokenHash = hashPasswordResetToken(token);
+    const user = await prisma.user.findFirst({
+      where: {
+        passwordResetToken: tokenHash,
+        passwordResetExpires: { gt: new Date() },
+      },
+    });
+    if (!user) throw resetTokenInvalidError();
+    if (!user.active) throw accountDeactivatedError();
+
+    // `update`, not `updateMany`: only the update hook hashes the password. The
+    // token in the filter makes this write the single-use guard: a concurrent
+    // reset that cleared it first leaves no record to update.
+    const updatedUser = await prisma.user
+      .update({
+        where: { id: user.id, passwordResetToken: tokenHash },
+        data: {
+          password,
+          passwordConfirm: password,
+          passwordResetToken: null,
+          passwordResetExpires: null,
+        },
+      })
+      .catch((err: unknown) => {
+        if (isRecordNotFoundError(err)) throw resetTokenInvalidError();
+        throw err;
+      });
+
+    // Signed after the write, so `passwordChangedAt` does not end this session.
+    return {
+      user: this.toDTO(updatedUser),
+      token: this.signToken(updatedUser.id),
     };
   }
 

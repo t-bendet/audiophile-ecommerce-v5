@@ -121,3 +121,69 @@ test("an unknown email sees the same sent state, is sent nothing, and can try an
   ).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Email" })).toHaveValue(email);
 });
+
+const signInThroughForm = async (
+  page: Page,
+  { email, password }: { email: string; password: string },
+) => {
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Login" }).click();
+};
+
+const setNewPassword = async (page: Page, password: string) => {
+  await page.getByLabel("New password", { exact: true }).fill(password);
+  await page.getByLabel("Confirm new password").fill(password);
+  await page.getByRole("button", { name: "Save new password" }).click();
+};
+
+test("a shopper resets the password from the emailed link, the link works once, and only the new password signs in", async ({
+  page,
+  context,
+  outbox,
+  signUpFreshShopper,
+}) => {
+  const shopper = await signUpFreshShopper();
+  const newPassword = "new-pass-2222";
+  await context.clearCookies();
+
+  await page.goto("/auth/forgot-password");
+  await requestResetLink(page, shopper.email);
+  await expect(
+    page.getByRole("heading", { name: "Check your inbox" }),
+  ).toBeVisible();
+  const [email] = await outbox(shopper.email);
+  const resetLink = RESET_LINK.exec(email!.text)![0];
+
+  await page.goto(resetLink);
+  await expect(
+    page.getByRole("heading", { name: "Set a new password" }),
+  ).toBeVisible();
+  await setNewPassword(page, newPassword);
+
+  await expect(page).toHaveURL("/account/profile");
+  await expect(page.getByText("Password updated")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open user menu" }),
+  ).toContainText(shopper.name);
+
+  await context.clearCookies();
+  await page.goto(resetLink);
+  await setNewPassword(page, "another-pass-3333");
+  await expect(
+    page.getByRole("heading", { name: "This link has expired" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Request a new link" }).click();
+  await expect(page).toHaveURL("/auth/forgot-password");
+
+  await page.goto("/auth/login");
+  await signInThroughForm(page, shopper);
+  await expect(page.getByText("Incorrect email or password")).toBeVisible();
+  await expect(page).toHaveURL("/auth/login");
+
+  await signInThroughForm(page, {
+    email: shopper.email,
+    password: newPassword,
+  });
+  await expect(page).toHaveURL("/account/profile");
+});

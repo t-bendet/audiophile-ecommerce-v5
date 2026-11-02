@@ -21,6 +21,11 @@ authRouter.post(
   ...authController.forgotPassword,
 );
 
+// No per-route limiter: `passwordResetLimiter` is one store, so sharing it with
+// forgot-password would let three requests lock out the reset submit. The token
+// carries 256 bits and the global API limiter still applies.
+authRouter.post("/reset-password", ...authController.resetPassword);
+
 authRouter.get("/status", authController.getUserAuthStatus);
 
 // * USER ROUTES (protected)

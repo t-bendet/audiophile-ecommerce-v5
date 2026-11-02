@@ -105,6 +105,18 @@ with the address still in it. Pending is the disabled submit with a `Spinner` an
 from the route's limiter has no details, so its message is toasted under the title "Too many
 requests". The login form's "Forgot your password?" link in the Password label row leads there.
 
+The [reset-password form](src/features/auth/components/reset-password-form.tsx) at
+`/auth/reset-password` is the emailed link's page. It validates with
+`AuthResetPasswordRequestSchema`, carrying the URL's `token` as a form value with no input, so a
+missing token is sent and refused like a bad one; the page does not check the token before the save.
+When the save answers `PASSWORD_RESET_TOKEN_INVALID`, `onError` replaces the form with
+[`ResetLinkExpired`](src/features/auth/components/reset-link-expired.tsx), one state for an invalid,
+expired or used link, without calling `applyServerErrors`; any other failure goes through it with
+the toast title "Reset failed". Pending is the disabled submit with a `Spinner` and "Saving".
+`useResetPassword` settles the cache like `useLogin`, then the form navigates to `/account/profile`
+and toasts "Password updated". A signed-in shopper who opens a link is sent to the profile by the
+auth layout loader, like the other auth pages.
+
 Keep feedback at the feature that owns the action. Query retry classification does not
 display an error, and adding a transport-level toast would duplicate feedback from
 forms or boundaries.
@@ -131,7 +143,7 @@ The root route in [`router.tsx`](src/app/router.tsx) registers two middlewares, 
    failure keeps the user already in the cache, and the components that render the user surface
    it. The
    [auth layout](src/components/layouts/auth-layout.tsx) loader reads the key to send a signed-in
-   user away from the login, signup and forgot-password pages.
+   user away from the login, signup, forgot-password and reset-password pages.
 
 A route group opts in by listing guards in its route's `middleware` array, which run after the
 root's:

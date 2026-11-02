@@ -13,9 +13,15 @@ import {
   createRateLimiter,
   PASSWORD_RESET_LIMIT,
 } from "../src/utils/rateLimiters.js";
-import { createUser, resetDatabase } from "./helpers/database.js";
+import {
+  createUser,
+  resetDatabase,
+  staleAuthCookie,
+  TEST_PASSWORD,
+} from "./helpers/database.js";
 
 const FORGOT_PASSWORD = "/api/v1/auth/forgot-password";
+const RESET_PASSWORD = "/api/v1/auth/reset-password";
 const RESET_LINK =
   /http:\/\/localhost:5173\/auth\/reset-password\?token=([a-f0-9]{64})/;
 
@@ -155,6 +161,210 @@ describe("POST /api/v1/auth/forgot-password", () => {
       const res = await forgotPassword({ email: "nobody@example.com" });
       expect(res.status).toBe(200);
     }
+  });
+});
+
+const NEW_PASSWORD = "new-password-42";
+
+const RESET_TOKEN_INVALID = {
+  code: ErrorCode.PASSWORD_RESET_TOKEN_INVALID,
+  statusCode: 400,
+  message: "This reset link is invalid or has expired.",
+  details: [
+    {
+      code: "invalid",
+      message: "This reset link is invalid or has expired.",
+      path: ["body", "token"],
+    },
+  ],
+};
+
+const resetPassword = (body: object) =>
+  request(app).post(RESET_PASSWORD).send(body);
+
+const resetBody = (token: string, password = NEW_PASSWORD) => ({
+  token,
+  password,
+  passwordConfirm: password,
+});
+
+const login = (email: string, password: string) =>
+  request(app).post("/api/v1/auth/login").send({ email, password });
+
+/** Asks the forgot route for a link and reads the raw token out of the newest email. */
+const issuedToken = async (email: string): Promise<string> => {
+  await forgotPassword({ email });
+  const emails = outbox.addressedTo(email);
+  return tokenIn(emails.at(-1)!.text);
+};
+
+const jwtCookieIn = (res: request.Response): string | undefined => {
+  const cookies = res.headers["set-cookie"] as unknown as string[] | undefined;
+  return cookies?.find((cookie) => cookie.startsWith("jwt="));
+};
+
+describe("POST /api/v1/auth/reset-password", () => {
+  it("sets the new password, clears the token and signs the user in", async () => {
+    const user = await createUser({ name: "Ada", email: "ada@example.com" });
+    const token = await issuedToken("ada@example.com");
+
+    const res = await resetPassword(resetBody(token));
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      success: true,
+      data: { id: user.id, email: "ada@example.com", name: "Ada" },
+    });
+    expect(res.body.data).not.toHaveProperty("password");
+    const cookie = jwtCookieIn(res);
+    expect(cookie).toBeDefined();
+    expect(cookie).toMatch(/HttpOnly/);
+    expect(await storedReset(user.id)).toEqual({
+      passwordResetToken: null,
+      passwordResetExpires: null,
+    });
+
+    expect((await login("ada@example.com", NEW_PASSWORD)).status).toBe(200);
+    const oldPassword = await login("ada@example.com", TEST_PASSWORD);
+    expect(oldPassword.status).toBe(401);
+    expect(oldPassword.body.error.code).toBe(ErrorCode.INVALID_CREDENTIALS);
+  });
+
+  it("refuses the same token a second time", async () => {
+    await createUser({ email: "ada@example.com" });
+    const token = await issuedToken("ada@example.com");
+    await resetPassword(resetBody(token));
+
+    const res = await resetPassword(resetBody(token, "another-password"));
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject(RESET_TOKEN_INVALID);
+    expect(res.body.error.details).toEqual(RESET_TOKEN_INVALID.details);
+    expect(jwtCookieIn(res)).toBeUndefined();
+    expect((await login("ada@example.com", NEW_PASSWORD)).status).toBe(200);
+  });
+
+  it("refuses an expired token and keeps the old password", async () => {
+    const user = await createUser({ email: "ada@example.com" });
+    const token = await issuedToken("ada@example.com");
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetExpires: new Date(Date.now() - 1000) },
+    });
+
+    const res = await resetPassword(resetBody(token));
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject(RESET_TOKEN_INVALID);
+    expect(jwtCookieIn(res)).toBeUndefined();
+    expect((await login("ada@example.com", TEST_PASSWORD)).status).toBe(200);
+  });
+
+  it("refuses a token that was never issued", async () => {
+    await createUser({ email: "ada@example.com" });
+    await issuedToken("ada@example.com");
+
+    const res = await resetPassword(resetBody("f".repeat(64)));
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject(RESET_TOKEN_INVALID);
+  });
+
+  it("refuses an empty token with the same answer", async () => {
+    const res = await resetPassword(resetBody(""));
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject(RESET_TOKEN_INVALID);
+  });
+
+  it("refuses a token a newer request replaced, and takes the newer one", async () => {
+    await createUser({ email: "ada@example.com" });
+    const first = await issuedToken("ada@example.com");
+    const second = await issuedToken("ada@example.com");
+
+    const res = await resetPassword(resetBody(first));
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject(RESET_TOKEN_INVALID);
+    expect((await resetPassword(resetBody(second))).status).toBe(200);
+  });
+
+  it("ends the sessions signed in before the reset and keeps the one it starts", async () => {
+    const user = await createUser({ email: "ada@example.com" });
+    const earlierSession = staleAuthCookie(user.id);
+    expect(
+      (await request(app).get("/api/v1/users/me").set("Cookie", earlierSession))
+        .status,
+    ).toBe(200);
+    const token = await issuedToken("ada@example.com");
+
+    const res = await resetPassword(resetBody(token));
+
+    const earlier = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", earlierSession);
+    expect(earlier.status).toBe(401);
+    expect(earlier.body.error.code).toBe(ErrorCode.UNAUTHORIZED);
+    const fresh = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", jwtCookieIn(res)!.split(";")[0]!);
+    expect(fresh.status).toBe(200);
+  });
+
+  it("refuses an account deactivated after the link was sent, without a cookie", async () => {
+    const user = await createUser({ email: "ada@example.com" });
+    const token = await issuedToken("ada@example.com");
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { active: false },
+    });
+
+    const res = await resetPassword(resetBody(token));
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe(ErrorCode.ACCOUNT_DEACTIVATED);
+    expect(jwtCookieIn(res)).toBeUndefined();
+  });
+
+  it("rejects a confirmation that does not match, at the confirmation field", async () => {
+    await createUser({ email: "ada@example.com" });
+    const token = await issuedToken("ada@example.com");
+
+    const res = await resetPassword({
+      token,
+      password: NEW_PASSWORD,
+      passwordConfirm: "something-else",
+    });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe(ErrorCode.VALIDATION_ERROR);
+    expect(res.body.error.details).toContainEqual(
+      expect.objectContaining({ path: ["body", "passwordConfirm"] }),
+    );
+  });
+
+  it("rejects a body without a token, at the token field", async () => {
+    const res = await resetPassword({
+      password: NEW_PASSWORD,
+      passwordConfirm: NEW_PASSWORD,
+    });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.details).toContainEqual(
+      expect.objectContaining({ path: ["body", "token"] }),
+    );
+  });
+
+  it("rejects an unknown field", async () => {
+    const res = await resetPassword({
+      ...resetBody("f".repeat(64)),
+      role: "ADMIN",
+    });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.details).toContainEqual(
+      expect.objectContaining({ code: "unrecognized_keys" }),
+    );
   });
 });
 

@@ -32,3 +32,9 @@ export const PasswordValidator = (identifier: string = "Password") => {
     .min(8, "Password must be at least 8 characters")
     .max(20, "Password must be at most 20 characters");
 };
+
+// No length rule: a missing or mangled token from the URL still reaches the
+// server, which answers it with the dedicated reset-token error code.
+export const PasswordResetTokenValidator = z.string({
+  message: "Reset token is required",
+});

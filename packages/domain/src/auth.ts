@@ -7,6 +7,7 @@ import {
 } from "./common.js";
 import {
   EmailValidator,
+  PasswordResetTokenValidator,
   PasswordValidator,
   UserNameValidator,
 } from "./shared.js";
@@ -78,6 +79,24 @@ export type AuthForgotPasswordRequest = z.infer<
   typeof AuthForgotPasswordRequestSchema.shape.body
 >;
 
+export const AuthResetPasswordRequestSchema = z.object({
+  body: z
+    .object({
+      token: PasswordResetTokenValidator,
+      password: PasswordValidator("New password"),
+      passwordConfirm: PasswordValidator("Confirm new password"),
+    })
+    .strict()
+    .refine((data) => data.password === data.passwordConfirm, {
+      message: "Password and PasswordConfirm must match!",
+      path: ["passwordConfirm"],
+    }),
+});
+
+export type AuthResetPasswordRequest = z.infer<
+  typeof AuthResetPasswordRequestSchema.shape.body
+>;
+
 // * ===== Password reset =====
 
 /** How long a password reset link works after it is sent. */
@@ -99,6 +118,10 @@ export type AuthLogoutResponse = EmptyResponse;
 export const AuthForgotPasswordResponseSchema = EmptyResponseSchema;
 
 export type AuthForgotPasswordResponse = EmptyResponse;
+
+export const AuthResetPasswordResponseSchema = AuthResponseSchema;
+
+export type AuthResetPasswordResponse = AuthResponse;
 
 export const AuthCheckStatusResponseSchema = SingleItemResponseSchema(
   z

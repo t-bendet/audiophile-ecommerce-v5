@@ -84,6 +84,18 @@ export const expiredAuthCookie = (userId: string) => {
   return `jwt=${token}`;
 };
 
+/**
+ * A live JWT issued `secondsAgo` in the past. `iat` has one-second resolution,
+ * so a session meant to predate a password change is backdated well past it.
+ */
+export const staleAuthCookie = (userId: string, secondsAgo = 10) => {
+  const iat = Math.floor(Date.now() / 1000) - secondsAgo;
+  const token = jwt.sign({ id: userId, iat }, env.JWT_SECRET, {
+    expiresIn: env.JWT_EXPIRES_IN,
+  });
+  return `jwt=${token}`;
+};
+
 /** A well-formed JWT signed with the wrong secret. */
 export const tamperedAuthCookie = (userId: string) => {
   const token = jwt.sign({ id: userId }, `${env.JWT_SECRET}-wrong`);

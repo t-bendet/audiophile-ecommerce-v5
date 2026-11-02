@@ -154,11 +154,28 @@ schema, never the request's `Host`, which a caller controls. The send is awaited
 confirmation, under the key `password-reset/<userId>/<expiry epoch ms>`, and the route is behind
 `passwordResetLimiter` (three requests per hour per IP).
 
+`POST /auth/reset-password` validates `{ token, password, passwordConfirm }` with
+`AuthResetPasswordRequestSchema`, under the signup password rules; the token travels in the body,
+never the URL, so it stays out of the request log. The service looks the user up by the token's
+hash with `passwordResetExpires` still ahead, then writes the new password and clears both token
+fields in one `prisma.user.update` whose `where` names the hash too, so a second use, a concurrent
+one included, finds no record. It must stay `update`: the database client hashes the password only
+in that hook. An unknown, expired, replaced or used token, an empty one included, answers
+`PASSWORD_RESET_TOKEN_INVALID` (400) with the message "This reset link is invalid or has expired."
+and one detail at `["body", "token"]`; it is not `INVALID_TOKEN`, which the client reads as a dead
+session. A deactivated account answers `ACCOUNT_DEACTIVATED` like login. Success sets the auth cookie
+as login does and answers the user. The password write moves `passwordChangedAt`, so
+`validateTokenAndGetUser` refuses every session signed in before the reset with `UNAUTHORIZED`; the
+new cookie is signed after the write and survives. The route has no limiter of its own:
+`passwordResetLimiter` is one store, so sharing it would let three forgot requests lock the reset
+out, and the token carries 256 bits; the global `apiLimiter` still applies.
+
 Route tests import `outbox` and read it directly, clearing it in `beforeEach` beside
 `resetDatabase`; [`order.route.test.ts`](test/order.route.test.ts) asserts the recipient, subject,
 body and idempotency key, and makes the transport reject to show the order is still created;
 [`password-reset.route.test.ts`](test/password-reset.route.test.ts) reads the token out of the
-link and compares its hash with the stored one. The E2E suite imports no server code, so [`test.route.ts`](src/routes/test.route.ts) is mounted at
+link and compares its hash with the stored one, then spends it on the reset route; its session test
+backdates the earlier cookie with `staleAuthCookie`, because `iat` has one-second resolution. The E2E suite imports no server code, so [`test.route.ts`](src/routes/test.route.ts) is mounted at
 `/api/v1/test` only under `NODE_ENV=test`: `GET /test/outbox?to=<email>` returns that recipient's
 messages (every message without `to`) and `DELETE /test/outbox` empties it. In every other
 environment the path is the JSON 404 any unknown API path gets.

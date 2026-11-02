@@ -234,6 +234,13 @@ const createAppRouter = (queryClient: QueryClient) =>
                 ),
               path: paths.auth.forgotPassword.path,
             },
+            {
+              lazy: () =>
+                import("./routes/auth/reset-password").then(
+                  convert(queryClient),
+                ),
+              path: paths.auth.resetPassword.path,
+            },
           ],
         },
       ],
