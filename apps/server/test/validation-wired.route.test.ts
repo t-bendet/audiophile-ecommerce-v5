@@ -168,11 +168,6 @@ const cases: Case[] = [
     send: () => request(app).patch(`/api/v1/users/${BAD_ID}`).send({}),
     path: ["params", "id"],
   },
-  {
-    route: "DELETE /users/:id",
-    send: () => request(app).delete(`/api/v1/users/${BAD_ID}`),
-    path: ["params", "id"],
-  },
 
   // auth
   {

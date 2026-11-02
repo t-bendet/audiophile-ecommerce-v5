@@ -171,7 +171,39 @@ export class ProductService extends AbstractCrudService<
     );
   }
 
+  // Order items and the site config's slots declare no delete rule, so they are
+  // refused here; cart items cascade.
+  private async assertNotReferenced(id: string) {
+    const [orderItems, configSlots] = await Promise.all([
+      prisma.orderItem.count({ where: { productId: id } }),
+      prisma.config.count({
+        where: {
+          OR: [
+            { featuredProductId: id },
+            { showCaseCoverId: id },
+            { showCaseWideId: id },
+            { showCaseGridId: id },
+          ],
+        },
+      }),
+    ]);
+
+    if (orderItems > 0) {
+      throw new AppError(
+        "This product has order items and cannot be deleted",
+        ErrorCode.RESOURCE_IN_USE,
+      );
+    }
+    if (configSlots > 0) {
+      throw new AppError(
+        "This product is the featured product or in the showcase and cannot be deleted",
+        ErrorCode.RESOURCE_IN_USE,
+      );
+    }
+  }
+
   protected async persistDelete(id: string) {
+    await this.assertNotReferenced(id);
     return this.falseOnMissingRecord(() =>
       prisma.product.delete({ where: { id } }),
     );

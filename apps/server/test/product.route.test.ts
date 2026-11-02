@@ -10,6 +10,7 @@ import {
   createCategory,
   createConfig,
   createProduct,
+  createUser,
   resetDatabase,
   resolvedImage,
   resolvedResponsiveImage,
@@ -43,6 +44,31 @@ const productBody = (categoryId: string, name: string) => ({
     thumbnail: productThumbnail,
   },
 });
+
+/** An order by `userId` holding one order item for `productId`. */
+const orderProduct = (userId: string, productId: string) => {
+  const address = {
+    fullName: "Ada Lovelace",
+    address: "1 Analytical Way",
+    city: "London",
+    state: "London",
+    zipCode: "E1 6AN",
+    country: "UK",
+  };
+  return prisma.order.create({
+    data: {
+      userId,
+      subtotal: 1000,
+      shippingCost: 50,
+      tax: 0,
+      total: 1050,
+      paymentMethod: "e-Money",
+      shippingAddress: { ...address, email: "ada@example.com", phone: "555" },
+      billingAddress: address,
+      items: { create: [{ productId, quantity: 1, price: 1000 }] },
+    },
+  });
+};
 
 beforeEach(resetDatabase);
 
@@ -151,6 +177,84 @@ describe("DELETE /api/v1/products/:id", () => {
 
     const after = await request(app).get(`/api/v1/products/${product.id}`);
     expect(after.status).toBe(404);
+  });
+
+  it("removes the product's cart items and leaves the other lines", async () => {
+    const admin = await createAdmin();
+    const user = await createUser();
+    const [product, kept] = await Promise.all([
+      createProduct(),
+      createProduct(),
+    ]);
+    const cart = await prisma.cart.create({
+      data: {
+        userId: user.id,
+        items: {
+          create: [
+            { productId: product.id, quantity: 2 },
+            { productId: kept.id, quantity: 1 },
+          ],
+        },
+      },
+    });
+
+    const res = await request(app)
+      .delete(`/api/v1/products/${product.id}`)
+      .set("Cookie", authCookie(admin.id));
+
+    expect(res.status, JSON.stringify(res.body)).toBe(200);
+    expect(await prisma.product.count({ where: { id: product.id } })).toBe(0);
+    const items = await prisma.cartItem.findMany({
+      where: { cartId: cart.id },
+    });
+    expect(items.map((item) => item.productId)).toEqual([kept.id]);
+  });
+
+  it("refuses a product that has order items", async () => {
+    const admin = await createAdmin();
+    const user = await createUser();
+    const product = await createProduct();
+    await orderProduct(user.id, product.id);
+
+    const res = await request(app)
+      .delete(`/api/v1/products/${product.id}`)
+      .set("Cookie", authCookie(admin.id));
+
+    expect(res.status).toBe(409);
+    expect(res.body).toMatchObject({
+      success: false,
+      data: null,
+      error: {
+        code: ErrorCode.RESOURCE_IN_USE,
+        statusCode: 409,
+        message: "This product has order items and cannot be deleted",
+      },
+    });
+    expect(await prisma.product.count({ where: { id: product.id } })).toBe(1);
+  });
+
+  it.for([
+    "featuredProductId",
+    "showCaseCoverId",
+    "showCaseWideId",
+    "showCaseGridId",
+  ] as const)("refuses the product in the %s slot", async (slot) => {
+    const admin = await createAdmin();
+    const config = await createConfig();
+    const productId = config[slot];
+
+    const res = await request(app)
+      .delete(`/api/v1/products/${productId}`)
+      .set("Cookie", authCookie(admin.id));
+
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.RESOURCE_IN_USE,
+      statusCode: 409,
+      message:
+        "This product is the featured product or in the showcase and cannot be deleted",
+    });
+    expect(await prisma.product.count({ where: { id: productId } })).toBe(1);
   });
 
   it("rejects an anonymous caller", async () => {

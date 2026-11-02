@@ -221,8 +221,8 @@ omits both when the shown user is the signed-in admin. The page also ensures the
 to active admins ([`roles.ts`](src/features/admin/users/roles.ts)); when its total says the shown
 user is the last active admin, the role button is disabled with the reason beneath it. Either write
 invalidates every admin user key, so the list shows the change on its next render. There is no
-delete control: a delete would cascade to the orders. The role and active pills are the `admin`,
-`user`, `active` and `deactivated` `Badge` variants, rendered through
+delete control: deactivation is the soft delete and the API has no hard delete. The role and active
+pills are the `admin`, `user`, `active` and `deactivated` `Badge` variants, rendered through
 [`user-badges.tsx`](src/features/admin/users/components/user-badges.tsx).
 
 ### Products

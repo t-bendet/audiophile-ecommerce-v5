@@ -102,10 +102,6 @@ Agent-only. Filed as [#340](https://github.com/t-bendet/audiophile-ecommerce-v5/
 six sub-issues; the last, [#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347), is
 the closing re-triage.
 
-- Retire the admin hard user delete and refuse product delete cleanly. Added in this triage: the
-  user delete cascades the user's orders and contradicts the glossary, and deleting a referenced
-  product fails with an unmapped database error.
-
 Depends on nothing. Size: S, five tickets. Runs while the human sessions for groups 1 and 2 happen.
 
 ### 1. Email foundation and account recovery
