@@ -83,7 +83,9 @@ admin reactivates it.
 _Avoid_: account, member, profile, deleted user
 
 **Admin**:
-A user whose role lets them manage the catalogue and move orders between statuses.
+A user whose role lets them manage the catalogue and move orders between statuses. An admin can
+promote a user to admin or demote another admin to a user; nobody changes their own role, and the
+last active admin cannot be demoted.
 _Avoid_: staff, operator, superuser
 
 **Guest**:

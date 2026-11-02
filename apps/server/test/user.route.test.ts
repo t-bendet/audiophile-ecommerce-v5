@@ -241,4 +241,57 @@ describe("PATCH /api/v1/users/:id", () => {
     expect(still.status).toBe(200);
     expect(still.body.data.active).toBe(true);
   });
+
+  it("lets an admin demote another admin", async () => {
+    const admin = await createAdmin();
+    const other = await createAdmin();
+
+    const res = await request(app)
+      .patch(`/api/v1/users/${other.id}`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ role: "USER" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.role).toBe("USER");
+  });
+
+  it("refuses an admin changing their own role", async () => {
+    const admin = await createAdmin();
+    await createAdmin();
+
+    const res = await request(app)
+      .patch(`/api/v1/users/${admin.id}`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ role: "USER" });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe(ErrorCode.FORBIDDEN);
+    expect(res.body.error.message).toBe("You cannot change your own role.");
+
+    const still = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", authCookie(admin.id));
+    expect(still.body.data.role).toBe("ADMIN");
+  });
+
+  it("refuses to demote the last active admin", async () => {
+    const admin = await createAdmin();
+    await createUser({ role: "ADMIN", active: false });
+
+    const res = await request(app)
+      .patch(`/api/v1/users/${admin.id}`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ role: "USER" });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe(ErrorCode.FORBIDDEN);
+    expect(res.body.error.message).toBe(
+      "The last active admin cannot be demoted.",
+    );
+
+    const still = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", authCookie(admin.id));
+    expect(still.body.data.role).toBe("ADMIN");
+  });
 });

@@ -81,7 +81,8 @@ deploy alone does not prove the catalogue was updated. Follow
 [seeding vs syncing](../packages/database/README.md#seeding-vs-syncing) for manual publication,
 including the hand-run `db:sync -- --overwrite` a field-shape change needs. `db:seed` and `db:reset` are local-only.
 The first admin: sign up through the storefront, then run `db:role` with the Atlas prefix as
-[roles](../packages/database/README.md#roles) shows; no page grants the role.
+[roles](../packages/database/README.md#roles) shows. `db:role` bootstraps that first admin; every
+later promotion and demotion happens on the dashboard's user detail page.
 
 The same job then runs `pnpm db:indexes` when `SYNC_SCHEMA_INDEXES` is `true`, and warns and skips
 otherwise. It checks for duplicates read-only and pushes only if none are found. The push then

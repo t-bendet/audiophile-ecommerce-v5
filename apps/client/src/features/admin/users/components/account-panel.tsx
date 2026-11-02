@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { normalizeError } from "@/lib/errors/errors";
 import type { UserDTO } from "@repo/domain";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
-import { useSetUserActive } from "../api/get-admin-users";
+import { useSetUserActive, useSetUserRole } from "../api/get-admin-users";
 import { ActiveBadge, RoleBadge } from "./user-badges";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "long" });
@@ -22,12 +22,18 @@ const overline = "text-xs font-bold tracking-600 uppercase text-neutral-500";
 
 type AccountPanelProps = {
   user: UserDTO;
-  /** The signed-in admin's own page offers no deactivate button. */
+  /** The signed-in admin's own page offers neither write. */
   isSelf: boolean;
+  /** The last active admin's role control is disabled and says why. */
+  isLastActiveAdmin: boolean;
 };
 
-/** The user's fields and, behind a confirmation, the one write this page offers. */
-export function AccountPanel({ user, isSelf }: AccountPanelProps) {
+/** The user's fields and, each behind a confirmation, the active and role writes. */
+export function AccountPanel({
+  user,
+  isSelf,
+  isLastActiveAdmin,
+}: AccountPanelProps) {
   return (
     <section
       aria-label="Account"
@@ -50,12 +56,17 @@ export function AccountPanel({ user, isSelf }: AccountPanelProps) {
         <dt className={overline}>Joined</dt>
         <dd>{dateFormatter.format(user.createdAt)}</dd>
       </dl>
-      {!isSelf && <ActiveToggle user={user} />}
+      {!isSelf && (
+        <div className="flex flex-col gap-3">
+          <ActiveToggle user={user} />
+          <RoleToggle user={user} isLastActiveAdmin={isLastActiveAdmin} />
+        </div>
+      )}
     </section>
   );
 }
 
-const COPY = {
+const ACTIVE_COPY = {
   deactivate: {
     button: "Deactivate account",
     title: "Deactivate this account?",
@@ -80,7 +91,7 @@ const COPY = {
 function ActiveToggle({ user }: { user: UserDTO }) {
   const [open, setOpen] = useState(false);
   const setActive = useSetUserActive(user.id);
-  const copy = user.active ? COPY.deactivate : COPY.reactivate;
+  const copy = user.active ? ACTIVE_COPY.deactivate : ACTIVE_COPY.reactivate;
 
   const confirm = () =>
     setActive.mutate(!user.active, {
@@ -116,6 +127,103 @@ function ActiveToggle({ user }: { user: UserDTO }) {
             variant="accent"
             onClick={confirm}
             disabled={setActive.isPending}
+          >
+            {copy.confirm}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const ROLE_COPY = {
+  promote: {
+    button: "Make admin",
+    title: "Promote to admin?",
+    description:
+      "They will reach the dashboard the next time they open a page, and can manage orders, users, the catalogue and the homepage.",
+    keep: "Keep as shopper",
+    confirm: "Promote",
+    done: "Promoted to admin",
+    failed: "Not promoted",
+  },
+  demote: {
+    button: "Make shopper",
+    title: "Demote to shopper?",
+    description:
+      "They will lose the dashboard the next time they open a page. Their account and orders stay.",
+    keep: "Keep as admin",
+    confirm: "Demote",
+    done: "Demoted to shopper",
+    failed: "Not demoted",
+  },
+} as const;
+
+function RoleToggle({
+  user,
+  isLastActiveAdmin,
+}: {
+  user: UserDTO;
+  isLastActiveAdmin: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const setRole = useSetUserRole(user.id);
+  const reasonId = useId();
+  const isAdmin = user.role === "ADMIN";
+  const copy = isAdmin ? ROLE_COPY.demote : ROLE_COPY.promote;
+
+  if (isLastActiveAdmin) {
+    return (
+      <>
+        <Button
+          variant="outline"
+          className="w-fit"
+          disabled
+          aria-describedby={reasonId}
+        >
+          {copy.button}
+        </Button>
+        <p id={reasonId} className="text-xs text-neutral-500">
+          This is the last active admin. Promote another user first.
+        </p>
+      </>
+    );
+  }
+
+  const confirm = () =>
+    setRole.mutate(isAdmin ? "USER" : "ADMIN", {
+      onSuccess: () => {
+        setOpen(false);
+        toast.success(copy.done);
+      },
+      onError: (error) => {
+        setOpen(false);
+        toast.error(copy.failed, {
+          description: normalizeError(error).message,
+        });
+      },
+    });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="w-fit">
+          {copy.button}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{copy.title}</DialogTitle>
+          <DialogDescription>{copy.description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">{copy.keep}</Button>
+          </DialogClose>
+          <Button
+            variant="accent"
+            onClick={confirm}
+            disabled={setRole.isPending}
           >
             {copy.confirm}
           </Button>

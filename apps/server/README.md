@@ -51,7 +51,8 @@ path under it. The user router's admin section serves the users slice: `GET /use
 account, deactivated ones included, filtered by `search` (a case-insensitive fragment of the name
 or email), `role` and `active` (`true` or `false`); an unknown value is rejected like an unknown
 sort or field ([ADR 0002](../../docs/adr/0002-unknown-sort-and-fields-values-are-rejected.md)).
-`PATCH /users/:id` with `active: false` for the requesting admin's own id answers `FORBIDDEN`. The
+`PATCH /users/:id` answers `FORBIDDEN` for `active: false` or any `role` on the requesting admin's
+own id, and for `role: "USER"` on the last active admin; inactive admins do not count. The
 order router keeps `GET /orders/:orderId` scoped to the signed-in shopper, and admin writes stay in
 each resource router's admin section: `PATCH /orders/:orderId/status` and
 `PATCH /orders/:orderId/payment-status` move an order along the `@repo/domain` transition tables
