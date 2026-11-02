@@ -5,6 +5,7 @@ import {
   toSearchParams,
 } from "../src/features/admin/orders/filters";
 import {
+  latestStatuses,
   orderStatusOptions,
   paymentStatusOptions,
   refundMayBeDue,
@@ -38,6 +39,41 @@ describe("fulfilment select options", () => {
       false,
     );
     expect(refundMayBeDue({ paymentStatus: "PAID" }, "SHIPPED")).toBe(false);
+  });
+});
+
+// A save answers the updated order before the refetched one arrives; the form
+// rebases on whichever is newer, so its selects never step back meanwhile.
+describe("fulfilment statuses after a save", () => {
+  const before = {
+    status: "PENDING",
+    paymentStatus: "PENDING",
+    updatedAt: new Date("2026-01-01T10:00:00.000Z"),
+  } as const;
+  const saved = {
+    status: "PROCESSING",
+    paymentStatus: "PAID",
+    updatedAt: new Date("2026-01-01T10:00:05.000Z"),
+  } as const;
+
+  it("starts from the order the page received", () => {
+    expect(latestStatuses(before, undefined)).toBe(before);
+  });
+
+  it("keeps the saved order while the refetch is in flight", () => {
+    expect(latestStatuses(before, saved)).toBe(saved);
+  });
+
+  it("follows the refetched order once it has caught up or moved on", () => {
+    const refetched = { ...saved };
+    expect(latestStatuses(refetched, saved)).toBe(refetched);
+
+    const movedOn = {
+      status: "SHIPPED",
+      paymentStatus: "PAID",
+      updatedAt: new Date("2026-01-01T10:01:00.000Z"),
+    } as const;
+    expect(latestStatuses(movedOn, saved)).toBe(movedOn);
   });
 });
 

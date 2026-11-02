@@ -194,9 +194,12 @@ TanStack form over two selects whose options come from
 [`transitions.ts`](src/features/admin/orders/transitions.ts), the current value plus what the
 `@repo/domain` transition tables allow, so the server never has to refuse a move the page offered;
 when it does refuse one, `applyServerErrors` and the form's toast report it like any other form.
-Choosing Cancelled on a Paid order shows the refund reminder before saving. The form is mounted with
-a key of the order's two statuses, so a saved move (which invalidates the admin and shopper order
-queries) remounts it on the fresh values.
+Choosing Cancelled on a Paid order shows the refund reminder before saving. A saved move resets the
+form to the order the save answered, so it rebases in place, as the product and homepage forms do:
+the selects keep their instance and offer the moves from the new statuses, and Save goes quiet. The
+save invalidates the admin and shopper order queries, and `latestStatuses` keeps the saved order as
+the starting point until the refetched one is at least as recent, so the options never step back
+meanwhile. A refused move keeps the admin's chosen values.
 
 The status pills are [`Badge`](src/components/ui/badge.tsx) variants named after the statuses in
 lower case, rendered through [`status-badges.tsx`](src/features/admin/orders/components/status-badges.tsx)
@@ -308,7 +311,8 @@ deactivated since the last status check, and a role change seen on the next navi
 [`test/admin-sections.test.ts`](test/admin-sections.test.ts) checks the admin section lookup behind
 the header title and the active entry,
 [`test/admin-order-transitions.test.ts`](test/admin-order-transitions.test.ts) the fulfilment
-select options, the refund reminder and the order filters read from and written to the URL, and
+select options, the statuses a save rebases on, the refund reminder and the order filters read
+from and written to the URL, and
 [`test/admin-user-filters.test.ts`](test/admin-user-filters.test.ts) the same for the user filters,
 [`test/admin-user-roles.test.ts`](test/admin-user-roles.test.ts) the last-active-admin check,
 [`test/admin-product-form.test.ts`](test/admin-product-form.test.ts) the product form's conversions

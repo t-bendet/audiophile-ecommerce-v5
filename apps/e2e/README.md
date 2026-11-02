@@ -228,8 +228,9 @@ shipping fieldset, with no order either way), account orders' empty state and th
 through the API listed newest first, the not-found page, the admin shell (the account menu's Admin
 item and `/admin` for the admin, not-found there for a shopper, the login redirect and return for a
 guest), admin order fulfilment (a fresh shopper's order found by email, moved to Processing and
-marked Paid, after which the select no longer offers Pending), admin order lists (a fresh shopper's two
-orders, one moved to Processing and the other marked Paid through the API, each found alone by the
+marked Paid, after which, with no reload, the order select offers Shipped and no longer Pending and
+the payment select offers Refunded and neither Pending nor Failed), admin order lists (a fresh
+shopper's two orders, one moved to Processing and the other marked Paid through the API, each found alone by the
 status filter and by the payment status filter; twenty-one orders of one shopper paged as "Showing
 1–20 of 21" and then the oldest alone on page two, with Prev and Next disabled at each end), the
 cancel path (a Paid order moved to Cancelled shows the refund reminder, after which the order select

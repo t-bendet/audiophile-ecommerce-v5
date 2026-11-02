@@ -73,15 +73,20 @@ test.describe("an admin", () => {
     );
     await expect(fulfilment.getByLabel("Payment status")).toHaveText("Paid");
 
-    // The toast follows the second of the two saves. The page remounts the
-    // form once the saved order is refetched, which would close a select
-    // opened a moment earlier; a reload lands after it.
-    await expect(page.getByText("Order updated")).toBeVisible();
-    await page.reload();
+    // The form rebases on the saved order in place, so a select opened while
+    // the order is refetched stays open.
     await fulfilment.getByLabel("Move order to").click();
     await expect(page.getByRole("option", { name: "Shipped" })).toBeVisible();
     await expect(page.getByRole("option", { name: "Pending" })).toHaveCount(0);
     await page.keyboard.press("Escape");
+    await fulfilment.getByLabel("Payment status").click();
+    await expect(page.getByRole("option", { name: "Refunded" })).toBeVisible();
+    await expect(page.getByRole("option", { name: "Pending" })).toHaveCount(0);
+    await expect(page.getByRole("option", { name: "Failed" })).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(
+      fulfilment.getByRole("button", { name: "Save" }),
+    ).toBeDisabled();
 
     await page.getByRole("link", { name: "Back to orders" }).click();
     await expect(page).toHaveURL("/admin/orders");

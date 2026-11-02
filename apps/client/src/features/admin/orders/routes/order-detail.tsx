@@ -46,10 +46,7 @@ function OrderDetail({ orderId }: { orderId: string }) {
           <OrderSummary order={order} />
         </div>
         <div className="lg:sticky lg:top-6 lg:order-2">
-          <FulfilmentForm
-            key={`${order.status}:${order.paymentStatus}`}
-            order={order}
-          />
+          <FulfilmentForm key={order.id} order={order} />
         </div>
       </div>
     </>
