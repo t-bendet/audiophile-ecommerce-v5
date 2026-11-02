@@ -14,8 +14,8 @@ provisional and is reconsidered at every group boundary.
 [#319](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/319): a "decisions that shape
 every slice" section and one sub-issue per vertical slice, linked with native blocking edges. The
 parent issue is where the group's decisions live; this file names the questions, never the answers.
-A slice's PR removes its item line here; the closing re-triage removes the group block and reorders
-what is left.
+A slice's PR removes its item line here; the group's last sub-issue, the closing re-triage, removes
+the group block.
 
 **Pick the entry skill by how many decisions the group has open.**
 
@@ -48,6 +48,11 @@ what is left.
   catalogue ownership change did in
   [ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md). When a batch shows an
   assumption was wrong: stop the batch, update the parent issue, re-spec only the slices still open.
+- Every group ends with a closing re-triage ticket, blocked by every other slice, so the batch cannot
+  finish without it. Its PR closes the parent and stops at PR open for review. It removes the closed
+  group's block, carries every decision the group settled back into this file and the ADRs, reads
+  every remaining group against what shipped, and states whether the remaining order holds. The
+  checklist under "Closing re-triage" is its acceptance criteria.
 - Every slice ships its own E2E. The test suite is not an epic of its own; group 0 clears the known
   gaps once.
 
@@ -65,12 +70,32 @@ what is left.
 - `media:sync --prune` deletes any bucket key the repo does not have. The first dashboard upload
   makes it destructive, so the upload slice scopes or retires it.
 
+**Closing re-triage.** The checklist each group's last sub-issue carries; the first one is
+[#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347).
+
+1. The closed group's block and any item lines still standing are removed.
+2. Every decision settled in the parent issue, its slices or their PR reviews that differs from what
+   this file or an ADR says is recorded: as a corrected fact here, and as a new or amended ADR when
+   it is durable.
+3. Every remaining group block has been read against what shipped. A dependency now satisfied, a
+   quoted code fact now false, a seam now in place, or a constraint now added or lifted is corrected
+   in that block.
+4. "Constraints every group inherits" reflects anything the group added or removed: a new secret, a
+   new test double, a migration pattern.
+5. The next group's session brief is still true; stale facts in it are fixed before anyone starts
+   from it.
+6. Items the group parked or unparked are moved, each with its reason.
+7. The PR body states whether the remaining groups keep their order, with the reason either way, and
+   the edit applies any change it proposes.
+8. The PR carries `Closes #<parent>` and waits at PR open for review.
+
 ## Groups in order
 
 ### 0. Debt sprint
 
 Agent-only. Filed as [#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340) with
-five sub-issues.
+six sub-issues; the last, [#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347), is
+the closing re-triage.
 
 - A complete test suite, read as the known E2E gaps: signup and logout, the Earphones and Speakers
   categories, checkout validation, the orders page states, admin order filters and pagination and
