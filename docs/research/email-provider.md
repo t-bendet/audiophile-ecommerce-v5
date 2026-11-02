@@ -512,8 +512,8 @@ Proposed names:
 | `EMAIL_WEBHOOK_SECRET` | Worker secret | Resend webhook signing secret (`whsec_…`)                                                    | Only when the bounce/complaint webhook slice lands; absent until then   |
 
 `EMAIL_FROM` is deliberately a bare address so that the existing `z.email()` validation shape can be
-reused and the display name does not need quoting rules in a `.env` file. Reply-to, if wanted, is a
-second plain var later; it is listed under open questions.
+reused and the display name does not need quoting rules in a `.env` file. No reply-to is wanted; if that
+changes, it is a second plain var, as the Decisions section records.
 
 Files to touch, in the order the deployment runbook names them
 ([deployment](../deployment.md#production-environment)):
@@ -569,8 +569,8 @@ The E2E suite starts the server under `NODE_ENV=test`, so it gets the outbox too
 E2E cannot read the array directly. The least-new-machinery option is a route that exists only under
 `NODE_ENV=test` and returns and clears the outbox; that is test-only behaviour keyed on the one
 variable the rule allows. The alternative is for the E2E test to read `passwordResetToken` from the
-`audiophile-e2e` database, which breaks the suite's no-application-imports stance less cleanly. This
-is an open question below.
+`audiophile-e2e` database, which breaks the suite's no-application-imports stance less cleanly. The
+Decisions section settles this in favour of the route.
 
 Webhooks are not needed for group 1. Password reset and order confirmation only send. When the
 status-notification slice in group 3 wants bounce and complaint handling, the Resend webhook posts
