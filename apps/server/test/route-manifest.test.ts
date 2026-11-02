@@ -10,6 +10,7 @@ import indexRoute from "../src/routes/index.js";
 import orderRouter from "../src/routes/order.route.js";
 import productRouter from "../src/routes/product.route.js";
 import sitemapRouter from "../src/routes/sitemap.route.js";
+import testRouter from "../src/routes/test.route.js";
 import userRouter from "../src/routes/user.route.js";
 
 // Reads Express internals: keep the walk here, never in production code.
@@ -39,6 +40,8 @@ const ROUTER_NAMES = new Map<unknown, string>([
   [cartRouter, "cart"],
   [orderRouter, "orders"],
   [adminRouter, "admin"],
+  // Mounted under NODE_ENV=test only, which is what this suite runs as.
+  [testRouter, "test"],
 ]);
 
 const isStackHolder = (value: unknown): value is StackHolder =>
@@ -140,6 +143,9 @@ describe("route manifest", () => {
           get /orders [2 handlers]
           get /orders/:orderId [2 handlers]
           get /stats [2 handlers]
+        test
+          get /outbox [2 handlers]
+          delete /outbox [1 handlers]
       sitemap.xml
         get / [1 handlers]"
     `);

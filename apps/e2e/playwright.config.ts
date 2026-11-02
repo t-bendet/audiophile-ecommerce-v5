@@ -62,6 +62,8 @@ export default defineConfig({
         JWT_EXPIRES_IN: "1d",
         JWT_COOKIE_EXPIRES_IN: "1",
         MEDIA_BASE_URL: "https://audiophile-media.t-bendet.com",
+        // NODE_ENV=test keeps mail in the outbox, so only the sender is needed.
+        EMAIL_FROM: "no-reply@audiophile.t-bendet.com",
       },
     },
     {

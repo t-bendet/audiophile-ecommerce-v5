@@ -66,6 +66,11 @@ const createEnv = () => {
       .url("MEDIA_BASE_URL must be an absolute URL")
       .refine((url) => !url.endsWith("/"), "MEDIA_BASE_URL must not end in /"),
     LOG_LEVEL: LogLevelSchema.optional(),
+    // The bare sender address; the display name lives in the email transport.
+    EMAIL_FROM: z.email("EMAIL_FROM must be a bare email address"),
+    // The Resend key. Only production must send; development without it logs
+    // the rendered message instead, and test never leaves the process.
+    EMAIL_API_KEY: z.string().min(1).optional(),
   });
 
   const parsedEnv = EnvSchema.refine(
@@ -76,7 +81,15 @@ const createEnv = () => {
       path: ["DATABASE_URL"],
       message: "production requires a mongodb+srv connection string",
     },
-  ).safeParse(process.env);
+  )
+    .refine(
+      (env) => env.NODE_ENV !== "production" || env.EMAIL_API_KEY !== undefined,
+      {
+        path: ["EMAIL_API_KEY"],
+        message: "production requires EMAIL_API_KEY to send email",
+      },
+    )
+    .safeParse(process.env);
 
   if (!parsedEnv.success) {
     const databaseUrlHint =

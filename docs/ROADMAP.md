@@ -120,8 +120,6 @@ the group block.
   reset rate limiter is defined but not mounted; there are no reset schemas in the domain package
   and no email code anywhere. The "Forgot your password?" link in `login-form.tsx` is a dead
   `href="#"` until this lands.
-- Order confirmation emails. The confirmation page already says one is sent; nothing sends it. Its
-  "we charged" copy is wrong for cash on delivery and is fixed here.
 - Auth layout visuals. The layout is a bare muted background with a form card; it gains two reset
   pages in this group.
 

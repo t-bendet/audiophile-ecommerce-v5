@@ -43,10 +43,12 @@ const fillCheckout = async (
   await page.getByRole("radio", { name: "Cash on Delivery" }).check();
 };
 
-test("checkout creates an order that appears under account orders", async ({
+test("checkout creates an order, says how payment is taken and emails the shopper", async ({
   page,
   catalogue,
   signUpFreshShopper,
+  listOrders,
+  outbox,
 }) => {
   const shopper = await signUpFreshShopper();
   const [product] = await catalogue.products();
@@ -58,6 +60,24 @@ test("checkout creates an order that appears under account orders", async ({
   await expect(
     page.getByRole("heading", { name: "Thank you for your order" }),
   ).toBeVisible();
+  const [order] = await listOrders();
+  await expect(
+    page.getByText(
+      `We have received your order ${order.id}. You pay in cash when your order is delivered. We have sent a confirmation to ${shopper.email}.`,
+    ),
+  ).toBeVisible();
+
+  // The email is sent before checkout answers, so it is already in the outbox.
+  const [email, ...others] = await outbox(shopper.email);
+  expect(others).toEqual([]);
+  expect(email).toMatchObject({
+    to: shopper.email,
+    subject: `Order received: ${order.id}`,
+    idempotencyKey: `order-confirmation/${order.id}`,
+  });
+  expect(email.text).toContain(product.cartLabel);
+  expect(email.text).toContain("You pay in cash when your order is delivered.");
+
   await page.getByRole("link", { name: "View your orders" }).click();
 
   await expect(page).toHaveURL("/account/orders");

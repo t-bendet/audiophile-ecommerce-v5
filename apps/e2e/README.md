@@ -59,6 +59,7 @@ a change to how a shopper signs in touches one file.
 | `placeOrderAsFreshShopper()`       | The same with one order; returns the shopper and that order's id                                                 |
 | `placeOrder(product?)`             | Orders one of `product` (the first catalogue product by default) as the signed-in context; returns its id        |
 | `listOrders()`                     | `GET /api/v1/orders` for the signed-in context                                                                   |
+| `outbox(to)`                       | The emails the server sent to `to`, read from the test-only outbox route; nothing leaves the process under test  |
 | `resetCart()`                      | `DELETE /api/v1/cart` for the signed-in context                                                                  |
 | `catalogue`                        | Reads the catalogue through the products and categories API                                                      |
 | `admin`                            | Admin writes and reads through the API on the browser context's session, for a test that arrives as the admin    |
@@ -222,7 +223,9 @@ product" overline on the cards the catalogue flags), signup through the form (si
 name in the account menu, then the same email refused under the email field), logout from the
 account menu (login offered again, checkout redirecting to login), a guest add-to-cart through the
 mini-cart, the checkout redirect to login and back, a guest cart surviving sign-in, a checkout that
-creates an order and finds it under account orders, checkout validation (an empty submit stopped by
+creates an order (the confirmation page saying the order is received and that cash is paid on
+delivery, one "order received" email to the shopper in the server's outbox naming that order, then
+the order found under account orders), checkout validation (an empty submit stopped by
 the browser, then an email the browser accepts but the shared schema rejects shown inside the
 shipping fieldset, with no order either way), account orders' empty state and then two orders placed
 through the API listed newest first, the not-found page, the admin shell (the account menu's Admin

@@ -14,12 +14,11 @@ import {
   CreateOrderInput,
   CreateOrderInputSchema,
   OrderDTO,
+  PAYMENT_METHODS,
 } from "@repo/domain";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import { useCreateOrder } from "../api/get-orders";
-
-const PAYMENT_METHODS = ["e-Money", "Cash on Delivery"] as const;
 
 const addressFields = <P extends "shippingAddress" | "billingAddress">(
   prefix: P,
