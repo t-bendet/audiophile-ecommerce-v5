@@ -17,11 +17,19 @@ Read [the issue-tracker guide](../../../docs/agents/issue-tracker.md) for ticket
    - a label (`ready-for-agent`) → `gh issue list --state open --label <label> --json number,title`
    - a range (`105-130`) → `gh issue list --state open --json number,title` filtered to that range.
      A range regularly contains closed or non-existent numbers; only work open ones and say which you dropped.
+   - a parent issue (a number whose issue lists sub-issues) → its open sub-issues, read with
+     **List a parent's sub-issues** in the issue-tracker guide; the parent itself is not a ticket.
    - bare numbers → use them as given.
-     Order the list ascending unless the user gave an order. Do not ask for approval of the list —
-     print it and proceed.
+     Order the list ascending unless the user gave an order; a parent's sub-issues are ordered by
+     their blocking edges instead, blocker first and ascending among ties, read with **List a
+     ticket's blockers** in the issue-tracker guide. Do not ask for approval of the list — print it
+     and proceed.
      The **merge policy** is `merge` unless the arguments say `open` (or "stop at PR open"): `merge`
      lands each PR once its checks are green, as in _Land_; `open` leaves every PR open for a human.
+     Under `merge`, a ticket whose body says it stops at PR open (a group's closing re-triage, or
+     the first slice that introduces a new seam) is the exception: its PR is left open for review.
+     Tickets it blocks wait for that merge; when the review has not landed by the time the rest of
+     the queue is done, record them as **skipped** with the blocker and end the batch.
      Under `open` each ticket must be unblocked by every other ticket in the queue (check with
      **Count open blockers** in the issue-tracker guide), because a blocked ticket would branch from
      a `main` that lacks its blocker's change. Abort the batch if one is.
@@ -48,12 +56,19 @@ git switch -c <type>/N-<slug>
 
 ### 3. Delegate
 
-Spawn **one** implementation subagent and wait for it to return before advancing the queue. Give it:
+Spawn **one** implementation subagent with `model: opus`, as a fresh agent rather than a fork, and
+wait for it to return before advancing the queue. It is the ticket's only writer; it may spawn
+read-only Explore agents for lookups. Give it:
 
 - the full issue body and relevant comments, pasted in — it cannot see this conversation
 - the branch it is already on, and that it must **not** commit, push, merge, or switch branches
 - `AGENTS.md` and the applicable task-guide paths, with an instruction to read them before editing
 - an instruction to report what it changed and anything it deliberately left out
+
+For a ticket with more than five acceptance criteria, or one that spans more than two workspaces,
+run a read-only Plan agent first and paste its file-level plan into the implementer's brief. An
+implementer that reports the ticket as unfinishable in one pass makes the ticket a **miss**: its
+issue comment says the ticket needs slicing, and the batch moves on.
 
 ### 4. Verify
 
@@ -113,6 +128,7 @@ Then offer to publish the report as an Artifact if the batch was more than a han
 ## Do not
 
 - run tickets in parallel, or in worktrees — this skill is sequential by design
+- split one ticket across several implementers; a ticket too big for one is re-sliced in the tracker
 - merge a ticket whose verification did not pass
 - widen a ticket's scope because you noticed something adjacent; file a new issue instead
 - touch tickets the user did not name
