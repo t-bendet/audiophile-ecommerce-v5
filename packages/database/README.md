@@ -111,10 +111,10 @@ hand, then removing the old branch. A successful code rollback does not reverse 
 
 ## Roles
 
-No page grants the admin role; a shop owner's first admin account is set by hand with
-`db:role` (`src/users/set-role.ts`). It takes an email and a role, prints the previous and the new
-role, and writes one document. It exits non-zero without writing for a role other than `ADMIN` or
-`USER` or an email no active user has.
+A shop owner's first admin account is set by hand with `db:role` (`src/users/set-role.ts`); once
+an admin exists, the dashboard's user detail page promotes and demotes everyone else. The script
+takes an email and a role, prints the previous and the new role, and writes one document. It exits
+non-zero without writing for a role other than `ADMIN` or `USER` or an email no active user has.
 
 Like `db:sync`, it runs against the database `DATABASE_URL` names, and `dotenv` never overrides an
 already-set variable, so the prefix wins over this workspace's `.env` and no production credential
@@ -124,7 +124,9 @@ has to be written to a file:
 DATABASE_URL='mongodb+srv://...' pnpm --filter @repo/database db:role owner@example.com ADMIN
 ```
 
-The user signs up through the storefront first, so the script has an account to promote.
+The user signs up through the storefront first, so the script has an account to promote. The
+script writes the role directly, so the server's guards against an admin changing their own role
+and against demoting the last active admin do not apply to it.
 
 `User.active` is a plain column: the client returns it and reads deactivated accounts like any
 other, so the admin's user pages can list and reactivate them. What a deactivated account cannot

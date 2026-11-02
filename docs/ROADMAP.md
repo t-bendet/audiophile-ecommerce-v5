@@ -102,8 +102,6 @@ Agent-only. Filed as [#340](https://github.com/t-bendet/audiophile-ecommerce-v5/
 six sub-issues; the last, [#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347), is
 the closing re-triage.
 
-- Role changes from the user management UI, with a self-demotion guard and a last-admin guard.
-  Promotion and demotion are the `db:role` script until it lands.
 - Retire the admin hard user delete and refuse product delete cleanly. Added in this triage: the
   user delete cascades the user's orders and contradicts the glossary, and deleting a referenced
   product fails with an unmapped database error.

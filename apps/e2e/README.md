@@ -235,9 +235,11 @@ status filter and by the payment status filter; twenty-one orders of one shopper
 cancel path (a Paid order moved to Cancelled shows the refund reminder, after which the order select
 is disabled and the payment select offers Refunded and neither Pending nor Failed), admin user
 management (a fresh shopper found by email, deactivated, told so by the login form in a browser
-context of their own, reactivated and signed in), admin catalogue edits (a seeded product's price
-raised on its edit page and shown on its storefront page; another's description, first in-the-box
-quantity, full label and new-product flag changed and shown there, the "new product" overline
+context of their own, reactivated and signed in; another promoted, shown as Admin in the users list,
+offered the account menu's Admin item in a browser context of their own, then demoted and offered it
+no longer; and no role control on the admin's own page), admin catalogue edits (a seeded product's
+price raised on its edit page and shown on its storefront page; another's description, first
+in-the-box quantity, full label and new-product flag changed and shown there, the "new product" overline
 appearing and then disappearing when the flag is cleared again; each put back through the API), the
 homepage slots (the picker offering the featured slot only the one seeded product with a featured
 image and a showcase slot the three showcase products with the two held elsewhere disabled; and a

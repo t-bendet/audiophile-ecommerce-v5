@@ -215,11 +215,14 @@ the server would reject, the loader ensures the matching page of `GET /users`, a
 [`routes/user-detail.tsx`](src/features/admin/users/routes/user-detail.tsx) is `/admin/users/:userId`:
 the [account panel](src/features/admin/users/components/account-panel.tsx) left and the user's
 orders right, read through `GET /admin/orders?userId=` and each linking to the admin order detail.
-Deactivate and reactivate are the panel's one write, a `PATCH /users/:id` of `active` behind the
-existing `Dialog` primitive, and the panel omits the button when the shown user is the signed-in
-admin. There is no role control and no delete control: roles are the database's `db:role` script
-and a delete would cascade to the orders. The role and active pills are the `admin`, `user`,
-`active` and `deactivated` `Badge` variants, rendered through
+The panel has two writes, each a `PATCH /users/:id` behind the existing `Dialog` primitive:
+deactivate and reactivate send `active`, and Make admin and Make shopper send `role`. The panel
+omits both when the shown user is the signed-in admin. The page also ensures the users list filtered
+to active admins ([`roles.ts`](src/features/admin/users/roles.ts)); when its total says the shown
+user is the last active admin, the role button is disabled with the reason beneath it. Either write
+invalidates every admin user key, so the list shows the change on its next render. There is no
+delete control: a delete would cascade to the orders. The role and active pills are the `admin`,
+`user`, `active` and `deactivated` `Badge` variants, rendered through
 [`user-badges.tsx`](src/features/admin/users/components/user-badges.tsx).
 
 ### Products
@@ -279,7 +282,8 @@ with the order keys, so the counts are fresh on the next visit.
 The [logged-in user dropdown](src/components/layouts/content-layout/nav-bar/user-dropdown/logged-in-user-dropdown.tsx)
 shows an Admin item linking to `/admin` when the rendered user's role is `ADMIN` and nothing for a
 shopper. The first admin account comes from the database's `db:role` script
-([roles](../../packages/database/README.md#roles)), not from any page.
+([roles](../../packages/database/README.md#roles)); later ones are promoted on the
+[user detail page](#users).
 
 ## Page metadata
 
@@ -306,6 +310,7 @@ the header title and the active entry,
 [`test/admin-order-transitions.test.ts`](test/admin-order-transitions.test.ts) the fulfilment
 select options, the refund reminder and the order filters read from and written to the URL, and
 [`test/admin-user-filters.test.ts`](test/admin-user-filters.test.ts) the same for the user filters,
+[`test/admin-user-roles.test.ts`](test/admin-user-roles.test.ts) the last-active-admin check,
 [`test/admin-product-form.test.ts`](test/admin-product-form.test.ts) the product form's conversions
 and submit validation, and [`test/admin-homepage-slots.test.ts`](test/admin-homepage-slots.test.ts)
 what each homepage slot's select offers and disables, and

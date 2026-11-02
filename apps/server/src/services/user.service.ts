@@ -68,7 +68,8 @@ export class UserService extends AbstractCrudService<
 
   /**
    * Privileged surface: the only path that may write role, emailVerified or
-   * active. An admin cannot deactivate their own account.
+   * active. An admin cannot deactivate their own account or change their own
+   * role, and the last active admin cannot be demoted.
    */
   async updateAsAdmin(
     id: string,
@@ -81,11 +82,33 @@ export class UserService extends AbstractCrudService<
         ErrorCode.FORBIDDEN,
       );
     }
+    if (input.role === "USER" && (await this.isLastActiveAdmin(id))) {
+      throw new AppError(
+        "The last active admin cannot be demoted.",
+        ErrorCode.FORBIDDEN,
+      );
+    }
+    if (input.role !== undefined && id === actingUserId) {
+      throw new AppError(
+        "You cannot change your own role.",
+        ErrorCode.FORBIDDEN,
+      );
+    }
     return super.update(id, input);
   }
 
   async deactivate(id: string): Promise<void> {
     await this.updateAsAdmin(id, { active: false });
+  }
+
+  /** Whether `id` is an active admin and no other active admin exists. */
+  private async isLastActiveAdmin(id: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (user?.role !== "ADMIN" || !user.active) return false;
+    const otherActiveAdmins = await prisma.user.count({
+      where: { role: "ADMIN", active: true, id: { not: id } },
+    });
+    return otherActiveAdmins === 0;
   }
 
   /** How many accounts were created since `since`, or ever when it is null. */

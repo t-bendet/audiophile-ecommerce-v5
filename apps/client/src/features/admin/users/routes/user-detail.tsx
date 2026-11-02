@@ -7,9 +7,13 @@ import { QueryClient, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { Link, LoaderFunctionArgs, useParams } from "react-router";
 import { adminOrdersQueryOptions } from "../../orders/api/get-admin-orders";
-import { adminUserQueryOptions } from "../api/get-admin-users";
+import {
+  adminUserQueryOptions,
+  adminUsersQueryOptions,
+} from "../api/get-admin-users";
 import { AccountPanel } from "../components/account-panel";
 import { UserOrders } from "../components/user-orders";
+import { ACTIVE_ADMINS_FILTERS, isLastActiveAdmin } from "../roles";
 
 export default function AdminUserPage() {
   const { userId = "" } = useParams();
@@ -33,6 +37,9 @@ export default function AdminUserPage() {
 
 function UserDetail({ userId }: { userId: string }) {
   const { data } = useSuspenseQuery(adminUserQueryOptions(userId));
+  const { data: activeAdmins } = useSuspenseQuery(
+    adminUsersQueryOptions(ACTIVE_ADMINS_FILTERS),
+  );
   const { data: admin } = useQuery(getUserQueryOptions());
   const user = data.data;
 
@@ -41,7 +48,11 @@ function UserDetail({ userId }: { userId: string }) {
       <Metadata title={`${user.name} | Admin`} noIndex />
       <h2 className="text-lg font-bold tracking-200 uppercase">{user.name}</h2>
       <div className="grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
-        <AccountPanel user={user} isSelf={admin?.id === user.id} />
+        <AccountPanel
+          user={user}
+          isSelf={admin?.id === user.id}
+          isLastActiveAdmin={isLastActiveAdmin(user, activeAdmins.meta.total)}
+        />
         <UserOrders userId={user.id} />
       </div>
     </>
@@ -67,6 +78,9 @@ export const clientLoader =
     await Promise.all([
       queryClient.ensureQueryData(adminUserQueryOptions(userId)),
       queryClient.ensureQueryData(adminOrdersQueryOptions({ userId })),
+      queryClient.ensureQueryData(
+        adminUsersQueryOptions(ACTIVE_ADMINS_FILTERS),
+      ),
     ]);
     return null;
   };

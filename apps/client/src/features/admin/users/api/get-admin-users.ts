@@ -5,6 +5,7 @@ import {
   TExtendsRequestParams,
 } from "@/types/api";
 import {
+  ROLE,
   UserDTOResponse,
   UserDTOResponseSchema,
   UserGetAllResponse,
@@ -68,14 +69,14 @@ export const adminUserQueryOptions = (userId: string) =>
       getAdminUser({ userId, signal }),
   });
 
-// ** SetUserActive
+// ** UpdateUser
 
-const setUserActive = async (
+const updateUser = async (
   userId: string,
-  active: boolean,
+  body: { active: boolean } | { role: ROLE },
 ): Promise<UserDTOResponse> => {
   const api = getApi();
-  const response = await api.patch(`/users/${userId}`, { active });
+  const response = await api.patch(`/users/${userId}`, body);
   return parseEnvelope(UserDTOResponseSchema, response.data);
 };
 
@@ -83,7 +84,18 @@ const setUserActive = async (
 export const useSetUserActive = (userId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (active: boolean) => setUserActive(userId, active),
+    mutationFn: (active: boolean) => updateUser(userId, { active }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: adminUserKeys.all });
+    },
+  });
+};
+
+/** Promote or demote; a saved change refreshes every admin user list and detail. */
+export const useSetUserRole = (userId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (role: ROLE) => updateUser(userId, { role }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: adminUserKeys.all });
     },

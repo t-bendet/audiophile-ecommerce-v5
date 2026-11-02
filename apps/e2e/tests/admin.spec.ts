@@ -155,6 +155,93 @@ test.describe("an admin", () => {
     await expect(shopperPage).toHaveURL(/\/account/);
     await shopperContext.close();
   });
+
+  test("promotes a fresh shopper and demotes them again", async ({
+    page,
+    browser,
+    baseURL,
+    placeOrderAsFreshShopper,
+  }) => {
+    const { shopper } = await placeOrderAsFreshShopper();
+    const filters = page.getByRole("form", { name: "Filter users" });
+    const rows = page.getByRole("table").getByRole("row");
+    const openShopper = async () => {
+      await filters.getByLabel("Search").fill(shopper.email);
+      await filters.getByRole("button", { name: "Apply" }).click();
+      await expect(rows).toHaveCount(2);
+      await rows.last().getByRole("link").click();
+    };
+    const account = page.getByRole("region", { name: "Account" });
+
+    await page.goto("/admin/users");
+    await openShopper();
+    await expect(account.getByText("User", { exact: true })).toBeVisible();
+    await account.getByRole("button", { name: "Make admin" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Promote", exact: true })
+      .click();
+    await expect(account.getByText("Admin", { exact: true })).toBeVisible();
+
+    await page.getByRole("link", { name: "Back to users" }).click();
+    await filters.getByLabel("Search").fill(shopper.email);
+    await filters.getByRole("button", { name: "Apply" }).click();
+    await expect(rows.last().getByText("Admin", { exact: true })).toBeVisible();
+
+    // The shopper starts signed out in a browser of their own, as above.
+    const shopperContext = await browser.newContext({
+      baseURL,
+      storageState: { cookies: [], origins: [] },
+    });
+    const shopperPage = await shopperContext.newPage();
+    const adminItem = shopperPage.getByRole("link", {
+      name: "Admin",
+      exact: true,
+    });
+    await shopperPage.goto("/auth/login");
+    await shopperPage.getByLabel("Email").fill(shopper.email);
+    await shopperPage
+      .getByLabel("Password", { exact: true })
+      .fill(shopper.password);
+    await shopperPage.getByRole("button", { name: "Login" }).click();
+    await expect(shopperPage).toHaveURL(/\/account/);
+    await openUserMenu(shopperPage);
+    await expect(adminItem).toBeVisible();
+
+    await page.goto("/admin/users");
+    await openShopper();
+    await account.getByRole("button", { name: "Make shopper" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Demote", exact: true })
+      .click();
+    await expect(account.getByText("User", { exact: true })).toBeVisible();
+
+    await shopperPage.goto("/");
+    await openUserMenu(shopperPage);
+    await expect(
+      shopperPage.getByRole("link", { name: "Orders" }),
+    ).toBeVisible();
+    await expect(adminItem).toHaveCount(0);
+    await shopperContext.close();
+  });
+
+  test("offers no role control on their own page", async ({ page }) => {
+    await page.goto("/admin/users");
+    const filters = page.getByRole("form", { name: "Filter users" });
+    await filters.getByLabel("Search").fill(SEEDED_ADMIN.email);
+    await filters.getByRole("button", { name: "Apply" }).click();
+    const rows = page.getByRole("table").getByRole("row");
+    await expect(rows).toHaveCount(2);
+    await rows.last().getByRole("link").click();
+
+    const account = page.getByRole("region", { name: "Account" });
+    await expect(account).toContainText(SEEDED_ADMIN.email);
+    await expect(account.getByText("Admin", { exact: true })).toBeVisible();
+    await expect(
+      account.getByRole("button", { name: /^Make (admin|shopper)$/ }),
+    ).toHaveCount(0);
+  });
 });
 
 test.describe("a shopper", () => {
