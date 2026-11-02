@@ -31,3 +31,10 @@ mismatch. No service passes a `select` to Prisma in `persistFindMany`. Config ha
 list route, so it has no field selection at all and its service dropped the dead handling. A
 database-backed route test for users, products and categories requests a projection and parses the
 response against the entity's `*GetAllResponseSchema`.
+
+A per-row state the UI needs is derived rather than added as a member, since a new member is
+required on every response that parses the DTO. The admin role change in
+[#344](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/344) was the first design this
+decided: the user detail page reads whether its user is the last active admin from the total of an
+active-admins users list (`apps/client/src/features/admin/users/roles.ts`), because `UserDTO` is
+also what `/users/me`, login and signup answer.

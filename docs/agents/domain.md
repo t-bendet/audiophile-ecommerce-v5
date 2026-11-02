@@ -17,6 +17,7 @@ Read the glossary entries relevant to your task and use their terms in code, tes
 | Client feedback for server validation       | [0006: errors belong to the form](../adr/0006-server-validation-errors-belong-to-the-form.md)                       |
 | Catalogue sync or runtime catalogue edits   | [0007: the database owns the catalogue](../adr/0007-the-database-owns-the-catalogue-after-first-publish.md)         |
 | Client route guards and a role mismatch     | [0008: a route the role cannot reach is not found](../adr/0008-a-route-the-role-cannot-reach-is-not-found.md)       |
+| Deleting a user or a product                | [0010: nothing an order references is hard-deleted](../adr/0010-nothing-an-order-references-is-hard-deleted.md)     |
 
 Surface a conflict with an existing decision explicitly. For a new settled term or decision, read and apply the [domain-modeling skill](../../.agents/skills/domain-modeling/SKILL.md); it owns glossary and ADR formats. Proposals remain proposals until a decision is made.
 

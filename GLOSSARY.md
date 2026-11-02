@@ -18,7 +18,8 @@ has exactly one.
 _Avoid_: collection, department, type
 
 **Product**:
-A sellable item with one category, one price, its images and its included items.
+A sellable item with one category, one price, its images and its included items. A product an
+order item or a site config slot points at cannot be deleted.
 _Avoid_: item (reserved for cart and order lines), SKU, article
 
 **Slug**:
