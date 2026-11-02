@@ -264,8 +264,10 @@ page's JSON-LD, the robots file and the sitemap the preview proxies to the serve
 
 On the phone profile: the storefront menu opened from its button, listing the three categories and
 closing on the way to one; a guest mini-cart opened from the cart button and closed with Continue
-Shopping; and the admin tab bar, the only `Admin sections` navigation the phone shows, moving
-through Orders, Users, Products, Homepage and Stats.
+Shopping; the admin tab bar, the only `Admin sections` navigation the phone shows, moving
+through Orders, Users, Products, Homepage and Stats; and the auth pages' logo band, which replaces
+the desktop pane and its "Back to Home" link: on login its "Home" link leading back to the
+storefront, and on forgot password a reset link requested from the phone layout.
 
 Every checkout input is `required`, so the browser's constraint validation stops an empty submit
 before the form's schema runs: the spec asserts the focus move and every field `:invalid`, not the

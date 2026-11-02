@@ -1,9 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { paths } from "@/config/paths";
+import { cn } from "@/lib/cn";
 import { PASSWORD_RESET_EXPIRY_LABEL } from "@repo/domain";
 import { MailCheck } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Link } from "react-router";
+import {
+  authLeadClass,
+  authLinkClass,
+  authOverlineClass,
+  authTitleClass,
+} from "./auth-styles";
 
 type ResetLinkSentProps = {
   email: string;
@@ -25,18 +32,16 @@ export function ResetLinkSent({
         <MailCheck className="size-6" aria-hidden />
       </div>
       <div className="flex flex-col gap-3">
-        <p className="text-xs font-bold tracking-600 text-primary-500 uppercase">
-          Account recovery
-        </p>
+        <p className={authOverlineClass}>Account recovery</p>
         <h1
           ref={headingRef}
           tabIndex={-1}
-          className="text-2xl font-bold tracking-300 uppercase outline-none md:text-3xl"
+          className={cn(authTitleClass, "outline-none")}
         >
           Check your inbox
         </h1>
       </div>
-      <p className="opacity-50">
+      <p className={authLeadClass}>
         If an account exists for <strong>{email}</strong>, we have sent it a
         link to reset the password. The link works once and expires in{" "}
         {PASSWORD_RESET_EXPIRY_LABEL}.
@@ -46,7 +51,7 @@ export function ResetLinkSent({
         <button
           type="button"
           onClick={onTryAnotherEmail}
-          className="cursor-pointer font-bold text-primary-500"
+          className={cn(authLinkClass, "cursor-pointer")}
         >
           try another email
         </button>

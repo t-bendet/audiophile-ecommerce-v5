@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Container } from "@/components/ui/container";
 import {
   Field,
   FieldError,
@@ -18,6 +17,14 @@ import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
+import {
+  authInputClass,
+  authLabelClass,
+  authLeadClass,
+  authLinkClass,
+  authOverlineClass,
+  authTitleClass,
+} from "./auth-styles";
 import { ResetLinkSent } from "./reset-link-sent";
 
 export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
@@ -52,7 +59,7 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
   });
 
   return (
-    <Container classes={cn("flex flex-col gap-6 text-neutral-900", className)}>
+    <div className={cn("flex flex-col gap-6", className)}>
       {sentTo ? (
         <ResetLinkSent
           email={sentTo}
@@ -61,13 +68,9 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
       ) : (
         <>
           <div className="flex flex-col gap-3">
-            <p className="text-xs font-bold tracking-600 text-primary-500 uppercase">
-              Account recovery
-            </p>
-            <h1 className="text-2xl font-bold tracking-300 uppercase md:text-3xl">
-              Forgot your password?
-            </h1>
-            <p className="opacity-50">
+            <p className={authOverlineClass}>Account recovery</p>
+            <h1 className={authTitleClass}>Forgot your password?</h1>
+            <p className={authLeadClass}>
               Enter the email you signed up with and we will send you a link to
               set a new one.
             </p>
@@ -87,7 +90,12 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
                     field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                      <FieldLabel
+                        htmlFor={field.name}
+                        className={authLabelClass}
+                      >
+                        Email
+                      </FieldLabel>
                       <Input
                         id={field.name}
                         name={field.name}
@@ -95,6 +103,7 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         aria-invalid={isInvalid}
+                        className={authInputClass}
                         placeholder="m@example.com"
                         type="email"
                         required
@@ -124,12 +133,9 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
                     "Send reset link"
                   )}
                 </Button>
-                <p className="text-center text-sm">
+                <p className="text-sm">
                   Remembered it?{" "}
-                  <Link
-                    to={paths.auth.login.path}
-                    className="font-bold text-primary-500"
-                  >
+                  <Link to={paths.auth.login.path} className={authLinkClass}>
                     Back to login
                   </Link>
                 </p>
@@ -138,6 +144,6 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
           </form>
         </>
       )}
-    </Container>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Container } from "@/components/ui/container";
 import {
   Field,
   FieldError,
@@ -21,6 +20,13 @@ import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { PasswordStrengthMeter } from "./password-strength-meter";
 import { PasswordVisibilityToggle } from "./password-visibility-toggle";
+import {
+  authInputClass,
+  authLabelClass,
+  authLeadClass,
+  authOverlineClass,
+  authTitleClass,
+} from "./auth-styles";
 import { ResetLinkExpired } from "./reset-link-expired";
 
 export function ResetPasswordForm({ className }: React.ComponentProps<"div">) {
@@ -69,19 +75,15 @@ export function ResetPasswordForm({ className }: React.ComponentProps<"div">) {
   });
 
   return (
-    <Container classes={cn("flex flex-col gap-6 text-neutral-900", className)}>
+    <div className={cn("flex flex-col gap-6", className)}>
       {isLinkExpired ? (
         <ResetLinkExpired />
       ) : (
         <>
           <div className="flex flex-col gap-3">
-            <p className="text-xs font-bold tracking-600 text-primary-500 uppercase">
-              Account recovery
-            </p>
-            <h1 className="text-2xl font-bold tracking-300 uppercase md:text-3xl">
-              Set a new password
-            </h1>
-            <p className="opacity-50">
+            <p className={authOverlineClass}>Account recovery</p>
+            <h1 className={authTitleClass}>Set a new password</h1>
+            <p className={authLeadClass}>
               Choose a password you have not used on this site before.
             </p>
           </div>
@@ -106,7 +108,12 @@ export function ResetPasswordForm({ className }: React.ComponentProps<"div">) {
                     field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={field.name}>New password</FieldLabel>
+                      <FieldLabel
+                        htmlFor={field.name}
+                        className={authLabelClass}
+                      >
+                        New password
+                      </FieldLabel>
                       <div className="relative">
                         <Input
                           id={field.name}
@@ -117,7 +124,7 @@ export function ResetPasswordForm({ className }: React.ComponentProps<"div">) {
                           aria-invalid={isInvalid}
                           aria-describedby="password-hint"
                           autoComplete="new-password"
-                          className="pr-16"
+                          className={cn(authInputClass, "pr-16")}
                           type={isPasswordVisible ? "text" : "password"}
                           required
                         />
@@ -149,7 +156,10 @@ export function ResetPasswordForm({ className }: React.ComponentProps<"div">) {
                     field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={field.name}>
+                      <FieldLabel
+                        htmlFor={field.name}
+                        className={authLabelClass}
+                      >
                         Confirm new password
                       </FieldLabel>
                       <div className="relative">
@@ -161,7 +171,7 @@ export function ResetPasswordForm({ className }: React.ComponentProps<"div">) {
                           onChange={(e) => field.handleChange(e.target.value)}
                           aria-invalid={isInvalid}
                           autoComplete="new-password"
-                          className="pr-16"
+                          className={cn(authInputClass, "pr-16")}
                           type={isPasswordConfirmVisible ? "text" : "password"}
                           required
                         />
@@ -202,6 +212,6 @@ export function ResetPasswordForm({ className }: React.ComponentProps<"div">) {
           </form>
         </>
       )}
-    </Container>
+    </div>
   );
 }

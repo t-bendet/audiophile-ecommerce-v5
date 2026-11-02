@@ -115,9 +115,6 @@ the group block.
 
 ### 1. Email foundation and account recovery
 
-- Auth layout visuals. The layout is a bare muted background with a form card; it gains two reset
-  pages in this group.
-
 Why first: the two visible promises the site does not keep, and the smallest group with an external
 dependency. Depends on: the email provider decision. Unblocks: status notifications in group 3 and
 anything else that sends mail.

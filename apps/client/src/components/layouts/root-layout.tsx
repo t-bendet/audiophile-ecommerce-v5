@@ -1,10 +1,5 @@
 import { getCategoriesQueryOptions } from "@/features/categories/api/get-categories";
-import {
-  AUTH_LOGIN_MUTATION_KEY,
-  AUTH_LOGOUT_MUTATION_KEY,
-  AUTH_SIGNUP_MUTATION_KEY,
-  USER_QUERY_KEY,
-} from "@/lib/auth";
+import { AUTH_LOGOUT_MUTATION_KEY, USER_QUERY_KEY } from "@/lib/auth";
 import {
   QueryClient,
   useIsFetching,
@@ -16,12 +11,9 @@ import LoadingSpinner from "../ui/loading-spinner";
 
 export function RootLayout() {
   const isFetching = useIsFetching({ queryKey: [USER_QUERY_KEY] });
+  // The auth forms show their own pending state on the submit button.
   const isMutating = useIsMutating({
-    mutationKey: [
-      AUTH_LOGIN_MUTATION_KEY,
-      AUTH_LOGOUT_MUTATION_KEY,
-      AUTH_SIGNUP_MUTATION_KEY,
-    ],
+    mutationKey: [AUTH_LOGOUT_MUTATION_KEY],
   });
 
   const isLoading = isFetching + isMutating > 0;
