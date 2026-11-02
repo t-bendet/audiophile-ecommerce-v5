@@ -12,7 +12,7 @@ from a primary source, the text says so.
 
 ## Recommendation
 
-**Use Resend, sending from `mail.t-bendet.com`, over its HTTPS API with the vendor's fetch-based
+**Use Resend, sending from `audiophile.t-bendet.com`, over its HTTPS API with the vendor's fetch-based
 `resend` package or a plain `fetch` call.** At this store's volume it costs nothing (3,000 emails a
 month, 100 a day, no card, no account review before the first send), it is the only one of the
 five candidates with a documented server-side idempotency key, which is what makes "send the order
@@ -461,36 +461,38 @@ What the zone publishes today, read through DNS-over-HTTPS on 2026-11-02: an ape
 (Porkbun mail forwarding for the portfolio), and `_dmarc.t-bendet.com` TXT
 `v=DMARC1; p=none; rua=mailto:…@dmarc-reports.cloudflare.net,mailto:…`. None of these change.
 
-Send from the subdomain `mail.t-bendet.com`, not the apex. Resend recommends a subdomain
+Send from the subdomain `audiophile.t-bendet.com`, the application's own hostname, not the apex. Resend recommends a subdomain
 ([domains](https://resend.com/docs/dashboard/domains/introduction)), and so do Mailgun and
 Cloudflare; the concrete reason here is that the apex already carries the portfolio's forwarding MX
 and SPF, so the store's bounces and complaints should build their own reputation rather than share
-the portfolio's. The From address becomes something like `Audiophile <no-reply@mail.t-bendet.com>`.
+the portfolio's, and the From address reads as the store: `Audiophile <no-reply@audiophile.t-bendet.com>`.
+The hostname is a Worker custom domain, which does not prevent TXT and MX records on names beneath
+it; a later project on `t-bendet.com` takes its own subdomain.
 These are plain DNS records, so the Universal SSL one-level limit recorded in ADR 0005 does not
 apply; it would only matter for the optional click-tracking CNAME, which this plan omits.
 
-Add the domain `mail.t-bendet.com` in Resend, pick the region, then add these records in the
+Add the domain `audiophile.t-bendet.com` in Resend, pick the region, then add these records in the
 Cloudflare DNS editor. The Name column is what goes in Cloudflare's Name field, which appends the
 zone ("Use `send`, not `send.example.com`" per the [Cloudflare guide](https://resend.com/docs/dashboard/domains/cloudflare)).
 Values in angle brackets are issued by Resend at setup time and must be copied from its dashboard.
 
-| Type | Name                     | Value                                               | Proxy status                     | Note                                                                                                                                                                  |
-| ---- | ------------------------ | --------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TXT  | `resend._domainkey.mail` | `p=<DKIM public key issued by Resend>`              | DNS only (TXT cannot be proxied) | DKIM. One TXT, not a CNAME.                                                                                                                                           |
-| MX   | `send.mail`              | `feedback-smtp.<region>.amazonses.com`, priority 10 | DNS only (MX cannot be proxied)  | Return path. `<region>` is `eu-west-1` or `us-east-1` and must match the region chosen in Resend; if Cloudflare appends the zone, end the value with a dot.           |
-| TXT  | `send.mail`              | `v=spf1 include:amazonses.com ~all`                 | DNS only                         | SPF for the return-path host. New name, so nothing to merge.                                                                                                          |
-| TXT  | `_dmarc`                 | existing `v=DMARC1; p=none; rua=…`                  | n/a                              | Already present. No `sp=` tag, so the `p=none` policy applies to `mail.t-bendet.com` as well (RFC 7489 §6.3). Tighten to `quarantine` after a clean month of reports. |
+| Type | Name                           | Value                                               | Proxy status                     | Note                                                                                                                                                                        |
+| ---- | ------------------------------ | --------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TXT  | `resend._domainkey.audiophile` | `p=<DKIM public key issued by Resend>`              | DNS only (TXT cannot be proxied) | DKIM. One TXT, not a CNAME.                                                                                                                                                 |
+| MX   | `send.audiophile`              | `feedback-smtp.<region>.amazonses.com`, priority 10 | DNS only (MX cannot be proxied)  | Return path. `<region>` is `eu-west-1` or `us-east-1` and must match the region chosen in Resend; if Cloudflare appends the zone, end the value with a dot.                 |
+| TXT  | `send.audiophile`              | `v=spf1 include:amazonses.com ~all`                 | DNS only                         | SPF for the return-path host. New name, so nothing to merge.                                                                                                                |
+| TXT  | `_dmarc`                       | existing `v=DMARC1; p=none; rua=…`                  | n/a                              | Already present. No `sp=` tag, so the `p=none` policy applies to `audiophile.t-bendet.com` as well (RFC 7489 §6.3). Tighten to `quarantine` after a clean month of reports. |
 
 Cloudflare's own reference states the proxy rule: "Only records used for IP address resolution — A,
 AAAA, and CNAME records — can be proxied", and "Records used for other purposes, such as CNAME
 records that prove your domain ownership, should not be proxied"
 ([proxied DNS records](https://developers.cloudflare.com/dns/manage-dns-records/reference/proxied-dns-records/)).
 TXT and MX records therefore cannot be set wrong; the orange cloud only becomes a trap if the
-optional `links.mail` CNAME → `links1.resend-dns.com` is ever added for click tracking, and that
+optional `links.audiophile` CNAME → `links1.resend-dns.com` is ever added for click tracking, and that
 record must be DNS only.
 
 Existing-record check: the SPF merge rule ("if the domain already has an SPF TXT, extend it rather
-than adding a second") does not bite because Resend's SPF lives on `send.mail.t-bendet.com`, a name
+than adding a second") does not bite because Resend's SPF lives on `send.audiophile.t-bendet.com`, a name
 with no records today. The same is true if the apex were used as the sending domain instead
 (records would land on `send.t-bendet.com` and `resend._domainkey.t-bendet.com`). The apex SPF and
 Porkbun MX stay untouched either way. The DMARC record already exists; do not add a second
@@ -505,11 +507,11 @@ variable" ([roadmap](../ROADMAP.md)).
 
 Proposed names:
 
-| Name                   | Kind          | Value                                                                                        | Needed when                                                             |
-| ---------------------- | ------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `EMAIL_API_KEY`        | Worker secret | Resend key created with `sending_access` and restricted to `mail.t-bendet.com`               | Production only; the schema requires it only when `NODE_ENV=production` |
-| `EMAIL_FROM`           | Plain var     | Bare address, e.g. `no-reply@mail.t-bendet.com`; the display name "Audiophile" lives in code | Always; validated with `z.email()`                                      |
-| `EMAIL_WEBHOOK_SECRET` | Worker secret | Resend webhook signing secret (`whsec_…`)                                                    | Only when the bounce/complaint webhook slice lands; absent until then   |
+| Name                   | Kind          | Value                                                                                              | Needed when                                                             |
+| ---------------------- | ------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `EMAIL_API_KEY`        | Worker secret | Resend key created with `sending_access` and restricted to `audiophile.t-bendet.com`               | Production only; the schema requires it only when `NODE_ENV=production` |
+| `EMAIL_FROM`           | Plain var     | Bare address, e.g. `no-reply@audiophile.t-bendet.com`; the display name "Audiophile" lives in code | Always; validated with `z.email()`                                      |
+| `EMAIL_WEBHOOK_SECRET` | Worker secret | Resend webhook signing secret (`whsec_…`)                                                          | Only when the bounce/complaint webhook slice lands; absent until then   |
 
 `EMAIL_FROM` is deliberately a bare address so that the existing `z.email()` validation shape can be
 reused and the display name does not need quoting rules in a `.env` file. No reply-to is wanted; if that
@@ -530,7 +532,7 @@ Files to touch, in the order the deployment runbook names them
    `.refine` that already makes `DATABASE_URL` production-only strict so that `EMAIL_API_KEY` is
    required when `NODE_ENV === "production"`. The same file's `LOG_LEVEL_DEFAULTS` is the precedent
    for a per-`NODE_ENV` table.
-4. [`apps/server/.env.example`](../../apps/server/.env.example): add `EMAIL_FROM=no-reply@mail.t-bendet.com`
+4. [`apps/server/.env.example`](../../apps/server/.env.example): add `EMAIL_FROM=no-reply@audiophile.t-bendet.com`
    and a commented `# EMAIL_API_KEY=` line explaining it is unused in development.
 5. [`apps/server/.dev.vars.example`](../../apps/server/.dev.vars.example): add `EMAIL_FROM`. That
    file runs the local container with `NODE_ENV=test`, so no key is needed there.
@@ -583,11 +585,12 @@ to a route under `/api/v1/…`, which already reaches the container through the 
 Settled 2026-11-02 after the re-verification above. These answer the questions the first draft left
 open.
 
-1. **From address: `no-reply@mail.t-bendet.com`.** The apex keeps the portfolio's Porkbun forwarding
-   MX and SPF; the store's bounces and complaints build their own reputation on the subdomain. The
-   DNS table above is final.
+1. **From address: `no-reply@audiophile.t-bendet.com`.** The apex keeps the portfolio's Porkbun
+   forwarding MX and SPF; the store's bounces and complaints build their own reputation on its own
+   hostname, and the From address names the store rather than a generic `mail.` label. The DNS table
+   above is final.
 2. **Resend region: `eu-west-1`.** Stored data is in the United States whichever region is chosen, so
-   this sets only the dispatch location and the `send.mail` MX value. Ireland is the nearer hop for
+   this sets only the dispatch location and the `send.audiophile` MX value. Ireland is the nearer hop for
    recipients in Europe and the Middle East. The region is fixed per domain, so it is set once when
    the domain is added.
 3. **No reply-to.** Password resets and order confirmations are no-reply by nature and the store has
