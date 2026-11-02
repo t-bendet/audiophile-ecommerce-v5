@@ -39,10 +39,11 @@ Done when all five have an explicit answer.
 Read the roadmap and explore the codebase enough to name the files each candidate would touch.
 Then present, as numbered lists:
 
-- **Candidates** matching the criteria, one line each saying why it fits.
-- **Routed to wayfinder**: every item under the roadmap's "needs a design or UX pass" or "Blocked on
-  the admin dashboard" headings, and any other whose reason names an open design or product
-  decision. Tell the user to run `/wayfinder` on those; they stay out of this batch.
+- **Candidates** matching the criteria, drawn from the lowest-numbered group whose "Human first"
+  decisions are resolved, one line each saying why it fits.
+- **Routed to a decision skill**: every item in a group whose "Human first" line is unresolved, and
+  everything under "Parked". The roadmap's "How the roadmap is worked" section names the skill for
+  that group; tell the user to run it, and keep those items out of this batch.
 - **Shared files**: each pair of candidates that touches the same file, which needs a blocking edge
   or an agreed order.
 
