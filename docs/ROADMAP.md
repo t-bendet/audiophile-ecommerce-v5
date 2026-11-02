@@ -10,7 +10,8 @@ Product features, none of them specced yet:
 
 - Forgot password & reset flow. The `User` model already has `passwordResetToken` / `passwordResetExpires`; needs an email provider decision. The "Forgot your password?" link in `login-form.tsx` is a dead `href="#"` until this lands.
 - Order confirmation emails (shares the email infrastructure above).
-- Admin dashboard: specced and tracked in #319 (order fulfilment, user management, product edit and homepage config, analytics). What it deliberately leaves out is under "Deferred from the admin dashboard" below.
+- Image uploads from the admin dashboard. Images are files in `packages/media` today, published to R2 by `pnpm --filter @repo/media media:sync`; a dashboard upload would have to write to the bucket and to the catalogue's storage keys in one step. Unblocks product creation and category management under "Deferred from the admin dashboard" below.
+- `isNewProduct` as a value derived from an arrival date. No such date exists today (only `createdAt`, which is seed time); needs a new field plus a rule such as "less than a year old". Until then the admin product form edits the manual flag.
 - Advanced product filtering: price range, features, availability.
 - Product search: full-text, autocomplete, highlighting.
 - Product reviews & ratings.
@@ -35,9 +36,9 @@ Client work that needs a design or UX pass before it can be specced (from the #1
 
 ## Deferred from the admin dashboard
 
-Decided out of scope when the dashboard was specced in #319 (2026-11-01). Each names what unblocks it. [ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md) records the catalogue ownership change the dashboard required.
+Decided out of scope when the dashboard was specced in #319 (2026-11-01) and shipped without them (#330 to #334). Each names what unblocks it. [ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md) records the catalogue ownership change the dashboard required.
 
-- Product creation from the dashboard. Blocked on image uploads (see the next section): a new product needs image keys that exist in the bucket.
+- Product creation from the dashboard. Blocked on image uploads (under "Features" above): a new product needs image keys that exist in the bucket.
 - Product delete or archive. Order items and cart items reference products without a cascade, so a hard delete would dangle them. Needs an "unavailable" or "archived" state, which pairs with inventory management and the availability filter.
 - Category management. Three fixed categories are a product decision; category thumbnails are images, so this also waits on uploads. The `NAME` enum replacement stays blocked.
 - Role changes from the user management UI. Promotion and demotion are the `db:role` script for now. The UI version needs a self-demotion guard and a last-admin guard.
@@ -49,11 +50,11 @@ Decided out of scope when the dashboard was specced in #319 (2026-11-01). Each n
 - Full-text order search over names and addresses. The admin list filters on order id and customer email only. Part of product search or its own item.
 - `useSuspense` in the user dropdown and React Query stale-time tuning for auth. Left out of the middleware refactor; performance items with no trigger yet.
 
-## Blocked on the admin dashboard
+## Blocked on category management
+
+Re-triaged when the admin dashboard shipped (#319): the dashboard did not add category management or image uploads, so only this item is still blocked, and on category management rather than on the dashboard. The other two former entries moved under "Features".
 
 - Replace the `NAME` enum on `Category` with `name: String` + `slug: String @unique`. Touches the Prisma enum, the domain Zod schemas, the `/products/category/:category` route param, `config/paths.ts`, the category route and `seo/metadata.tsx`. Only pays off once categories are created at runtime.
-- `isNewProduct` as a value derived from an arrival date. No such date exists today (only `createdAt`, which is seed time); needs a new field plus a rule such as "less than a year old". Until then the manual flag stays.
-- Image uploads from the dashboard. Images are files in `packages/media` today, published to R2 by `pnpm --filter @repo/media media:sync`; a dashboard upload would have to write to the bucket and to the catalogue's storage keys in one step.
 
 ## Removed in the #162 triage
 
