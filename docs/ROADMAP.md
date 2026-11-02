@@ -6,10 +6,12 @@ not specced work: a group becomes GitHub issues when its turn comes, following t
 
 The grouping was drawn up on 2026-11-02 against the code at that date; the facts quoted in each
 group were checked then. Group 0, the debt sprint, closed in
-[#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340) on 2026-11-02; what it
-settled is folded into the blocks below, which were checked again at its close. Groups 1 to 4 are
-ordered with intent. The order of groups 5 to 9 is provisional and is reconsidered at every group
-boundary.
+[#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340), and group 1, email
+foundation and account recovery, in
+[#350](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/350), both on 2026-11-02; what
+they settled is folded into the blocks below, which were checked again at each close. Groups 2 to 4
+are ordered with intent. The order of groups 5 to 9 is provisional and is reconsidered at every
+group boundary.
 
 ## How the roadmap is worked
 
@@ -26,11 +28,11 @@ the group block.
   ([#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340)) was. Run
   [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) only when they should also be shipped in
   the same session; it hands the queue to batch-tickets.
-- One decision or one design pass (groups 1, 2, 3, 7): write the parent issue first, then run
+- One decision or one design pass (groups 2, 3, 7): write the parent issue first, then run
   [to-tickets](../.agents/skills/to-tickets/SKILL.md) against it so the human session becomes its
   first sub-issue, labelled `ready-for-human`, and the agent slices are specced in the same pass,
-  as [#319](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/319) was with its design
-  pass #320. The human ticket runs the matching skill:
+  as [#350](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/350) was for group 1 with
+  its research session #351 and its design pass #352. The human ticket runs the matching skill:
   [research](../.agents/skills/research/SKILL.md) for a provider comparison,
   [prototype](../.agents/skills/prototype/SKILL.md) for a UI question,
   [grilling](../.agents/skills/grilling/SKILL.md) for semantics. Its close amends the slices the
@@ -51,12 +53,15 @@ the group block.
 
 - Humans decide for group N+1 while agents ship group N. The human ticket is the first sub-issue of
   every group, so the agent slices it blocks can run as one batch once it closes.
-- The first slice of a group that introduces a new seam (an email transport, an upload path, a
-  payment webhook) stops at PR open for a hand review; the rest of the batch auto-merges on green.
+- The first slice of a group that introduces a new seam (an upload path, a payment webhook; the
+  email transport in #353 was the first) stops at PR open for a hand review; the rest of the batch
+  auto-merges on green.
 - Group-scoped decisions live in the parent issue and its comments. Durable ones become ADRs, as the
   catalogue ownership change did in
-  [ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md). When a batch shows an
-  assumption was wrong: stop the batch, update the parent issue, re-spec only the slices still open.
+  [ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md) and the email
+  transport in [ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md).
+  When a batch shows an assumption was wrong: stop the batch, update the parent issue, re-spec only
+  the slices still open.
 - Every group ends with a closing re-triage ticket, blocked by every other slice, so the batch cannot
   finish without it. Its PR closes the parent and stops at PR open for review. It removes the closed
   group's block, carries every decision the group settled back into this file and the ADRs, reads
@@ -75,10 +80,25 @@ the group block.
   attributes, rating aggregates) needs a backfill or must be optional; Prisma on MongoDB fails a read
   when a required field is missing from a document. The first group to add one establishes the
   migration pattern and records it as an ADR.
-- Every external provider (email, R2 write access, a payment gateway) is a Worker secret, the
-  Worker's env forwarding and the server env schema, as the [deployment runbook](deployment.md)
-  describes. A human provisions; an agent wires.
-- Test doubles for email and payments switch on `NODE_ENV=test` only, never on a second variable.
+- Every external provider (R2 write access, a payment gateway; email is wired) is a Worker secret,
+  the Worker's env forwarding and the server env schema, as the [deployment runbook](deployment.md)
+  describes. `EMAIL_API_KEY` is the precedent: #351 provisioned it, #353 wired it. A human
+  provisions; an agent wires. Any server variable reaches seven places, listed in
+  [ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md), as `EMAIL_FROM`
+  and `CLIENT_URL` did; an existing local `apps/server/.env` needs a new required one added by
+  hand.
+- Test doubles switch on `NODE_ENV=test` only, never on a second variable. The email double is the
+  in-memory outbox of
+  [ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md), read directly by route tests and over HTTP by E2E through `GET /api/v1/test/outbox?to=` on a
+  router mounted only under test. A payment gateway stub takes the same shape, and a route E2E
+  needs for it joins that router.
+- Every email is a template function in `apps/server/src/emails` (raw HTML plus text) and a method
+  on `email.service.ts` that sends it with an `Idempotency-Key` named after its business event,
+  awaited, logged on failure and never failing the request. Its links are built on `CLIENT_URL`,
+  never the request's `Host`
+  ([ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md)). Any password
+  write ends the user's other sessions
+  ([ADR 0012](adr/0012-a-password-reset-link-works-once-and-is-stored-only-as-its-hash.md)).
 - `media:sync --prune` deletes any bucket key the repo does not have. The first dashboard upload
   makes it destructive, so the upload slice scopes or retires it.
 - A per-row state the UI needs is not a new DTO member: every member is required and the schema is
@@ -92,8 +112,9 @@ the group block.
   `CATALOGUE_LOCK`, puts back through the API what it changed, and never orders a disposable
   product ([E2E fixtures](../apps/e2e/README.md#fixtures)).
 
-**Closing re-triage.** The checklist each group's last sub-issue carries; it first ran as
-[#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347) for group 0.
+**Closing re-triage.** The checklist each group's last sub-issue carries; it ran as
+[#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347) for group 0 and
+[#357](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/357) for group 1.
 
 1. The closed group's block and any item lines still standing are removed.
 2. Every decision settled in the parent issue, its slices or their PR reviews that differs from what
@@ -113,31 +134,17 @@ the group block.
 
 ## Groups in order
 
-### 1. Email foundation and account recovery
-
-Why first: the two visible promises the site does not keep, and the smallest group with an external
-dependency. Depends on: the email provider decision. Unblocks: status notifications in group 3 and
-anything else that sends mail.
-
-Human first: the email provider (an HTTP-API provider rather than SMTP out of the container), the
-sending domain's DNS records, the secret, and a design pass on the auth layout. Brief under
-"Session briefs" below.
-
-Agent-decidable with guidance: a transport that becomes an in-memory outbox under `NODE_ENV=test`,
-readable by route tests and E2E. `apps/e2e` imports nothing from the apps, so E2E reads it over
-HTTP, and the parent issue decides that test-only route. Also: a hashed reset token at rest; the
-existing reset limiter mounted; the confirmation sent at checkout as "order received", since
-payment is still set by hand.
-
-Size: M, four or five agent tickets and one design pass.
-
 ### 2. Storefront loading states and dialogs
 
 - Skeleton loaders for images and sections. `ui/skeleton.tsx` is used on every admin page;
   `product-skeleton.tsx` and `products-list-skeleton.tsx` are dead code. The storefront shows
   spinners: there is no navigation pending UI and no route-level Suspense boundary, the home loader
   prefetches without awaiting so the hero always spins, and the signed-in dropdown renders raw
-  "Loading..." text.
+  "Loading..." text. The root layout's full-page overlay now fires for the logout mutation and the
+  user fetch only: [#356](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/356) removed
+  the login and signup keys, whose three-element prefix filter had matched no mutation. The four
+  auth forms show pending on their own submit button (`Spinner` plus a progress label), a pattern a
+  storefront form can reuse.
 - Preload critical resources. Fonts have `preconnect` and `rel=preload`; both hero images load
   `eager` with `fetchPriority="high"`. The remaining candidate, `react-dom`'s `preload()` for the
   featured image from the home loader, needs the loader to await the featured query, which is the
@@ -175,15 +182,27 @@ Size: S to M, three or four agent tickets and one prototype session.
   update is read-then-write with no guard on the current status, so adding the event record is the
   moment to make the transition atomic.
 - Customer notifications on order status change. Sent from the code that writes the history entry,
-  through group 1's transport.
+  through the transport
+  [ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md) shipped: a
+  template function in `apps/server/src/emails` and an `email.service.ts` method whose
+  `Idempotency-Key` names the event (`order-status/<orderId>/<status>`, say), awaited and logged on
+  failure, never failing the update. The route test reads `outbox`; E2E uses the `outbox(to)`
+  fixture. Delivery events are not wired: the [email provider note](research/email-provider.md)
+  names `EMAIL_WEBHOOK_SECRET` and a raw-body route for the slice that wants bounces and complaints.
 
-Depends on: group 1 for the notification slice only; the rest can start earlier. Unblocks: the
-delivered-purchase check for reviews (group 7), the gateway's event trail (group 8), status timings
-in analytics (group 9).
+Depends on: nothing outside the group; group 1 shipped the transport the notification slice
+needs. Unblocks: the delivered-purchase check for reviews (group 7), the gateway's event trail
+(group 8), status timings in analytics (group 9).
 
 Human first: a short design pass for the shopper's order detail page and timeline. The account
 area's profile and security pages are placeholder cards today, so this pass sets the account area's
-pattern. The security page closes a gap reported in
+pattern. `/account/profile` is where a password reset now lands
+([#355](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/355)), so its placeholder card
+is the first thing a recovered shopper sees. A change-password form on the security page has its
+parts: `PATCH /auth/updateMyPassword` with `AuthUpdatePasswordRequestSchema`, the signup strength
+meter and hint the reset page reuses, and the rule that a password write ends every other session
+([ADR 0012](adr/0012-a-password-reset-link-works-once-and-is-stored-only-as-its-hash.md)). The
+security page also closes a gap reported in
 [#344](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/344): `DELETE /users/deleteMe`
 deactivates through `UserService.deactivate`, which calls `updateAsAdmin` without an acting user, so
 the sole active admin can still deactivate themselves there. Agent default unless overruled:
@@ -219,7 +238,7 @@ Size: M, four or five agent tickets and one short design pass.
   set in the creation form. The first catalogue field added after ADR 0007, so this sets the
   migration pattern.
 
-Why fourth: the longest pole with the most human decisions, so its map opens while groups 1 to 3
+Why fourth: the longest pole with the most human decisions, so its map opens while groups 2 and 3
 run. Nothing downstream (filter, search, archive, inventory) is worth much on a six-product
 catalogue. Unblocks: groups 5 and 6 in practice.
 
@@ -294,7 +313,12 @@ Size: M to L, five or six agent tickets and one design pass.
 ### 8. Checkout and payments
 
 - Payment gateway. The payment method is a free string the client sets; Paid and Refunded are set by
-  hand. The gateway replaces the manual toggles.
+  hand. The gateway replaces the manual toggles. Since
+  [#353](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/353) the checkout's methods are
+  `PAYMENT_METHODS` in `@repo/domain`, and the order-received email and the confirmation page both
+  print `paymentInstructions(method)` from the same package, so the gateway rewrites that sentence
+  in one place plus the tests that assert it (`order.route.test.ts`, `order.spec.ts` and the domain
+  test).
 - Coupling between payment status and order status. "Refund requires paid" is already enforced by
   the payment transition table; "cancel implies refund" is not, and arrives with the gateway.
 - Checkout enhancement: address book, multiple payment methods. The address book is user-owned
@@ -312,7 +336,10 @@ ten idle minutes and cold-starts in about four seconds, so lean on the provider'
 
 Depends on: group 3's event actor. Human first, as a wayfinder map: the gateway and integration
 style (hosted page or embedded elements), the provider account, test keys and webhook secret, and a
-checkout design pass. Test double: a gateway stub under `NODE_ENV=test`.
+checkout design pass. Test double: a gateway stub shaped like the email transport
+([ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md)): one module
+selects it from `NODE_ENV` alone, and a route E2E needs joins the test-only `/api/v1/test` router.
+The provider key and webhook secret are wired as `EMAIL_API_KEY` was.
 
 Size: L, six or seven agent tickets, one map, one design pass.
 
@@ -329,36 +356,6 @@ S to M, about three tickets.
 
 The human sessions for the next groups, written out so they can start cold.
 
-### Group 1: pick the email provider
-
-Run `/research` in a session on `main` with this brief:
-
-```text
-Question: which transactional email provider should Audiophile use for password reset, order
-confirmation and, later, order status notifications?
-
-Context: the API is Express in a Cloudflare Container behind a Worker (docs/ARCHITECTURE.md,
-docs/deployment.md). Outbound SMTP from the container is unproven; an HTTP API is preferred.
-Volume is tiny. The sending domain is t-bendet.com. Secrets are wired in three places per
-docs/deployment.md. Tests swap the transport under NODE_ENV=test for an in-memory outbox; no
-second toggle.
-
-Compare at least Resend, Postmark, Mailgun and Amazon SES on: free tier and price at low volume,
-Node SDK or plain fetch API, domain verification steps (SPF, DKIM, DMARC), sandbox or test mode,
-delivery event webhooks, templates versus raw HTML, EU data option.
-
-Deliver docs/research/email-provider.md with a recommendation, the DNS records to add and the
-secret names the server will need. Change no other file.
-```
-
-Then create the provider account, add the DNS records, run `wrangler secret put` for the key, and
-record the choice at the top of the group 1 parent issue when it is written.
-
-The auth layout design pass is a `/prototype` session with the brief: "the auth layout gains a
-forgot-password page and a reset-password page; show the layout with the storefront's logo and
-imagery, then the two new pages, on mobile and desktop". Its output is a design note beside
-[the admin dashboard design note](research/admin-dashboard-design.md).
-
 ### Group 2: loading states and dialogs prototype
 
 Run `/prototype` with this brief:
@@ -372,7 +369,9 @@ products-list-skeleton.tsx are unused. There is no navigation pending UI and no 
 Suspense boundary; the category, product and account loaders await ensureQueryData, so a click
 leaves the old page on screen. The home loader prefetches without awaiting, so the hero always
 shows a spinner and its image URL is unknown at loader time, which blocks a react-dom preload()
-call. The signed-in dropdown renders the text "Loading...". The mobile menu is a Radix Dialog with
+call. The signed-in dropdown renders the text "Loading...". The root layout's full-page overlay
+fires for the logout mutation and the user fetch only; the four auth forms show pending on their
+submit button (Spinner plus a progress label, #356). The mobile menu is a Radix Dialog with
 overrides (a leftover placeholder description, an aria-describedby pointing at nothing); the
 mini-cart is a vaul Drawer; the thank-you is inline content; the shared Dialog overlay hardcodes
 the nav-bar offset that admin inherits. The phone E2E specs under apps/e2e/tests/mobile/ find the
@@ -393,7 +392,7 @@ decisions and screenshots; the group 2 parent issue copies the decisions.
 
 ### Group 4: open the wayfinder map
 
-When groups 1 to 3 are moving, run `/wayfinder` with the destination "a specced parent issue for
+When groups 2 and 3 are moving, run `/wayfinder` with the destination "a specced parent issue for
 catalogue growth: dashboard image upload, product creation, category management and the arrival
 date, with the variant strategy decided". Seed its tickets from the four questions in the group 4
 block: research for Cloudflare Image Transformations limits and R2 presigned uploads, prototype for
@@ -404,13 +403,19 @@ new catalogue fields and group 6's attributes question in its fog.
 
 - Social authentication. No trigger and it unblocks nothing. Needs a provider decision, an OAuth
   callback through the Worker to the container, and an account-linking policy for existing email
-  accounts. If it comes, it is a small group after group 1, as buttons on the new auth layout.
+  accounts. If it comes, it is a small group of its own, as buttons in the form column
+  of the auth layout [#356](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/356) built
+  (`apps/client/src/components/layouts/auth-layout.tsx`).
 - Hard user delete from the UI. Deactivation already is the soft delete ([glossary](../GLOSSARY.md),
   **User**), and the user-to-order cascade means a hard delete erases order history. The only driver
   is a legal erasure request, which wants anonymisation that keeps orders and scrubs personal data,
   not a delete button. [#345](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/345)
   removed the API path; `DELETE /users/deleteMe`, which deactivates, is the only self-service path
   left ([ADR 0010](adr/0010-nothing-an-order-references-is-hard-deleted.md)).
+- Switching the email provider to Cloudflare Email Sending. Not reopened at its general
+  availability: Resend is free at this volume and the switch would buy nothing. The
+  [email provider note](research/email-provider.md) records what Cloudflare would need to offer,
+  for the record, not as a plan.
 - Dark mode and multi-language support. Not planned.
 
 ## Removed in the #162 triage
