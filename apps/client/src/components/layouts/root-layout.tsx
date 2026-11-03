@@ -8,6 +8,7 @@ import {
 import { LoaderFunctionArgs, Outlet, ScrollRestoration } from "react-router";
 import { Metadata } from "@/components/seo/metadata";
 import { useProto } from "@/components/prototype/storefront-loading/store";
+import { PrototypeSwitcher } from "@/components/prototype/storefront-loading/switcher";
 import LoadingSpinner from "../ui/loading-spinner";
 
 export function RootLayout() {
@@ -33,6 +34,8 @@ export function RootLayout() {
       )}
       <ScrollRestoration />
       <Outlet />
+      {/* PROTOTYPE (#359): one bar for every route, auth pages included. */}
+      <PrototypeSwitcher />
     </div>
   );
 }

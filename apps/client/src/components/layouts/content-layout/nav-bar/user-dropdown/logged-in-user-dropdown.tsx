@@ -14,6 +14,7 @@ import { getUserQueryOptions, useLogoutUser } from "@/lib/auth";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { ChevronsUpDown, LayoutDashboard, LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router";
+import { MenuFallback } from "@/components/prototype/storefront-loading/menu-fallback";
 import { toast } from "sonner";
 
 export default function LoggedInUserDropdown() {
@@ -23,6 +24,9 @@ export default function LoggedInUserDropdown() {
   // PROTOTYPE (#359): the root middleware fills this cache before any render, so a suspense
   // query never waits in practice; a cold cache falls back to the nav's MenuFallback.
   const { data: user } = useSuspenseQuery(getUserQueryOptions());
+  // Logout writes its response (data: null) into this key before the status flips to guest;
+  // a suspense query does not suspend on null, so hold the fallback until it does.
+  if (!user) return <MenuFallback />;
 
   const handleLogout = async () => {
     try {

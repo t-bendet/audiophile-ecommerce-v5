@@ -22,6 +22,9 @@ the bar's delay first (`latency.ts`), so pending states last long enough to judg
 | last nav    | (readout)                | The last navigation's time waiting on `/users/me` in the root middleware, in loaders, and in total, in ms (`navigation-probe.ts`)                                                                                                                                    |
 | thank-you   | (on `/checkout`)         | Opens the thank-you dialog over the page with a stub order built from the cart; nothing is placed                                                                                                                                                                    |
 
+The bar is mounted in the root layout, so it shows on every route, the auth pages included.
+Nothing in it places an order or clears the cart; placing a real order at checkout does.
+
 Variants A to C also drop the root layout's full-page overlay for the user fetch and keep it for
 logout. The home loader in A and C awaits the featured product and preloads each of the hero's three
 art-directed sources with its `media` query.
