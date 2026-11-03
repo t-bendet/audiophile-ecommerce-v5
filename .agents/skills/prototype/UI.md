@@ -76,6 +76,8 @@ For sub-shape B (new page): the throwaway route under `/prototype/<name>` mounts
 
 ### 4. Build the floating switcher
 
+If the repo has the [prototype-harness](../prototype-harness/SKILL.md) skill, copy its template and follow its switching behavior in place of the bar instructions below (preserve this local pointer on upstream re-sync).
+
 A small fixed-position bar at the bottom-centre of the screen with three pieces:
 
 - **Left arrow**: cycles to the previous variant (wraps around).
