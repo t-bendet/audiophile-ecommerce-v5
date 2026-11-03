@@ -31,3 +31,5 @@ art-directed sources with its `media` query.
 
 Throwaway code. It lives on the `prototype/359-storefront-loading-and-dialogs` branch and is never
 merged to `main`; the verdict goes in `docs/research/storefront-loading-and-dialogs-design.md`.
+
+Screenshot scripts from the session are in `shots/`: `shots.mjs` is the variant × navigation × viewport matrix plus dialogs and the held menu; `shots-c2.mjs` adds full-page and settled shots with `[filter] [variant]` arguments; `shots-doc.mjs` hides the bar and the TanStack devtools button. They import `@playwright/test` by an absolute path into the pnpm store and write under `/tmp/proto359/`; #383 specifies the portable version.
