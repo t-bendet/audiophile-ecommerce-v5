@@ -8,6 +8,7 @@ import {
   LOADING_VARIANTS,
   MENU_VARIANTS,
   setProto,
+  syncUrl,
   useProto,
 } from "./store";
 
@@ -21,7 +22,13 @@ const Divider = () => (
 
 export function PrototypeSwitcher() {
   const state = useProto();
-  const { pathname } = useLocation();
+  const { pathname, key } = useLocation();
+  // Router links drop the params; put them back after every navigation.
+  // The router writes history after this commit, so wait a tick.
+  useEffect(() => {
+    const id = setTimeout(syncUrl, 0);
+    return () => clearTimeout(id);
+  }, [key]);
   const [collapsed, setCollapsed] = useState(false);
   const index = Math.max(
     0,

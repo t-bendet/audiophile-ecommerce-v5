@@ -1,6 +1,6 @@
 // PROTOTYPE (#359): throwaway variant store for the loading-states and dialogs session.
-// Loaders run outside React, so the choice lives in a module store backed by sessionStorage;
-// a ?loading= / ?dialog= / ?menu= / ?delay= / ?auth= param on a full load overrides it.
+// Loaders run outside React, so the choice lives in a module store. It is mirrored into the URL
+// (?loading= ?dialog= ?menu= ?delay= ?auth=) and sessionStorage; the URL wins on a full load.
 import { useSyncExternalStore } from "react";
 
 export const LOADING_VARIANTS = [
@@ -84,10 +84,25 @@ const listeners = new Set<() => void>();
 
 export const proto = () => state;
 
+const URL_KEYS = ["loading", "dialog", "menu", "delay", "auth"] as const;
+
+/**
+ * Writes the five URL keys onto the current address without a router navigation, so no loader
+ * re-runs. history.state is kept: React Router stores its location key and index there.
+ */
+export const syncUrl = () => {
+  const url = new URL(window.location.href);
+  for (const key of URL_KEYS) url.searchParams.set(key, String(state[key]));
+  if (url.href !== window.location.href) {
+    window.history.replaceState(window.history.state, "", url);
+  }
+};
+
 export const setProto = (patch: Partial<State>) => {
   state = { ...state, ...patch };
   const { thankYou: _thankYou, ...persisted } = state;
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+  syncUrl();
   listeners.forEach((listener) => listener());
 };
 

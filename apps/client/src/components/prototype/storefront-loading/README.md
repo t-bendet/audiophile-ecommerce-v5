@@ -1,9 +1,11 @@
 # Storefront loading states and dialogs prototype (#359)
 
 Variants live on the real storefront routes, not on a throwaway page. Loading states only show
-against real data and real navigation. A floating bar picks the variants. The choice is held in
-`sessionStorage`, because links drop search params and loaders run outside React. On a full load,
-`?loading=`, `?dialog=`, `?menu=`, `?delay=` and `?auth=` override it.
+against real data and real navigation. A floating bar picks the variants. The choice lives in a module
+store, since loaders run outside React, and is mirrored into the URL as `?loading=`, `?dialog=`,
+`?menu=`, `?delay=` and `?auth=`. The bar writes them with `history.replaceState` on every click and
+after every navigation, so no loader re-runs. A URL is shareable and survives a reload; on a full
+load the URL wins over the `sessionStorage` copy.
 
 Run `pnpm dev` (MongoDB, API and client) and open <http://localhost:5173/?delay=2000>. Sign in as
 `doe@example.com` / `11111111` for the account orders page and checkout. Every API request waits
