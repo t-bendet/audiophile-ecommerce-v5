@@ -128,12 +128,14 @@ export const useLogoutUser = (queryClient: QueryClient) => {
   return useMutation({
     mutationKey: [AUTH_LOGOUT_MUTATION_KEY],
     mutationFn: logoutUser,
-    onSuccess: (result) => {
+    onSuccess: () => {
+      // Signed out before anything refetches, so the menu and the cart read as a guest.
+      markSignedOut(queryClient);
       clearGuestCart();
-      // Invalidate cart queries
-      queryClient.invalidateQueries({ queryKey: cartKeys.all });
-      // Manually set the user data in the cache after a successful logout
-      queryClient.setQueryData([USER_QUERY_KEY], result);
+      queryClient.invalidateQueries({
+        queryKey: cartKeys.all,
+        refetchType: "none",
+      });
       return queryClient.invalidateQueries({
         queryKey: [AUTH_STATUS_QUERY_KEY],
       });

@@ -136,13 +136,6 @@ the group block.
 
 ### 2. Storefront loading states and dialogs
 
-- Preload critical resources. Fonts have `preconnect` and `rel=preload`; both hero images load
-  `eager` with `fetchPriority="high"`. The remaining candidate, `react-dom`'s `preload()` for the
-  featured image from the home loader, needs the loader to await the featured query, which is the
-  same choice as the skeleton question. Measure before doing more.
-- `useSuspense` in `logged-in-user-dropdown.tsx` and React Query stale-time tuning for auth.
-  Performance items with no trigger; decided in the same prototype session because the dropdown's
-  loading state is in scope.
 - Dialog component variants for cart, thank-you and navigation. Three mechanisms today: a Radix
   dialog with heavy overrides for the mobile menu, including a leftover placeholder description and
   an `aria-describedby` that points at nothing; a vaul drawer for the mini-cart; inline page content
@@ -358,9 +351,12 @@ dialog primitive serves the mobile menu, the mini-cart and the checkout thank-yo
 Facts: ui/skeleton.tsx is used on every admin page; product-skeleton.tsx and
 products-list-skeleton.tsx are unused. There is no navigation pending UI and no route-level
 Suspense boundary; the category, product and account loaders await ensureQueryData, so a click
-leaves the old page on screen. The home loader prefetches without awaiting, so the hero always
-shows a spinner and its image URL is unknown at loader time, which blocks a react-dom preload()
-call. The signed-in dropdown renders the text "Loading...". The root layout's full-page overlay
+leaves the old page on screen. The home loader awaits the featured product and the showcase,
+then preloads the three hero sources with react-dom preload(). Measured on the E2E build (desktop
+Chromium, guest, local API, median of seven cold loads), the hero image request moved from the img
+to the preload link and started at 57.9ms instead of 62.7ms, with LCP unchanged at 108ms, so a
+further preload waits for a measurement that shows a gain. The signed-in menu shows a disabled,
+nameless "Hello!" while the user loads. The root layout's full-page overlay
 fires for the logout mutation and the user fetch only; the four auth forms show pending on their
 submit button (Spinner plus a progress label, #356). The mobile menu is a Radix Dialog with
 overrides (a leftover placeholder description, an aria-describedby pointing at nothing); the

@@ -62,6 +62,7 @@ a change to how a shopper signs in touches one file.
 | `outbox(to)`                       | The emails the server sent to `to`, read from the test-only outbox route; nothing leaves the process under test  |
 | `resetCart()`                      | `DELETE /api/v1/cart` for the signed-in context                                                                  |
 | `catalogue`                        | Reads the catalogue through the products and categories API                                                      |
+| `holdRoute(page, url)`             | Holds every request to `url` until the release it returns is called, for a spec that asserts a pending state     |
 | `admin`                            | Admin writes and reads through the API on the browser context's session, for a test that arrives as the admin    |
 | `disposableProduct(source)`        | A create body with unique names and slug, in `source`'s category and borrowing its images                        |
 | `ORDERS_LOCK`, `CATALOGUE_LOCK`    | Playwright lock names; see [Writing a test](#writing-a-test)                                                     |
@@ -218,14 +219,16 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
 
 ## What it covers
 
-Home showcase, the Headphones, Earphones and Speakers listings (one parametrised spec, with the "new
-product" overline on the cards the catalogue flags), the navigation pending state (a guest with a
+Home showcase and the home hero (a navigation home kept under the "Loading page" bar while the
+featured product API is held, then the hero image shown without the section's spinner), the
+Headphones, Earphones and Speakers listings (one parametrised spec, with the "new product" overline
+on the cards the catalogue flags), the navigation pending state (a guest with a
 cold cache, the category and product API held by a Playwright route: the "Loading page" bar over the
 busy home page, then the category's products, and the same for a product page), signup through
 the form (signed in with the name in the account menu, then the same email refused under the email
-field), logout from the account menu (login offered again, checkout redirecting to login), forgot
-password (the login page's link to the forgot page, the seeded shopper's request answered with the
-"Check your inbox" state and a reset link in the outbox; an unknown email answered with the same
+field), logout from the account menu (landing on the home page as a guest with no error page, login
+offered again, checkout redirecting to login), forgot password (the login page's link to the forgot
+page, the seeded shopper's request answered with the "Check your inbox" state and a reset link in the outbox; an unknown email answered with the same
 state and no email, and "try another email" bringing the form back with the address in it), the
 password reset loop (a fresh shopper's link taken from the outbox, a new password saved and landing
 signed in on the profile with

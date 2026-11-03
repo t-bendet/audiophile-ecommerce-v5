@@ -5,6 +5,6 @@ export default defineConfig({
   // same resolution the app build gets.
   resolve: { tsconfigPaths: true },
   test: {
-    include: ["test/**/*.test.ts"],
+    include: ["test/**/*.test.{ts,tsx}"],
   },
 });

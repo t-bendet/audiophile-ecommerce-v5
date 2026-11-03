@@ -1,21 +1,10 @@
-import type { Page } from "@playwright/test";
-import { CATALOGUE_LOCK, expect, test } from "./fixtures.js";
+import { CATALOGUE_LOCK, expect, holdRoute, test } from "./fixtures.js";
 
 // A guest has no `/users/me` wait, and each fresh page starts with a cold cache.
 test.use({ storageState: { cookies: [], origins: [] } });
 
 // The admin catalogue specs change the showcase slots and the listed products.
 test.describe.configure({ lock: CATALOGUE_LOCK });
-
-const holdRoute = async (page: Page, url: string) => {
-  let release!: () => void;
-  const held = new Promise<void>((resolve) => (release = resolve));
-  await page.route(url, async (route) => {
-    await held;
-    await route.continue();
-  });
-  return release;
-};
 
 test("a category navigation keeps the home page under the loading bar until its products arrive", async ({
   page,

@@ -45,7 +45,7 @@ test("a fresh shopper signs up through the form and a second signup with that em
   await expect(page).toHaveURL("/auth/signup");
 });
 
-test("a shopper who logs out from the account menu is a guest again", async ({
+test("a shopper who logs out from the account menu lands on the home page as a guest", async ({
   page,
   signUpFreshShopper,
 }) => {
@@ -55,7 +55,19 @@ test("a shopper who logs out from the account menu is a guest again", async ({
   await page.getByRole("button", { name: "Open user menu" }).click();
   await page.getByRole("menuitem", { name: "Log out" }).click();
 
-  await page.getByRole("button", { name: "Open anonymous menu" }).click();
+  const anonymousMenu = page.getByRole("button", {
+    name: "Open anonymous menu",
+  });
+  await expect(anonymousMenu).toBeVisible();
+  await expect(page).toHaveURL("/");
+  await expect(page.getByRole("button", { name: "Open cart" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: /something went wrong|Critical Application Error|Request Failed/,
+    }),
+  ).toHaveCount(0);
+
+  await anonymousMenu.click();
   await expect(page.getByRole("menuitem", { name: "Log in" })).toBeVisible();
 
   await page.goto("/checkout");

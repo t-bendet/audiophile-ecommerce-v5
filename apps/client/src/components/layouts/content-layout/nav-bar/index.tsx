@@ -10,6 +10,7 @@ import { Link } from "react-router";
 import { CartButton } from "./cart-button";
 import { NavLinks } from "./nav-links";
 import { UserDropdown } from "./user-dropdown";
+import AccountMenuFallback from "./user-dropdown/account-menu-fallback";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 
 export const Navbar = () => {
@@ -46,7 +47,7 @@ export const Navbar = () => {
           <div className="flex items-center gap-4">
             <SafeRenderWithErrorBlock
               title="Error loading user dropdown"
-              fallback={<LoadingSpinner size="md" className="mr-12" />}
+              fallback={<AccountMenuFallback />}
             >
               <UserDropdown />
             </SafeRenderWithErrorBlock>

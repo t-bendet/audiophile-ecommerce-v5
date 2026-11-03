@@ -37,9 +37,12 @@ it reads `context.get(currentUserContext)`. The [product loader](src/app/routes/
 required product data and separate related-product prefetching. Prefetching warms the
 cache; it is not a required-data success check.
 
-Storefront loaders await what their route renders: the category's products, the product, the
-orders list, and on checkout the guest-cart sync and then the cart. Related products stay a prefetch
-behind their section's fallback, because they need the product's id. During a client navigation,
+Storefront loaders await what their route renders: on home the featured product and the showcase
+in one `Promise.all`; the category's products; the product; the orders list; and on checkout the
+guest-cart sync and then the cart. The [home loader](src/app/routes/home/index.tsx) then calls
+`react-dom`'s `preload()` once per hero source, each with the media query its `<source>` resolves
+to, so the hero paints with no spinner. Related products stay a prefetch behind their section's
+fallback, because they need the product's id. During a client navigation,
 [`PendingOutlet`](src/components/layouts/content-layout/pending-outlet.tsx) in the content layout
 keeps the old page mounted while the loaders run. It shows
 [`ProgressBar`](src/components/ui/progress-bar.tsx) (`role="progressbar"`, "Loading page") at the
@@ -194,7 +197,17 @@ thrown by middleware are followed in either case.
 
 Components cannot read the router context, so they keep reading the cached queries:
 `useIsAuthenticated` in [`lib/auth`](src/lib/auth/index.tsx) for the cart hooks, and
-`getUserQueryOptions` where the user is rendered. Error normalization and retry behavior stay in
+`getUserQueryOptions` where the user is rendered. `/users/me` keeps `staleTime: Infinity`; the
+middleware's per-navigation fetch is what keeps it fresh. The
+[logged-in dropdown](src/components/layouts/content-layout/nav-bar/user-dropdown/logged-in-user-dropdown.tsx)
+reads the user with `useSuspenseQuery`, and
+[`AccountMenuFallback`](src/components/layouts/content-layout/nav-bar/user-dropdown/account-menu-fallback.tsx),
+a disabled, `aria-busy` trigger reading "Hello!" with no name, is both its Suspense fallback and the
+nav boundary's. A suspense query does not suspend on `null`, so `useLogoutUser` marks the session
+signed out before it invalidates the cart (without refetching it) and the status, and leaves the user
+key alone: the dropdown unmounts before the user could read as empty, the cart moves to the guest key
+rather than refetching the server cart without a cookie, and the account pages still mounted under
+the pending navigation home keep their user. Error normalization and retry behavior stay in
 the query configuration and boundaries described above. The
 [historical middleware proposal](docs/error-middleware-proposal.md) records earlier ideas; it
 is not the current implementation.
@@ -370,7 +383,9 @@ from and written to the URL, and
 and submit validation, and [`test/admin-homepage-slots.test.ts`](test/admin-homepage-slots.test.ts)
 what each homepage slot's select offers and disables, and
 [`test/admin-stats-period.test.ts`](test/admin-stats-period.test.ts) the period read from and
-written to the URL.
+written to the URL. [`test/account-menu.test.tsx`](test/account-menu.test.tsx) renders the nav's
+account menu to a string with only the HTTP client mocked: the nameless greeting while the user
+loads, the name once it is cached, and the anonymous menu for a guest. A test file may be `.tsx`.
 [`test/form-errors.test.ts`](test/form-errors.test.ts) drives
 `applyServerErrors` against a headless TanStack form with a stubbed `document`. Run the
 client suite with `pnpm --filter client test` after its workspace dependencies are built,
