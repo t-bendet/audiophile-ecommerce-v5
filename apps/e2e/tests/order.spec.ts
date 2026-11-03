@@ -57,15 +57,31 @@ test("checkout creates an order, says how payment is taken and emails the shoppe
   await fillCheckout(page, shopper);
   await page.getByRole("button", { name: "Continue & Pay" }).click();
 
-  await expect(
-    page.getByRole("heading", { name: "Thank you for your order" }),
-  ).toBeVisible();
+  const thankYou = page.getByRole("dialog", {
+    name: "Thank you for your order",
+  });
+  await expect(thankYou).toBeVisible();
   const [order] = await listOrders();
   await expect(
-    page.getByText(
+    thankYou.getByText(
       `We have received your order ${order.id}. You pay in cash when your order is delivered. We have sent a confirmation to ${shopper.email}.`,
     ),
   ).toBeVisible();
+  await expect(
+    thankYou.getByText(product.cartLabel, { exact: true }),
+  ).toBeVisible();
+  await expect(thankYou.getByText("Grand total")).toBeVisible();
+
+  // The receipt sits over the emptied checkout page, and a click outside leaves it open.
+  await expect(
+    page.getByRole("heading", {
+      name: "Your cart is empty",
+      includeHidden: true,
+    }),
+  ).toBeAttached();
+  await page.mouse.click(8, 8);
+  await expect(thankYou).toHaveAttribute("data-state", "open");
+  await expect(page).toHaveURL("/checkout");
 
   // The email is sent before checkout answers, so it is already in the outbox.
   const [email, ...others] = await outbox(shopper.email);
@@ -78,7 +94,7 @@ test("checkout creates an order, says how payment is taken and emails the shoppe
   expect(email.text).toContain(product.cartLabel);
   expect(email.text).toContain("You pay in cash when your order is delivered.");
 
-  await page.getByRole("link", { name: "View your orders" }).click();
+  await thankYou.getByRole("link", { name: "View your orders" }).click();
 
   await expect(page).toHaveURL("/account/orders");
   const orders = page.getByRole("article");

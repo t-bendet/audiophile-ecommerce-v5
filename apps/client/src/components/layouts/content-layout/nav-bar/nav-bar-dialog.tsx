@@ -1,13 +1,7 @@
 import HamburgerIcon from "@/assets/icon-hamburger.svg?react";
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import CategoryNavList from "@/features/categories/components/category-nav-list";
 import { useState } from "react";
 
@@ -15,23 +9,20 @@ export default function NavBarDialog() {
   const [open, setOpen] = useState(false);
 
   return (
-    <Dialog defaultOpen={false} open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="h-4 p-0 hover:*:*:fill-primary-500 focus-visible:*:*:fill-primary-500">
           <span className="sr-only">Open main menu</span>
-          <HamburgerIcon className="" title="hamburger icon" />
+          <HamburgerIcon title="hamburger icon" />
         </Button>
       </DialogTrigger>
       <DialogContent
-        aria-describedby="main-menu"
-        showCloseButton={false}
-        className="fixed inset-0 top-(--nav-bar-height) w-full max-w-full translate-x-0 translate-y-0 rounded-t-none max-sm:overflow-scroll sm:max-w-full md:bottom-auto"
+        placement="sheet-top"
+        belowNav
+        title="Main menu"
+        srOnlyTitle
+        className="px-6 pt-20 pb-8 md:px-10 md:py-14"
       >
-        <DialogTitle className="sr-only">Main menu</DialogTitle>
-        <DialogDescription className="sr-only">
-          Make changes to your profile here. Click save when you&apos;re done.
-        </DialogDescription>
-
         <SafeRenderWithErrorBlock
           title="Error loading categories"
           containerClasses="mb-30"

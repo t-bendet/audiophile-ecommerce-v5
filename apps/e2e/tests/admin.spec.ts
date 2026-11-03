@@ -3,6 +3,7 @@ import {
   ADMIN_STORAGE_STATE,
   ORDERS_LOCK,
   SEEDED_ADMIN,
+  SEEDED_SHOPPER,
   expect,
   test,
 } from "./fixtures.js";
@@ -248,6 +249,38 @@ test.describe("an admin", () => {
     await expect(
       account.getByRole("button", { name: /^Make (admin|shopper)$/ }),
     ).toHaveCount(0);
+  });
+
+  test("covers the whole viewport behind an account confirmation", async ({
+    page,
+  }) => {
+    await page.goto("/admin/users");
+    const filters = page.getByRole("form", { name: "Filter users" });
+    await filters.getByLabel("Search").fill(SEEDED_SHOPPER.email);
+    await filters.getByRole("button", { name: "Apply" }).click();
+    const rows = page.getByRole("table").getByRole("row");
+    await expect(rows).toHaveCount(2);
+    await rows.last().getByRole("link").click();
+
+    const account = page.getByRole("region", { name: "Account" });
+    await account.getByRole("button", { name: "Deactivate account" }).click();
+    const dialog = page.getByRole("dialog", {
+      name: "Deactivate this account?",
+    });
+    await expect(dialog).toBeVisible();
+
+    // The overlay has neither a role nor text, so it is the suite's one test id.
+    const overlay = page.getByTestId("dialog-overlay");
+    await expect(overlay).toHaveCSS("top", "0px");
+    expect(await overlay.boundingBox()).toEqual({
+      x: 0,
+      y: 0,
+      ...page.viewportSize(),
+    });
+
+    await dialog.getByRole("button", { name: "Keep active" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(account.getByText("Active", { exact: true })).toBeVisible();
   });
 });
 

@@ -136,18 +136,6 @@ the group block.
 
 ### 2. Storefront loading states and dialogs
 
-- Dialog component variants for cart, thank-you and navigation. Three mechanisms today: a Radix
-  dialog with heavy overrides for the mobile menu, including a leftover placeholder description and
-  an `aria-describedby` that points at nothing; a vaul drawer for the mini-cart; inline page content
-  for the thank-you. The shared dialog overlay hardcodes the storefront nav offset, which admin
-  inherits. The phone specs under `apps/e2e/tests/mobile/` find the menu and the mini-cart by role,
-  accessible name and URL only, so the rework keeps them green by keeping those names. The admin
-  order fulfilment form rebases in place after a save
-  ([#366](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/366)): it resets to the order
-  the save answered and keeps it as the starting point until the refetched one catches up, the
-  pattern the product and homepage forms follow. A dialog or form the rework gives a refetch to
-  survive follows it too.
-
 Why second: client-only, no external dependency, and it settles the route-level loading pattern
 that order detail, wishlist and search results build on later.
 

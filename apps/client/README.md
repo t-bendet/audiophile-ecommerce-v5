@@ -160,6 +160,30 @@ involved, so mutation callbacks can toast directly. [`AppProvider`](src/app/prov
 the single [`Toaster`](src/components/ui/sonner.tsx), which carries the palette and font
 overrides through `toastOptions.classNames`.
 
+## Dialogs
+
+Every dialog renders [`ui/dialog.tsx`](src/components/ui/dialog.tsx), one primitive on
+`@radix-ui/react-dialog`. `DialogContent` takes a `placement`, one of the three it ships:
+`sheet-top` (full width, dropping from the top edge), `sheet-top-end` (a `max-w-sm` panel 1.5rem
+below the top, aligned to the container's right edge) and `centred`. It also takes a `title`,
+rendered as the dialog's accessible name and visually hidden with `srOnlyTitle`; an optional
+`description`, the only way a dialog gets an `aria-describedby`; and `closeButton` for a corner
+"Close" button. The overlay is `bg-neutral-900/50` over the whole viewport. `belowNav` is opt-in
+and starts the overlay and the sheet under the storefront nav bar (`--nav-bar-height`); `centred`
+ignores it. The overlay carries `data-testid="dialog-overlay"` for the E2E suite.
+
+| Dialog                                                                                 | Placement                                                                         |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [Mobile menu](src/components/layouts/content-layout/nav-bar/nav-bar-dialog.tsx)        | `sheet-top`, `belowNav`; title "Main menu", hidden; choosing a category closes it |
+| [Mini-cart](src/features/cart/components/mini-cart.tsx)                                | `sheet-top-end`, `belowNav`; title "cart (n)"; a spinner while it loads           |
+| [Thank-you](src/features/orders/components/order-confirmation.tsx)                     | `centred`; a click outside does not close it, Escape goes home                    |
+| [Account confirmations](src/features/admin/users/components/account-panel.tsx) (admin) | `centred`, with a description and the close button                                |
+
+The checkout route opens the thank-you over its own page once the order is created; the order
+empties the cart, so the page under it settles on the empty state. There is no drawer and no
+swipe-to-dismiss. The [design note](../../docs/research/storefront-loading-and-dialogs-design.md)
+records the placements chosen and the ones rejected.
+
 ## Router middleware
 
 The root route in [`router.tsx`](src/app/router.tsx) registers two middlewares, in this order:
@@ -215,8 +239,8 @@ is not the current implementation.
 ## Admin dashboard
 
 `/admin` is a lazy-loaded route group registered in [`router.tsx`](src/app/router.tsx) as a
-sibling of the storefront's content layout, so it renders none of the storefront header, footer,
-mini-cart or cart drawer. Its index renders the [stats page](#stats). Its code lives under
+sibling of the storefront's content layout, so it renders none of the storefront header, footer
+or mini-cart. Its index renders the [stats page](#stats). Its code lives under
 `src/features/admin/`, with a sub-folder per slice (`orders`, `users`, `products`, `homepage`,
 `stats`) created as that slice lands. The group lists
 `requireAuth` then `requireRole("ADMIN")` in its `middleware` and owns a `RouteErrorBoundary`, so
@@ -282,7 +306,7 @@ the server would reject, the loader ensures the matching page of `GET /users`, a
 [`routes/user-detail.tsx`](src/features/admin/users/routes/user-detail.tsx) is `/admin/users/:userId`:
 the [account panel](src/features/admin/users/components/account-panel.tsx) left and the user's
 orders right, read through `GET /admin/orders?userId=` and each linking to the admin order detail.
-The panel has two writes, each a `PATCH /users/:id` behind the existing `Dialog` primitive:
+The panel has two writes, each a `PATCH /users/:id` behind a `centred` [dialog](#dialogs):
 deactivate and reactivate send `active`, and Make admin and Make shopper send `role`. The panel
 omits both when the shown user is the signed-in admin. The page also ensures the users list filtered
 to active admins ([`roles.ts`](src/features/admin/users/roles.ts)); when its total says the shown

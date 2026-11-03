@@ -1,13 +1,10 @@
 import { Button } from "@/components/ui/button";
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { paths } from "@/config/paths";
 import {
@@ -30,6 +27,7 @@ export function MiniCart({ trigger }: MiniCartProps) {
   const { data: cart, isLoading } = useCart();
   const updateCartItem = useUpdateCartItem();
   const removeFromCart = useRemoveFromCart();
+  const items = cart?.data.items ?? [];
 
   const handleUpdateQuantity = (
     productId: string,
@@ -46,51 +44,49 @@ export function MiniCart({ trigger }: MiniCartProps) {
   const isUpdating = updateCartItem.isPending || removeFromCart.isPending;
 
   return (
-    <Drawer open={open} onOpenChange={setOpen} autoFocus>
-      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-      <DrawerContent className="max-h-[90vh] p-2 text-neutral-900">
-        <DrawerHeader>
-          <DrawerTitle className="flex items-center gap-2">
-            <p className="font-bold tracking-600 uppercase">
-              cart ({cart?.data.itemCount || 0})
-            </p>
-          </DrawerTitle>
-        </DrawerHeader>
-
-        <div className="flex-1 overflow-y-auto px-4">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent
+        placement="sheet-top-end"
+        belowNav
+        title={
+          <span className="block px-6 pt-8 text-lg font-bold tracking-300 uppercase">
+            cart ({cart?.data.itemCount || 0})
+          </span>
+        }
+        className="flex flex-col"
+      >
+        <div className="flex-1 px-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <LoadingSpinner size="lg" />
             </div>
-          ) : !cart?.data.items || cart.data.items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <ShoppingCart className="mb-4 h-16 w-16 text-neutral-300" />
-              <p className="font-medium text-neutral-600">Your cart is empty</p>
-              <p className="mt-2 text-sm text-neutral-500">
+          ) : items.length === 0 ? (
+            <div className="flex flex-col items-center py-10 text-center">
+              <ShoppingCart className="mb-4 h-14 w-14 text-neutral-400" />
+              <p className="font-bold">Your cart is empty</p>
+              <p className="mt-1 text-sm opacity-50">
                 Add items to get started
               </p>
             </div>
           ) : (
-            <div>
-              {cart.data.items.map((item) => (
-                <CartItem
-                  key={item.id}
-                  item={item}
-                  onUpdateQuantity={handleUpdateQuantity}
-                  onRemove={handleRemove}
-                  isUpdating={isUpdating}
-                />
-              ))}
-            </div>
+            items.map((item) => (
+              <CartItem
+                key={item.id}
+                item={item}
+                onUpdateQuantity={handleUpdateQuantity}
+                onRemove={handleRemove}
+                isUpdating={isUpdating}
+              />
+            ))
           )}
         </div>
-
-        {cart?.data.items && cart.data.items.length > 0 && (
-          <DrawerFooter className="border-t">
-            <div className="mb-4 flex items-center justify-between">
+        {items.length > 0 && (
+          <div className="flex flex-col gap-3 border-t px-6 pt-4 pb-8">
+            <div className="mb-2 flex items-center justify-between">
               <span className="text-lg font-bold">Subtotal</span>
               <span className="text-lg font-bold">
-                {currencyFormatter(cart.data.subtotal || 0)}
+                {currencyFormatter(cart?.data.subtotal || 0)}
               </span>
             </div>
             <Link
@@ -101,14 +97,14 @@ export function MiniCart({ trigger }: MiniCartProps) {
                 Go to Checkout
               </Button>
             </Link>
-            <DrawerClose asChild>
+            <DialogClose asChild>
               <Button variant="outline" className="w-full">
                 Continue Shopping
               </Button>
-            </DrawerClose>
-          </DrawerFooter>
+            </DialogClose>
+          </div>
         )}
-      </DrawerContent>
-    </Drawer>
+      </DialogContent>
+    </Dialog>
   );
 }
