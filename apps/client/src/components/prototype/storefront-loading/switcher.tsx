@@ -165,6 +165,18 @@ export function PrototypeSwitcher() {
             </button>
           ))}
           <Divider />
+          <span className="opacity-60">cache</span>
+          {(["cold", "warm"] as const).map((cache) => (
+            <button
+              key={cache}
+              type="button"
+              onClick={() => setProto({ cache })}
+              className={pill(state.cache === cache)}
+            >
+              {cache}
+            </button>
+          ))}
+          <Divider />
           <span className="opacity-60">/users/me</span>
           {(["fresh", "cached"] as const).map((auth) => (
             <button
@@ -188,6 +200,26 @@ export function PrototypeSwitcher() {
               </button>
             </>
           )}
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-x-2 opacity-90">
+          <span className="opacity-60">last nav</span>
+          <span>
+            /users/me wait <b data-probe="user">{state.timings.user ?? "–"}</b>{" "}
+            ms
+          </span>
+          <span>
+            loaders{" "}
+            <b data-probe="loaders">
+              {state.timings.total !== undefined &&
+              state.timings.user !== undefined
+                ? state.timings.total - state.timings.user
+                : "…"}
+            </b>{" "}
+            ms
+          </span>
+          <span>
+            total <b data-probe="total">{state.timings.total ?? "…"}</b> ms
+          </span>
         </div>
       </div>
     </div>

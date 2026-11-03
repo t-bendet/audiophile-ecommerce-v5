@@ -12,6 +12,10 @@ import {
   RootLayout,
   clientLoader as rootLoader,
 } from "@/components/layouts/root-layout";
+import {
+  probeAfterUser,
+  probeStart,
+} from "@/components/prototype/storefront-loading/navigation-probe";
 import { paths } from "@/config/paths";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { ComponentType } from "react";
@@ -47,7 +51,15 @@ const createAppRouter = (queryClient: QueryClient) =>
       HydrateFallback: RootHydrateFallback,
       errorElement: <RootErrorBoundary />,
       // Timing first, so the user lookup is inside the measured time.
-      middleware: [performanceMiddleware, resolveCurrentUser(queryClient)],
+      // PROTOTYPE (#359): dev-only probes time the navigation and can start it cold.
+      middleware: import.meta.env.DEV
+        ? [
+            probeStart,
+            performanceMiddleware,
+            resolveCurrentUser(queryClient),
+            probeAfterUser(queryClient),
+          ]
+        : [performanceMiddleware, resolveCurrentUser(queryClient)],
       loader: rootLoader(queryClient),
       children: [
         {

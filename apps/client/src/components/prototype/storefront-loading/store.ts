@@ -31,8 +31,11 @@ type State = {
   delay: number;
   // "fresh": the middleware refetches /users/me on every navigation, as today.
   auth: "fresh" | "cached";
+  // "cold": each navigation drops the destination's queries first; "warm" is today.
+  cache: "cold" | "warm";
   holdMenu: boolean;
   thankYou: boolean;
+  timings: { user?: number; total?: number };
 };
 
 const DEFAULTS: State = {
@@ -41,8 +44,10 @@ const DEFAULTS: State = {
   menu: "A",
   delay: 800,
   auth: "fresh",
+  cache: "cold",
   holdMenu: false,
   thankYou: false,
+  timings: {},
 };
 
 const STORAGE_KEY = "PROTOTYPE-359";
@@ -71,20 +76,29 @@ const initial = (): State => {
     fromUrl.delay = Number(delay);
   const auth = url.get("auth");
   if (auth === "fresh" || auth === "cached") fromUrl.auth = auth;
-  return { ...DEFAULTS, ...stored, ...fromUrl, thankYou: false };
+  const cache = url.get("cache");
+  if (cache === "cold" || cache === "warm") fromUrl.cache = cache;
+  return { ...DEFAULTS, ...stored, ...fromUrl, thankYou: false, timings: {} };
 };
 
 let state: State = initial();
 // PROTOTYPE (#359): persist URL choices too, so a later full page load keeps them.
 if (typeof window !== "undefined") {
-  const { thankYou: _thankYou, ...persisted } = state;
+  const { thankYou: _thankYou, timings: _timings, ...persisted } = state;
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
 }
 const listeners = new Set<() => void>();
 
 export const proto = () => state;
 
-const URL_KEYS = ["loading", "dialog", "menu", "delay", "auth"] as const;
+const URL_KEYS = [
+  "loading",
+  "dialog",
+  "menu",
+  "delay",
+  "auth",
+  "cache",
+] as const;
 
 /**
  * Writes the five URL keys onto the current address without a router navigation, so no loader
@@ -100,9 +114,15 @@ export const syncUrl = () => {
 
 export const setProto = (patch: Partial<State>) => {
   state = { ...state, ...patch };
-  const { thankYou: _thankYou, ...persisted } = state;
+  const { thankYou: _thankYou, timings: _timings, ...persisted } = state;
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
   syncUrl();
+  listeners.forEach((listener) => listener());
+};
+
+/** The last navigation's timings in ms; not persisted, not in the URL. */
+export const setTimings = (timings: State["timings"]) => {
+  state = { ...state, timings };
   listeners.forEach((listener) => listener());
 };
 
