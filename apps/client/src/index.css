@@ -81,6 +81,19 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+@theme {
+  --animate-page-progress: page-progress 1.1s ease-in-out infinite;
+
+  @keyframes page-progress {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
+}
+
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still

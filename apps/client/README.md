@@ -37,6 +37,23 @@ it reads `context.get(currentUserContext)`. The [product loader](src/app/routes/
 required product data and separate related-product prefetching. Prefetching warms the
 cache; it is not a required-data success check.
 
+Storefront loaders await what their route renders: the category's products, the product, the
+orders list, and on checkout the guest-cart sync and then the cart. Related products stay a prefetch
+behind their section's fallback, because they need the product's id. During a client navigation,
+[`PendingOutlet`](src/components/layouts/content-layout/pending-outlet.tsx) in the content layout
+keeps the old page mounted while the loaders run. It shows
+[`ProgressBar`](src/components/ui/progress-bar.tsx) (`role="progressbar"`, "Loading page") at the
+top of the viewport and dims the content between the nav and the footer to 40% after 150ms, marked
+`aria-busy`. It reacts only to a different destination pathname, so a search-param change shows
+nothing, and it also covers the root middleware's `/users/me` wait. A full page load shows
+`RootHydrateFallback` instead, because the router runs the loaders before the first render. Read the
+route's data from `useParams`, never from the pending navigation's location: a suspense query for
+the destination's key would suspend the old page and the pending state would never show. The
+storefront uses no skeletons; [`ui/skeleton.tsx`](src/components/ui/skeleton.tsx) is for the admin
+pages. The section fallbacks under `SafeRenderWithErrorBlock` stay as a safety net. The
+[design note](../../docs/research/storefront-loading-and-dialogs-design.md) records the decision;
+order detail, wishlist and search results follow the same pattern when they are built.
+
 Use [`normalizeError`](src/lib/errors/errors.ts) where an error becomes a presentation
 or control-flow decision. It preserves an existing `AppError`, reads server errors from
 `AxiosError.response.data.error`, maps network failures to `EXTERNAL_SERVICE_ERROR`, and
@@ -128,7 +145,7 @@ storefront's overline, uppercase title, overline labels and square 3rem inputs f
 [`auth-styles.ts`](src/features/auth/components/auth-styles.ts), applied through `className` so
 the shared `Input` and `Field` keep their look elsewhere. Pending on all four forms is the disabled
 `accent` submit with a `Spinner` and a progress label ("Signing in", "Creating account", "Sending",
-"Saving"); the root layout's full-page overlay covers only the logout mutation and the user fetch.
+"Saving"); the root layout's full-page overlay covers only the logout mutation.
 
 Keep feedback at the feature that owns the action. Query retry classification does not
 display an error, and adding a transport-level toast would duplicate feedback from

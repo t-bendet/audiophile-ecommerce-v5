@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Section } from "@/components/ui/section";
 import { Metadata } from "@/components/seo/metadata";
 import { paths } from "@/config/paths";
 import {
+  getCartQueryOptions,
   useCart,
   useRemoveFromCart,
   useUpdateCartItem,
@@ -22,11 +22,12 @@ import { Link, LoaderFunctionArgs } from "react-router";
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
     await syncGuestCartToServer(queryClient);
+    await queryClient.ensureQueryData(getCartQueryOptions(true));
     return null;
   };
 
 export default function CheckoutPage() {
-  const { data: cart, isLoading } = useCart();
+  const { data: cart } = useCart();
   const updateCartItem = useUpdateCartItem();
   const removeFromCart = useRemoveFromCart();
   const [createdOrder, setCreatedOrder] = useState<OrderDTO | null>(null);
@@ -56,17 +57,6 @@ export default function CheckoutPage() {
   // The created order wins over the now-empty cart the mutation leaves behind.
   if (createdOrder) {
     return <OrderConfirmation order={createdOrder} />;
-  }
-
-  if (isLoading) {
-    return (
-      <Container>
-        <Metadata title="Checkout" noIndex />
-        <div className="flex items-center justify-center py-20">
-          <LoadingSpinner size="lg" />
-        </div>
-      </Container>
-    );
   }
 
   if (!cart?.data.items || cart.data.items.length === 0) {

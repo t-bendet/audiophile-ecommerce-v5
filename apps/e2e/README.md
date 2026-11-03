@@ -219,13 +219,16 @@ Run them from the repo root. From here they write a second `.claude/agents/` and
 ## What it covers
 
 Home showcase, the Headphones, Earphones and Speakers listings (one parametrised spec, with the "new
-product" overline on the cards the catalogue flags), signup through the form (signed in with the
-name in the account menu, then the same email refused under the email field), logout from the
-account menu (login offered again, checkout redirecting to login), forgot password (the login page's
-link to the forgot page, the seeded shopper's request answered with the "Check your inbox" state and
-a reset link in the outbox; an unknown email answered with the same state and no email, and "try
-another email" bringing the form back with the address in it), the password reset loop (a fresh
-shopper's link taken from the outbox, a new password saved and landing signed in on the profile with
+product" overline on the cards the catalogue flags), the navigation pending state (a guest with a
+cold cache, the category and product API held by a Playwright route: the "Loading page" bar over the
+busy home page, then the category's products, and the same for a product page), signup through
+the form (signed in with the name in the account menu, then the same email refused under the email
+field), logout from the account menu (login offered again, checkout redirecting to login), forgot
+password (the login page's link to the forgot page, the seeded shopper's request answered with the
+"Check your inbox" state and a reset link in the outbox; an unknown email answered with the same
+state and no email, and "try another email" bringing the form back with the address in it), the
+password reset loop (a fresh shopper's link taken from the outbox, a new password saved and landing
+signed in on the profile with
 the "Password updated" toast, the same link then answered with "This link has expired" and its
 "Request a new link" leading to the forgot page, the old password refused at login and the new one
 signing in), a guest add-to-cart through the

@@ -13,25 +13,12 @@ import ProductCard from "@/features/products/components/product-card";
 import RelatedProducts from "@/features/products/components/related-products";
 import { normalizeError } from "@/lib/errors/errors";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import {
-  LoaderFunctionArgs,
-  useNavigate,
-  useNavigation,
-  useParams,
-} from "react-router";
+import { LoaderFunctionArgs, useNavigate, useParams } from "react-router";
 
 const Product = () => {
   const { productSlug } = useParams();
-  const navigation = useNavigation();
-
-  // During navigation, use the pending slug only if navigating to another product
-  const activeSlug =
-    navigation.state === "loading" &&
-    navigation.location?.pathname.startsWith("/product/")
-      ? navigation.location.pathname.split("/").pop()!
-      : productSlug!;
   const { data: productResponse } = useSuspenseQuery(
-    getProductBySlugQueryOptions(activeSlug),
+    getProductBySlugQueryOptions(productSlug!),
   );
   const navigate = useNavigate();
   const product = productResponse.data;

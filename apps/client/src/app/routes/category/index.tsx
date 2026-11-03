@@ -9,29 +9,22 @@ import ProductsList from "@/features/products/components/products-list";
 import { normalizeError } from "@/lib/errors/errors";
 import { NAME } from "@repo/domain";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { LoaderFunctionArgs, useNavigation, useParams } from "react-router";
+import { LoaderFunctionArgs, useParams } from "react-router";
 
 const Category = () => {
   const { categoryName } = useParams<{ categoryName: NAME }>();
-  const navigation = useNavigation();
-
-  const activeCategory =
-    navigation.state === "loading" &&
-    navigation.location?.pathname.startsWith("/category/")
-      ? navigation.location.pathname.split("/").pop()!
-      : categoryName!;
   const { data: ProductsResponse } = useSuspenseQuery(
-    getProductsByCategoryQueryOptions(activeCategory as NAME),
+    getProductsByCategoryQueryOptions(categoryName!),
   );
   return (
     <>
       <Metadata
-        title={`${activeCategory} Audio`}
-        description={`Shop ${activeCategory} from Audiophile.`}
+        title={`${categoryName} Audio`}
+        description={`Shop ${categoryName} from Audiophile.`}
       />
       <header className="bg-neutral-900 py-8 md:py-24">
         <h1 className="text-center text-2xl font-bold tracking-500 uppercase md:text-4xl">
-          {activeCategory}
+          {categoryName}
         </h1>
       </header>
       <main className="mt-16 md:mt-30 lg:mt-40">
