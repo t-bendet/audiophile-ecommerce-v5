@@ -136,15 +136,6 @@ the group block.
 
 ### 2. Storefront loading states and dialogs
 
-- Skeleton loaders for images and sections. `ui/skeleton.tsx` is used on every admin page;
-  `product-skeleton.tsx` and `products-list-skeleton.tsx` are dead code. The storefront shows
-  spinners: there is no navigation pending UI and no route-level Suspense boundary, the home loader
-  prefetches without awaiting so the hero always spins, and the signed-in dropdown renders raw
-  "Loading..." text. The root layout's full-page overlay now fires for the logout mutation and the
-  user fetch only: [#356](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/356) removed
-  the login and signup keys, whose three-element prefix filter had matched no mutation. The four
-  auth forms show pending on their own submit button (`Spinner` plus a progress label), a pattern a
-  storefront form can reuse.
 - Preload critical resources. Fonts have `preconnect` and `rel=preload`; both hero images load
   `eager` with `fetchPriority="high"`. The remaining candidate, `react-dom`'s `preload()` for the
   featured image from the home loader, needs the loader to await the featured query, which is the
