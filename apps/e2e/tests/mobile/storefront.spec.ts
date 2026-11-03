@@ -14,6 +14,9 @@ test("the menu lists the categories and closes on the way to one", async ({
   await menuButton.tap();
 
   await expect(menu).toBeVisible();
+  // The phone's nav bar is 5.5rem: the sheet and its overlay start under it.
+  await expect(page.getByTestId("dialog-overlay")).toHaveCSS("top", "88px");
+  await expect(menu).toHaveCSS("top", "88px");
   await expect(menu.getByRole("link")).toHaveCount(CATEGORIES.length);
   for (const category of CATEGORIES) {
     await expect(categoryLink(category)).toBeVisible();
@@ -48,6 +51,9 @@ test.describe("a guest", () => {
     await expect(
       miniCart.getByRole("heading", { name: product.cartLabel, exact: true }),
     ).toBeVisible();
+    // The panel sits 1.5rem under the 5.5rem nav bar; its overlay starts at the nav.
+    await expect(page.getByTestId("dialog-overlay")).toHaveCSS("top", "88px");
+    await expect(miniCart).toHaveCSS("top", "112px");
 
     await miniCart.getByRole("button", { name: "Continue Shopping" }).tap();
     await expect(miniCart).toBeHidden();

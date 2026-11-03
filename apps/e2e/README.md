@@ -112,8 +112,9 @@ there should not be one.
   `storageState` as well, so a second browser for another user passes that same empty state.
 - **Locate by role and accessible name first**, then text and label. `data-testid` only where
   neither identifies an element among siblings, named by a domain noun from `GLOSSARY.md`. The client
-  has no `data-testid` today and the suite does not need one: a product card is an `article`, a
-  mini-cart line is a `heading` carrying the product's cart label, the mini-cart is a `dialog`, an
+  has one: `dialog-overlay`, the shared dialog's overlay, which has neither role nor text and is read
+  for where it starts. Nothing else needs one: a product card is an `article`, a mini-cart line is a
+  `heading` carrying the product's cart label, the mini-cart and the thank-you are `dialog`s, an
   order under account orders is an `article` whose lines are `heading`s. The admin sidebar and its
   phone tab bar are both a `navigation` named `Admin sections`; only the one the viewport shows is
   visible to a locator.
@@ -236,8 +237,9 @@ the "Password updated" toast, the same link then answered with "This link has ex
 "Request a new link" leading to the forgot page, the old password refused at login and the new one
 signing in), a guest add-to-cart through the
 mini-cart, the checkout redirect to login and back, a guest cart surviving sign-in, a checkout that
-creates an order (the confirmation page saying the order is received and that cash is paid on
-delivery, one "order received" email to the shopper in the server's outbox naming that order, then
+creates an order (the thank-you dialog over the emptied checkout page saying the order is received
+and that cash is paid on delivery, with the first item and the grand total, left open by a click
+outside, one "order received" email to the shopper in the server's outbox naming that order, then
 the order found under account orders), checkout validation (an empty submit stopped by
 the browser, then an email the browser accepts but the shared schema rejects shown inside the
 shipping fieldset, with no order either way), account orders' empty state and then two orders placed
@@ -254,7 +256,8 @@ is disabled and the payment select offers Refunded and neither Pending nor Faile
 management (a fresh shopper found by email, deactivated, told so by the login form in a browser
 context of their own, reactivated and signed in; another promoted, shown as Admin in the users list,
 offered the account menu's Admin item in a browser context of their own, then demoted and offered it
-no longer; and no role control on the admin's own page), admin catalogue edits (a seeded product's
+no longer; no role control on the admin's own page; and the account confirmation's overlay covering
+the viewport from its top), admin catalogue edits (a seeded product's
 price raised on its edit page and shown on its storefront page; another's description, first
 in-the-box quantity, full label and new-product flag changed and shown there, the "new product" overline
 appearing and then disappearing when the flag is cleared again; each put back through the API), the
@@ -268,9 +271,9 @@ on the 30 days, 90 days and All time tabs against the API's numbers from before 
 surface: a product
 page's JSON-LD, the robots file and the sitemap the preview proxies to the server.
 
-On the phone profile: the storefront menu opened from its button, listing the three categories and
-closing on the way to one; a guest mini-cart opened from the cart button and closed with Continue
-Shopping; the admin tab bar, the only `Admin sections` navigation the phone shows, moving
+On the phone profile: the storefront menu opened from its button as a sheet under the nav, listing
+the three categories and closing on the way to one; a guest mini-cart opened from the cart button as
+a panel under the nav and closed with Continue Shopping; the admin tab bar, the only `Admin sections` navigation the phone shows, moving
 through Orders, Users, Products, Homepage and Stats; and the auth pages' logo band, which replaces
 the desktop pane and its "Back to Home" link: on login its "Home" link leading back to the
 storefront, and on forgot password a reset link requested from the phone layout.

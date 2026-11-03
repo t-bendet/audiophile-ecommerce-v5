@@ -3,10 +3,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { normalizeError } from "@/lib/errors/errors";
@@ -114,11 +111,19 @@ function ActiveToggle({ user }: { user: UserDTO }) {
           {copy.button}
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{copy.title}</DialogTitle>
-          <DialogDescription>{copy.description}</DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        placement="centred"
+        closeButton
+        title={
+          <span className="text-lg leading-none font-semibold">
+            {copy.title}
+          </span>
+        }
+        description={
+          <span className="text-sm text-neutral-500">{copy.description}</span>
+        }
+        className="grid gap-4 p-6"
+      >
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">{copy.keep}</Button>
@@ -211,11 +216,19 @@ function RoleToggle({
           {copy.button}
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{copy.title}</DialogTitle>
-          <DialogDescription>{copy.description}</DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        placement="centred"
+        closeButton
+        title={
+          <span className="text-lg leading-none font-semibold">
+            {copy.title}
+          </span>
+        }
+        description={
+          <span className="text-sm text-neutral-500">{copy.description}</span>
+        }
+        className="grid gap-4 p-6"
+      >
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">{copy.keep}</Button>
