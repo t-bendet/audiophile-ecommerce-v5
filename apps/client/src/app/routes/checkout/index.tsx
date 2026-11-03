@@ -11,17 +11,34 @@ import {
 } from "@/features/cart/api/get-cart";
 import { CartItem } from "@/features/cart/components/cart-item";
 import { CheckoutForm } from "@/features/orders/components/checkout-form";
-import { OrderConfirmation } from "@/features/orders/components/order-confirmation";
+import { PrototypeThankYou } from "@/components/prototype/storefront-loading/dialogs";
+import { stubOrder } from "@/components/prototype/storefront-loading/helpers";
+import { CheckoutSkeleton } from "@/components/prototype/storefront-loading/skeletons";
+import {
+  proto,
+  setProto,
+  useProto,
+} from "@/components/prototype/storefront-loading/store";
+import { getCartQueryOptions } from "@/features/cart/api/get-cart";
 import { syncGuestCartToServer } from "@/lib/cart-sync";
 import currencyFormatter from "@/utils/formatters";
 import { calculateOrderTotals, OrderDTO } from "@repo/domain";
 import { QueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link, LoaderFunctionArgs } from "react-router";
+import { Link, LoaderFunctionArgs, useNavigate } from "react-router";
 
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
+    // PROTOTYPE (#359): today awaits the sync only; A and C await the cart too; B streams.
+    const { loading } = proto();
+    if (loading === "B") {
+      void syncGuestCartToServer(queryClient);
+      return null;
+    }
     await syncGuestCartToServer(queryClient);
+    if (loading !== "0") {
+      await queryClient.ensureQueryData(getCartQueryOptions(true));
+    }
     return null;
   };
 
@@ -30,6 +47,12 @@ export default function CheckoutPage() {
   const updateCartItem = useUpdateCartItem();
   const removeFromCart = useRemoveFromCart();
   const [createdOrder, setCreatedOrder] = useState<OrderDTO | null>(null);
+  const { loading, thankYou } = useProto();
+  const navigate = useNavigate();
+  // The cart snapshot the stub thank-you lists, taken when the switcher opens it.
+  const [stub, setStub] = useState<OrderDTO | null>(null);
+  if (thankYou && !stub) setStub(stubOrder(cart));
+  if (!thankYou && stub) setStub(null);
 
   const handleUpdateQuantity = (
     productId: string,
@@ -53,9 +76,20 @@ export default function CheckoutPage() {
     total,
   } = calculateOrderTotals(cart?.data.subtotal || 0);
 
-  // The created order wins over the now-empty cart the mutation leaves behind.
-  if (createdOrder) {
-    return <OrderConfirmation order={createdOrder} />;
+  // PROTOTYPE (#359): the thank-you is a dialog over whatever the page now shows.
+  const receipt = createdOrder ?? stub;
+  const thankYouDialog = receipt && (
+    <PrototypeThankYou
+      order={receipt}
+      onClose={() => {
+        setProto({ thankYou: false });
+        if (createdOrder) navigate(paths.home.getHref());
+      }}
+    />
+  );
+
+  if (isLoading && loading !== "0") {
+    return <CheckoutSkeleton />;
   }
 
   if (isLoading) {
@@ -82,12 +116,14 @@ export default function CheckoutPage() {
             <Button variant="accent">Continue Shopping</Button>
           </Link>
         </div>
+        {thankYouDialog}
       </Container>
     );
   }
 
   return (
     <main>
+      {thankYouDialog}
       <Metadata title="Checkout" noIndex />
       <div className="bg-neutral-900 py-8">
         <Container>

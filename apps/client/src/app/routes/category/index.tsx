@@ -10,6 +10,12 @@ import { normalizeError } from "@/lib/errors/errors";
 import { NAME } from "@repo/domain";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { LoaderFunctionArgs, useNavigation, useParams } from "react-router";
+import { Suspense } from "react";
+import { CategorySkeleton } from "@/components/prototype/storefront-loading/skeletons";
+import {
+  loadersAwait,
+  useProto,
+} from "@/components/prototype/storefront-loading/store";
 
 const Category = () => {
   const { categoryName } = useParams<{ categoryName: NAME }>();
@@ -55,11 +61,32 @@ const Category = () => {
   );
 };
 
-export default Category;
+// PROTOTYPE (#359): B streams behind a route-level Suspense fallback.
+const CategoryRoute = () => {
+  const { loading } = useProto();
+  const { categoryName } = useParams<{ categoryName: NAME }>();
+  if (loading !== "B") return <Category />;
+  return (
+    <Suspense
+      key={categoryName}
+      fallback={<CategorySkeleton name={categoryName} />}
+    >
+      <Category />
+    </Suspense>
+  );
+};
+
+export default CategoryRoute;
 
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
+    if (!loadersAwait()) {
+      queryClient.prefetchQuery(
+        getProductsByCategoryQueryOptions(params.categoryName as NAME),
+      );
+      return null;
+    }
     try {
       await queryClient.ensureQueryData(
         getProductsByCategoryQueryOptions(params.categoryName as NAME),

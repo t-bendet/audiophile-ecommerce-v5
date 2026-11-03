@@ -19,6 +19,12 @@ import {
   useNavigation,
   useParams,
 } from "react-router";
+import { Suspense } from "react";
+import { ProductPageSkeleton } from "@/components/prototype/storefront-loading/skeletons";
+import {
+  loadersAwait,
+  useProto,
+} from "@/components/prototype/storefront-loading/store";
 
 const Product = () => {
   const { productSlug } = useParams();
@@ -181,11 +187,30 @@ const Product = () => {
   );
 };
 
-export default Product;
+// PROTOTYPE (#359): B streams behind a route-level Suspense fallback.
+const ProductRoute = () => {
+  const { loading } = useProto();
+  const { productSlug } = useParams();
+  if (loading !== "B") return <Product />;
+  return (
+    <Suspense key={productSlug} fallback={<ProductPageSkeleton />}>
+      <Product />
+    </Suspense>
+  );
+};
+
+export default ProductRoute;
 
 export const clientLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
+    if (!loadersAwait()) {
+      // Related products fetch on render once the product's id is known.
+      queryClient.prefetchQuery(
+        getProductBySlugQueryOptions(params.productSlug as string),
+      );
+      return null;
+    }
     try {
       const productResponse = await queryClient.ensureQueryData(
         getProductBySlugQueryOptions(params.productSlug as string),

@@ -1,0 +1,26 @@
+# Storefront loading states and dialogs prototype (#359)
+
+Variants live on the real storefront routes, not on a throwaway page. Loading states only show
+against real data and real navigation. A floating bar picks the variants. The choice is held in
+`sessionStorage`, because links drop search params and loaders run outside React. On a full load,
+`?loading=`, `?dialog=`, `?menu=`, `?delay=` and `?auth=` override it.
+
+Run `pnpm dev` (MongoDB, API and client) and open <http://localhost:5173/?delay=2000>. Sign in as
+`doe@example.com` / `11111111` for the account orders page and checkout. Every API request waits
+the bar's delay first (`latency.ts`), so pending states last long enough to judge.
+
+| Bar row     | Keys                     | What it changes                                                                                                                                                                        |
+| ----------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| loading     | 0, A, B, C (← / → cycle) | 0: today. A: loaders await, old page dimmed with a progress bar. B: loaders prefetch, route-level Suspense skeleton. C: loaders await, destination skeleton swapped in during the wait |
+| dialogs     | A, B, C                  | A: menu and mini-cart as sheets below the nav, thank-you centred. B: bottom drawers, mini-cart and thank-you centred from `md`. C: side panels, full-screen thank-you                  |
+| menu        | A, B, C, hold            | The account menu's fallback: A skeleton pill, B nameless greeting, C today's spinner; "hold" pins it                                                                                   |
+| delay       | 0, 800, 2000             | Milliseconds added before every API request                                                                                                                                            |
+| `/users/me` | fresh, cached            | fresh: the root middleware refetches the user on every navigation, as today. cached: a five-minute stale time                                                                          |
+| thank-you   | (on `/checkout`)         | Opens the thank-you dialog over the page with a stub order built from the cart; nothing is placed                                                                                      |
+
+Variants A to C also drop the root layout's full-page overlay for the user fetch and keep it for
+logout. The home loader in A and C awaits the featured product and preloads each of the hero's three
+art-directed sources with its `media` query.
+
+Throwaway code. It lives on the `prototype/359-storefront-loading-and-dialogs` branch and is never
+merged to `main`; the verdict goes in `docs/research/storefront-loading-and-dialogs-design.md`.

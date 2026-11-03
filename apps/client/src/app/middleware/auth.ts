@@ -1,3 +1,4 @@
+import { proto } from "@/components/prototype/storefront-loading/store";
 import { paths } from "@/config/paths";
 import {
   getAuthStatusQueryOptions,
@@ -28,7 +29,8 @@ const fetchCurrentUser = async (
     // Fresh on every navigation, whatever the query's stale time says.
     const response = await queryClient.fetchQuery({
       ...getUserQueryOptions(),
-      staleTime: 0,
+      // PROTOTYPE (#359): "cached" lets a five-minute-old user through without a request.
+      staleTime: proto().auth === "fresh" ? 0 : 5 * 60_000,
     });
     return response.data;
   } catch (error) {

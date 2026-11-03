@@ -11,8 +11,21 @@ import FeaturedProductSection from "@/features/products/components/featured-prod
 import ShowCaseProductsSection from "@/features/products/components/showcase-section";
 import { QueryClient } from "@tanstack/react-query";
 import { LoaderFunctionArgs } from "react-router";
+import { preload } from "react-dom";
+import { normalizeError } from "@/lib/errors/errors";
+import {
+  HeroSkeleton,
+  ShowcaseSkeleton,
+} from "@/components/prototype/storefront-loading/skeletons";
+import {
+  proto,
+  useProto,
+} from "@/components/prototype/storefront-loading/store";
 
 const Home = () => {
+  // PROTOTYPE (#359): skeleton fallbacks replace the section spinners outside today's variant.
+  const { loading } = useProto();
+  const skeletons = loading !== "0";
   return (
     <>
       <Metadata
@@ -26,6 +39,7 @@ const Home = () => {
             <SafeRenderWithErrorBlock
               title="Error loading featured product"
               spinnerClasses="bg-neutral-900"
+              fallback={skeletons ? <HeroSkeleton /> : undefined}
             >
               <FeaturedProductSection />
             </SafeRenderWithErrorBlock>
@@ -44,7 +58,10 @@ const Home = () => {
         </Section>
 
         <Section classes="space-y-6 md:mb-24 md:space-y-8 lg:mb-53 lg:space-y-12">
-          <SafeRenderWithErrorBlock title="Error loading showcase products">
+          <SafeRenderWithErrorBlock
+            title="Error loading showcase products"
+            fallback={skeletons ? <ShowcaseSkeleton /> : undefined}
+          >
             <ShowCaseProductsSection />
           </SafeRenderWithErrorBlock>
         </Section>
@@ -58,9 +75,32 @@ const Home = () => {
 
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    queryClient.prefetchQuery(getFeaturedProductQueryOptions());
     queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
-    // console.log({context});
+    // PROTOTYPE (#359): A and C await the featured product so the hero image can be preloaded.
+    const { loading } = proto();
+    if (loading !== "A" && loading !== "C") {
+      queryClient.prefetchQuery(getFeaturedProductQueryOptions());
+      return null;
+    }
+    try {
+      const featured = await queryClient.ensureQueryData(
+        getFeaturedProductQueryOptions(),
+      );
+      const image = featured.data.images.featuredImage;
+      if (image) {
+        // One preload per art-directed source, with the media query its <source> uses.
+        const sources = [
+          [image.mobile.src, "(max-width: 767px)"],
+          [image.tablet.src, "(min-width: 768px) and (max-width: 1023px)"],
+          [image.desktop.src, "(min-width: 1024px)"],
+        ] as const;
+        for (const [href, media] of sources) {
+          preload(href, { as: "image", fetchPriority: "high", media });
+        }
+      }
+    } catch (error) {
+      throw normalizeError(error);
+    }
 
     return null;
   };

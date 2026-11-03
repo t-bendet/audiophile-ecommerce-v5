@@ -6,8 +6,25 @@ import { listOrdersQueryOptions } from "@/features/orders/api/get-orders";
 import { OrderCard } from "@/features/orders/components/order-card";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Link, LoaderFunctionArgs } from "react-router";
+import { Suspense } from "react";
+import { OrdersCardSkeleton } from "@/components/prototype/storefront-loading/skeletons";
+import {
+  loadersAwait,
+  useProto,
+} from "@/components/prototype/storefront-loading/store";
 
-export default function OrdersPage() {
+// PROTOTYPE (#359): B streams behind a route-level Suspense fallback.
+export default function OrdersRoute() {
+  const { loading } = useProto();
+  if (loading !== "B") return <OrdersPage />;
+  return (
+    <Suspense fallback={<OrdersCardSkeleton />}>
+      <OrdersPage />
+    </Suspense>
+  );
+}
+
+function OrdersPage() {
   const { data } = useSuspenseQuery(listOrdersQueryOptions());
   const orders = data.data;
 
@@ -39,6 +56,10 @@ export default function OrdersPage() {
 
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
+    if (!loadersAwait()) {
+      queryClient.prefetchQuery(listOrdersQueryOptions());
+      return null;
+    }
     await queryClient.ensureQueryData(listOrdersQueryOptions());
     return null;
   };

@@ -1,3 +1,4 @@
+import { installPrototypeLatency } from "@/components/prototype/storefront-loading/latency";
 import { getEnv } from "@/config/env";
 import Axios, {
   AxiosInstance,
@@ -29,6 +30,8 @@ export function getApi(): AxiosInstance {
     });
 
     apiInstance.interceptors.request.use(authRequestInterceptor);
+    // PROTOTYPE (#359): dev-only artificial latency.
+    if (import.meta.env.DEV) installPrototypeLatency(apiInstance);
 
     apiInstance.interceptors.response.use(
       (response) => {

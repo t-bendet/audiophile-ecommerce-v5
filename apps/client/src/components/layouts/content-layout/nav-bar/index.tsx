@@ -1,16 +1,19 @@
 import Logo from "@/assets/logo.svg?react";
 import { SafeRenderWithErrorBlock } from "@/components/errors/safe-render-with-error-block";
-import NavBarDialog from "@/components/layouts/content-layout/nav-bar/nav-bar-dialog";
+import {
+  PrototypeMenu,
+  PrototypeMiniCart,
+} from "@/components/prototype/storefront-loading/dialogs";
+import { MenuFallback } from "@/components/prototype/storefront-loading/menu-fallback";
 import { Container } from "@/components/ui/container";
 import { paths } from "@/config/paths";
-import { MiniCart } from "@/features/cart/components/mini-cart";
 import useMedia from "@/hooks/useMedia";
 import { HomeIcon } from "lucide-react";
 import { Link } from "react-router";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import { CartButton } from "./cart-button";
 import { NavLinks } from "./nav-links";
 import { UserDropdown } from "./user-dropdown";
-import LoadingSpinner from "@/components/ui/loading-spinner";
 
 export const Navbar = () => {
   const isLarge = useMedia("lg");
@@ -20,7 +23,8 @@ export const Navbar = () => {
     <nav className="bg-neutral-900 max-md:border-b max-md:border-neutral-100/20">
       <Container>
         <div className="flex h-(--nav-bar-height) items-center justify-between md:border-b md:border-neutral-100/20">
-          {!isLarge && <NavBarDialog />}
+          {/* PROTOTYPE (#359): one dialog primitive for menu and mini-cart. */}
+          {!isLarge && <PrototypeMenu />}
           {isSmall ? (
             <Link
               to={paths.home.path}
@@ -46,7 +50,7 @@ export const Navbar = () => {
           <div className="flex items-center gap-4">
             <SafeRenderWithErrorBlock
               title="Error loading user dropdown"
-              fallback={<LoadingSpinner size="md" className="mr-12" />}
+              fallback={<MenuFallback />}
             >
               <UserDropdown />
             </SafeRenderWithErrorBlock>
@@ -54,7 +58,7 @@ export const Navbar = () => {
               title="Error loading cart"
               fallback={<LoadingSpinner size="md" />}
             >
-              <MiniCart trigger={<CartButton />} />
+              <PrototypeMiniCart trigger={<CartButton />} />
             </SafeRenderWithErrorBlock>
           </div>
         </div>

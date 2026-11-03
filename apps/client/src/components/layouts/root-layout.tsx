@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { LoaderFunctionArgs, Outlet, ScrollRestoration } from "react-router";
 import { Metadata } from "@/components/seo/metadata";
+import { useProto } from "@/components/prototype/storefront-loading/store";
 import LoadingSpinner from "../ui/loading-spinner";
 
 export function RootLayout() {
@@ -16,7 +17,9 @@ export function RootLayout() {
     mutationKey: [AUTH_LOGOUT_MUTATION_KEY],
   });
 
-  const isLoading = isFetching + isMutating > 0;
+  // PROTOTYPE (#359): variants A-C drop the overlay for the user fetch, keeping logout.
+  const { loading } = useProto();
+  const isLoading = (loading === "0" ? isFetching : 0) + isMutating > 0;
 
   return (
     <div className="flex min-h-dvh flex-col">
