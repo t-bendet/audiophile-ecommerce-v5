@@ -8,10 +8,12 @@ The grouping was drawn up on 2026-11-02 against the code at that date; the facts
 group were checked then. Group 0, the debt sprint, closed in
 [#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340), and group 1, email
 foundation and account recovery, in
-[#350](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/350), both on 2026-11-02; what
-they settled is folded into the blocks below, which were checked again at each close. Groups 2 to 4
-are ordered with intent. The order of groups 5 to 9 is provisional and is reconsidered at every
-group boundary.
+[#350](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/350), both on 2026-11-02; group
+2, storefront loading states and dialogs, closed in
+[#358](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/358) on 2026-11-03. What they
+settled is folded into the blocks below, which were checked again at each close. Groups 3 and 4 are
+ordered with intent. The order of groups 5 to 9 is provisional and is reconsidered at every group
+boundary.
 
 ## How the roadmap is worked
 
@@ -28,11 +30,13 @@ the group block.
   ([#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340)) was. Run
   [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) only when they should also be shipped in
   the same session; it hands the queue to batch-tickets.
-- One decision or one design pass (groups 2, 3, 7): write the parent issue first, then run
+- One decision or one design pass (groups 3, 7): write the parent issue first, then run
   [to-tickets](../.agents/skills/to-tickets/SKILL.md) against it so the human session becomes its
   first sub-issue, labelled `ready-for-human`, and the agent slices are specced in the same pass,
   as [#350](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/350) was for group 1 with
-  its research session #351 and its design pass #352. The human ticket runs the matching skill:
+  its research session #351 and its design pass #352, and
+  [#358](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/358) for group 2 with its prototype session #359. The
+  human ticket runs the matching skill:
   [research](../.agents/skills/research/SKILL.md) for a provider comparison,
   [prototype](../.agents/skills/prototype/SKILL.md) for a UI question,
   [grilling](../.agents/skills/grilling/SKILL.md) for semantics. Its close amends the slices the
@@ -58,10 +62,12 @@ the group block.
   auto-merges on green.
 - Group-scoped decisions live in the parent issue and its comments. Durable ones become ADRs, as the
   catalogue ownership change did in
-  [ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md) and the email
-  transport in [ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md).
-  When a batch shows an assumption was wrong: stop the batch, update the parent issue, re-spec only
-  the slices still open.
+  [ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md), the email
+  transport in [ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md)
+  and the storefront loading pattern in
+  [ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md). When a batch
+  shows an assumption was wrong: stop the batch, update the parent issue, re-spec only the slices
+  still open.
 - Every group ends with a closing re-triage ticket, blocked by every other slice, so the batch cannot
   finish without it. Its PR closes the parent and stops at PR open for review. It removes the closed
   group's block, carries every decision the group settled back into this file and the ADRs, reads
@@ -108,13 +114,29 @@ the group block.
   ([ADR 0010](adr/0010-nothing-an-order-references-is-hard-deleted.md)): users are deactivated, and
   `DELETE /products/:id` answers `RESOURCE_IN_USE` (409) for a product with order items or in a site
   config slot.
+- A new storefront route awaits its data in the loader and reads its params from `useParams`;
+  `PendingOutlet` keeps the old page under the "Loading page" progress bar meanwhile, and nothing
+  renders a skeleton
+  ([ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md)). A
+  search-param change on the same pathname shows no pending state. An E2E that asserts a pending
+  state starts with a cold cache and holds the API with `holdRoute`
+  ([E2E fixtures](../apps/e2e/README.md#fixtures)). The root overlay fires for logout only; a form
+  shows pending on its submit button.
+- Every dialog is `ui/dialog` with a `placement` (`sheet-top`, `sheet-top-end`, `centred`) and a
+  `title`; `belowNav` is the only nav offset, and the overlay's `dialog-overlay` is the client's
+  only test id ([ADR 0014](adr/0014-every-dialog-is-one-radix-primitive-with-a-placement.md)).
+  A fourth placement is a change to the primitive, not an override at a call site.
+- A form that must survive a refetch rebases in place: a save resets it to the response, as the
+  product, homepage and order fulfilment forms do
+  ([#366](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/366), [client guide](../apps/client/README.md#orders)); it is never keyed on the data it edits.
 - An E2E spec that places an order or changes the catalogue holds `ORDERS_LOCK` or
   `CATALOGUE_LOCK`, puts back through the API what it changed, and never orders a disposable
   product ([E2E fixtures](../apps/e2e/README.md#fixtures)).
 
 **Closing re-triage.** The checklist each group's last sub-issue carries; it ran as
-[#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347) for group 0 and
-[#357](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/357) for group 1.
+[#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347) for group 0,
+[#357](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/357) for group 1 and
+[#363](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/363) for group 2.
 
 1. The closed group's block and any item lines still standing are removed.
 2. Every decision settled in the parent issue, its slices or their PR reviews that differs from what
@@ -134,17 +156,6 @@ the group block.
 
 ## Groups in order
 
-### 2. Storefront loading states and dialogs
-
-Why second: client-only, no external dependency, and it settles the route-level loading pattern
-that order detail, wishlist and search results build on later.
-
-Human first: the prototype session the skeleton item already asks for, extended to the
-await-versus-stream choice per route and to one dialog primitive with variants. Brief under
-"Session briefs" below.
-
-Size: S to M, three or four agent tickets and one prototype session.
-
 ### 3. Order tracking, history and notifications
 
 - Order tracking: status updates visible to the shopper, tracking numbers, notifications. There is
@@ -163,15 +174,19 @@ Size: S to M, three or four agent tickets and one prototype session.
   names `EMAIL_WEBHOOK_SECRET` and a raw-body route for the slice that wants bounces and complaints.
 
 Depends on: nothing outside the group; group 1 shipped the transport the notification slice
-needs. Unblocks: the delivered-purchase check for reviews (group 7), the gateway's event trail
-(group 8), status timings in analytics (group 9).
+needs, and group 2 the loading pattern, so the order detail page needs no loading UI of its own
+([ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md)).
+Unblocks: the delivered-purchase check for reviews (group 7), the gateway's event trail (group 8),
+status timings in analytics (group 9).
 
 Human first: a short design pass for the shopper's order detail page and timeline. The account
 area's profile and security pages are placeholder cards today, so this pass sets the account area's
 pattern. `/account/profile` is where a password reset now lands
 ([#355](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/355)), so its placeholder card
-is the first thing a recovered shopper sees. A change-password form on the security page has its
-parts: `PATCH /auth/updateMyPassword` with `AuthUpdatePasswordRequestSchema`, the signup strength
+is the first thing a recovered shopper sees. The "Account Settings" heading in `UserAreaLayout`
+sets no colour on the storefront's white body text and is invisible, a finding of
+[#359](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/359) nothing has fixed, so the pass gives the
+account area its colours. A change-password form on the security page has its parts: `PATCH /auth/updateMyPassword` with `AuthUpdatePasswordRequestSchema`, the signup strength
 meter and hint the reset page reuses, and the rule that a password write ends every other session
 ([ADR 0012](adr/0012-a-password-reset-link-works-once-and-is-stored-only-as-its-hash.md)). The
 security page also closes a gap reported in
@@ -210,16 +225,19 @@ Size: M, four or five agent tickets and one short design pass.
   set in the creation form. The first catalogue field added after ADR 0007, so this sets the
   migration pattern.
 
-Why fourth: the longest pole with the most human decisions, so its map opens while groups 2 and 3
-run. Nothing downstream (filter, search, archive, inventory) is worth much on a six-product
-catalogue. Unblocks: groups 5 and 6 in practice.
+Why fourth: the longest pole with the most human decisions, so its map opens while group 3 runs.
+Nothing downstream (filter, search, archive, inventory) is worth much on a six-product catalogue.
+Unblocks: groups 5 and 6 in practice.
 
 Human first, as a wayfinder map: what an admin uploads per product (per-role-per-breakpoint crops as
 today, or one original per role with derived sizes); if derived, where (sharp in the container or
 Cloudflare Image Transformations); the upload path (presigned PUT from the browser or multipart
 through Express); whether runtime categories are wanted at all. If categories stay fixed, category
 management and the enum replacement park here with that reason. Provisioning: an R2 token as a
-Worker secret, bucket CORS if presigned. Then a design pass for the upload UI.
+Worker secret, bucket CORS if presigned. Then a design pass for the upload UI; its dialogs are
+`centred` `ui/dialog`s, whose overlay covers the whole admin shell since
+[#362](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/362)
+([ADR 0014](adr/0014-every-dialog-is-one-radix-primitive-with-a-placement.md)).
 
 Size: L, six to eight agent tickets, one map, one design pass.
 
@@ -262,11 +280,14 @@ Size: M to L, five or six agent tickets and one decision session.
   customer email, status, payment status and user today. Small and independent; here because it
   shares the index decision.
 
-Depends on: groups 4 and 5. Human first: the search technology (a MongoDB text index runs on the
-local replica set and in route tests; Atlas Search has autocomplete and highlighting but changes the
-test seam), whether features become attributes, and a design pass for the filter bar and the nav
-search box, which the storefront design does not have. Recommendation at triage time: a text index
-with prefix matching and client-side highlighting until the catalogue is hundreds of products.
+Depends on: groups 4 and 5. A search results route gets group 2's pending state
+([ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md)), but a
+filter or query change on the same pathname gets none. Human first: the search technology (a
+MongoDB text index runs on the local replica set and in route tests; Atlas Search has autocomplete
+and highlighting but changes the test seam), whether features become attributes, and a design pass
+for the filter bar and the nav search box, which the storefront design does not have, including
+what each shows while results load. Recommendation at triage time: a text index with prefix
+matching and client-side highlighting until the catalogue is hundreds of products.
 
 Size: M, four or five agent tickets and one design pass.
 
@@ -276,9 +297,10 @@ Size: M, four or five agent tickets and one design pass.
 - Product reviews and ratings. Nothing exists. Eligibility can reuse group 3's Delivered status; a
   rating sort joins group 6 as a follow-up.
 
-Depends on: groups 3 and 5. Swappable with group 6. Human first: wishlist scope, who may review and
-whether admin moderates, and a design pass for the product page sections, the card control and the
-account wishlist page.
+Depends on: groups 3 and 5; the account wishlist page follows group 2's loading pattern
+([ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md)).
+Swappable with group 6. Human first: wishlist scope, who may review and whether admin moderates,
+and a design pass for the product page sections, the card control and the account wishlist page.
 
 Size: M to L, five or six agent tickets and one design pass.
 
@@ -287,8 +309,9 @@ Size: M to L, five or six agent tickets and one design pass.
 - Payment gateway. The payment method is a free string the client sets; Paid and Refunded are set by
   hand. The gateway replaces the manual toggles. Since
   [#353](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/353) the checkout's methods are
-  `PAYMENT_METHODS` in `@repo/domain`, and the order-received email and the confirmation page both
-  print `paymentInstructions(method)` from the same package, so the gateway rewrites that sentence
+  `PAYMENT_METHODS` in `@repo/domain`, and the order-received email and the thank-you dialog
+  (`apps/client/src/features/orders/components/order-confirmation.tsx`) both print
+  `paymentInstructions(method)` from the same package, so the gateway rewrites that sentence
   in one place plus the tests that assert it (`order.route.test.ts`, `order.spec.ts` and the domain
   test).
 - Coupling between payment status and order status. "Refund requires paid" is already enforced by
@@ -300,7 +323,12 @@ Size: M to L, five or six agent tickets and one design pass.
   [#341](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/341) and not fixed: the address
   schemas accept whitespace-only values, and every checkout input is `required` without
   `noValidate`, so the form's own "is required" messages never show. The checkout design pass
-  decides whether the browser or the schema reports an empty field.
+  decides whether the browser or the schema reports an empty field. Since
+  [#362](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/362) the thank-you is a `centred` dialog over
+  the emptied checkout page
+  ([ADR 0014](adr/0014-every-dialog-is-one-radix-primitive-with-a-placement.md)); the
+  "Your cart is empty" heading under it sets no colour on the white body text and is invisible
+  (found in #359), so the pass owns the empty state too.
 
 Why late: the highest risk and the most human setup, while the manual flow works. For a webhook: a
 raw-body route mounted before the global JSON parser; the container is single-instance, sleeps after
@@ -328,46 +356,51 @@ S to M, about three tickets.
 
 The human sessions for the next groups, written out so they can start cold.
 
-### Group 2: loading states and dialogs prototype
+### Group 3: order detail and account area prototype
 
 Run `/prototype` with this brief:
 
 ```text
-Design question: what should each storefront route show while its data loads, and which one
-dialog primitive serves the mobile menu, the mini-cart and the checkout thank-you?
+Design question: what does a shopper's order detail page show, with its status timeline and
+tracking, and what pattern do the account area's profile, security and orders pages share?
 
-Facts: ui/skeleton.tsx is used on every admin page; product-skeleton.tsx and
-products-list-skeleton.tsx are unused. There is no navigation pending UI and no route-level
-Suspense boundary; the category, product and account loaders await ensureQueryData, so a click
-leaves the old page on screen. The home loader awaits the featured product and the showcase,
-then preloads the three hero sources with react-dom preload(). Measured on the E2E build (desktop
-Chromium, guest, local API, median of seven cold loads), the hero image request moved from the img
-to the preload link and started at 57.9ms instead of 62.7ms, with LCP unchanged at 108ms, so a
-further preload waits for a measurement that shows a gain. The signed-in menu shows a disabled,
-nameless "Hello!" while the user loads. The root layout's full-page overlay
-fires for the logout mutation and the user fetch only; the four auth forms show pending on their
-submit button (Spinner plus a progress label, #356). The mobile menu is a Radix Dialog with
-overrides (a leftover placeholder description, an aria-describedby pointing at nothing); the
-mini-cart is a vaul Drawer; the thank-you is inline content; the shared Dialog overlay hardcodes
-the nav-bar offset that admin inherits. The phone E2E specs under apps/e2e/tests/mobile/ find the
-menu ("Open main menu", dialog "Main menu") and the mini-cart ("Open cart", dialog "cart (n)") by
-role and accessible name, so keep those names or update the specs in the same slice. The admin
-order fulfilment form rebases in place after a save, as the product and homepage forms do (#366);
-a form that must survive a refetch follows that pattern.
+Facts: /account is UserAreaLayout under the content layout: an "Account Settings" h1, a "Logged in
+as" line and Profile, Security and Orders tabs over a nested Outlet. The h1 sets no colour on the
+body's white text-neutral-100 and is invisible (#359). The active tab is the pathname minus
+"/account/", so a nested /account/orders/:orderId selects no tab. Signup and login without a
+redirectTo, the user menu and a password reset (#355, with a "Password updated" toast) all land on
+/account/profile, a card holding the name in an h1; the security page is a card reading "Security
+Information" twice. The orders page lists OrderCard articles (date, a status, payment method and
+payment status line, items, total); order.spec.ts finds them by role article and product-name
+heading. No shopper order detail route exists: GET /orders/:orderId answers the owner only, and
+getOrderQueryOptions, useOrder and useOrders are unused. The admin order detail already lays out
+items, addresses and totals in features/admin/orders/components/order-summary.tsx. Order has no
+tracking number, carrier or status history; its statuses are Pending, Processing, Shipped,
+Delivered and Cancelled, and the admin fulfilment form moves status and payment status through two
+separate PATCHes. The agent default is free-text tracking number and carrier captured at Shipped,
+with an event actor that is a user or "system". The order-received email carries no link. No client
+code calls PATCH /auth/updateMyPassword (current, new and confirm; any password write ends every
+other session, ADR 0012), PATCH /users/updateMe (name and email) or DELETE /users/deleteMe, which
+deactivates without a password, ends the session on its next request and still lets the sole active
+admin deactivate themselves (#344). The signup strength meter and hint are reused by the reset
+page. A new route awaits in its loader under PendingOutlet's progress bar (ADR 0013); a
+confirmation is a ui/dialog placement (ADR 0014).
 
-Decide, per route (home, category, product, account orders, checkout): await in the loader with a
-skeleton, or stream with a route-level Suspense fallback; and whether the home loader awaits the
-featured query so the hero image can be preloaded. Decide one dialog primitive and its variants
-(sheet below the nav, bottom drawer, centred). Note where useSuspense in the dropdown and the
-auth stale-time change as a result.
+Decide: the order detail page's URL and layout and how a card links to it; the timeline's events,
+how its actor reads to a shopper, and where tracking and carrier appear; the account shell, its
+colours and its tabs on a nested route; what the profile page shows a recovered shopper and
+whether name and email are edited there; the change-password form and what it says about other
+sessions; self-deactivation (confirmation, password re-entry, the sole-admin refusal, where the
+shopper lands); whether the status email links to the order detail page.
 
-Throwaway code only. Deliver a design note beside docs/research/admin-dashboard-design.md with the
-decisions and screenshots; the group 2 parent issue copies the decisions.
+Throwaway code only. Deliver a design note beside
+docs/research/storefront-loading-and-dialogs-design.md with the decisions and screenshots; the
+group 3 parent issue copies the decisions.
 ```
 
 ### Group 4: open the wayfinder map
 
-When groups 2 and 3 are moving, run `/wayfinder` with the destination "a specced parent issue for
+While group 3 is moving, run `/wayfinder` with the destination "a specced parent issue for
 catalogue growth: dashboard image upload, product creation, category management and the arrival
 date, with the variant strategy decided". Seed its tickets from the four questions in the group 4
 block: research for Cloudflare Image Transformations limits and R2 presigned uploads, prototype for
@@ -391,6 +424,20 @@ new catalogue fields and group 6's attributes question in its fog.
   availability: Resend is free at this volume and the switch would buy nothing. The
   [email provider note](research/email-provider.md) records what Cloudflare would need to offer,
   for the record, not as a plan.
+- Skeleton loaders in the storefront. Rejected in
+  [#359](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/359), the second time with the
+  skeletons rebuilt to the real pages: the old page under the progress bar is the loading state
+  ([ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md)).
+  `ui/skeleton.tsx` stays for the admin pages.
+- Further resource preloads. The hero preload
+  [#361](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/361) measured moved the request
+  from the `img` to the preload `link` and left LCP at 108 ms
+  ([ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md));
+  another preload waits for a measurement that shows a gain.
+- Swipe-to-dismiss on the mini-cart. It left with `vaul` in
+  [#362](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/362)
+  ([ADR 0014](adr/0014-every-dialog-is-one-radix-primitive-with-a-placement.md)); no trigger
+  to bring it back.
 - Dark mode and multi-language support. Not planned.
 
 ## Removed in the #162 triage
