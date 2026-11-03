@@ -23,10 +23,11 @@ Every comment or issue posted to the issue tracker during triage **must** start 
 
 ## Roles
 
-Two **category** roles:
+Three **category** roles:
 
 - `bug`: something is broken
 - `enhancement`: new feature or improvement
+- `tooling`: developer tooling, skills and process
 
 Five **state** roles:
 

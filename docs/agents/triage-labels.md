@@ -4,7 +4,7 @@ Labels in this repository fall into three families. A triaged issue carries one 
 
 ## Type labels
 
-`bug`, `enhancement`, `documentation` classify what the issue is. The remaining GitHub defaults (`duplicate`, `good first issue`, `help wanted`, `invalid`, `question`) exist and are rarely used.
+`bug`, `enhancement`, `documentation`, and `tooling` classify what the issue is. Use `tooling` for developer tooling, skills, and process. The remaining GitHub defaults (`duplicate`, `good first issue`, `help wanted`, `invalid`, `question`) exist and are rarely used.
 
 ## State labels
 
