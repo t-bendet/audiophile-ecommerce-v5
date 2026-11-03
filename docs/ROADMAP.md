@@ -356,6 +356,48 @@ S to M, about three tickets.
 
 The human sessions for the next groups, written out so they can start cold.
 
+### Group 3: order detail and account area prototype
+
+Run `/prototype` with this brief:
+
+```text
+Design question: what does a shopper's order detail page show, with its status timeline and
+tracking, and what pattern do the account area's profile, security and orders pages share?
+
+Facts: /account is UserAreaLayout under the content layout: an "Account Settings" h1, a "Logged in
+as" line and Profile, Security and Orders tabs over a nested Outlet. The h1 sets no colour on the
+body's white text-neutral-100 and is invisible (#359). The active tab is the pathname minus
+"/account/", so a nested /account/orders/:orderId selects no tab. Signup and login without a
+redirectTo, the user menu and a password reset (#355, with a "Password updated" toast) all land on
+/account/profile, a card holding the name in an h1; the security page is a card reading "Security
+Information" twice. The orders page lists OrderCard articles (date, a status, payment method and
+payment status line, items, total); order.spec.ts finds them by role article and product-name
+heading. No shopper order detail route exists: GET /orders/:orderId answers the owner only, and
+getOrderQueryOptions, useOrder and useOrders are unused. The admin order detail already lays out
+items, addresses and totals in features/admin/orders/components/order-summary.tsx. Order has no
+tracking number, carrier or status history; its statuses are Pending, Processing, Shipped,
+Delivered and Cancelled, and the admin fulfilment form moves status and payment status through two
+separate PATCHes. The agent default is free-text tracking number and carrier captured at Shipped,
+with an event actor that is a user or "system". The order-received email carries no link. No client
+code calls PATCH /auth/updateMyPassword (current, new and confirm; any password write ends every
+other session, ADR 0012), PATCH /users/updateMe (name and email) or DELETE /users/deleteMe, which
+deactivates without a password, ends the session on its next request and still lets the sole active
+admin deactivate themselves (#344). The signup strength meter and hint are reused by the reset
+page. A new route awaits in its loader under PendingOutlet's progress bar (ADR 0013); a
+confirmation is a ui/dialog placement (ADR 0014).
+
+Decide: the order detail page's URL and layout and how a card links to it; the timeline's events,
+how its actor reads to a shopper, and where tracking and carrier appear; the account shell, its
+colours and its tabs on a nested route; what the profile page shows a recovered shopper and
+whether name and email are edited there; the change-password form and what it says about other
+sessions; self-deactivation (confirmation, password re-entry, the sole-admin refusal, where the
+shopper lands); whether the status email links to the order detail page.
+
+Throwaway code only. Deliver a design note beside
+docs/research/storefront-loading-and-dialogs-design.md with the decisions and screenshots; the
+group 3 parent issue copies the decisions.
+```
+
 ### Group 4: open the wayfinder map
 
 While group 3 is moving, run `/wayfinder` with the destination "a specced parent issue for
