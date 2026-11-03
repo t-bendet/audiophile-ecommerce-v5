@@ -145,8 +145,10 @@ which keeps the extra time to a few seconds.
 [cloud session](#cloud-sessions) and CI have; an iPhone profile would need WebKit. Its 412px
 viewport is below every breakpoint the client reads (`sm`, `md`, `lg`): the storefront shows the
 menu button instead of the category links and the admin shows its tab bar instead of the sidebar.
-Assert those through roles, accessible names and URLs, not their markup, which a later roadmap
-group reworks.
+Assert those through roles, accessible names and URLs. The phone storefront spec also pins where
+the menu sheet, the mini-cart panel and their overlay start under the 5.5rem nav, reading the
+overlay through its `dialog-overlay` test id
+([ADR 0014](../../docs/adr/0014-every-dialog-is-one-radix-primitive-with-a-placement.md)).
 
 ## Agents
 
