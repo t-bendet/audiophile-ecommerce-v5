@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
-import { expect, test as base, type APIRequestContext } from "@playwright/test";
+import {
+  expect,
+  test as base,
+  type APIRequestContext,
+  type Page,
+} from "@playwright/test";
 
 // Absolute, because the Playwright agents run the suite from the repo root.
 export const STORAGE_STATE = join(
@@ -64,6 +69,7 @@ export type FeaturedProduct = {
   id: string;
   slug: string;
   fullLabel: string[];
+  images: ProductImagesDTO;
 };
 
 export type ImageVariantDTO = {
@@ -292,6 +298,17 @@ export const freshShopper = (): Shopper => {
     email: `e2e-${id}@example.com`,
     password: "11111111",
   };
+};
+
+/** Holds every request to `url` until the returned release is called. */
+export const holdRoute = async (page: Page, url: string) => {
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route(url, async (route) => {
+    await held;
+    await route.continue();
+  });
+  return release;
 };
 
 const signUp = async (api: APIRequestContext, shopper: Shopper) => {

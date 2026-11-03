@@ -9,7 +9,10 @@ import { getFeaturedProductQueryOptions } from "@/features/products/api/get-prod
 import { getShowCaseProductsQueryOptions } from "@/features/products/api/get-products";
 import FeaturedProductSection from "@/features/products/components/featured-product-section";
 import ShowCaseProductsSection from "@/features/products/components/showcase-section";
+import { normalizeError } from "@/lib/errors/errors";
+import type { ResponsiveImageDTO } from "@repo/domain";
 import { QueryClient } from "@tanstack/react-query";
+import { preload } from "react-dom";
 import { LoaderFunctionArgs } from "react-router";
 
 const Home = () => {
@@ -56,11 +59,32 @@ const Home = () => {
   );
 };
 
+// One preload per art-directed source, with the media query its <source> resolves to.
+const preloadHero = (image: ResponsiveImageDTO) => {
+  const sources = [
+    [image.mobile.src, "(max-width: 767px)"],
+    [image.tablet.src, "(min-width: 768px) and (max-width: 1023px)"],
+    [image.desktop.src, "(min-width: 1024px)"],
+  ] as const;
+  for (const [href, media] of sources) {
+    preload(href, { as: "image", fetchPriority: "high", media });
+  }
+};
+
 export const clientLoader =
   (queryClient: QueryClient) => async (_context: LoaderFunctionArgs) => {
-    queryClient.prefetchQuery(getFeaturedProductQueryOptions());
-    queryClient.prefetchQuery(getShowCaseProductsQueryOptions());
-    // console.log({context});
+    try {
+      const [featured] = await Promise.all([
+        queryClient.ensureQueryData(getFeaturedProductQueryOptions()),
+        queryClient.ensureQueryData(getShowCaseProductsQueryOptions()),
+      ]);
+      const image = featured.data.images.featuredImage;
+      if (image) {
+        preloadHero(image);
+      }
+    } catch (error) {
+      throw normalizeError(error);
+    }
 
     return null;
   };

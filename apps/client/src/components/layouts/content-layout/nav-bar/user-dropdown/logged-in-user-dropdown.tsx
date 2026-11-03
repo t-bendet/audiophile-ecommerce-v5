@@ -11,7 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { paths } from "@/config/paths";
 import { getUserQueryOptions, useLogoutUser } from "@/lib/auth";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { ChevronsUpDown, LayoutDashboard, LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -20,17 +20,7 @@ export default function LoggedInUserDropdown() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutate: logout } = useLogoutUser(queryClient);
-  const { data: user, isLoading, isError } = useQuery(getUserQueryOptions());
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-  if (isError) {
-    return <div>Error loading user data</div>;
-  }
-  if (!user) {
-    return <div className="bg-black">No user data available</div>;
-  }
+  const { data: user } = useSuspenseQuery(getUserQueryOptions());
 
   const handleLogout = async () => {
     try {
