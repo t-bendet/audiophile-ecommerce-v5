@@ -5,8 +5,8 @@ description: Work a queue of GitHub tickets end to end, one at a time — branch
 
 # Batch tickets
 
-Ship a queue of GitHub issues unattended. **Strictly sequential**: one ticket fully lands on `main`
-before the next one branches. Only one implementer uses the working tree at a time; concurrent
+Ship a queue of GitHub issues unattended. **Strictly sequential**: each ticket lands, is parked as deferred, or
+fails before the next one branches. Only one implementer uses the working tree at a time; concurrent
 remote changes can still require conflict resolution.
 
 **Keep your own context lean** so a long queue finishes in one session. Your reads are: each issue
@@ -60,13 +60,13 @@ git switch main && git pull
 git switch -c <type>/N-<slug>
 ```
 
-`<slug>` is 2–5 kebab-case words from the title.
+`<slug>` is 2–5 kebab-case words from the title. Convention lives in `docs/agents/issue-tracker.md`.
 
 ### 3. Delegate
 
 Spawn **one** implementer as a fresh agent rather than a fork, and wait for its report before
-advancing the queue. It plans, then edits; there is no separate planner. Name no model: the
-harness's subagent default decides. It is the ticket's only writer; it may spawn read-only
+advancing the queue. It plans, then edits. The harness's subagent default picks its model, so the
+spawn names none. It is the ticket's only writer; it may spawn read-only
 Explore agents for lookups. Its brief carries:
 
 - the issue body and relevant comments, pasted in — it cannot see this conversation
@@ -74,8 +74,7 @@ Explore agents for lookups. Its brief carries:
 - `AGENTS.md` and the applicable task-guide paths, chosen from the `AGENTS.md` routing table, with
   the sections that bear on the ticket named where you can tell
 - **plan first, bounded**: plan from the issue and the named guide sections, then edit. Read guides
-  by heading or grep rather than whole. Run single test files, not the full suite, before the first
-  edit. Keep the plan to file-level intent: no line-numbered quotes or drafts of files it will not
+  by heading or grep rather than whole. Leave the full test suite until after the first edit. Keep the plan to file-level intent: no line-numbered quotes or drafts of files it will not
   edit.
 - **lookups only for versions**: web and registry lookups only on a ticket that changes a version,
   only for the versions being changed. Registry first (`pnpm view <pkg>@<version>` for versions,
@@ -86,7 +85,7 @@ Explore agents for lookups. Its brief carries:
 - **the report**: the paths it changed, what it deliberately left out, the checks it ran with their
   result, and either _done_, _blocked_ (with the resume condition), or _unfinishable in one pass_
 
-A notification from the implementer that carries no report gets resumed at once with a request for
+A subagent notification that carries no report gets resumed at once with a request for
 the report. _Unfinishable in one pass_ makes the ticket a **miss**: its issue comment says the
 ticket needs slicing, and the batch moves on. _Blocked_ makes it **deferred**.
 
@@ -115,9 +114,8 @@ git fetch --prune   # GitHub deleted the remote branch; this clears the stale tr
 ```
 
 Touch local branches only once the state is `MERGED`: deleting the head branch of an open PR closes
-it. Then watch `main`'s run in the background (`gh run list --branch main --limit 1` for its id,
-`gh run watch <id> --exit-status`) and start the next ticket. Before the next PR's
-`gh pr merge --auto`, confirm that run finished green; a red `main` run aborts the batch.
+it. Then watch `main`'s run in the background (**Watch CI** in the issue-tracker guide, with `--branch main`) and start the next ticket. Before the next PR's
+`gh pr merge --auto`, confirm that watch exited green.
 
 Under `open`, skip auto-merge and stop after the checks: record the PR link and its check result,
 `git switch main && git pull`, and leave the branch for the reviewer. A red check is a miss under
@@ -145,7 +143,8 @@ policy, or three tickets in a row fail verification (something systemic is broke
 
 A ticket blocked on a bounded external wait is parked, not waited on:
 
-- if the implementer changed files, commit them to the ticket branch and push it
+- if the implementer changed files, commit them to the ticket branch and push it (the retry's
+  rebase then pushes with `--force-with-lease`)
 - record the ticket as **deferred** with its resume condition (the date a release-age window
   opens, the PR whose review it waits on, the upstream run)
 - `git switch main && git pull`, and continue with the next ticket
@@ -157,8 +156,8 @@ does not hold, it stays **deferred** in the final report.
 
 ## Final report
 
-After the deferred retries and once the last `main` run is green, check
-`https://audiophile.t-bendet.com/api/v1/health` once. Then print a markdown table — ticket, title, outcome (shipped / open / failed /
+After the deferred retries, under `merge` and once the last `main` run is green, check
+`/api/v1/health` once at the deployed hostname in the [deployment runbook](../../../docs/deployment.md). Then print a markdown table — ticket, title, outcome (shipped / open / failed /
 deferred), PR link, note — followed by:
 
 - what landed on `main`, as a short list of squashed commits, or under `open` the PRs waiting for review
