@@ -288,7 +288,7 @@ describe("UserService.deactivate", () => {
   it("marks the user inactive and keeps the account readable", async () => {
     const user = await createUser();
 
-    await userService.deactivate(user.id);
+    await userService.deactivate(user.id, "password1234");
 
     await expect(userService.get(user.id)).resolves.toMatchObject({
       id: user.id,

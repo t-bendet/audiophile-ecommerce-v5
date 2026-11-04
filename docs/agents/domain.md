@@ -44,3 +44,5 @@ Surface a conflict with an existing decision explicitly. For a new settled term 
 Every `*DTO` member is required and the schema is `.strict()`, so a list answers `fields=` with the full DTO: the value is validated against the entity's `*_QUERY_FIELDS` whitelist and treated as a lower bound ([ADR 0009](../adr/0009-field-selection-never-drops-a-required-member.md)). A member that may be left out of a response needs its own decision before it can be optional here.
 
 Use the package's existing schema/type pairs as examples rather than introducing parallel definitions in client and server. Run the domain tests and type-check affected consumers when a shared contract changes; see [verification](verification.md).
+
+The self-user response adds `soleActiveAdmin` to the shared user DTO; self-deactivation accepts a password body.

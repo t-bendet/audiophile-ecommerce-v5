@@ -36,7 +36,7 @@ export default function ProfilePage() {
       return UserDTOResponseSchema.parse(response.data);
     },
     onSuccess: (response) => {
-      queryClient.setQueryData([USER_QUERY_KEY], response);
+      queryClient.invalidateQueries({ queryKey: [USER_QUERY_KEY] });
       form.reset({ name: response.data.name, email: response.data.email });
       toast.success("Profile updated");
     },

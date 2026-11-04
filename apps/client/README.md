@@ -442,3 +442,5 @@ or use root `pnpm test` for dependency ordering. For browser coverage, follow th
 `tailwindStylesheet` in [`.prettierrc`](.prettierrc). With plugin version 0.8.1, a
 comparison without that option produced the same client output for root and client-only
 file sets. Keep the option to declare the authoritative stylesheet explicitly.
+
+The security page requires the current password to deactivate an account, signs out locally on success, and disables the action for the sole active admin.

@@ -21,6 +21,7 @@ import {
   AuthSignUpRequest,
   UserDTOResponse,
   UserDTOResponseSchema,
+  UserSelfDTOResponseSchema,
 } from "@repo/domain";
 import {
   QueryClient,
@@ -82,12 +83,14 @@ export const markSignedOut = (queryClient: QueryClient) =>
 
 // ** Get User (Me)
 
-type TGetUser = TBaseHandler<UserDTOResponse>;
+type TGetUser = TBaseHandler<
+  ReturnType<typeof UserSelfDTOResponseSchema.parse>
+>;
 
 const getUser: TGetUser = async ({ signal }) => {
   const api = getApi();
   const response = await api.get("/users/me", { signal });
-  const result = UserDTOResponseSchema.safeParse(response.data);
+  const result = UserSelfDTOResponseSchema.safeParse(response.data);
   if (result.success) {
     return result.data;
   } else {

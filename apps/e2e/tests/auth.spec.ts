@@ -357,3 +357,37 @@ test("changing a password keeps this device signed in and signs out another", as
     await otherContext.close();
   }
 });
+
+test("a shopper confirms their password to deactivate their account", async ({
+  page,
+  signUpFreshShopper,
+}) => {
+  const shopper = await signUpFreshShopper();
+  await page.goto("/account/security");
+  await page.getByRole("button", { name: "Deactivate account" }).click();
+  const dialog = page.getByRole("dialog", { name: "Deactivate your account?" });
+  await dialog.getByLabel("Your password").fill("wrongpassword");
+  await dialog.getByRole("button", { name: "Deactivate", exact: true }).click();
+  await expect(
+    dialog.getByText("Your current password is wrong."),
+  ).toBeVisible();
+  await dialog.getByLabel("Your password").fill(shopper.password);
+  await dialog.getByRole("button", { name: "Deactivate", exact: true }).click();
+  await expect(page).toHaveURL("/");
+  await expect(
+    page.getByText("Account deactivated", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("You have been signed out. Contact us to reactivate."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open anonymous menu" }),
+  ).toBeVisible();
+  await page.goto("/auth/login");
+  await page.getByLabel("Email").fill(shopper.email);
+  await page.getByLabel("Password", { exact: true }).fill(shopper.password);
+  await page.getByRole("button", { name: "Login" }).click();
+  await expect(
+    page.getByText("This account has been deactivated."),
+  ).toBeVisible();
+});
