@@ -32,9 +32,10 @@ list route, so it has no field selection at all and its service dropped the dead
 database-backed route test for users, products and categories requests a projection and parses the
 response against the entity's `*GetAllResponseSchema`.
 
-A per-row state the UI needs is derived rather than added as a member, since a new member is
-required on every response that parses the DTO. The admin role change in
+A per-row state added to a DTO is required on every response that parses it. A caller can instead
+derive that state, or a specific response can extend the DTO with its own required member. The admin role change in
 [#344](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/344) was the first design this
 decided: the user detail page reads whether its user is the last active admin from the total of an
 active-admins users list (`apps/client/src/features/admin/users/roles.ts`), because `UserDTO` is
-also what `/users/me`, login and signup answer.
+also what login and signup answer. The self-user response now extends `UserDTO` with the required
+`soleActiveAdmin` member for the security page; it does not change the user list DTO.

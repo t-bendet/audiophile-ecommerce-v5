@@ -10,10 +10,12 @@ group were checked then. Group 0, the debt sprint, closed in
 foundation and account recovery, in
 [#350](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/350), both on 2026-11-02; group
 2, storefront loading states and dialogs, closed in
-[#358](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/358) on 2026-11-03. What they
-settled is folded into the blocks below, which were checked again at each close. Groups 3 and 4 are
-ordered with intent. The order of groups 5 to 9 is provisional and is reconsidered at every group
-boundary.
+[#358](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/358) on 2026-11-03; group 3,
+order tracking, history and notifications, closed in
+[#437](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/437) on 2026-11-04. What they
+settled is folded into the blocks below, which were checked again at each close. Group 4 remains
+next to grow the catalogue; the order of groups 5 to 9 is provisional and is reconsidered at every
+group boundary.
 
 ## How the roadmap is worked
 
@@ -30,7 +32,7 @@ the group block.
   ([#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340)) was. Run
   [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) only when they should also be shipped in
   the same session; it hands the queue to batch-tickets.
-- One decision or one design pass (groups 3, 7): write the parent issue first, then run
+- One decision or one design pass (group 7): write the parent issue first, then run
   [to-tickets](../.agents/skills/to-tickets/SKILL.md) against it so the human session becomes its
   first sub-issue, labelled `ready-for-human`, and the agent slices are specced in the same pass,
   as [#350](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/350) was for group 1 with
@@ -107,9 +109,13 @@ the group block.
   ([ADR 0012](adr/0012-a-password-reset-link-works-once-and-is-stored-only-as-its-hash.md)).
 - `media:sync --prune` deletes any bucket key the repo does not have. The first dashboard upload
   makes it destructive, so the upload slice scopes or retires it.
-- A per-row state the UI needs is not a new DTO member: every member is required and the schema is
-  strict ([ADR 0009](adr/0009-field-selection-never-drops-a-required-member.md)). The admin role
-  change derived the last-active-admin state from an active-admins list total instead.
+- Every DTO member is required and the schema is strict
+  ([ADR 0009](adr/0009-field-selection-never-drops-a-required-member.md)). The admin role change
+  derives last-active-admin state from an active-admins list total; the self-user response instead
+  includes `soleActiveAdmin` for the security page.
+- Order status events are embedded and written atomically with the status; existing orders without
+  events read as a synthetic Pending event at creation time. Actors are a user id or `system`, and
+  payment changes are separate ([ADR 0015](adr/0015-order-status-events-are-embedded-in-orders.md)).
 - Nothing an order references is hard-deleted
   ([ADR 0010](adr/0010-nothing-an-order-references-is-hard-deleted.md)): users are deactivated, and
   `DELETE /products/:id` answers `RESOURCE_IN_USE` (409) for a product with order items or in a site
@@ -136,7 +142,8 @@ the group block.
 **Closing re-triage.** The checklist each group's last sub-issue carries; it ran as
 [#347](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/347) for group 0,
 [#357](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/357) for group 1 and
-[#363](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/363) for group 2.
+[#363](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/363) for group 2, and
+[#445](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/445) for group 3.
 
 1. The closed group's block and any item lines still standing are removed.
 2. Every decision settled in the parent issue, its slices or their PR reviews that differs from what
@@ -155,20 +162,6 @@ the group block.
 8. The PR carries `Closes #<parent>` and waits at PR open for review.
 
 ## Groups in order
-
-### 3. Order tracking, history and notifications
-
-Depends on: nothing outside the group; group 1 shipped the transport the notification slice
-needs, and group 2 the loading pattern, so the order detail page needs no loading UI of its own
-([ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md)).
-Unblocks: the delivered-purchase check for reviews (group 7), the gateway's event trail (group 8),
-status timings in analytics (group 9).
-
-Human first: a short design pass for the shopper's order detail page and timeline. The account area shares this pattern. Agent default unless overruled:
-tracking number and carrier as free text, captured at the Shipped transition. Give the event an
-actor that can be a user or "system" so group 8's webhooks reuse it.
-
-Size: M, four or five agent tickets and one short design pass.
 
 ### 4. Catalogue growth: uploads, product creation, categories
 
@@ -197,8 +190,7 @@ Size: M, four or five agent tickets and one short design pass.
   set in the creation form. The first catalogue field added after ADR 0007, so this sets the
   migration pattern.
 
-Why fourth: the longest pole with the most human decisions, so its map opens while group 3 runs.
-Nothing downstream (filter, search, archive, inventory) is worth much on a six-product catalogue.
+Why next: the longest pole with the most human decisions. Nothing downstream (filter, search, archive, inventory) is worth much on a six-product catalogue.
 Unblocks: groups 5 and 6 in practice.
 
 Human first, as a wayfinder map: what an admin uploads per product (per-role-per-breakpoint crops as
@@ -266,10 +258,11 @@ Size: M, four or five agent tickets and one design pass.
 ### 7. Shopper engagement: wishlist and reviews
 
 - Wishlist. Nothing exists; login-only would match checkout, guest-capable would match the cart.
-- Product reviews and ratings. Nothing exists. Eligibility can reuse group 3's Delivered status; a
-  rating sort joins group 6 as a follow-up.
+- Product reviews and ratings. Nothing exists. Eligibility can check the existing Delivered status on orders; the policy for who may review
+  remains open. A rating sort joins group 6 as a follow-up.
 
-Depends on: groups 3 and 5; the account wishlist page follows group 2's loading pattern
+Depends on: group 5 for archived-product visibility; group 3's order status is in place. The
+account wishlist page follows group 2's loading pattern
 ([ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md)).
 Swappable with group 6. Human first: wishlist scope, who may review and whether admin moderates,
 and a design pass for the product page sections, the card control and the account wishlist page.
@@ -290,7 +283,7 @@ Size: M to L, five or six agent tickets and one design pass.
   the payment transition table; "cancel implies refund" is not, and arrives with the gateway.
 - Checkout enhancement: address book, multiple payment methods. The address book is user-owned
   addresses, an account page, checkout prefill and the missing "same as shipping" toggle; it does
-  not need the gateway and can be pulled into group 3's account design pass if wanted sooner.
+  not need the gateway and can be pulled forward as a separate account slice if wanted sooner.
   Checkout stays login-only; guest checkout is not planned. Observed in
   [#341](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/341) and not fixed: the address
   schemas accept whitespace-only values, and every checkout input is `required` without
@@ -306,7 +299,9 @@ Why late: the highest risk and the most human setup, while the manual flow works
 raw-body route mounted before the global JSON parser; the container is single-instance, sleeps after
 ten idle minutes and cold-starts in about four seconds, so lean on the provider's retries.
 
-Depends on: group 3's event actor. Human first, as a wayfinder map: the gateway and integration
+The order event actor already accepts `system` for webhook-driven status moves; payment changes
+remain separate from status events ([ADR 0015](adr/0015-order-status-events-are-embedded-in-orders.md)).
+Human first, as a wayfinder map: the gateway and integration
 style (hosted page or embedded elements), the provider account, test keys and webhook secret, and a
 checkout design pass. Test double: a gateway stub shaped like the email transport
 ([ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md)): one module
@@ -317,7 +312,9 @@ Size: L, six or seven agent tickets, one map, one design pass.
 
 ### 9. Analytics growth
 
-- Advanced analytics.
+- Advanced analytics. Embedded order status events supply status timestamps for new events; orders
+  without history expose only a synthetic Pending event at creation time, and payment changes have
+  no event history ([ADR 0015](adr/0015-order-status-events-are-embedded-in-orders.md)).
 - Custom date ranges and charts. Decide a date picker and a chart library once the preset numbers
   prove useful.
 
@@ -328,43 +325,9 @@ S to M, about three tickets.
 
 The human sessions for the next groups, written out so they can start cold.
 
-### Group 3: order detail and account area prototype
-
-Run `/prototype` with this brief:
-
-```text
-Design question: what does a shopper's order detail page show, with its status timeline and
-tracking, and what pattern do the account area's profile, security and orders pages share?
-
-Facts: Signup and login without a
-redirectTo, the user menu and a password reset (#355, with a "Password updated" toast) all land on
-/account/profile, a card holding the name in an h1; the security page is a card reading "Security
-Information" twice. The orders page lists OrderCard articles (date, a status, payment method and
-payment status line, items, total); order.spec.ts finds them by role article and product-name
-heading. No shopper order detail route exists: GET /orders/:orderId answers the owner only, and
-getOrderQueryOptions, useOrder and useOrders are unused. The admin order detail already lays out
-items, addresses and totals in features/admin/orders/components/order-summary.tsx. Order has no
-tracking number, carrier or status history; its statuses are Pending, Processing, Shipped,
-Delivered and Cancelled, and the admin fulfilment form moves status and payment status through two
-separate PATCHes. The agent default is free-text tracking number and carrier captured at Shipped,
-with an event actor that is a user or "system". The order-received email carries no link. The signup strength meter and hint are reused by the reset
-page. A new route awaits in its loader under PendingOutlet's progress bar (ADR 0013); a
-confirmation is a ui/dialog placement (ADR 0014).
-
-Decide: the order detail page's URL and layout and how a card links to it; the timeline's events,
-how its actor reads to a shopper, and where tracking and carrier appear; what the profile page shows a recovered shopper and
-whether name and email are edited there; the change-password form and what it says about other
-sessions; self-deactivation (confirmation, password re-entry, the sole-admin refusal, where the
-shopper lands); whether the status email links to the order detail page.
-
-Throwaway code only. Deliver a design note beside
-docs/research/storefront-loading-and-dialogs-design.md with the decisions and screenshots; the
-group 3 parent issue copies the decisions.
-```
-
 ### Group 4: open the wayfinder map
 
-While group 3 is moving, run `/wayfinder` with the destination "a specced parent issue for
+Run `/wayfinder` with the destination "a specced parent issue for
 catalogue growth: dashboard image upload, product creation, category management and the arrival
 date, with the variant strategy decided". Seed its tickets from the four questions in the group 4
 block: research for Cloudflare Image Transformations limits and R2 presigned uploads, prototype for

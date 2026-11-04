@@ -22,6 +22,7 @@ Read the glossary entries relevant to your task and use their terms in code, tes
 | Password reset tokens, the reset link, or the sessions a password write ends          | [0012: a password reset link works once and is stored only as its hash](../adr/0012-a-password-reset-link-works-once-and-is-stored-only-as-its-hash.md) |
 | Storefront loaders, the navigation pending state, or the account menu's loading state | [0013: a storefront navigation keeps the old page under a progress bar](../adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md) |
 | A dialog, its placement, or the nav offset                                            | [0014: every dialog is one Radix primitive with a placement](../adr/0014-every-dialog-is-one-radix-primitive-with-a-placement.md)                       |
+| Order status history, event actors, or shipment tracking                              | [0015: order status events are embedded in orders](../adr/0015-order-status-events-are-embedded-in-orders.md)                                           |
 
 Surface a conflict with an existing decision explicitly. For a new settled term or decision, read and apply the [domain-modeling skill](../../.agents/skills/domain-modeling/SKILL.md); it owns glossary and ADR formats. Proposals remain proposals until a decision is made.
 
