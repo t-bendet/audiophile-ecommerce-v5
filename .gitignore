@@ -67,3 +67,6 @@ worker-configuration.d.ts
 
 # Understand-Anything data directory 
 .ua/
+
+# written by CI from wrangler.jsonc, never committed
+apps/server/wrangler.ci.jsonc
