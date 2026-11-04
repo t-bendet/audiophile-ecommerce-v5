@@ -194,8 +194,11 @@ dependency order.
 
 The `prisma-client` generator is configured with `importFileExtension = "js"` (alongside
 `runtime = "nodejs"` and `moduleFormat = "esm"`), so the generated client's relative imports
-already carry the `.js` extensions Node.js ESM requires. No post-generation patching is needed;
-see the generator block in `prisma/schema/schema.prisma`.
+already carry the `.js` extensions Node.js ESM requires; see the generator block in
+`prisma/schema/schema.prisma`. After generation, `scripts/annotate-prisma-nulls.mjs` adds explicit
+types to six generated null exports: Prisma 6.19.3 otherwise causes TypeScript 6 declaration
+emission to fail with TS4094. The script fails if the generator output changes. Remove it when
+the generator emits compatible declarations, and verify the database package exports still build.
 
 ## Usage in other packages
 
