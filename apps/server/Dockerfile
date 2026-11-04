@@ -13,7 +13,8 @@ RUN apt-get update \
 WORKDIR /app
 
 FROM base AS pruner
-RUN npm install -g turbo@^2.11
+# turbo prune carries pnpm catalogs correctly from 2.11.8 (vercel/turborepo#14372).
+RUN npm install -g turbo@^2.11.8
 COPY . .
 RUN turbo prune server --docker
 

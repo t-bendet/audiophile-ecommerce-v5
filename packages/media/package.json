@@ -18,12 +18,12 @@
     "@aws-sdk/client-s3": "^3.940.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.13.4",
-    "dotenv": "^17.4.2",
-    "eslint": "^10.10.0",
+    "@types/node": "catalog:",
+    "dotenv": "catalog:",
+    "eslint": "catalog:",
     "image-size": "^2.0.2",
-    "tsx": "^4.23.13",
-    "typescript": "5.9.3",
-    "vitest": "^5.0.5"
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
