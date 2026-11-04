@@ -66,7 +66,7 @@ describe("the user extension on update", () => {
     ).toBe(true);
   });
 
-  it("stamps passwordChangedAt behind the clock so a fresh token stays valid", async () => {
+  it("stamps passwordChangedAt when the password is written", async () => {
     const user = await createUser();
     const before = Date.now();
 
@@ -76,7 +76,9 @@ describe("the user extension on update", () => {
     });
 
     const updated = await prisma.user.findUnique({ where: { id: user.id } });
-    expect(updated!.passwordChangedAt!.getTime()).toBeLessThan(before);
+    expect(updated!.passwordChangedAt!.getTime()).toBeGreaterThanOrEqual(
+      before,
+    );
   });
 
   it("leaves an update that touches neither password field alone", async () => {

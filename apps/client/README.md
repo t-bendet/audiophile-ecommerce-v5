@@ -139,6 +139,10 @@ the toast title "Reset failed". Pending is the disabled submit with a `Spinner` 
 and toasts "Password updated". A signed-in shopper who opens a link is sent to the profile by the
 auth layout loader, like the other auth pages.
 
+The security page validates the change-password form with the shared schema and sends it to
+`PATCH /auth/updateMyPassword`. A wrong current password and mismatched confirmation appear on
+their fields; success clears the form and confirms that other devices were signed out.
+
 The profile page edits name and email using the shared update schema. It sends only changed fields,
 puts the returned user in the authenticated-user cache, and toasts "Profile updated"; the account
 menu and signed-in email therefore update immediately.

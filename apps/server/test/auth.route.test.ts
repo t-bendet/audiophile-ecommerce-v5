@@ -175,9 +175,13 @@ describe("PATCH /api/v1/auth/updateMyPassword", () => {
   it("re-issues a cookie for an authenticated user", async () => {
     const user = await createUser();
 
+    const login = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: user.email, password: TEST_PASSWORD });
+    const oldCookie = login.headers["set-cookie"];
     const res = await request(app)
       .patch("/api/v1/auth/updateMyPassword")
-      .set("Cookie", authCookie(user.id))
+      .set("Cookie", oldCookie)
       .send({
         currentPassword: TEST_PASSWORD,
         password: "new-password-1",
@@ -186,6 +190,82 @@ describe("PATCH /api/v1/auth/updateMyPassword", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers["set-cookie"]?.[0]).toMatch(/^jwt=/);
+    const current = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", res.headers["set-cookie"]);
+    expect(current.status).toBe(200);
+    const old = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", oldCookie);
+    expect(old.status).toBe(401);
+    const legacy = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", authCookie(user.id));
+    expect(legacy.status).toBe(401);
+
+    const second = await request(app)
+      .patch("/api/v1/auth/updateMyPassword")
+      .set("Cookie", res.headers["set-cookie"])
+      .send({
+        currentPassword: "new-password-1",
+        password: "new-password-2",
+        passwordConfirm: "new-password-2",
+      });
+    expect(second.status).toBe(200);
+    expect(
+      (
+        await request(app)
+          .get("/api/v1/users/me")
+          .set("Cookie", res.headers["set-cookie"])
+      ).status,
+    ).toBe(401);
+    expect(
+      (
+        await request(app)
+          .get("/api/v1/users/me")
+          .set("Cookie", second.headers["set-cookie"])
+      ).status,
+    ).toBe(200);
+  });
+
+  it("rejects a wrong current password and a mismatched confirmation on their fields", async () => {
+    const user = await createUser();
+    const cookie = authCookie(user.id);
+    const wrong = await request(app)
+      .patch("/api/v1/auth/updateMyPassword")
+      .set("Cookie", cookie)
+      .send({
+        currentPassword: "wrong-password",
+        password: "new-password-1",
+        passwordConfirm: "new-password-1",
+      });
+    expect(wrong.body.error.details).toEqual([
+      expect.objectContaining({ path: ["body", "currentPassword"] }),
+    ]);
+    expect(wrong.headers["set-cookie"]).toBeUndefined();
+    expect(
+      (await request(app).get("/api/v1/users/me").set("Cookie", cookie)).status,
+    ).toBe(200);
+    const retry = await request(app)
+      .patch("/api/v1/auth/updateMyPassword")
+      .set("Cookie", cookie)
+      .send({
+        currentPassword: TEST_PASSWORD,
+        password: "new-password-1",
+        passwordConfirm: "new-password-1",
+      });
+    expect(retry.status).toBe(200);
+    const mismatch = await request(app)
+      .patch("/api/v1/auth/updateMyPassword")
+      .set("Cookie", retry.headers["set-cookie"])
+      .send({
+        currentPassword: "new-password-1",
+        password: "new-password-2",
+        passwordConfirm: "different-password",
+      });
+    expect(mismatch.body.error.details).toEqual([
+      expect.objectContaining({ path: ["body", "passwordConfirm"] }),
+    ]);
   });
 
   it("rejects an unauthenticated caller", async () => {

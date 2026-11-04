@@ -173,9 +173,7 @@ needs, and group 2 the loading pattern, so the order detail page needs no loadin
 Unblocks: the delivered-purchase check for reviews (group 7), the gateway's event trail (group 8),
 status timings in analytics (group 9).
 
-Human first: a short design pass for the shopper's order detail page and timeline. The account area shares this pattern. A change-password form on the security page has its parts: `PATCH /auth/updateMyPassword` with `AuthUpdatePasswordRequestSchema`, the signup strength
-meter and hint the reset page reuses, and the rule that a password write ends every other session
-([ADR 0012](adr/0012-a-password-reset-link-works-once-and-is-stored-only-as-its-hash.md)). The
+Human first: a short design pass for the shopper's order detail page and timeline. The account area shares this pattern. The
 security page also closes a gap reported in
 [#344](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/344): `DELETE /users/deleteMe`
 deactivates through `UserService.deactivate`, which calls `updateAsAdmin` without an acting user, so
@@ -363,8 +361,7 @@ tracking number, carrier or status history; its statuses are Pending, Processing
 Delivered and Cancelled, and the admin fulfilment form moves status and payment status through two
 separate PATCHes. The agent default is free-text tracking number and carrier captured at Shipped,
 with an event actor that is a user or "system". The order-received email carries no link. No client
-code calls PATCH /auth/updateMyPassword (current, new and confirm; any password write ends every
-other session, ADR 0012), PATCH /users/updateMe (name and email) or DELETE /users/deleteMe, which
+code calls DELETE /users/deleteMe, which
 deactivates without a password, ends the session on its next request and still lets the sole active
 admin deactivate themselves (#344). The signup strength meter and hint are reused by the reset
 page. A new route awaits in its loader under PendingOutlet's progress bar (ADR 0013); a

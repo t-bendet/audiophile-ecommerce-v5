@@ -114,7 +114,10 @@ const sendErrorDev = (err: unknown, req: Request, res: Response) => {
   const stack = err instanceof Error ? err.stack : undefined;
   const details = err instanceof AppError ? err.details : undefined;
 
-  if (code === ErrorCode.INVALID_CREDENTIALS) {
+  if (
+    code === ErrorCode.INVALID_CREDENTIALS &&
+    req.originalUrl.split("?")[0]?.endsWith("/auth/login")
+  ) {
     {
       res.clearCookie("jwt", {
         httpOnly: true,
@@ -138,7 +141,10 @@ const sendErrorDev = (err: unknown, req: Request, res: Response) => {
 const sendErrorProd = (err: unknown, req: Request, res: Response) => {
   // Operational, trusted error: send message to client
   if (err instanceof AppError) {
-    if (err.code === ErrorCode.INVALID_CREDENTIALS) {
+    if (
+      err.code === ErrorCode.INVALID_CREDENTIALS &&
+      req.originalUrl.split("?")[0]?.endsWith("/auth/login")
+    ) {
       {
         res.clearCookie("jwt", {
           httpOnly: true,
