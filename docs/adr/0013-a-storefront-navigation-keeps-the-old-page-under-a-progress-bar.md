@@ -62,6 +62,12 @@ use "Open user menu", and the fallback carries the same label.
 
 ## Consequences
 
+A failed lazy route import ends the pending navigation and renders the route error inside the
+content layout, with the navigation and footer still available. Eager pathless parent routes own
+the storefront and layout error boundaries: React Router retains a failed lazy match, and its
+hydration fallback would otherwise hide a boundary on that same match. A failed content layout
+import instead reaches the main fallback. Returning and navigating again retries the import.
+
 A new storefront route (order detail, wishlist, search results) awaits in its loader, reads its
 params from `useParams` and gets the pending state with no code of its own. A route whose state
 lives in search params, a filter bar or a search box, gets nothing from `PendingOutlet` on a

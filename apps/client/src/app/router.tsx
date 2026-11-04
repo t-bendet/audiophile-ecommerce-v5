@@ -51,77 +51,85 @@ const createAppRouter = (queryClient: QueryClient) =>
       loader: rootLoader(queryClient),
       children: [
         {
-          lazy: () =>
-            import("@/components/layouts/content-layout").then(
-              convert(queryClient),
-            ),
-          path: paths.home.path,
           errorElement: <MainErrorFallback />,
           children: [
             {
-              lazy: () => import("./routes/home").then(convert(queryClient)),
-              path: paths.home.path,
-              index: true,
-              errorElement: <RouteErrorBoundary />,
-            },
-            {
-              lazy: () => import("./routes/product").then(convert(queryClient)),
-              path: paths.product.path,
-              errorElement: <RouteErrorBoundary />,
-            },
-            {
               lazy: () =>
-                import("./routes/category").then(convert(queryClient)),
-              path: paths.category.path,
-              errorElement: <RouteErrorBoundary />,
-            },
-            {
-              lazy: () =>
-                import("./routes/checkout").then(convert(queryClient)),
-              path: paths.checkout.checkout.path,
-              middleware: [requireAuth],
-              errorElement: <RouteErrorBoundary />,
-            },
-            {
-              lazy: () =>
-                import("@/components/layouts/user-area-layout").then(
+                import("@/components/layouts/content-layout").then(
                   convert(queryClient),
                 ),
-              path: paths.account.root.path,
-              middleware: [requireAuth],
-              errorElement: <RouteErrorBoundary />,
+              path: paths.home.path,
               children: [
                 {
-                  element: <Navigate to={paths.account.profile.path} replace />,
-                  index: true,
-                },
-                {
-                  path: paths.account.profile.path,
-                  lazy: () =>
-                    import("./routes/account/profile").then(
-                      convert(queryClient),
-                    ),
-                },
-                {
-                  path: paths.account.security.path,
-                  lazy: () =>
-                    import("./routes/account/security").then(
-                      convert(queryClient),
-                    ),
-                },
-                {
-                  path: paths.account.orders.path,
-                  lazy: () =>
-                    import("./routes/account/orders").then(
-                      convert(queryClient),
-                    ),
+                  errorElement: <RouteErrorBoundary />,
+                  children: [
+                    {
+                      lazy: () =>
+                        import("./routes/home").then(convert(queryClient)),
+                      path: paths.home.path,
+                      index: true,
+                    },
+                    {
+                      lazy: () =>
+                        import("./routes/product").then(convert(queryClient)),
+                      path: paths.product.path,
+                    },
+                    {
+                      lazy: () =>
+                        import("./routes/category").then(convert(queryClient)),
+                      path: paths.category.path,
+                    },
+                    {
+                      lazy: () =>
+                        import("./routes/checkout").then(convert(queryClient)),
+                      path: paths.checkout.checkout.path,
+                      middleware: [requireAuth],
+                    },
+                    {
+                      lazy: () =>
+                        import("@/components/layouts/user-area-layout").then(
+                          convert(queryClient),
+                        ),
+                      path: paths.account.root.path,
+                      middleware: [requireAuth],
+                      children: [
+                        {
+                          element: (
+                            <Navigate to={paths.account.profile.path} replace />
+                          ),
+                          index: true,
+                        },
+                        {
+                          path: paths.account.profile.path,
+                          lazy: () =>
+                            import("./routes/account/profile").then(
+                              convert(queryClient),
+                            ),
+                        },
+                        {
+                          path: paths.account.security.path,
+                          lazy: () =>
+                            import("./routes/account/security").then(
+                              convert(queryClient),
+                            ),
+                        },
+                        {
+                          path: paths.account.orders.path,
+                          lazy: () =>
+                            import("./routes/account/orders").then(
+                              convert(queryClient),
+                            ),
+                        },
+                      ],
+                    },
+                    {
+                      path: "*",
+                      lazy: () =>
+                        import("./routes/not-found").then(convert(queryClient)),
+                    },
+                  ],
                 },
               ],
-            },
-            {
-              path: "*",
-              lazy: () =>
-                import("./routes/not-found").then(convert(queryClient)),
             },
           ],
         },
