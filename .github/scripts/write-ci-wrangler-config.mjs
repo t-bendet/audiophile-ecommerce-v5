@@ -1,5 +1,5 @@
 // Writes apps/server/wrangler.ci.jsonc: the committed config with the container
-// pointed at the image the Server image job pushed, so Deploy never builds one.
+// pointed at the image the Server image job pushed or found, so Deploy never builds one.
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

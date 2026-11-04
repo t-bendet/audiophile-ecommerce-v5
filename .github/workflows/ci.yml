@@ -79,34 +79,24 @@ jobs:
           path: .turbo/cache
           key: turbo-${{ runner.os }}-${{ github.sha }}
 
-  # PRs build and discard. Main's run also loads the image, pushes it to the
-  # Cloudflare registry and hands Deploy its digest, so Deploy never builds (#392).
+  # PRs build and discard. Main's run tags the image by the hash of its inputs and
+  # hands Deploy the registry digest behind that tag, so Deploy never builds (#392).
+  # When the registry already holds the tag, nothing is built or pushed and the
+  # deploy carries no container change, so no rollout starts (#397).
   image:
     name: Server image
     runs-on: ubuntu-latest
     outputs:
-      digest: ${{ steps.push.outputs.digest }}
+      tag: ${{ steps.inputs.outputs.tag }}
+      digest: ${{ steps.lookup.outputs.digest || steps.push.outputs.digest }}
 
     steps:
       - uses: actions/checkout@v7
 
       - uses: docker/setup-buildx-action@v4
 
-      # Main's run seeds the cache PRs restore from; PRs write none (#391). The
-      # platform and provenance settings match wrangler's own build.
-      - uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: apps/server/Dockerfile
-          push: false
-          load: ${{ github.event_name == 'push' }}
-          tags: ${{ env.CONTAINER_IMAGE }}:${{ github.sha }}
-          platforms: linux/amd64
-          provenance: false
-          cache-from: type=gha
-          cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max' || '' }}
-
-      # The repo's wrangler, for the push; nothing below runs on a pull request.
+      # The repo's turbo and wrangler, for the hash, the lookup and the push; the
+      # steps that carry this `if` do not run on a pull request.
       - uses: pnpm/action-setup@v6
         if: github.event_name == 'push'
 
@@ -116,28 +106,84 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile --filter server
+      - run: pnpm install --frozen-lockfile --filter server --filter .
         if: github.event_name == 'push'
         env:
           # No test runs here, so the binary download is dead weight.
           MONGOMS_DISABLE_POSTINSTALL: "1"
         timeout-minutes: 10
 
+      # Everything the build reads: the Dockerfile's `pruner` stage output,
+      # `.dockerignore` and the base image's manifest digest (so a base refresh
+      # still ships). Fixed tar metadata, so only content counts.
+      - name: Hash the image's inputs
+        id: inputs
+        if: github.event_name == 'push'
+        run: |
+          set -o pipefail
+          pnpm exec turbo prune server --docker --out-dir "$RUNNER_TEMP/prune"
+          base_image=$(sed -n 's/^FROM \(.*\) AS base$/\1/p' apps/server/Dockerfile)
+          test -n "$base_image"
+          base_digest=$(docker buildx imagetools inspect "$base_image" --format '{{.Manifest.Digest}}')
+          echo "$base_digest" | grep -Eq '^sha256:[a-f0-9]{64}$'
+          tag=$(tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner \
+              -cf - -C "$RUNNER_TEMP/prune" . -C "$GITHUB_WORKSPACE" .dockerignore \
+            | cat - <(printf '%s' "$base_digest") | sha256sum | cut -c1-16)
+          echo "$base_image is $base_digest; the image's inputs hash to $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      # An empty digest means the tag is new and the build below runs.
+      - name: Look the tag up in the Cloudflare registry
+        id: lookup
+        if: github.event_name == 'push'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TAG: ${{ steps.inputs.outputs.tag }}
+        run: |
+          set -o pipefail
+          digest=$(node .github/scripts/resolve-image-digests.mjs "$TAG" | cut -f2)
+          if [ "$digest" = "-" ]; then
+            echo "::notice::$CONTAINER_IMAGE:$TAG is not in the registry; building and pushing it"
+            digest=''
+          else
+            echo "$digest" | grep -Eq '^sha256:[a-f0-9]{64}$'
+            echo "::notice::$CONTAINER_IMAGE:$TAG is already in the registry as $digest; no build, no push"
+          fi
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      # Main's run seeds the cache PRs restore from; PRs write none (#391). The
+      # platform and provenance settings match wrangler's own build.
+      - uses: docker/build-push-action@v7
+        if: github.event_name == 'pull_request' || steps.lookup.outputs.digest == ''
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          push: false
+          load: ${{ github.event_name == 'push' }}
+          tags: ${{ env.CONTAINER_IMAGE }}:${{ steps.inputs.outputs.tag || github.sha }}
+          platforms: linux/amd64
+          provenance: false
+          cache-from: type=gha
+          cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max' || '' }}
+
       # `docker push` records the registry digest on the local image; the digest
       # alone is the output, because an output holding the account id (a secret)
       # would be dropped.
       - name: Push the image to the Cloudflare registry
         id: push
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.lookup.outputs.digest == ''
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TAG: ${{ steps.inputs.outputs.tag }}
         run: |
-          pnpm --filter server exec wrangler containers push "$CONTAINER_IMAGE:$GITHUB_SHA"
+          pnpm --filter server exec wrangler containers push "$CONTAINER_IMAGE:$TAG"
           reference=$(docker image inspect --format '{{ index .RepoDigests 0 }}' \
-            "registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/$CONTAINER_IMAGE:$GITHUB_SHA")
+            "registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/$CONTAINER_IMAGE:$TAG")
           digest="${reference#*@}"
           echo "$digest" | grep -Eq '^sha256:[a-f0-9]{64}$'
+          echo "pushed $CONTAINER_IMAGE:$TAG as $digest"
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
         timeout-minutes: 10
 
@@ -268,6 +314,27 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+      # The image the container runs before this deploy; the prune at the end
+      # keeps it. Empty on a fresh account, where no application exists yet.
+      - name: Record the image the container runs
+        id: running
+        if: steps.guard.outputs.head_of_main == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -o pipefail
+          image=$(pnpm --filter server exec wrangler containers list --json \
+            | jq -r --arg name "$CONTAINER_IMAGE" '.[] | select(.name == $name) | .image // empty')
+          digest="${image#*@}"
+          if [ -z "$image" ]; then
+            echo "::notice::no $CONTAINER_IMAGE application yet"
+          else
+            echo "$digest" | grep -Eq '^sha256:[a-f0-9]{64}$'
+            echo "the container runs $digest"
+          fi
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
       # Verify's build outputs, this commit's entry first; `db:generate` and `deploy:ci` never cache.
       - uses: actions/cache/restore@v6
         if: steps.guard.outputs.head_of_main == 'true'
@@ -276,7 +343,7 @@ jobs:
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
 
-      # wrangler.jsonc with the container pointed at the image this run pushed.
+      # wrangler.jsonc with the container pointed at the image this run pushed or found.
       - name: Write the CI deploy config
         if: steps.guard.outputs.head_of_main == 'true'
         env:
@@ -351,4 +418,71 @@ jobs:
             echo "::error::prisma db push failed after the duplicate check passed; its output is withheld because it can contain key values. Rerun pnpm db:indexes:check, resolve what it reports, then rerun this job."
             exit 1
           fi
+        timeout-minutes: 10
+
+      # Registry housekeeping, reached only once the deploy and the sync steps
+      # succeeded. Keeps the image the container ran before this deploy, the one
+      # this run deployed and the one the application reports now; lists every
+      # other tag and, with the variable set, deletes them. A newer push's image
+      # job may already have pushed a tag this run would not keep, so the delete
+      # is skipped as soon as main has moved on.
+      - name: Plan the registry prune
+        id: plan
+        if: steps.guard.outputs.head_of_main == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIOUS_DIGEST: ${{ steps.running.outputs.digest }}
+          DEPLOYED_DIGEST: ${{ needs.image.outputs.digest }}
+          REGISTRY_PRUNE: ${{ vars.REGISTRY_PRUNE }}
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          set -o pipefail
+          image=$(pnpm --filter server exec wrangler containers list --json \
+            | jq -r --arg name "$CONTAINER_IMAGE" '.[] | select(.name == $name) | .image // empty')
+          current="${image#*@}"
+          if [ "$current" = "$DEPLOYED_DIGEST" ]; then
+            echo "the container runs the deployed image $current"
+          else
+            echo "::warning::the container reports $current, this deploy wrote $DEPLOYED_DIGEST"
+          fi
+          pnpm --filter server exec wrangler containers images list --json \
+            | jq -r --arg name "$CONTAINER_IMAGE" '.[] | select(.name == $name) | .tags[]' > "$RUNNER_TEMP/tags.txt"
+          mapfile -t tags < "$RUNNER_TEMP/tags.txt"
+          : > "$RUNNER_TEMP/tags.tsv"
+          if [ "${#tags[@]}" -gt 0 ]; then
+            node .github/scripts/resolve-image-digests.mjs "${tags[@]}" > "$RUNNER_TEMP/tags.tsv"
+          fi
+          keep=" $PREVIOUS_DIGEST $DEPLOYED_DIGEST $current "
+          : > "$RUNNER_TEMP/delete.txt"
+          while IFS=$'\t' read -r tag digest; do
+            case "$digest" in
+              -) echo "gone    $CONTAINER_IMAGE:$tag" ;;
+              *) case "$keep" in
+                   *" $digest "*) echo "keep    $CONTAINER_IMAGE:$tag  $digest" ;;
+                   *) echo "delete  $CONTAINER_IMAGE:$tag  $digest"; echo "$tag" >> "$RUNNER_TEMP/delete.txt" ;;
+                 esac ;;
+            esac
+          done < "$RUNNER_TEMP/tags.tsv"
+          head=$(git ls-remote "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" refs/heads/main | cut -f1)
+          if [ "$REGISTRY_PRUNE" != "true" ]; then
+            echo "::warning::REGISTRY_PRUNE is not true; the listing above is what a prune would delete. Nothing was deleted."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          elif [ "$head" != "$GITHUB_SHA" ]; then
+            echo "::notice::main has moved on to $head; its deploy prunes. Nothing was deleted."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+        timeout-minutes: 5
+
+      - name: Prune the registry
+        if: steps.guard.outputs.head_of_main == 'true' && steps.plan.outputs.enabled == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          while read -r tag; do
+            pnpm --filter server exec wrangler containers images delete "$CONTAINER_IMAGE:$tag" < /dev/null
+          done < "$RUNNER_TEMP/delete.txt"
         timeout-minutes: 10
