@@ -249,3 +249,5 @@ lsof -nP -iTCP -sTCP:LISTEN | rg -i workerd
 
 An orphan left by `wrangler dev` can occupy an ephemeral port used by supertest. Stop the
 identified orphan process and rerun the failing test.
+
+Self-deactivation requires the current password. The sole active admin is refused, and `/users/me` reports `soleActiveAdmin` for the security page.

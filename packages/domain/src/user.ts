@@ -61,6 +61,7 @@ export const UserUpdateMeRequestSchema = createRequestSchema({
 // DELETE - Delete Me
 export const UserDeleteMeRequestSchema = createRequestSchema({
   params: z.object({}).strict(),
+  body: z.object({ password: PasswordValidator() }).strict(),
 });
 
 // Admin Schemas
@@ -167,3 +168,7 @@ export type UserGetAllResponse = ListResponse<UserDTO>;
 // GetMe response (single DTO)
 export const UserDTOResponseSchema = SingleItemResponseSchema(UserDTOSchema);
 export type UserDTOResponse = SingleItemResponse<UserDTO>;
+
+export const UserSelfDTOResponseSchema = SingleItemResponseSchema(
+  UserDTOSchema.extend({ soleActiveAdmin: z.boolean() }),
+);

@@ -344,3 +344,5 @@ trace inside the downloaded report; unzip it and open it with `pnpm --filter e2e
 or at `trace.playwright.dev`. A test that passed only on a retry is a flake, not a pass: the report
 also holds `results.json`, whose `.stats.flaky` counts them, and a flake is fixed with the right lock
 or data the test owns rather than left to the retries.
+
+The auth and admin specs cover self-deactivation, including password retry and the sole-admin restriction.

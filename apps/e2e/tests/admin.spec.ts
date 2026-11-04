@@ -328,3 +328,60 @@ test.describe("a guest", () => {
     await expect(statsHeading(page)).toBeVisible();
   });
 });
+
+test.describe("sole admin", () => {
+  test.describe.configure({ lock: ORDERS_LOCK });
+  test("the sole active admin cannot deactivate their account", async ({
+    page,
+    login,
+    context,
+  }) => {
+    await login(SEEDED_ADMIN);
+    const response = await context.request.get(
+      "/api/v1/users?role=ADMIN&active=true",
+    );
+    expect(response.ok()).toBe(true);
+    const { data } = (await response.json()) as {
+      data: { id: string; email: string }[];
+    };
+    const others = data.filter(
+      (user) =>
+        user.email === "admin2@example.com" ||
+        user.email === "admin3@example.com",
+    );
+    expect(others).toHaveLength(2);
+    try {
+      for (const user of others) {
+        expect(
+          (
+            await context.request.patch(`/api/v1/users/${user.id}`, {
+              data: { active: false },
+            })
+          ).ok(),
+        ).toBe(true);
+      }
+      await page.goto("/account/security");
+      const button = page.getByRole("button", { name: "Deactivate account" });
+      await expect(button).toBeDisabled();
+      await expect(button).toHaveAttribute(
+        "aria-describedby",
+        "sole-admin-notice",
+      );
+      await expect(
+        page.getByText(
+          "You are the only active admin. Make another user an admin from the dashboard before deactivating this account.",
+        ),
+      ).toBeVisible();
+    } finally {
+      for (const user of others) {
+        expect(
+          (
+            await context.request.patch(`/api/v1/users/${user.id}`, {
+              data: { active: true },
+            })
+          ).ok(),
+        ).toBe(true);
+      }
+    }
+  });
+});

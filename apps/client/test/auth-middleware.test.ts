@@ -21,18 +21,21 @@ import {
   resolveCurrentUser,
 } from "../src/app/middleware/auth";
 
-const shopper: UserDTO = {
+type SelfUser = UserDTO & { soleActiveAdmin: boolean };
+
+const shopper: SelfUser = {
   id: "64b7f0c2e4b0a1a2b3c4d5e6",
   name: "Sam Shopper",
   email: "shopper@example.com",
   role: "USER",
   emailVerified: true,
   active: true,
+  soleActiveAdmin: false,
   createdAt: new Date("2026-01-01T00:00:00.000Z"),
   v: 0,
 };
 
-const admin: UserDTO = {
+const admin: SelfUser = {
   ...shopper,
   id: "64b7f0c2e4b0a1a2b3c4d5e7",
   role: "ADMIN",
@@ -95,7 +98,7 @@ const serverError = () =>
   });
 
 /** Answers /auth/status and /users/me the way the server would for `user`. */
-const serverSession = (user: UserDTO | null) => {
+const serverSession = (user: SelfUser | null) => {
   api.get.mockImplementation(async (url: string) => {
     if (url === "/auth/status") {
       return { data: envelope({ isAuthenticated: user !== null }) };

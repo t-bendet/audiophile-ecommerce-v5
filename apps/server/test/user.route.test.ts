@@ -7,6 +7,7 @@ import {
   createAdmin,
   createUser,
   resetDatabase,
+  TEST_PASSWORD,
 } from "./helpers/database.js";
 
 beforeEach(resetDatabase);
@@ -183,13 +184,53 @@ describe("GET /api/v1/users/:id", () => {
 });
 
 describe("DELETE /api/v1/users/deleteMe", () => {
+  it("keeps the session after a wrong password and permits a retry", async () => {
+    const user = await createUser();
+    const cookie = authCookie(user.id);
+    const wrong = await request(app)
+      .delete("/api/v1/users/deleteMe")
+      .set("Cookie", cookie)
+      .send({ password: "wrongpassword" });
+    expect(wrong.status).toBe(401);
+    expect(wrong.body.error).toMatchObject({
+      code: ErrorCode.INVALID_CREDENTIALS,
+      details: [{ path: ["body", "password"] }],
+    });
+    expect(wrong.headers["set-cookie"]).toBeUndefined();
+    expect(
+      (await request(app).get("/api/v1/users/me").set("Cookie", cookie)).status,
+    ).toBe(200);
+    expect(
+      (
+        await request(app)
+          .delete("/api/v1/users/deleteMe")
+          .set("Cookie", cookie)
+          .send({ password: TEST_PASSWORD })
+      ).status,
+    ).toBe(200);
+  });
+
+  it("refuses the sole active admin", async () => {
+    const admin = await createAdmin();
+    const cookie = authCookie(admin.id);
+    const me = await request(app).get("/api/v1/users/me").set("Cookie", cookie);
+    expect(me.body.data.soleActiveAdmin).toBe(true);
+    const response = await request(app)
+      .delete("/api/v1/users/deleteMe")
+      .set("Cookie", cookie)
+      .send({ password: TEST_PASSWORD });
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe(ErrorCode.FORBIDDEN);
+  });
+
   it("deactivates the signed-in user, whose session ends on its next request", async () => {
     const user = await createUser();
     const cookie = authCookie(user.id);
 
     const res = await request(app)
       .delete("/api/v1/users/deleteMe")
-      .set("Cookie", cookie);
+      .set("Cookie", cookie)
+      .send({ password: TEST_PASSWORD });
 
     expect(res.status).toBe(200);
 

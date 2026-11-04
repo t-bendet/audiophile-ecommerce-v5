@@ -173,11 +173,7 @@ needs, and group 2 the loading pattern, so the order detail page needs no loadin
 Unblocks: the delivered-purchase check for reviews (group 7), the gateway's event trail (group 8),
 status timings in analytics (group 9).
 
-Human first: a short design pass for the shopper's order detail page and timeline. The account area shares this pattern. The
-security page also closes a gap reported in
-[#344](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/344): `DELETE /users/deleteMe`
-deactivates through `UserService.deactivate`, which calls `updateAsAdmin` without an acting user, so
-the sole active admin can still deactivate themselves there. Agent default unless overruled:
+Human first: a short design pass for the shopper's order detail page and timeline. The account area shares this pattern. Agent default unless overruled:
 tracking number and carrier as free text, captured at the Shipped transition. Give the event an
 actor that can be a user or "system" so group 8's webhooks reuse it.
 
@@ -360,10 +356,7 @@ items, addresses and totals in features/admin/orders/components/order-summary.ts
 tracking number, carrier or status history; its statuses are Pending, Processing, Shipped,
 Delivered and Cancelled, and the admin fulfilment form moves status and payment status through two
 separate PATCHes. The agent default is free-text tracking number and carrier captured at Shipped,
-with an event actor that is a user or "system". The order-received email carries no link. No client
-code calls DELETE /users/deleteMe, which
-deactivates without a password, ends the session on its next request and still lets the sole active
-admin deactivate themselves (#344). The signup strength meter and hint are reused by the reset
+with an event actor that is a user or "system". The order-received email carries no link. The signup strength meter and hint are reused by the reset
 page. A new route awaits in its loader under PendingOutlet's progress bar (ADR 0013); a
 confirmation is a ui/dialog placement (ADR 0014).
 

@@ -146,7 +146,7 @@ const cases: Case[] = [
     route: "DELETE /users/deleteMe",
     send: () =>
       request(app).delete("/api/v1/users/deleteMe").send(UNEXPECTED_BODY),
-    path: ["body"],
+    path: ["body", "password"],
   },
   {
     route: "GET /users",

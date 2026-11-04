@@ -18,7 +18,12 @@ export const getMe: ValidatedHandler = defineHandler(
   UserGetMeRequestSchema,
   async (req, res, _next) => {
     const dto = await userService.get(req.user!.id);
-    res.status(200).json(createSingleItemResponse(dto));
+    res.status(200).json(
+      createSingleItemResponse({
+        ...dto,
+        soleActiveAdmin: await userService.isLastActiveAdmin(req.user!.id),
+      }),
+    );
   },
 );
 
@@ -34,7 +39,7 @@ export const getUser: ValidatedHandler = defineHandler(
 export const deleteMe: ValidatedHandler = defineHandler(
   UserDeleteMeRequestSchema,
   async (req, res, _next) => {
-    await userService.deactivate(req.user!.id);
+    await userService.deactivate(req.user!.id, req.verified.body.password);
     res.status(200).json(createEmptyResponse());
   },
 );
