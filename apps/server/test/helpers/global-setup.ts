@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import type { TestProject } from "vitest/node";
+import { workerDatabaseUrl } from "./worker-database-url.js";
 
 const run = promisify(execFile);
 
@@ -52,24 +53,34 @@ const pushSchema = (databaseUrl: string) =>
     },
   );
 
-export default async function setup({ provide }: TestProject) {
+// One database per worker, so test files can truncate theirs side by side.
+const pushWorkerSchemas = (baseUrl: string, workers: number) =>
+  Promise.all(
+    Array.from({ length: workers }, (_, index) =>
+      pushSchema(workerDatabaseUrl(baseUrl, index + 1)),
+    ),
+  );
+
+export default async function setup({ provide, config }: TestProject) {
   // Never DATABASE_URL: CI sets that, and a local `.env` could aim it anywhere.
   const externalDatabaseUrl = process.env.TEST_DATABASE_URL;
   if (externalDatabaseUrl) {
-    await pushSchema(externalDatabaseUrl).catch((cause: unknown) => {
-      throw new Error(
-        "TEST_DATABASE_URL is set but the schema push to it failed. Is that database running? Start the local one with `pnpm db:up`.",
-        { cause },
-      );
-    });
+    await pushWorkerSchemas(externalDatabaseUrl, config.maxWorkers).catch(
+      (cause: unknown) => {
+        throw new Error(
+          "TEST_DATABASE_URL is set but the schema push to it failed. Is that database running? Start the local one with `pnpm db:up`.",
+          { cause },
+        );
+      },
+    );
     provide("databaseUrl", externalDatabaseUrl);
     return;
   }
 
   const replSet = await startDatabase();
-  const databaseUrl = replSet.getUri("audiophile-test");
+  const databaseUrl = replSet.getUri();
 
-  await pushSchema(databaseUrl);
+  await pushWorkerSchemas(databaseUrl, config.maxWorkers);
   provide("databaseUrl", databaseUrl);
 
   return async () => {

@@ -216,15 +216,19 @@ builders, `resetDatabase`, and real signed `authCookie(userId)` values from
 for validated requests and handler composition run through the Vitest typecheck config.
 
 [`global-setup.ts`](test/helpers/global-setup.ts) starts an in-memory MongoDB replica set
-and pushes the schema so its unique indexes exist. [`setup.ts`](test/helpers/setup.ts)
-sets `DATABASE_URL` before importing the app. Test files share the database and truncate
-its collections, so `fileParallelism` stays off. The MongoDB binary is downloaded during
-installation and cached; normal tests need no Docker.
+and pushes the schema to one database per Vitest worker, `audiophile-test-1` …
+`audiophile-test-<maxWorkers>`, so their unique indexes exist. [`setup.ts`](test/helpers/setup.ts)
+points `DATABASE_URL` at the database for its `VITEST_POOL_ID` before importing the app, so
+test files run in parallel and each truncates only its own worker's database.
+[`workerDatabaseUrl`](test/helpers/worker-database-url.ts) is the only code that names a
+test database. The MongoDB binary is downloaded during installation and cached; normal tests
+need no Docker.
 
 Only `TEST_DATABASE_URL` opts into an external test database; a developer or CI
-`DATABASE_URL` does not select it. `pnpm test:db` uses the local Docker database
-`audiophile-test` and leaves it available for inspection. Never point these tests at the
-development `audiophile` database or production: `resetDatabase` truncates collections.
+`DATABASE_URL` does not select it. `pnpm test:db` uses the same per-worker databases,
+`audiophile-test-1` … `audiophile-test-N`, on the local Docker server and leaves them
+available for inspection. Never point these tests at the development `audiophile` database
+or production: `resetDatabase` truncates collections.
 For database startup and version changes, follow the
 [database guide](../../packages/database/README.md). Browser tests have a separate
 [E2E guide](../e2e/README.md).
