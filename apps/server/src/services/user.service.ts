@@ -14,6 +14,7 @@ import {
   rejectUnknownFields,
   type Pagination,
 } from "../utils/query.js";
+import { emailTakenError, isEmailTakenError } from "./auth.service.js";
 import { AbstractCrudService } from "./abstract-crud.service.js";
 
 const SELF_UPDATE_FIELDS = [
@@ -58,12 +59,17 @@ export class UserService extends AbstractCrudService<
     id: string,
     input: UserSelfUpdateInput,
   ): Promise<UserDTO> {
-    return super.update(
-      id,
-      this.pickFieldsByAllowed(input, [
-        ...SELF_UPDATE_FIELDS,
-      ]) as UserUpdateInput,
-    );
+    try {
+      return await super.update(
+        id,
+        this.pickFieldsByAllowed(input, [
+          ...SELF_UPDATE_FIELDS,
+        ]) as UserUpdateInput,
+      );
+    } catch (error) {
+      if (isEmailTakenError(error)) throw emailTakenError();
+      throw error;
+    }
   }
 
   /**

@@ -291,7 +291,7 @@ Every checkout input is `required`, so the browser's constraint validation stops
 before the form's schema runs: the spec asserts the focus move and every field `:invalid`, not the
 schema's own "is required" messages, which a shopper cannot reach. The server-field-error path of
 [ADR 0006](../../docs/adr/0006-server-validation-errors-belong-to-the-form.md) is driven through
-signup's taken email. Checkout validates with the server's own body schema, so the real server never
+signup's and profile update's taken email; the profile journey also checks that the updated name reaches the account menu. Checkout validates with the server's own body schema, so the real server never
 rejects a field the client passed; that path stays in
 [the order route tests](../server/test/order.route.test.ts) and
 [the client's form-error tests](../client/test/form-errors.test.ts).

@@ -3,6 +3,7 @@ import {
   expect,
   freshShopper,
   SEEDED_SHOPPER,
+  SEEDED_ADMIN,
   test,
   type Shopper,
 } from "./fixtures.js";
@@ -104,7 +105,7 @@ test("account menu rows work by pointer and keyboard", async ({
     {
       name: "Profile",
       path: "/account/profile",
-      readyText: "Profile Information",
+      readyText: "Member since",
     },
     {
       name: "Security",
@@ -129,7 +130,9 @@ test("account menu rows work by pointer and keyboard", async ({
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await expect(page).toHaveURL(link.path);
     await expect(
-      page.getByText(link.readyText, { exact: true }).first(),
+      page
+        .getByText(link.readyText, { exact: link.name !== "Profile" })
+        .first(),
     ).toBeVisible();
     await expect(item).toBeHidden();
     await trigger.click();
@@ -152,6 +155,30 @@ test("account menu rows work by pointer and keyboard", async ({
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(link.path);
   }
+});
+
+test("a shopper edits their profile and sees a taken email error", async ({
+  page,
+  signUpFreshShopper,
+}) => {
+  const shopper = await signUpFreshShopper();
+  await page.goto("/account/profile");
+  const newName = `${shopper.name} Updated`;
+  await page.getByLabel("Name", { exact: true }).fill(newName);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Profile updated")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open user menu" }),
+  ).toContainText(newName);
+  await page.getByLabel("Email").fill(SEEDED_ADMIN.email);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  const email = page
+    .getByRole("group")
+    .filter({ has: page.getByRole("textbox", { name: "Email" }) });
+  await expect(email.getByRole("alert")).toHaveText(
+    "An account with this email already exists.",
+  );
+  await expect(page.getByLabel("Email")).toBeFocused();
 });
 
 const requestResetLink = async (page: Page, email: string) => {
