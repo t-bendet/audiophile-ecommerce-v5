@@ -5,9 +5,6 @@ export default defineConfig({
     include: ["test/**/*.test.ts"],
     globalSetup: ["./test/helpers/global-setup.ts"],
     setupFiles: ["./test/helpers/setup.ts"],
-    // Every file talks to the same in-memory database and truncates it between
-    // tests, so they cannot run side by side.
-    fileParallelism: false,
     typecheck: {
       enabled: true,
       tsconfig: "./tsconfig.typecheck.json",

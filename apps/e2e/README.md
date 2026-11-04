@@ -38,8 +38,8 @@ rerun fails on `E11000 ... Cart_userId_key`.
 
 Both servers come from Playwright's `webServer` array and are never reused, so a run cannot
 silently test a `pnpm dev` session: that one holds 8000, 5173 and the `audiophile` database, and
-none of the three is touched here. `audiophile-test` belongs to `pnpm test:db` and is not touched
-either. A local run and the CI job agree on all of it.
+none of the three is touched here. `audiophile-test-*` belongs to `pnpm test:db` and is not
+touched either. A local run and the CI job agree on all of it.
 
 The server runs with `NODE_ENV=test`, which also stands the rate limiters down, so no spec can trip
 a 429 no matter how many retries it takes. The vitest suite owns that behaviour.

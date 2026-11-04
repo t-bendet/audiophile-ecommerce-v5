@@ -14,6 +14,11 @@ describe("env", () => {
     vi.resetModules();
   });
 
+  it("points this worker at its own test database", () => {
+    const { pathname } = new URL(process.env.DATABASE_URL ?? "");
+    expect(pathname).toBe(`/audiophile-test-${process.env.VITEST_POOL_ID}`);
+  });
+
   // Stubbed empty rather than deleted: `env.ts` runs dotenv at import, which
   // would refill a deleted variable from the package's `.env`.
   it("tells the developer how to supply DATABASE_URL when it is empty", async () => {

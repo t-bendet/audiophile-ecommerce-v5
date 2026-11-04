@@ -15,12 +15,12 @@ One Docker MongoDB service serves development, seeding, opt-in route tests, E2E 
 Prisma's nested writes use transactions, so it runs as a single-node replica set, `rs0`.
 Port 27017 must be free; stop a competing Homebrew `mongodb-community` service before starting it.
 
-| Use             | Database / connection                                                                                    |
-| --------------- | -------------------------------------------------------------------------------------------------------- |
-| Development     | `mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true`                              |
-| `pnpm test:db`  | `mongodb://localhost:27017/audiophile-test?replicaSet=rs0&directConnection=true` via `TEST_DATABASE_URL` |
-| `pnpm test:e2e` | `mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true`                          |
-| Compass         | `mongodb://localhost:27017`                                                                              |
+| Use             | Database / connection                                                                         |
+| --------------- | --------------------------------------------------------------------------------------------- |
+| Development     | `mongodb://localhost:27017/audiophile?replicaSet=rs0&directConnection=true`                   |
+| `pnpm test:db`  | `audiophile-test-1` … `audiophile-test-N`, one per worker, on the host of `TEST_DATABASE_URL` |
+| `pnpm test:e2e` | `mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true`               |
+| Compass         | `mongodb://localhost:27017`                                                                   |
 
 `pnpm test` boots its own in-memory replica set and needs no Docker. Only `TEST_DATABASE_URL`
 selects the opt-in route-test database; the test setup ignores an ambient `DATABASE_URL`.
