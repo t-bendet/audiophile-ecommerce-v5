@@ -9,11 +9,20 @@ Ship a queue of GitHub issues unattended. **Strictly sequential**: one ticket fu
 before the next one branches. Only one implementer uses the working tree at a time; concurrent
 remote changes can still require conflict resolution.
 
+**Keep your own context lean** so a long queue finishes in one session. Your reads are: each issue
+when its turn comes, the implementer's report, `git diff --stat`, and the tails of check output. The
+task guides are the implementer's to read; you pass their paths. Reach into the issue-tracker and
+verification guides by the section names this skill cites.
+
+**Never wait out a clock**, in either role. Watching a run already in progress (a CI run, a deploy)
+is fine; a blocker hours away (a package release-age window, a review, an upstream run) makes the
+ticket **deferred**, and the queue moves on.
+
 ## Before you start
 
-Read [the issue-tracker guide](../../../docs/agents/issue-tracker.md) for ticket operations and branching, and [the verification guide](../../../docs/agents/verification.md) for local checks and CI gates. In a cloud session (`CLAUDE_CODE_REMOTE=true`), read its [cloud sessions](../../../docs/agents/issue-tracker.md#cloud-sessions) subsection first: the `gh issue` and `gh pr` commands below fail there.
+The [issue-tracker guide](../../../docs/agents/issue-tracker.md) holds ticket operations and branching; the [verification guide](../../../docs/agents/verification.md) holds local checks and CI gates. In a cloud session (`CLAUDE_CODE_REMOTE=true`), read its [cloud sessions](../../../docs/agents/issue-tracker.md#cloud-sessions) subsection first: the `gh issue` and `gh pr` commands below fail there.
 
-1. **Confirm the queue and the merge policy.** Resolve `$ARGUMENTS` into a concrete list and print it for the user:
+1. **Confirm the queue and the merge policy.** Resolve `$ARGUMENTS` into a concrete list of numbers and titles, and print it for the user:
    - a label (`ready-for-agent`) → `gh issue list --state open --label <label> --json number,title`
    - a range (`105-130`) → `gh issue list --state open --json number,title` filtered to that range.
      A range regularly contains closed or non-existent numbers; only work open ones and say which you dropped.
@@ -25,11 +34,10 @@ Read [the issue-tracker guide](../../../docs/agents/issue-tracker.md) for ticket
      ticket's blockers** in the issue-tracker guide. Do not ask for approval of the list — print it
      and proceed.
      The **merge policy** is `merge` unless the arguments say `open` (or "stop at PR open"): `merge`
-     lands each PR once its checks are green, as in _Land_; `open` leaves every PR open for a human.
+     lands each PR through auto-merge, as in _Land_; `open` leaves every PR open for a human.
      Under `merge`, a ticket whose body says it stops at PR open (a group's closing re-triage, or
-     the first slice that introduces a new seam) is the exception: its PR is left open for review.
-     Tickets it blocks wait for that merge; when the review has not landed by the time the rest of
-     the queue is done, record them as **skipped** with the blocker and end the batch.
+     the first slice that introduces a new seam) is the exception: its PR is left open for review,
+     and the tickets it blocks are **deferred** until that review lands.
      Under `open` each ticket must be unblocked by every other ticket in the queue (check with
      **Count open blockers** in the issue-tracker guide), because a blocked ticket would branch from
      a `main` that lacks its blocker's change. Abort the batch if one is.
@@ -43,7 +51,7 @@ For each issue number `N`, in order:
 
 ### 1. Read
 
-Read the issue body and comments using the issue-tracker guide. Extract the ask, acceptance criteria, and decisions from both; `gh issue view N --comments` alone may omit the body off a TTY. Pick the conventional-commit `<type>` matching the bulk of the change.
+Read the issue body and comments now, not up front, using **Read an issue** in the issue-tracker guide; `gh issue view N --comments` alone may omit the body off a TTY. Extract the ask, acceptance criteria, and decisions. Pick the conventional-commit `<type>` matching the bulk of the change. A ticket blocked by a deferred ticket is deferred too.
 
 ### 2. Branch
 
@@ -52,75 +60,111 @@ git switch main && git pull
 git switch -c <type>/N-<slug>
 ```
 
-`<slug>` is 2–5 kebab-case words from the title. Convention lives in `docs/agents/issue-tracker.md`.
+`<slug>` is 2–5 kebab-case words from the title.
 
 ### 3. Delegate
 
-Spawn **one** implementation subagent with `model: opus`, as a fresh agent rather than a fork, and
-wait for it to return before advancing the queue. It is the ticket's only writer; it may spawn
-read-only Explore agents for lookups. Give it:
+Spawn **one** implementer as a fresh agent rather than a fork, and wait for its report before
+advancing the queue. It plans, then edits; there is no separate planner. Name no model: the
+harness's subagent default decides. It is the ticket's only writer; it may spawn read-only
+Explore agents for lookups. Its brief carries:
 
-- the full issue body and relevant comments, pasted in — it cannot see this conversation
+- the issue body and relevant comments, pasted in — it cannot see this conversation
 - the branch it is already on, and that it must **not** commit, push, merge, or switch branches
-- `AGENTS.md` and the applicable task-guide paths, with an instruction to read them before editing
-- an instruction to report what it changed and anything it deliberately left out
+- `AGENTS.md` and the applicable task-guide paths, chosen from the `AGENTS.md` routing table, with
+  the sections that bear on the ticket named where you can tell
+- **plan first, bounded**: plan from the issue and the named guide sections, then edit. Read guides
+  by heading or grep rather than whole. Run single test files, not the full suite, before the first
+  edit. Keep the plan to file-level intent: no line-numbered quotes or drafts of files it will not
+  edit.
+- **lookups only for versions**: web and registry lookups only on a ticket that changes a version,
+  only for the versions being changed. Registry first (`pnpm view <pkg>@<version>` for versions,
+  publish dates and peer ranges), then that target version's release notes. Fetch each page once;
+  no paging through release lists.
+- **report, never wait**: run commands in the foreground, and report a blocker with its resume
+  condition rather than sleeping or starting a background timer for it
+- **the report**: the paths it changed, what it deliberately left out, the checks it ran with their
+  result, and either _done_, _blocked_ (with the resume condition), or _unfinishable in one pass_
 
-For a ticket with more than five acceptance criteria, or one that spans more than two workspaces,
-run a read-only Plan agent first and paste its file-level plan into the implementer's brief. An
-implementer that reports the ticket as unfinishable in one pass makes the ticket a **miss**: its
-issue comment says the ticket needs slicing, and the batch moves on.
+A notification from the implementer that carries no report gets resumed at once with a request for
+the report. _Unfinishable in one pass_ makes the ticket a **miss**: its issue comment says the
+ticket needs slicing, and the batch moves on. _Blocked_ makes it **deferred**.
 
 ### 4. Verify
 
-Run the checks selected from [the verification guide](../../../docs/agents/verification.md). Record commands and results. After opening the PR, wait for its required CI checks with `gh pr checks <pr> --watch` before merging; all required checks must pass for the current PR revision.
+Run the checks selected from the verification guide, reading `git diff --stat` and the tail of each
+check's output. Record commands and results.
 
 **On failure**: make one focused attempt to fix it yourself. If it still fails, this ticket is a
 **miss** — go to _Handling a miss_ below and move on to the next ticket. Never merge red.
 
 ### 5. Land
 
+Read and apply [pr](../pr/SKILL.md) when preparing the PR body. Follow attribution rules only when supplied by the session or repository.
+
 ```bash
-git add <the paths the subagent reported>   # never `git add -A` — unrelated untracked files exist
+git add <the paths the implementer reported>   # never `git add -A` — unrelated untracked files exist
 git commit   # conventional-commit subject; body ends with "Closes #N"
 git push -u origin <branch>
 gh pr create --base main --title "<type>: <subject>" --body-file <prepared-body-file>
+gh pr merge <pr> --auto --squash --delete-branch   # merge policy `merge` only
 gh pr checks <pr> --watch
-# merge policy `merge` only:
-gh pr merge <pr> --squash --delete-branch
-git switch main && git pull && git branch -d <branch>
-git fetch --prune   # gh deletes the remote branch; this clears the stale tracking ref
+gh pr view <pr> --json state --jq .state   # repeat until MERGED; auto-merge fires after CI
+git switch main && git pull && git branch -D <branch>
+git fetch --prune   # GitHub deleted the remote branch; this clears the stale tracking ref
 ```
 
-Under `open`, stop after the checks: record the PR link and its check result, `git switch main && git pull`,
-and leave the branch for the reviewer. A red check is a miss under either policy.
+Touch local branches only once the state is `MERGED`: deleting the head branch of an open PR closes
+it. Then watch `main`'s run in the background (`gh run list --branch main --limit 1` for its id,
+`gh run watch <id> --exit-status`) and start the next ticket. Before the next PR's
+`gh pr merge --auto`, confirm that run finished green; a red `main` run aborts the batch.
 
-Read and apply [pr](../pr/SKILL.md) when preparing the PR body. Follow attribution rules only when supplied by the session or repository.
+Under `open`, skip auto-merge and stop after the checks: record the PR link and its check result,
+`git switch main && git pull`, and leave the branch for the reviewer. A red check is a miss under
+either policy.
 
 ### 6. Record
 
-Append one row to the running report: ticket, title, outcome (**shipped**, or **open** under the `open`
-policy), PR link, one-line summary of the change.
+Append one row to the running report: ticket, title, outcome (**shipped**, **open** under the `open`
+policy, **failed**, or **deferred**), PR link, one-line summary of the change.
 
 ## Handling a miss
 
 Do not stop the batch. For the failed ticket:
 
 - commit and push the ticket's files to preserve the failed attempt, then leave a draft PR open (create it if needed), titled with a `[WIP]` prefix
-- `gh issue comment N` with what failed and the verification output
+- `gh issue comment N` with what failed and the verification output tail
 - `git switch main && git pull` so the next ticket starts clean
 - record it as **failed** with the reason, and continue
 
 The only reasons to abort the whole batch: the working tree was dirty at the start, `main` will not
-pull cleanly, a ticket is blocked by another in the queue under the `open` policy, or three tickets
-in a row fail verification (something systemic is broken).
+pull cleanly, a `main` run goes red, a ticket is blocked by another in the queue under the `open`
+policy, or three tickets in a row fail verification (something systemic is broken).
+
+## Handling a deferred ticket
+
+A ticket blocked on a bounded external wait is parked, not waited on:
+
+- if the implementer changed files, commit them to the ticket branch and push it
+- record the ticket as **deferred** with its resume condition (the date a release-age window
+  opens, the PR whose review it waits on, the upstream run)
+- `git switch main && git pull`, and continue with the next ticket
+
+When the rest of the queue is done, retry each deferred ticket **once**, in queue order. If its
+resume condition holds, `git switch <branch> && git rebase main` (or branch fresh when nothing was
+committed), delegate again with the earlier report pasted in, and run Verify and Land. If it still
+does not hold, it stays **deferred** in the final report.
 
 ## Final report
 
-Print a markdown table — ticket, title, outcome (shipped / open / failed / skipped), PR link, note —
-followed by:
+After the deferred retries and once the last `main` run is green, check
+`https://audiophile.t-bendet.com/api/v1/health` once. Then print a markdown table — ticket, title, outcome (shipped / open / failed /
+deferred), PR link, note — followed by:
 
 - what landed on `main`, as a short list of squashed commits, or under `open` the PRs waiting for review
+- the health check result
 - every failed ticket with its open PR link and what a human needs to do
+- every deferred ticket with its resume condition
 - any ticket whose scope you narrowed, and what you left out
 
 Then offer to publish the report as an Artifact if the batch was more than a handful of tickets.
