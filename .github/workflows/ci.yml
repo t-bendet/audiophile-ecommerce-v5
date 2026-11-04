@@ -7,8 +7,10 @@ on:
     branches: [main]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  # Superseded PR pushes stop early; pushes to main keep their status.
+  # One group per pull request branch, so a superseded PR push stops early. A push
+  # to main has no head_ref, so each gets a group of its own and back-to-back
+  # merges run their gates side by side; only Deploy serialises, below (#401).
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -203,6 +205,11 @@ jobs:
     if: github.event_name == 'push'
     needs: [verify, image, e2e]
     runs-on: ubuntu-latest
+    # One deploy runs and one waits; a newer run's deploy replaces the waiting one.
+    # The sync steps are this job's tail, so the group covers them too.
+    concurrency:
+      group: deploy-main
+      cancel-in-progress: false
     env:
       # prisma.config.ts refuses to load without it; nothing here connects.
       DATABASE_URL: mongodb://localhost:27017/audiophile
@@ -213,29 +220,57 @@ jobs:
     # config writer) and the Atlas one on the sync steps, so neither process sees
     # the other's credential.
     steps:
+      # The group does not order its queue, so a run that main has moved past skips
+      # every step below (each carries the `if`) and the newer run deploys. Nothing
+      # is checked out yet, so the public repo is asked directly; a prompt fails fast.
+      - name: Check this commit is still the head of main
+        id: guard
+        env:
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          head=$(git ls-remote "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" refs/heads/main | cut -f1) || head=''
+          if ! echo "$head" | grep -Eq '^[a-f0-9]{40}$'; then
+            echo "::error::could not read the head of main (got '$head'); refusing to decide whether to deploy"
+            exit 1
+          fi
+          if [ "$head" = "$GITHUB_SHA" ]; then
+            echo "$GITHUB_SHA is the head of main; deploying."
+            echo "head_of_main=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::superseded by $head; the newer run deploys"
+            echo "head_of_main=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v7
+        if: steps.guard.outputs.head_of_main == 'true'
 
       - uses: pnpm/action-setup@v6
+        if: steps.guard.outputs.head_of_main == 'true'
 
       - uses: actions/setup-node@v7
+        if: steps.guard.outputs.head_of_main == 'true'
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
       - name: Assert Node matches .nvmrc
+        if: steps.guard.outputs.head_of_main == 'true'
         run: bash .github/scripts/assert-node-version.sh
 
       - run: pnpm install --frozen-lockfile
+        if: steps.guard.outputs.head_of_main == 'true'
         timeout-minutes: 10
 
       # A bad token fails here, in seconds, before the Worker upload.
       - run: pnpm --filter server exec wrangler whoami
+        if: steps.guard.outputs.head_of_main == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       # Verify's build outputs, this commit's entry first; `db:generate` and `deploy:ci` never cache.
       - uses: actions/cache/restore@v6
+        if: steps.guard.outputs.head_of_main == 'true'
         with:
           path: .turbo/cache
           key: turbo-${{ runner.os }}-${{ github.sha }}
@@ -243,6 +278,7 @@ jobs:
 
       # wrangler.jsonc with the container pointed at the image this run pushed.
       - name: Write the CI deploy config
+        if: steps.guard.outputs.head_of_main == 'true'
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           IMAGE_DIGEST: ${{ needs.image.outputs.digest }}
@@ -251,6 +287,7 @@ jobs:
       # Prisma client, client build, then `wrangler deploy`: Worker, assets and the
       # container application; no Docker here.
       - name: Deploy the Worker
+        if: steps.guard.outputs.head_of_main == 'true'
         run: pnpm turbo run deploy:ci --filter=server
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -266,6 +303,7 @@ jobs:
       # rather than failing a deploy that otherwise succeeded.
       - name: Check for the Atlas connection string
         id: secret
+        if: steps.guard.outputs.head_of_main == 'true'
         env:
           ATLAS_DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
@@ -277,7 +315,7 @@ jobs:
           fi
 
       - name: Sync the catalogue
-        if: steps.secret.outputs.present == 'true'
+        if: steps.guard.outputs.head_of_main == 'true' && steps.secret.outputs.present == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm db:generate && pnpm db:sync
@@ -288,7 +326,7 @@ jobs:
       # stops at the first failure.
       - name: Check the schema index opt-in
         id: indexes
-        if: steps.secret.outputs.present == 'true'
+        if: steps.guard.outputs.head_of_main == 'true' && steps.secret.outputs.present == 'true'
         run: |
           if [ "$SYNC_SCHEMA_INDEXES" = "true" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
@@ -302,7 +340,7 @@ jobs:
       # `pnpm db:indexes`, split so push's output is withheld on failure: an
       # E11000 message carries the duplicate key value, and this log is public.
       - name: Push the schema's indexes
-        if: steps.indexes.outputs.enabled == 'true'
+        if: steps.guard.outputs.head_of_main == 'true' && steps.indexes.outputs.enabled == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
