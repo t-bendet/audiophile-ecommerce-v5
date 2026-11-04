@@ -209,8 +209,9 @@ jobs:
       # No test runs here, so the binary download is dead weight.
       MONGOMS_DISABLE_POSTINSTALL: "1"
 
-    # The Cloudflare secrets sit on the wrangler steps and the Atlas one on the sync
-    # steps, so neither process sees the other's credential.
+    # The Cloudflare secrets sit on the wrangler steps (the account id also on the
+    # config writer) and the Atlas one on the sync steps, so neither process sees
+    # the other's credential.
     steps:
       - uses: actions/checkout@v7
 
@@ -233,7 +234,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      # Verify's build outputs, this commit's entry first; `db:generate` and `deploy` never cache.
+      # Verify's build outputs, this commit's entry first; `db:generate` and `deploy:ci` never cache.
       - uses: actions/cache/restore@v6
         with:
           path: .turbo/cache
@@ -249,7 +250,8 @@ jobs:
 
       # Prisma client, client build, then `wrangler deploy`: Worker, assets and the
       # container application; no Docker here.
-      - run: pnpm turbo run deploy:ci --filter=server
+      - name: Deploy the Worker
+        run: pnpm turbo run deploy:ci --filter=server
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -259,9 +261,7 @@ jobs:
       # sync is insert-only: a document whose unique key is missing is created and
       # an existing one is left alone, so an admin's edits survive (ADR 0007). The
       # overwrite flag is never passed here. No drop, no delete, no user touched.
-      # The index push that follows changes indexes only, never documents. A red
-      # Deploy after a green deploy step is one of these steps; the Worker is live.
-
+      # The index push that follows changes indexes only, never documents.
       # Without the secret the catalogue is still reseeded by hand, so say so
       # rather than failing a deploy that otherwise succeeded.
       - name: Check for the Atlas connection string

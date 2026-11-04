@@ -90,17 +90,17 @@ The workflow uses these repository secrets:
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account to deploy into                                                                                                                           |
 | `DATABASE_URL`          | Atlas connection for the post-deploy catalogue sync; separate from the Worker's secret of the same name                                                     |
 
-One repository variable, `SYNC_SCHEMA_INDEXES`, opts the post-deploy job into pushing the schema's
-indexes. Set it to `true` only while Atlas has no duplicates for any schema unique index.
+One repository variable, `SYNC_SCHEMA_INDEXES`, opts `deploy`'s trailing steps into pushing the
+schema's indexes. Set it to `true` only while Atlas has no duplicates for any schema unique index.
 
 After the Worker is live, `deploy`'s trailing steps run `pnpm db:generate && pnpm db:sync`, which
 only creates catalogue documents that are missing and never rewrites an existing one, so the
 admin's dashboard edits survive a deploy
 ([ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md)).
 If the repository's `DATABASE_URL` secret is missing, that step warns and skips the sync; a green
-deploy alone does not prove the catalogue was updated. A red `Deploy` whose `deploy:ci` step is
-green means the sync or the index push failed after the Worker went live: the deploy stands, and
-the catalogue needs the manual sync or the index fix below. Follow
+deploy alone does not prove the catalogue was updated. A red `Deploy` whose "Deploy the Worker"
+step is green means the sync or the index push failed after the Worker went live: the deploy
+stands, and the catalogue needs the manual sync or the index fix below. Follow
 [seeding vs syncing](../packages/database/README.md#seeding-vs-syncing) for manual publication,
 including the hand-run `db:sync -- --overwrite` a field-shape change needs. `db:seed` and `db:reset` are local-only.
 The first admin: sign up through the storefront, then run `db:role` with the Atlas prefix as
@@ -112,7 +112,8 @@ otherwise. It checks for duplicates read-only and pushes only if none are found.
 creates every schema index Atlas lacks and drops every index the schema does not declare. It changes
 no documents. A failed check lists the duplicate documents by `_id` only, and a failed push's own
 output is withheld, so the job log never carries key values. Resolve the documents and rerun the
-job. A schema index change reaches production this way, after the deploy that ships it. See
+`Deploy` job; it redeploys the same image first, then retries the sync and the push. A schema index
+change reaches production this way, after the deploy that ships it. See
 [indexes](../packages/database/README.md#indexes) before adding a unique index or creating one by
 hand in Atlas.
 
