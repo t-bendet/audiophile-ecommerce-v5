@@ -163,7 +163,7 @@ overrides through `toastOptions.classNames`.
 ## Dialogs
 
 Every dialog renders [`ui/dialog.tsx`](src/components/ui/dialog.tsx), one primitive on
-`@radix-ui/react-dialog`. `DialogContent` takes a `placement`, one of the three it ships:
+`radix-ui`. `DialogContent` takes a `placement`, one of the three it ships:
 `sheet-top` (full width, dropping from the top edge), `sheet-top-end` (a `max-w-sm` panel 1.5rem
 below the top, aligned to the container's right edge) and `centred`. It also takes a `title`,
 rendered as the dialog's accessible name and visually hidden with `srOnlyTitle`; an optional

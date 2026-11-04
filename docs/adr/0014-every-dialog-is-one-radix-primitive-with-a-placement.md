@@ -1,6 +1,6 @@
 # Every dialog is one Radix primitive with a placement
 
-Every dialog in the client renders `ui/dialog.tsx`, one primitive on `@radix-ui/react-dialog`.
+Every dialog in the client renders `ui/dialog.tsx`, one primitive on `radix-ui`.
 `DialogContent` takes a required `placement`, one of exactly the three in use: `sheet-top` (the
 mobile menu, full width from under the nav), `sheet-top-end` (the mini-cart, a `max-w-sm` panel
 1.5rem under the nav at the container's right edge) and `centred` (the checkout thank-you and the
