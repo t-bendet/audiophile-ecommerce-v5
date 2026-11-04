@@ -43,7 +43,10 @@ jobs:
           echo "MONGOMS_VERSION=$version" >> "$GITHUB_ENV"
 
       # pnpm's version comes from the root package.json `packageManager` field.
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/setup@v3
+        with:
+          install: false
+          node-version-file: false
 
       - uses: actions/setup-node@v7
         with:
@@ -97,8 +100,11 @@ jobs:
 
       # The repo's turbo and wrangler, for the hash, the lookup and the push; the
       # steps that carry this `if` do not run on a pull request.
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/setup@v3
         if: github.event_name == 'push'
+        with:
+          install: false
+          node-version-file: false
 
       - uses: actions/setup-node@v7
         if: github.event_name == 'push'
@@ -205,7 +211,10 @@ jobs:
           docker compose up -d --wait > "$RUNNER_TEMP/db-up.log" 2>&1 &
           echo "$!" > "$RUNNER_TEMP/db-up.pid"
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/setup@v3
+        with:
+          install: false
+          node-version-file: false
 
       - uses: actions/setup-node@v7
         with:
@@ -290,8 +299,11 @@ jobs:
       - uses: actions/checkout@v7
         if: steps.guard.outputs.head_of_main == 'true'
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/setup@v3
         if: steps.guard.outputs.head_of_main == 'true'
+        with:
+          install: false
+          node-version-file: false
 
       - uses: actions/setup-node@v7
         if: steps.guard.outputs.head_of_main == 'true'
