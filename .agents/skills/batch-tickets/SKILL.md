@@ -10,8 +10,9 @@ fails before the next one branches. Only one implementer uses the working tree a
 remote changes can still require conflict resolution.
 
 **Keep your own context lean** so a long queue finishes in one session. Your reads are: each issue
-when its turn comes, the implementer's report, `git diff --stat`, and the tails of check output. The
-task guides are the implementer's to read; you pass their paths. Reach into the issue-tracker and
+when its turn comes, the implementer's and fixer's reports, `git diff --stat`, and the tails of
+check output; never a diff, a source file or a full log. The task guides are the implementer's to
+read; you pass their paths. Reach into the issue-tracker and
 verification guides by the section names this skill cites.
 
 **Never wait out a clock**, in either role. Watching a run already in progress (a CI run, a deploy)
@@ -82,8 +83,10 @@ Explore agents for lookups. Its brief carries:
   no paging through release lists.
 - **report, never wait**: run commands in the foreground, and report a blocker with its resume
   condition rather than sleeping or starting a background timer for it
-- **the report**: the paths it changed, what it deliberately left out, the checks it ran with their
-  result, and either _done_, _blocked_ (with the resume condition), or _unfinishable in one pass_
+- **the report**: the paths it changed, what changed and why in two or three sentences a reviewer
+  can read (this becomes the PR body, so you never open the diff), what it deliberately left out,
+  the checks it ran with their result, and either _done_, _blocked_ (with the resume condition), or
+  _unfinishable in one pass_
 
 A subagent notification that carries no report gets resumed at once with a request for
 the report. _Unfinishable in one pass_ makes the ticket a **miss**: its issue comment says the
@@ -94,12 +97,16 @@ ticket needs slicing, and the batch moves on. _Blocked_ makes it **deferred**.
 Run the checks selected from the verification guide, reading `git diff --stat` and the tail of each
 check's output. Record commands and results.
 
-**On failure**: make one focused attempt to fix it yourself. If it still fails, this ticket is a
-**miss** — go to _Handling a miss_ below and move on to the next ticket. Never merge red.
+**On failure**: spawn one fresh fixer subagent with the failing command and the tail of its output
+pasted in, under the same brief rules as the implementer, and re-run the check on its report. Do
+not read source files or full test output yourself; a fix attempt is where the orchestrator's
+context balloons. If it still fails, this ticket is a **miss** — go to _Handling a miss_ below and
+move on to the next ticket. Never merge red.
 
 ### 5. Land
 
-Read and apply [pr](../pr/SKILL.md) when preparing the PR body. Follow attribution rules only when supplied by the session or repository.
+Read and apply [pr](../pr/SKILL.md) when preparing the PR body, written from the implementer's
+report and `git diff --stat`, not from the diff. Follow attribution rules only when supplied by the session or repository.
 
 ```bash
 git add <the paths the implementer reported>   # never `git add -A` — unrelated untracked files exist
@@ -123,8 +130,10 @@ either policy.
 
 ### 6. Record
 
-Append one row to the running report: ticket, title, outcome (**shipped**, **open** under the `open`
-policy, **failed**, or **deferred**), PR link, one-line summary of the change.
+Append one row to the running report file (create `/tmp/batch-<first ticket>.md` at the start of
+the batch): ticket, title, outcome (**shipped**, **open** under the `open` policy, **failed**, or
+**deferred**), PR link, one-line summary of the change. The file, not your context, is the record:
+a compaction mid-batch or a resumed session reads it back.
 
 ## Handling a miss
 
@@ -157,7 +166,7 @@ does not hold, it stays **deferred** in the final report.
 ## Final report
 
 After the deferred retries, under `merge` and once the last `main` run is green, check
-`/api/v1/health` once at the deployed hostname in the [deployment runbook](../../../docs/deployment.md). Then print a markdown table — ticket, title, outcome (shipped / open / failed /
+`/api/v1/health` once at the deployed hostname in the [deployment runbook](../../../docs/deployment.md). Then print the running report file as a markdown table — ticket, title, outcome (shipped / open / failed /
 deferred), PR link, note — followed by:
 
 - what landed on `main`, as a short list of squashed commits, or under `open` the PRs waiting for review
