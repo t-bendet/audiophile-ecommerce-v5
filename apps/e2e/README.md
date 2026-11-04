@@ -88,8 +88,8 @@ there should not be one.
 ## Writing a test
 
 - **Own your user when you write.** Anything that mutates cart or order state on the server calls
-  `signUpFreshShopper()` first, so tests never share a cart and the suite can raise its worker count
-  later. Read-only signed-in flows get the seeded shopper for free: the `setup` project signs in once
+  `signUpFreshShopper()` first, so tests never share a cart and the suite can run on several
+  workers. Read-only signed-in flows get the seeded shopper for free: the `setup` project signs in once
   and the `chromium` and `mobile` projects load its storage state.
 - **Arrive as the admin with `test.use({ storageState: ADMIN_STORAGE_STATE })`.** The same setup
   signs in the seeded `admin@example.com` into a second state file beside the shopper's. It is
@@ -101,9 +101,14 @@ there should not be one.
   the whole shop's orders, so the stats tests and every test that places an order declare
   `test.describe.configure({ lock: ORDERS_LOCK })`, and a stats test expects exactly its own order
   on top. The catalogue edits, the homepage slot tests and the storefront tests that assert what the
-  catalogue API said a moment before (home, categories) declare `CATALOGUE_LOCK`. Tests sharing a
-  lock never run at the same time; everything else stays parallel. A new test that places an order
-  or changes the catalogue takes the matching lock.
+  catalogue API said a moment before (home, categories, the navigation pending state) declare
+  `CATALOGUE_LOCK`. Tests sharing a lock never run at the same time; everything else stays parallel,
+  on CI as well as locally. A new test that places an order or changes the catalogue takes the
+  matching lock.
+- **A spec that edits the catalogue never edits `products()[0]`**; that product is the one the
+  read-only storefront specs open (cart, checkout, SEO, the mini-cart, the phone storefront), and
+  they hold no lock. `admin-catalogue.spec.ts` picks its product by exclusion: the first one after
+  it that no homepage slot renders.
 - **Opt out of that state for a guest flow.** `test.use({ storageState: { cookies: [], origins: [] } })`
   at the top of the file. A guest cart lives in `localStorage` under `audiophile_cart`, which every
   fresh context starts without. To hold credentials and still arrive signed out, sign up and then
@@ -332,7 +337,9 @@ seeds and pushes, installs the Chromium headless shell (`--only-shell`, enough w
 headless with no `channel`) with `--with-deps` and no browser cache, and uploads
 `playwright-report/` as an artifact with thirty-day retention.
 
-The job runs every project, the phone specs included. On CI the suite runs with two retries, one
-worker, the `github` reporter for failure annotations on the run, and `trace: "on-first-retry"`. So a failure gives a step annotation in the PR checks and a
+The job runs every project, the phone specs included. On CI the suite runs with two retries, two
+workers, the `github` reporter for failure annotations on the run, and `trace: "on-first-retry"`. So a failure gives a step annotation in the PR checks and a
 trace inside the downloaded report; unzip it and open it with `pnpm --filter e2e exec playwright show-report <dir>`
-or at `trace.playwright.dev`.
+or at `trace.playwright.dev`. A test that passed only on a retry is a flake, not a pass: the report
+also holds `results.json`, whose `.stats.flaky` counts them, and a flake is fixed with the right lock
+or data the test owns rather than left to the retries.

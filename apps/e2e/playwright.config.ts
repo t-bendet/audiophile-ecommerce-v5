@@ -20,10 +20,15 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  workers: isCI ? 1 : undefined,
+  // Limit the number of workers on CI, use default locally.
+  workers: isCI ? 2 : undefined,
   globalTimeout: 15 * 60 * 1000,
   reporter: isCI
-    ? [["github"], ["html", { open: "never" }]]
+    ? [
+        ["github"],
+        ["html", { open: "never" }],
+        ["json", { outputFile: "playwright-report/results.json" }],
+      ]
     : [["list"], ["html", { open: "never" }]],
   use: {
     baseURL: PREVIEW_ORIGIN,

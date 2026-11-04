@@ -6,6 +6,7 @@ import {
   disposableProduct,
   expect,
   test,
+  type Catalogue,
   type CatalogueProduct,
   type ProductChanges,
 } from "./fixtures.js";
@@ -34,6 +35,26 @@ const editableFields = (product: CatalogueProduct): ProductChanges => ({
   fullLabel: product.fullLabel,
 });
 
+// Skips `products()[0]`, which the unlocked storefront specs open, and every slot's product.
+const productToEdit = async (catalogue: Catalogue) => {
+  const [products, featured, showcase] = await Promise.all([
+    catalogue.products(),
+    catalogue.featuredProduct(),
+    catalogue.showCaseProducts(),
+  ]);
+  const slotted = new Set(
+    [
+      featured,
+      showcase.showCaseCover,
+      showcase.showCaseWide,
+      showcase.showCaseGrid,
+    ].map((slot) => slot?.id),
+  );
+  const product = products.slice(1).find(({ id }) => !slotted.has(id));
+  expect(product).toBeDefined();
+  return product!;
+};
+
 // The product page's own card, found by its headline.
 const productCard = (page: Page, fullLabel: string[]) =>
   page.getByRole("article").filter({
@@ -48,8 +69,7 @@ test.describe("an admin editing the catalogue", () => {
     admin,
     catalogue,
   }) => {
-    // A product no homepage slot renders, so the home page is untouched.
-    const product = await catalogue.productBySlug("xx59-headphones");
+    const product = await productToEdit(catalogue);
     const edited = product.price + 1;
 
     try {
@@ -90,7 +110,7 @@ test.describe("an admin editing the catalogue", () => {
     admin,
     catalogue,
   }) => {
-    // Like the price test's, a product no homepage slot renders.
+    // Neither `products()[0]` nor a product a homepage slot renders.
     const product = await catalogue.productBySlug("xx99-mark-one-headphones");
     expect(product.isNewProduct).toBe(false);
     const marker = randomUUID().slice(0, 8);
