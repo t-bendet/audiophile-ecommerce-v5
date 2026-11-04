@@ -65,9 +65,18 @@ See the [media guide](../packages/media/README.md) and its `.env.example`.
 ## Normal deployment
 
 A push to `main` deploys through [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
-The `image` job builds the server image with the BuildKit cache, pushes it to the Cloudflare
-registry as `audiophile-apicontainer:<commit sha>` with `wrangler containers push`, and hands
-its digest to `deploy`. The `deploy` job waits for **`verify`, `image`, and `e2e`**, writes
+The `image` job tags the server image by the hash of its inputs, `audiophile-apicontainer:<hash>`:
+the output of `turbo prune server --docker` (the Dockerfile's own `pruner` stage, Dockerfile
+included), `.dockerignore` and the manifest digest of the Dockerfile's base image, archived with
+fixed tar metadata so only content counts. It then asks the registry for that tag's digest
+([`resolve-image-digests.mjs`](../.github/scripts/resolve-image-digests.mjs), a manifest `HEAD`
+with the short-lived pull credential wrangler itself uses, because `wrangler containers images list`
+prints no digests). A tag the registry holds is handed to `deploy` as it is: no build, no push, and
+the deploy carries no container change, so no rollout starts. A new tag is built with the BuildKit
+cache, pushed with `wrangler containers push`, and its digest handed over. A docs or client merge
+therefore leaves the single API instance alone; a base-image refresh still produces a new tag. To
+force a rebuild, change the Dockerfile's content (a comment line is enough): timestamps do not
+count. The `deploy` job waits for **`verify`, `image`, and `e2e`**, writes
 `apps/server/wrangler.ci.jsonc` (the committed `wrangler.jsonc` with `containers[0].image` set to
 `registry.cloudflare.com/<account>/audiophile-apicontainer@sha256:<digest>` and no build context;
 [`write-ci-wrangler-config.mjs`](../.github/scripts/write-ci-wrangler-config.mjs), gitignored),
@@ -90,12 +99,24 @@ gates pass. If the newer commit's gates then fail, production stays at the commi
 one until a fix-forward commit deploys. A guard that cannot read the head of `main` fails the job
 rather than guessing.
 
-Each merge leaves one more tag in the registry. List them with
-`pnpm --filter server exec wrangler containers images list` and prune by hand with
-`wrangler containers images delete audiophile-apicontainer:<tag>`; nothing deletes automatically.
-Tags shorter than a full commit sha predate the image job. Once a sha-tagged deploy has passed
-the post-deploy checks, every short tag, and the stray `audiophile-api-apicontainer` repository,
-can be deleted; after that keep the last few sha tags.
+The registry grows by one image per merge whose inputs changed. `deploy`'s last two steps keep it
+small: the first records which tags the registry holds and what each resolves to, then marks for
+deletion every `audiophile-apicontainer` tag whose digest is neither the image the container ran
+before this deploy (read before the Worker upload), the one this run deployed, nor the one the
+application reports afterwards. With the repository variable `REGISTRY_PRUNE` unset the job prints
+that listing, warns, and deletes nothing; set to `true`, the second step runs
+`wrangler containers images delete audiophile-apicontainer:<tag>` for each marked tag, unless `main`
+has moved on since this run's commit, because the newer push's `image` job may already have pushed a
+tag this run would not keep; that newer deploy prunes instead. Two images is enough: recovery is a
+roll-forward (below), and `wrangler rollback` has been unavailable to this Worker since the
+container's Durable Object migration. Tags that are a full commit sha or shorter hex predate the
+input hash; the first opted-in run removes them. By hand, the same tools are
+`pnpm --filter server exec wrangler containers images list` and `images delete`.
+
+Docs-only merges still run every gate and a `deploy` whose Worker upload is the only change. A
+`paths-ignore` filter would stop the required checks from reporting, so the PR could not merge, and
+a path classifier that skipped `deploy` could leave production stale; the forty seconds of runner
+time per merge that nobody waits on is the accepted cost (#397).
 
 The workflow uses these repository secrets:
 
@@ -105,8 +126,12 @@ The workflow uses these repository secrets:
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account to deploy into                                                                                                                           |
 | `DATABASE_URL`          | Atlas connection for the post-deploy catalogue sync; separate from the Worker's secret of the same name                                                     |
 
-One repository variable, `SYNC_SCHEMA_INDEXES`, opts `deploy`'s trailing steps into pushing the
-schema's indexes. Set it to `true` only while Atlas has no duplicates for any schema unique index.
+Two repository variables opt `deploy`'s trailing steps in; both are off until set to `true`:
+
+| Variable              | Opts in                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------- |
+| `SYNC_SCHEMA_INDEXES` | Pushing the schema's indexes. Set only while Atlas has no duplicates for any schema unique index. |
+| `REGISTRY_PRUNE`      | Deleting the registry tags the prune listing marks. Read one listing in a Deploy log first.       |
 
 After the Worker is live, `deploy`'s trailing steps run `pnpm db:generate && pnpm db:sync`, which
 only creates catalogue documents that are missing and never rewrites an existing one, so the
