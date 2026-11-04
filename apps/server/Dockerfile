@@ -20,6 +20,8 @@ RUN turbo prune server --docker
 FROM base AS builder
 # prisma.config.ts refuses to load without it; nothing here connects.
 ENV DATABASE_URL=mongodb://localhost:27017/audiophile
+# No vitest runs here, so mongodb-memory-server's postinstall binary download is dead weight.
+ENV MONGOMS_DISABLE_POSTINSTALL=1
 COPY --from=pruner /app/out/json/ .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .

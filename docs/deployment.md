@@ -66,7 +66,8 @@ See the [media guide](../packages/media/README.md) and its `.env.example`.
 
 A push to `main` deploys through [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 The `deploy` job waits for **`verify`, `image`, and `e2e`**, then runs `pnpm deploy:app`.
-That builds both apps and deploys the container image, Worker and static assets together.
+That builds the client (from the Turbo cache `verify` saved) and deploys the container image,
+Worker and static assets together; the server is built inside the image.
 Pull requests run checks and build the Docker image without publishing or deploying it.
 
 The workflow uses these repository secrets:

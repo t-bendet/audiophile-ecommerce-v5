@@ -14,6 +14,10 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # Streamed, so each task's lines carry their own timestamps.
+  TURBO_LOG_ORDER: stream
+
 jobs:
   verify:
     name: Verify
@@ -55,21 +59,21 @@ jobs:
       - run: pnpm install --frozen-lockfile
         timeout-minutes: 10
 
-      # The Prisma client is generated, not committed.
-      - run: pnpm db:generate
-
-      - run: pnpm build
-
-      - run: pnpm lint
-
-      - run: pnpm type-check
-
-      - run: pnpm test
+      # One graph: `build` pulls in `db:generate`, so the Prisma client is generated
+      # once. A failed task stops only the tasks that depend on it.
+      - run: pnpm turbo run build lint type-check test --continue=dependencies-successful
         timeout-minutes: 10
 
       - run: pnpm format:check
 
       - run: pnpm docs:check
+
+      # Deploy restores this; Verify and E2E restore nothing, so every check runs.
+      - uses: actions/cache/save@v6
+        if: github.event_name == 'push'
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ github.sha }}
 
   image:
     name: Server image
@@ -80,14 +84,15 @@ jobs:
 
       - uses: docker/setup-buildx-action@v4
 
-      # Builds the image the container Worker deploys; nothing is pushed. Main's run seeds the cache PRs restore from.
+      # Builds the image the container Worker deploys; nothing is pushed. Main's run
+      # seeds the cache PRs restore from; PRs write none (#391).
       - uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/server/Dockerfile
           push: false
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max' || '' }}
 
   e2e:
     name: E2E
@@ -99,6 +104,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      # `pnpm db:up` before pnpm exists, in the background so the image pull and
+      # replica-set init overlap the install and build.
+      - name: Start MongoDB in the background
+        run: |
+          docker compose up -d --wait > "$RUNNER_TEMP/db-up.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/db-up.pid"
 
       - uses: pnpm/action-setup@v6
 
@@ -113,19 +125,23 @@ jobs:
       - run: pnpm install --frozen-lockfile
         timeout-minutes: 10
 
-      # The same compose file local development uses; its healthcheck initiates the replica set.
-      - run: pnpm db:up
-
-      # The Prisma client is generated, not committed.
-      - run: pnpm db:generate
-
+      # `build` pulls in `db:generate`.
       - run: pnpm build
+
+      # The idempotent `db:up` then reports a failed background start.
+      - name: Wait for MongoDB
+        run: |
+          while kill -0 "$(cat "$RUNNER_TEMP/db-up.pid")" 2>/dev/null; do sleep 1; done
+          cat "$RUNNER_TEMP/db-up.log"
+          pnpm db:up
+        timeout-minutes: 5
 
       # The seed drops the database, so the push that rebuilds its indexes comes second.
       - run: pnpm db:seed && pnpm db:push
 
-      # One browser with its OS packages; restoring a cache costs as much as downloading.
-      - run: pnpm --filter e2e exec playwright install chromium --with-deps
+      # The headless shell is all a headless run without `channel` uses; restoring a
+      # browser cache costs as much as downloading.
+      - run: pnpm --filter e2e exec playwright install chromium --only-shell --with-deps
 
       - run: pnpm --filter e2e run e2e
 
@@ -169,7 +185,14 @@ jobs:
       # A bad token fails here, in seconds, not after the image build.
       - run: pnpm --filter server exec wrangler whoami
 
-      # Builds everything, then `wrangler deploy`: image, Worker and assets.
+      # Verify's build outputs, this commit's entry first; `db:generate` and `deploy` never cache.
+      - uses: actions/cache/restore@v6
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
+
+      # Prisma client, client build, then `wrangler deploy`: image, Worker and assets.
       - run: pnpm deploy:app
         timeout-minutes: 30
 
