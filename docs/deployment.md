@@ -77,6 +77,19 @@ container application. No Docker runs in `deploy`. The committed `wrangler.jsonc
 `"image": "./Dockerfile"`, so `wrangler dev` and the manual `pnpm deploy:app` below still build from
 source. Pull requests run checks and build the Docker image without publishing or deploying it.
 
+Every push to `main` runs its own `verify`, `image` and `e2e`: the workflow's concurrency group is
+per branch for a pull request, whose pushes cancel their predecessor, and per run for a push to
+`main`, so back-to-back merges run their gates side by side. Only `deploy` serialises, through its
+job-level `deploy-main` group: one deploy runs, one waits, and a
+newer run's deploy replaces the waiting one, which GitHub reports as a cancelled run whose gates are
+green. GitHub does not order that queue, so `deploy`'s first step compares the run's commit with the
+head of `main` (`git ls-remote`). When they differ, the step emits the annotation
+`superseded by <sha>; the newer run deploys` and every later step, the catalogue sync and index push
+included, is skipped: the job is green, nothing was deployed, and the newer run deploys once its own
+gates pass. If the newer commit's gates then fail, production stays at the commit before the older
+one until a fix-forward commit deploys. A guard that cannot read the head of `main` fails the job
+rather than guessing.
+
 Each merge leaves one more tag in the registry. List them with
 `pnpm --filter server exec wrangler containers images list` and prune by hand with
 `wrangler containers images delete audiophile-apicontainer:<tag>`; nothing deletes automatically.
