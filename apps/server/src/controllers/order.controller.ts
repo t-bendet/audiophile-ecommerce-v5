@@ -105,6 +105,7 @@ export const updateOrderStatus: ValidatedHandler = defineHandler(
       req.user!.id,
       req.verified.body,
     );
+    await emailService.sendOrderStatus(dto, req.verified.body.status, req.log);
     res.status(200).json(createSingleItemResponse(dto));
   },
 );

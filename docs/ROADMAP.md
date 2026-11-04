@@ -158,15 +158,6 @@ the group block.
 
 ### 3. Order tracking, history and notifications
 
-- Customer notifications on order status change. Sent from the code that writes the history entry,
-  through the transport
-  [ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md) shipped: a
-  template function in `apps/server/src/emails` and an `email.service.ts` method whose
-  `Idempotency-Key` names the event (`order-status/<orderId>/<status>`, say), awaited and logged on
-  failure, never failing the update. The route test reads `outbox`; E2E uses the `outbox(to)`
-  fixture. Delivery events are not wired: the [email provider note](research/email-provider.md)
-  names `EMAIL_WEBHOOK_SECRET` and a raw-body route for the slice that wants bounces and complaints.
-
 Depends on: nothing outside the group; group 1 shipped the transport the notification slice
 needs, and group 2 the loading pattern, so the order detail page needs no loading UI of its own
 ([ADR 0013](adr/0013-a-storefront-navigation-keeps-the-old-page-under-a-progress-bar.md)).

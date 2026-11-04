@@ -142,6 +142,7 @@ describe("POST /api/v1/orders", () => {
     });
     for (const body of [email!.text, email!.html]) {
       expect(body).toContain(order.id);
+      expect(body).toContain(`/account/orders/${order.id}`);
       expect(body).toContain(product.cartLabel);
       expect(body).toContain("$ 1,000");
       expect(body).toContain("$ 1,250");
@@ -290,6 +291,7 @@ describe("PATCH /api/v1/orders/:orderId/status", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data.status).toBe("PROCESSING");
+    expect(outbox.messages).toHaveLength(1);
   });
 
   it("records shipment tracking and rejects missing tracking", async () => {
@@ -329,6 +331,73 @@ describe("PATCH /api/v1/orders/:orderId/status", () => {
       carrier: "DHL",
       trackingNumber: "123",
     });
+    const email = outbox.messages[1]!;
+    expect(email).toMatchObject({
+      subject: "Your order has shipped",
+      idempotencyKey: `order-status/${created.body.data.id}/SHIPPED`,
+    });
+    for (const body of [email.text, email.html]) {
+      expect(body).toContain("DHL");
+      expect(body).toContain("123");
+      expect(body).toContain(`/account/orders/${created.body.data.id}`);
+    }
+  });
+
+  it.each([false, true])(
+    "sends cancellation copy for paid=%s",
+    async (paid) => {
+      const user = await createUser();
+      const admin = await createAdmin();
+      const { res: created } = await orderFromCart(user.id, 1000);
+      const id = created.body.data.id;
+      const cookie = authCookie(admin.id);
+      if (paid) {
+        const payment = await request(app)
+          .patch(`/api/v1/orders/${id}/payment-status`)
+          .set("Cookie", cookie)
+          .send({ paymentStatus: "PAID" });
+        expect(payment.status).toBe(200);
+      }
+      const cancelled = await request(app)
+        .patch(`/api/v1/orders/${id}/status`)
+        .set("Cookie", cookie)
+        .send({ status: "CANCELLED" });
+      expect(cancelled.status).toBe(200);
+      const email = outbox.messages[1]!;
+      expect(email).toMatchObject({
+        subject: "Your order was cancelled",
+        idempotencyKey: `order-status/${id}/CANCELLED`,
+      });
+      for (const body of [email.text, email.html]) {
+        expect(body).toContain(`/account/orders/${id}`);
+        expect(body).toContain(
+          paid
+            ? "$ 1,250 will be refunded to your e-Money account."
+            : "Nothing was charged.",
+        );
+      }
+      const refused = await request(app)
+        .patch(`/api/v1/orders/${id}/status`)
+        .set("Cookie", cookie)
+        .send({ status: "CANCELLED" });
+      expect(refused.status).toBe(400);
+      expect(outbox.messages).toHaveLength(2);
+    },
+  );
+
+  it("keeps the status update when sending fails", async () => {
+    const user = await createUser();
+    const admin = await createAdmin();
+    const { res: created } = await orderFromCart(user.id, 400);
+    vi.spyOn(emailTransport, "send").mockRejectedValueOnce(
+      new Error("send failed"),
+    );
+    const res = await request(app)
+      .patch(`/api/v1/orders/${created.body.data.id}/status`)
+      .set("Cookie", authCookie(admin.id))
+      .send({ status: "CANCELLED" });
+    expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe("CANCELLED");
   });
 
   it("allows only one concurrent move from the same status", async () => {

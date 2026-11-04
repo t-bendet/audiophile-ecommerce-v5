@@ -141,7 +141,7 @@ id, and the caller's response is unchanged. `POST /orders` awaits `sendOrderConf
 order is created, so the outbox holds the message when the 201 lands; the email says the order is
 received and how payment is taken (`paymentInstructions` in `@repo/domain`, the sentence the
 confirmation page shows too), never that payment was taken, because an admin sets payment status by
-hand.
+hand. Order confirmation and shipped/cancelled emails link to the shopper’s order detail. A successful status transition awaits `sendOrderStatus`, which sends only for Shipped and Cancelled using `order-status/<orderId>/<status>`; transport failures are logged and do not fail the update.
 
 `POST /auth/forgot-password` validates its body with `AuthForgotPasswordRequestSchema` and answers
 200 with the empty envelope for a known, unknown or deactivated email alike, so the response never
