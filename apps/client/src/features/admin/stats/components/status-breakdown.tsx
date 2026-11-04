@@ -1,5 +1,5 @@
+import { OrderStatusBadge } from "@/features/orders/components/order-status-badge";
 import { ORDER_STATUS, type StatsDTO } from "@repo/domain";
-import { OrderStatusBadge } from "../../orders/components/status-badges";
 
 /** A pill per order status with its count, every status listed even at zero. */
 export function StatusBreakdown({

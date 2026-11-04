@@ -1,5 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import {
+  ADMIN_STORAGE_STATE,
   ORDERS_LOCK,
   expect,
   test,
@@ -51,6 +52,8 @@ test("checkout creates an order, says how payment is taken and emails the shoppe
   signUpFreshShopper,
   listOrders,
   outbox,
+  browser,
+  placeOrderAsFreshShopper,
 }) => {
   const shopper = await signUpFreshShopper();
   const [product] = await catalogue.products();
@@ -105,6 +108,47 @@ test("checkout creates an order, says how payment is taken and emails the shoppe
     orders.getByRole("heading", { name: product.cartLabel, exact: true }),
   ).toBeVisible();
   await expect(orders.getByText("Cash on Delivery")).toBeVisible();
+
+  const other = await placeOrderAsFreshShopper();
+  await orders
+    .getByRole("link", { name: `Order #${order.id.slice(-8).toUpperCase()}` })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: `Order #${order.id.slice(-8).toUpperCase()}`,
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("We have received your order")).toBeVisible();
+  await expect(page.getByText("Order placed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Next: Being prepared")).toBeVisible();
+
+  const adminContext = await browser.newContext({
+    storageState: ADMIN_STORAGE_STATE,
+  });
+  const adminPage = await adminContext.newPage();
+  await adminPage.goto(`/admin/orders/${order.id}`);
+  const form = adminPage.getByRole("form", { name: "Fulfilment" });
+  await form.getByLabel("Move order to").click();
+  await adminPage.getByRole("option", { name: "Processing" }).click();
+  await form.getByRole("button", { name: "Save" }).click();
+  await expect(
+    form.getByText("Processing", { exact: true }).first(),
+  ).toBeVisible();
+  await form.getByLabel("Move order to").click();
+  await adminPage.getByRole("option", { name: "Shipped" }).click();
+  await form.getByLabel("Carrier").fill("UPS");
+  await form.getByLabel("Tracking number").fill("1Z123");
+  await form.getByRole("button", { name: "Save" }).click();
+  await expect(form.getByText("1Z123")).toBeVisible();
+  await adminContext.close();
+  await page.reload();
+  await expect(page.getByText("Your order is on its way")).toBeVisible();
+  await expect(page.getByText("1Z123")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Track package" }),
+  ).toHaveAttribute("href", "https://www.ups.com/track?tracknum=1Z123");
+  await page.goto(`/account/orders/${other.orderId}`);
+  await expect(page.getByRole("heading", { name: /not found/i })).toBeVisible();
 });
 
 test("Escape closes the order confirmation and returns home", async ({

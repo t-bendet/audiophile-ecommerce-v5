@@ -114,6 +114,13 @@ const createAppRouter = (queryClient: QueryClient) =>
                             ),
                         },
                         {
+                          path: paths.account.orderDetail.path,
+                          lazy: () =>
+                            import("./routes/account/order-detail").then(
+                              convert(queryClient),
+                            ),
+                        },
+                        {
                           path: paths.account.orders.path,
                           lazy: () =>
                             import("./routes/account/orders").then(

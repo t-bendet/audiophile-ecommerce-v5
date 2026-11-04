@@ -1,13 +1,11 @@
+import { OrderStatusBadge } from "@/features/orders/components/order-status-badge";
 import { paths } from "@/config/paths";
 import currencyFormatter from "@/utils/formatters";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { adminOrdersQueryOptions } from "../../orders/api/get-admin-orders";
-import {
-  OrderStatusBadge,
-  PaymentStatusBadge,
-} from "../../orders/components/status-badges";
-import { shortOrderId } from "../../orders/order-id";
+import { PaymentStatusBadge } from "../../orders/components/status-badges";
+import { shortOrderId } from "@/features/orders/order-id";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 

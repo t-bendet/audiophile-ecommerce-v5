@@ -1,3 +1,4 @@
+import { OrderStatusBadge } from "@/features/orders/components/order-status-badge";
 import {
   Table,
   TableBody,
@@ -10,8 +11,8 @@ import { paths } from "@/config/paths";
 import currencyFormatter from "@/utils/formatters";
 import type { AdminOrderDTO } from "@repo/domain";
 import { Link } from "react-router";
-import { shortOrderId } from "../order-id";
-import { OrderStatusBadge, PaymentStatusBadge } from "./status-badges";
+import { shortOrderId } from "@/features/orders/order-id";
+import { PaymentStatusBadge } from "./status-badges";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
 

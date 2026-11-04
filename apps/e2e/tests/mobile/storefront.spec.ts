@@ -91,3 +91,20 @@ test("account navigation fits on a phone", async ({ page }) => {
     await page.evaluate(() => document.documentElement.clientWidth),
   );
 });
+
+test("order detail shows status before items on a phone", async ({
+  page,
+  signUpFreshShopper,
+  placeOrder,
+}) => {
+  await signUpFreshShopper();
+  const id = await placeOrder();
+  await page.goto(`/account/orders/${id}`);
+  const status = page.getByRole("region", { name: "Status" });
+  const items = page.getByRole("region", { name: "Items" });
+  await expect(status).toBeVisible();
+  await expect(items).toBeVisible();
+  const statusBox = await status.boundingBox();
+  const itemsBox = await items.boundingBox();
+  expect(statusBox!.y).toBeLessThan(itemsBox!.y);
+});

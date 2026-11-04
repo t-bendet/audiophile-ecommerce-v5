@@ -8,7 +8,7 @@ import { Link, LoaderFunctionArgs, useParams } from "react-router";
 import { adminOrderQueryOptions } from "../api/get-admin-orders";
 import { FulfilmentForm } from "../components/fulfilment-form";
 import { OrderSummary } from "../components/order-summary";
-import { shortOrderId } from "../order-id";
+import { shortOrderId } from "@/features/orders/order-id";
 
 export default function AdminOrderPage() {
   const { orderId = "" } = useParams();
