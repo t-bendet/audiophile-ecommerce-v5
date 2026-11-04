@@ -4,6 +4,8 @@ import { QueryClient, useIsMutating } from "@tanstack/react-query";
 import { LoaderFunctionArgs, Outlet, ScrollRestoration } from "react-router";
 import { Metadata } from "@/components/seo/metadata";
 import LoadingSpinner from "../ui/loading-spinner";
+// PROTOTYPE (#0)
+import { PrototypeSwitcher } from "@/components/prototype/account-orders/switcher";
 
 export function RootLayout() {
   // Logout only: the auth forms and navigations show their own pending state.
@@ -25,6 +27,8 @@ export function RootLayout() {
       )}
       <ScrollRestoration />
       <Outlet />
+      {/* PROTOTYPE (#0) */}
+      {import.meta.env.DEV && <PrototypeSwitcher />}
     </div>
   );
 }

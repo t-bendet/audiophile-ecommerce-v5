@@ -120,6 +120,14 @@ const createAppRouter = (queryClient: QueryClient) =>
                               convert(queryClient),
                             ),
                         },
+                        // PROTOTYPE (#0): the shopper order detail route.
+                        {
+                          path: "/account/orders/:orderId",
+                          lazy: () =>
+                            import(
+                              "@/components/prototype/account-orders/order-detail"
+                            ).then(convert(queryClient)),
+                        },
                       ],
                     },
                     {
