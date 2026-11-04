@@ -252,7 +252,9 @@ marked Paid, after which, with no reload, the order select offers Shipped and no
 the payment select offers Refunded and neither Pending nor Failed), admin order lists (a fresh
 shopper's two orders, one moved to Processing and the other marked Paid through the API, each found alone by the
 status filter and by the payment status filter; twenty-one orders of one shopper paged as "Showing
-1–20 of 21" and then the oldest alone on page two, with Prev and Next disabled at each end), the
+1–20 of 21" and then the oldest alone on page two, with Prev and Next disabled at each end), admin
+filter navigation (orders and users selects kept open across a held Apply response, and draft
+fields reset by Clear filters and browser back/forward, including order-id validation), the
 cancel path (a Paid order moved to Cancelled shows the refund reminder, after which the order select
 is disabled and the payment select offers Refunded and neither Pending nor Failed), admin user
 management (a fresh shopper found by email, deactivated, told so by the login form in a browser

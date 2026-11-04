@@ -23,11 +23,7 @@ export default function AdminOrdersPage() {
 
   return (
     <>
-      <OrdersFilters
-        key={searchParams.toString()}
-        filters={filters}
-        onApply={navigateTo}
-      />
+      <OrdersFilters filters={filters} onApply={navigateTo} />
       <SafeRenderWithErrorBlock title="Orders" fallback={<OrdersSkeleton />}>
         <OrdersResults
           filters={filters}

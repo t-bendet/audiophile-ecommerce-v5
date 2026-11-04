@@ -37,6 +37,7 @@ test.describe("an admin listing orders", () => {
     const rows = orderRows(page);
     await filters.getByLabel("Customer email").fill(shopper.email);
     await filters.getByRole("button", { name: "Apply" }).click();
+    await expect(page).toHaveURL(/customerEmail=/);
     // The header row and both orders.
     await expect(rows).toHaveCount(3);
 

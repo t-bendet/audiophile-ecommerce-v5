@@ -23,11 +23,7 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <UsersFilters
-        key={searchParams.toString()}
-        filters={filters}
-        onApply={navigateTo}
-      />
+      <UsersFilters filters={filters} onApply={navigateTo} />
       <SafeRenderWithErrorBlock title="Users" fallback={<UsersSkeleton />}>
         <UsersResults
           filters={filters}

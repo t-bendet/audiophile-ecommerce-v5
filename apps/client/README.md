@@ -274,7 +274,10 @@ The first section, under `src/features/admin/orders/`. [`routes/orders-list.tsx`
 is `/admin/orders`: the filters live in the URL's search params (`status`, `paymentStatus`, `orderId`,
 `customerEmail`, `userId`, `page`), [`filters.ts`](src/features/admin/orders/filters.ts) reads them
 back dropping any value the server would reject, and the loader ensures the matching page of
-`GET /admin/orders`. The table renders from `md` up and stacked cards below it; pagination is two
+`GET /admin/orders`. The filter form stays mounted across search-param changes, so an open select
+survives an Apply finishing. When the applied filters change, its draft fields and order-id error
+reset in place to the URL's values, including on back/forward and Clear filters.
+The table renders from `md` up and stacked cards below it; pagination is two
 `Button`s and a "Showing x–y of n" label. [`routes/order-detail.tsx`](src/features/admin/orders/routes/order-detail.tsx)
 is `/admin/orders/:orderId`, with the order summary left and the
 [fulfilment form](src/features/admin/orders/components/fulfilment-form.tsx) right. That form is a
@@ -300,7 +303,9 @@ registry's `new-york-v4` output with the design note's corrections: `cn` from `@
 The second section, under `src/features/admin/users/`. [`routes/users-list.tsx`](src/features/admin/users/routes/users-list.tsx)
 is `/admin/users`, built like the orders list: the filters (`search`, `role`, `active`, `page`)
 live in the URL, [`filters.ts`](src/features/admin/users/filters.ts) reads them back dropping what
-the server would reject, the loader ensures the matching page of `GET /users`, and the table
+the server would reject, and the loader ensures the matching page of `GET /users`. Like the orders
+filters, the form stays mounted while its draft fields reset to changed URL values, including on
+back/forward and Clear filters; an open select survives an Apply finishing. The table
 (name, email, role, active, created) becomes stacked cards of name, email and the active pill below
 `md`. [`ListPagination`](src/features/admin/components/list-pagination.tsx) is shared by both lists.
 [`routes/user-detail.tsx`](src/features/admin/users/routes/user-detail.tsx) is `/admin/users/:userId`:

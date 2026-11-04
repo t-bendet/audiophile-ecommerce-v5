@@ -16,7 +16,7 @@ import {
   type PaymentStatus,
 } from "@repo/domain";
 import { useState } from "react";
-import { AdminOrderFilters } from "../filters";
+import { AdminOrderFilters, toSearchParams } from "../filters";
 import { statusLabel } from "../transitions";
 
 // Radix reserves the empty string for clearing a select, so "any" needs a value.
@@ -40,6 +40,17 @@ export function OrdersFilters({ filters, onApply }: OrdersFiltersProps) {
     PaymentStatus | typeof ANY
   >(filters.paymentStatus ?? ANY);
   const [orderIdError, setOrderIdError] = useState<string>();
+  const appliedFilters = toSearchParams(filters).toString();
+  const [previousFilters, setPreviousFilters] = useState(appliedFilters);
+
+  if (appliedFilters !== previousFilters) {
+    setPreviousFilters(appliedFilters);
+    setOrderId(filters.orderId ?? "");
+    setCustomerEmail(filters.customerEmail ?? "");
+    setStatus(filters.status ?? ANY);
+    setPaymentStatus(filters.paymentStatus ?? ANY);
+    setOrderIdError(undefined);
+  }
 
   const apply = () => {
     const trimmedId = orderId.trim();
