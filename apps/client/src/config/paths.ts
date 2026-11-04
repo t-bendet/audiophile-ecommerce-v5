@@ -119,9 +119,3 @@ export const paths = {
     },
   },
 } as const;
-
-type TAccountPaths = keyof (typeof paths)["account"];
-
-export type TAccountPathKeys = {
-  [K in TAccountPaths]: K extends "root" ? never : K;
-}[TAccountPaths];
