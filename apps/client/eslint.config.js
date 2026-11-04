@@ -1,10 +1,12 @@
 import { base, turboEnvAllowList } from "@repo/eslint-config/base";
 import globals from "globals";
+import pluginQuery from "@tanstack/eslint-plugin-query";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 
 export default [
   ...base,
+  ...pluginQuery.configs["flat/recommended"],
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {

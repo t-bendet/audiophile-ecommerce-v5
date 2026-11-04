@@ -107,6 +107,25 @@ test("checkout creates an order, says how payment is taken and emails the shoppe
   await expect(orders.getByText("Cash on Delivery")).toBeVisible();
 });
 
+test("Escape closes the order confirmation and returns home", async ({
+  page,
+  catalogue,
+  signUpFreshShopper,
+}) => {
+  const shopper = await signUpFreshShopper();
+  const [product] = await catalogue.products();
+  await openCheckoutWith(page, product);
+  await fillCheckout(page, shopper);
+  await page.getByRole("button", { name: "Continue & Pay" }).click();
+  const thankYou = page.getByRole("dialog", {
+    name: "Thank you for your order",
+  });
+  await expect(thankYou).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(thankYou).toBeHidden();
+  await expect(page).toHaveURL("/");
+});
+
 test("checkout refuses a form with fields missing or invalid and creates no order", async ({
   page,
   catalogue,

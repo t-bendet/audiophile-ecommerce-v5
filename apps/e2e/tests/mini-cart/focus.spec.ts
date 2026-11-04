@@ -41,4 +41,17 @@ test("opening the mini-cart moves focus into it and closing returns it to the ca
   await page.keyboard.press("Escape");
   await expect(miniCart).toBeHidden();
   await expect(cartButton).toBeFocused();
+
+  await cartButton.click();
+  await page
+    .getByTestId("dialog-overlay")
+    .click({ position: { x: 5, y: 500 } });
+  await expect(miniCart).toBeHidden();
+  await expect(cartButton).toBeFocused();
+});
+
+test("the styled Back to Home link navigates from login", async ({ page }) => {
+  await page.goto("/auth/login");
+  await page.getByRole("link", { name: "Back to Home" }).click();
+  await expect(page).toHaveURL("/");
 });

@@ -278,8 +278,14 @@ test.describe("an admin", () => {
       ...page.viewportSize(),
     });
 
-    await dialog.getByRole("button", { name: "Keep active" }).click();
+    await overlay.click({ position: { x: 5, y: 5 } });
     await expect(dialog).toBeHidden();
+    const trigger = account.getByRole("button", { name: "Deactivate account" });
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
     await expect(account.getByText("Active", { exact: true })).toBeVisible();
   });
 });

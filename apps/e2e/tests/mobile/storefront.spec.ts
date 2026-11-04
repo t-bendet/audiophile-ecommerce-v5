@@ -22,6 +22,14 @@ test("the menu lists the categories and closes on the way to one", async ({
     await expect(categoryLink(category)).toBeVisible();
   }
 
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await expect(menuButton).toBeFocused();
+  await menuButton.tap();
+  await page.getByTestId("dialog-overlay").tap({ position: { x: 5, y: 500 } });
+  await expect(menu).toBeHidden();
+  await expect(menuButton).toBeFocused();
+  await menuButton.tap();
   await categoryLink("Speakers").tap();
 
   await expect(page).toHaveURL("/category/Speakers");
