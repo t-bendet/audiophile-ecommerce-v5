@@ -325,9 +325,12 @@ session against CI's downloaded Chromium before treating it as a product bug.
 ## CI
 
 The `e2e` job in `.github/workflows/ci.yml` runs in parallel with `verify` and `image`, and `deploy`
-needs all three, so a red suite blocks a deploy. It brings up the same compose database local
-development uses, seeds and pushes, installs Chromium with `--with-deps` and no browser cache, and
-uploads `playwright-report/` as an artifact with thirty-day retention.
+needs all three, so a red suite blocks a deploy. Right after checkout it starts the same compose
+database local development uses in the background, so the image pull and replica-set init overlap
+the install and `pnpm build` (which generates the Prisma client). It then waits for that start,
+seeds and pushes, installs the Chromium headless shell (`--only-shell`, enough while the config is
+headless with no `channel`) with `--with-deps` and no browser cache, and uploads
+`playwright-report/` as an artifact with thirty-day retention.
 
 The job runs every project, the phone specs included. On CI the suite runs with two retries, one
 worker, the `github` reporter for failure annotations on the run, and `trace: "on-first-retry"`. So a failure gives a step annotation in the PR checks and a
