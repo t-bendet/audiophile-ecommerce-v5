@@ -422,6 +422,7 @@ or use root `pnpm test` for dependency ordering. For browser coverage, follow th
 [E2E guide](../e2e/README.md); for the remaining checks, see
 [verification](../../docs/agents/verification.md).
 
-`pnpm format:check` sorts Tailwind classes with the `tailwindStylesheet` entry in
-[`.prettierrc`](.prettierrc); without it the plugin reuses whichever Tailwind context the
-first formatted file produced, so the sort changes with the file set.
+`pnpm format:check` sorts Tailwind classes using the stylesheet declared by
+`tailwindStylesheet` in [`.prettierrc`](.prettierrc). With plugin version 0.8.1, a
+comparison without that option produced the same client output for root and client-only
+file sets. Keep the option to declare the authoritative stylesheet explicitly.
