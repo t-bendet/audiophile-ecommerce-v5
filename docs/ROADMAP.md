@@ -327,12 +327,74 @@ The human sessions for the next groups, written out so they can start cold.
 
 ### Group 4: open the wayfinder map
 
-Run `/wayfinder` with the destination "a specced parent issue for
-catalogue growth: dashboard image upload, product creation, category management and the arrival
-date, with the variant strategy decided". Seed its tickets from the four questions in the group 4
-block: research for Cloudflare Image Transformations limits and R2 presigned uploads, prototype for
-what the admin uploads per product, grilling for runtime categories. Put the migration pattern for
-new catalogue fields and group 6's attributes question in its fog.
+Copy this prompt into a fresh session:
+
+```text
+Use the repository's wayfinder skill (.agents/skills/wayfinder/SKILL.md) to chart
+group 4 of docs/ROADMAP.md: Catalogue growth — uploads, product creation and
+categories. Group 3 is complete; group 4 is next.
+
+Destination: a specced implementation parent issue for dashboard image uploads,
+product creation and an arrival-date rule, with the variant strategy decided and
+runtime category management either included by an explicit product decision or
+parked with its reason. This session charts the decision map; the implementation
+parent is the destination of the map, not something to spec before its decisions.
+
+Start by reading AGENTS.md, the roadmap's workflow, inherited constraints, group 4
+block and closing re-triage checklist. Use docs/agents/issue-tracker.md for GitHub
+map operations. Follow the relevant guides for each investigation: packages/media/
+README.md for image ownership/publication, packages/database/README.md and ADR 0007
+for catalogue persistence, docs/agents/domain.md for contracts, apps/server/README.md
+for uploads/validation, apps/client/README.md for admin UI, docs/deployment.md for
+secrets, and apps/e2e/README.md for fixtures. Check current code before treating a
+roadmap statement as a fact. Reuse an existing group 4 map if one already exists.
+
+Use grilling and domain-modeling to confirm the destination and map the open
+decisions breadth-first. Keep these choices open for their decision sessions:
+
+- What does an admin provide for each image role: the existing breakpoint crops,
+  or one original with derived sizes? How are cropping, preview and replacement
+  handled in the product-creation flow?
+- Where are sizes and WebP/AVIF variants produced: a media-package job, sharp in
+  the container, or Cloudflare Image Transformations? Research current limits,
+  supported formats, cost and implications for existing and uploaded images.
+- Does upload use a browser presigned PUT to R2 or multipart through Express?
+  Research authorization, size/type validation, CORS, key ownership, incomplete
+  uploads and cleanup. Account for the current request-size limit and deployment.
+- Are runtime categories wanted? If yes, decide their names/slugs, thumbnails and
+  management flow; if no, park category management and the enum replacement with
+  the reason. Use a human grilling session for this product choice.
+
+Create a group-scoped wayfinder map and the decision tickets precise enough to
+write now, with native blocking edges. Use research tickets for provider/API facts,
+a prototype ticket for the upload and creation UI, grilling for product semantics,
+and task tickets only for prerequisites that unblock a decision. Follow wayfinder's
+research dispatch and charting stop rules; human decisions stay with the human.
+
+Carry unresolved questions in the map's fog until they can become concrete tickets:
+the arrival-date meaning and isNewProduct rule, the migration pattern for catalogue
+fields after ADR 0007, and group 6's future attributes needs. Keep implementation of
+groups 5–9 outside this map. Preserve these constraints while exploring:
+
+- Dashboard uploads must survive media:sync --prune; decide how to scope or retire
+  that operation before the first upload slice ships.
+- Existing catalogue documents need optional fields or an explicit backfill;
+  db:sync does not update them. Keep destructive setup/seed operations local.
+- Bucket validation must preserve the dedicated E2E product-creation path.
+- Identify human provisioning for R2 credentials and any bucket CORS changes;
+  agents wire approved secrets through the documented deployment path.
+- The UI prototype uses the shared centred dialog and covers the phone layout.
+
+When the map's decisions are resolved in later sessions, hand off a parent issue
+with decisions that shape every slice, vertical implementation sub-issues, native
+dependencies and E2E acceptance per slice. The first new upload seam stops at PR
+open for review. Include the roadmap's closing re-triage checklist as the last
+ticket, blocked by every slice, with its PR also stopping for review.
+
+For this charting session, finish with links to the map and named decision tickets,
+the unblocked frontier, research status and the next human session to run. Keep
+production implementation and batch shipping for the later handoff.
+```
 
 ## Parked
 
