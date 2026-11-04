@@ -4,12 +4,12 @@ packages:
 
 catalog:
   "@types/node": ^24.19.2
-  dotenv: ^17.4.2
+  dotenv: ^18.0.9
   eslint: ^10.14.0
   globals: ^17.14.0
   tsx: ^4.23.15
   typescript: 5.9.3
-  vitest: 5.0.5
+  vitest: ^5.1.0
   zod: ^4.6.7
 
 allowBuilds:
