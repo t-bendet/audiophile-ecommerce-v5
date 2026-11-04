@@ -19,7 +19,10 @@ packages/media  catalogue originals and publication tools; reads seed references
 Turborepo orders builds through the workspace dependency graph. pnpm provides workspace linking;
 the shared tooling packages, `packages/config-eslint` (`@repo/eslint-config`) and
 `packages/config-typescript` (`@repo/typescript-config`), hold lint and TypeScript configuration. The package manifests and
-[`turbo.json`](../turbo.json) are authoritative for dependencies and task ordering.
+[`turbo.json`](../turbo.json) are authoritative for dependencies and task ordering. A dependency
+that two or more workspaces declare takes its version from the default catalog in
+[`pnpm-workspace.yaml`](../pnpm-workspace.yaml), and those manifests reference it as `catalog:`; a
+dependency declared by one workspace keeps its version in that manifest.
 
 ## Request and data boundaries
 

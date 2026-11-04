@@ -14,12 +14,12 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-config-turbo": "^2.11.10",
     "eslint-plugin-only-warn": "^1.2.1",
-    "globals": "^17.12.0",
+    "globals": "catalog:",
     "typescript-eslint": "^8.70.0"
   },
   "devDependencies": {
-    "eslint": "^10.10.0",
-    "typescript": "5.9.3"
+    "eslint": "catalog:",
+    "typescript": "catalog:"
   },
   "peerDependencies": {
     "eslint": "^10.0.0"
