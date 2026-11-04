@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   Select,
@@ -45,6 +46,8 @@ export function FulfilmentForm({ order }: { order: AdminOrderDTO }) {
     defaultValues: {
       status: current.status,
       paymentStatus: current.paymentStatus,
+      trackingNumber: "",
+      carrier: "",
     },
     onSubmit: async ({ value }) => {
       try {
@@ -52,6 +55,10 @@ export function FulfilmentForm({ order }: { order: AdminOrderDTO }) {
         if (value.status !== current.status) {
           const response = await updateStatus.mutateAsync({
             status: value.status,
+            ...(value.status === "SHIPPED" && {
+              trackingNumber: value.trackingNumber,
+              carrier: value.carrier,
+            }),
           });
           latest = response.data;
           setSaved(latest);
@@ -66,6 +73,8 @@ export function FulfilmentForm({ order }: { order: AdminOrderDTO }) {
         form.reset({
           status: latest.status,
           paymentStatus: latest.paymentStatus,
+          trackingNumber: "",
+          carrier: "",
         });
         toast.success("Order updated");
       } catch (error) {
@@ -129,6 +138,70 @@ export function FulfilmentForm({ order }: { order: AdminOrderDTO }) {
           );
         }}
       />
+
+      <form.Subscribe
+        selector={(state) => state.values.status}
+        children={(status) =>
+          status === "SHIPPED" &&
+          current.status !== "SHIPPED" && (
+            <>
+              {(["carrier", "trackingNumber"] as const).map((name) => (
+                <form.Field
+                  key={name}
+                  name={name}
+                  children={(field) => {
+                    const isInvalid = field.state.meta.errors.length > 0;
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor={name}>
+                          {name === "carrier" ? "Carrier" : "Tracking number"}
+                        </FieldLabel>
+                        <Input
+                          id={name}
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(event) =>
+                            field.handleChange(event.target.value)
+                          }
+                          aria-invalid={isInvalid}
+                        />
+                        {isInvalid && (
+                          <FieldError errors={field.state.meta.errors} />
+                        )}
+                      </Field>
+                    );
+                  }}
+                />
+              ))}
+            </>
+          )
+        }
+      />
+      {(current.status === "SHIPPED" || current.status === "DELIVERED") &&
+        (() => {
+          const shipment = [...order.events]
+            .reverse()
+            .find(
+              (event) => event.status === "SHIPPED" && event.trackingNumber,
+            );
+          return (
+            shipment && (
+              <div>
+                <p>{shipment.carrier}</p>
+                <p className="font-mono">{shipment.trackingNumber}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    void navigator.clipboard.writeText(shipment.trackingNumber!)
+                  }
+                >
+                  Copy tracking number
+                </Button>
+              </div>
+            )
+          );
+        })()}
 
       <form.Subscribe
         selector={(state) => state.values.status}

@@ -136,3 +136,37 @@ test.describe("an admin cancelling an order", () => {
     await page.keyboard.press("Escape");
   });
 });
+
+test.describe("an admin shipping an order", () => {
+  test.use({ storageState: ADMIN_STORAGE_STATE });
+
+  test("requires tracking and displays it after shipment", async ({
+    page,
+    admin,
+    placeOrderAsFreshShopper,
+  }) => {
+    const { orderId } = await placeOrderAsFreshShopper();
+    await admin.setOrderStatus(orderId, "PROCESSING");
+    await page.goto(`/admin/orders/${orderId}`);
+    const fulfilment = page.getByRole("form", { name: "Fulfilment" });
+    await fulfilment.getByLabel("Move order to").click();
+    await page.getByRole("option", { name: "Shipped" }).click();
+    await fulfilment.getByRole("button", { name: "Save" }).click();
+    await expect(fulfilment.getByLabel("Carrier")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    await expect(fulfilment.getByLabel("Tracking number")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    await fulfilment.getByLabel("Carrier").fill("DHL");
+    await fulfilment.getByLabel("Tracking number").fill("ABC123");
+    await fulfilment.getByRole("button", { name: "Save" }).click();
+    await expect(fulfilment.getByText("ABC123")).toBeVisible();
+    await expect(fulfilment.getByText("DHL")).toBeVisible();
+    await expect(
+      fulfilment.getByRole("button", { name: "Copy tracking number" }),
+    ).toBeVisible();
+  });
+});

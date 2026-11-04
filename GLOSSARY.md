@@ -220,3 +220,9 @@ _Avoid_: migration, seed, cart sync, media sync
 Uploading the repo's media to the bucket and, when asked, removing bucket files the repo no longer
 has.
 _Avoid_: deploy images, publish images, catalogue sync
+
+**Order event**
+A record of an order reaching a status, including when it happened and its actor. A shipment event can also carry a carrier and tracking number.
+
+**Order event actor**
+The user who caused an order event, or the system when no user caused it.
