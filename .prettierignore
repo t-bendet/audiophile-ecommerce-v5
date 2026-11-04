@@ -11,6 +11,5 @@ test-results/
 blob-report/
 .playwright-mcp/
 .playwright-cli/
-# Vendored skills (npx skills add): kept byte-identical to upstream so skills-lock.json hashes stay valid
-.agents/skills/wrangler/
-.agents/skills/pnpm/
+# Skills are vendored by `npx skills add`; upstream bytes keep skills-lock.json hashes valid.
+.agents/skills/
