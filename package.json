@@ -30,7 +30,7 @@
     "test:e2e": "pnpm db:up && DATABASE_URL=\"mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true\" turbo run db:seed && DATABASE_URL=\"mongodb://localhost:27017/audiophile-e2e?replicaSet=rs0&directConnection=true\" turbo run db:push && turbo run e2e"
   },
   "devDependencies": {
-    "prettier": "^3.9.6",
+    "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "turbo": "^2.11.10",
     "typescript": "catalog:"

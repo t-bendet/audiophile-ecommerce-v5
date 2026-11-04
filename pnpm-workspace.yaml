@@ -3,11 +3,11 @@ packages:
   - packages/*
 
 catalog:
-  "@types/node": ^24.13.4
+  "@types/node": ^24.19.2
   dotenv: ^17.4.2
   eslint: ^10.10.0
   globals: ^17.12.0
-  tsx: ^4.23.13
+  tsx: ^4.23.15
   typescript: 5.9.3
   vitest: ^5.0.5
   zod: ^4.5.4
@@ -24,8 +24,3 @@ allowBuilds:
 
 # Otherwise the image job's `pnpm --filter server exec` reinstalls, running build scripts beside its Cloudflare secrets.
 verifyDepsBeforeRun: false
-
-# Released under 24h before the pnpm 12 move; safe to drop after 2026-11-04T12:00Z.
-minimumReleaseAgeExclude:
-  - miniflare@5.20261103.0-beta
-  - wrangler@4.157.0
