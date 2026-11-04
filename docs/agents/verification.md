@@ -44,4 +44,4 @@ The local sequence above corresponds to the workflow's `verify` job; it is not t
 nvm use && bash .github/scripts/assert-node-version.sh
 ```
 
-The script compares the running Node against `.nvmrc` first and exits there on a mismatch, so it only reaches the Dockerfile comparison with the `.nvmrc` Node active. The root `engines.node` floor moves only when the code needs a newer runtime; it need not equal the CI major. Use the root `packageManager` field for the pnpm version.
+The script compares the running Node against `.nvmrc` first and exits there on a mismatch, so it only reaches the Dockerfile comparison with the `.nvmrc` Node active. The root `engines.node` floor moves only when the code needs a newer runtime; it need not equal the CI major. Use the root `packageManager` field for the pnpm version. The Dockerfile's `corepack enable` installs that version, and Node 25 no longer ships corepack, so raising the image past Node 24 means installing pnpm another way.

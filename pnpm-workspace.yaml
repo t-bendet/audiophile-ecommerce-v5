@@ -2,10 +2,20 @@ packages:
   - apps/*
   - packages/*
 
-onlyBuiltDependencies:
-  - "@prisma/client"
-  - "@prisma/engines"
-  - bcrypt
-  - esbuild
-  - mongodb-memory-server
-  - prisma
+allowBuilds:
+  "@prisma/client": true
+  "@prisma/engines": true
+  bcrypt: true
+  esbuild: true
+  mongodb-memory-server: true
+  prisma: true
+  # Its binary arrives as a platform optional dependency; the postinstall is only a fallback.
+  workerd: false
+
+# Otherwise the image job's `pnpm --filter server exec` reinstalls, running build scripts beside its Cloudflare secrets.
+verifyDepsBeforeRun: false
+
+# Released under 24h before the pnpm 12 move; safe to drop after 2026-11-04T12:00Z.
+minimumReleaseAgeExclude:
+  - miniflare@5.20261103.0-beta
+  - wrangler@4.157.0
