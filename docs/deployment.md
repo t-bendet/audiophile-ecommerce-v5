@@ -118,6 +118,9 @@ Docs-only merges still run every gate and a `deploy` whose Worker upload is the 
 a path classifier that skipped `deploy` could leave production stale; the forty seconds of runner
 time per merge that nobody waits on is the accepted cost (#397).
 
+The Deploy job's completion time includes the catalogue sync and registry-prune steps after the
+Worker upload; it is later than the point at which the Worker becomes live.
+
 The workflow uses these repository secrets:
 
 | Secret                  | Purpose                                                                                                                                                     |
