@@ -31,6 +31,19 @@ describe("TOO_MANY_REQUESTS", () => {
 // middleware, the client's own Zod handling and every validation doc read it
 // off this map, so a silent edit here would split them apart again.
 
+describe("body parser error codes", () => {
+  it.each([
+    [ErrorCode.PAYLOAD_TOO_LARGE, 413],
+    [ErrorCode.INVALID_BODY, 400],
+  ])("maps %s to %i and accepts it in the envelope", (code, statusCode) => {
+    expect(getStatusCode(code)).toBe(statusCode);
+    expect(
+      ErrorObjectSchema.safeParse({ code, message: "Invalid body", statusCode })
+        .success,
+    ).toBe(true);
+  });
+});
+
 describe("VALIDATION_ERROR", () => {
   it("maps to 422", () => {
     expect(getStatusCode(ErrorCode.VALIDATION_ERROR)).toBe(422);
