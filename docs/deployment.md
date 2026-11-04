@@ -65,10 +65,24 @@ See the [media guide](../packages/media/README.md) and its `.env.example`.
 ## Normal deployment
 
 A push to `main` deploys through [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
-The `deploy` job waits for **`verify`, `image`, and `e2e`**, then runs `pnpm deploy:app`.
-That builds the client (from the Turbo cache `verify` saved) and deploys the container image,
-Worker and static assets together; the server is built inside the image.
-Pull requests run checks and build the Docker image without publishing or deploying it.
+The `image` job builds the server image with the BuildKit cache, pushes it to the Cloudflare
+registry as `audiophile-apicontainer:<commit sha>` with `wrangler containers push`, and hands
+its digest to `deploy`. The `deploy` job waits for **`verify`, `image`, and `e2e`**, writes
+`apps/server/wrangler.ci.jsonc` (the committed `wrangler.jsonc` with `containers[0].image` set to
+`registry.cloudflare.com/<account>/audiophile-apicontainer@sha256:<digest>` and no build context;
+[`write-ci-wrangler-config.mjs`](../.github/scripts/write-ci-wrangler-config.mjs), gitignored),
+and runs `pnpm turbo run deploy:ci --filter=server`: the client build from the Turbo cache `verify`
+saved, then `wrangler deploy --config wrangler.ci.jsonc` for the Worker, the static assets and the
+container application. No Docker runs in `deploy`. The committed `wrangler.jsonc` keeps
+`"image": "./Dockerfile"`, so `wrangler dev` and the manual `pnpm deploy:app` below still build from
+source. Pull requests run checks and build the Docker image without publishing or deploying it.
+
+Each merge leaves one more tag in the registry. List them with
+`pnpm --filter server exec wrangler containers images list` and prune by hand with
+`wrangler containers images delete audiophile-apicontainer:<tag>`; nothing deletes automatically.
+Tags shorter than a full commit sha predate the image job. Once a sha-tagged deploy has passed
+the post-deploy checks, every short tag, and the stray `audiophile-api-apicontainer` repository,
+can be deleted; after that keep the last few sha tags.
 
 The workflow uses these repository secrets:
 
@@ -78,27 +92,30 @@ The workflow uses these repository secrets:
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account to deploy into                                                                                                                           |
 | `DATABASE_URL`          | Atlas connection for the post-deploy catalogue sync; separate from the Worker's secret of the same name                                                     |
 
-One repository variable, `SYNC_SCHEMA_INDEXES`, opts the post-deploy job into pushing the schema's
-indexes. Set it to `true` only while Atlas has no duplicates for any schema unique index.
+One repository variable, `SYNC_SCHEMA_INDEXES`, opts `deploy`'s trailing steps into pushing the
+schema's indexes. Set it to `true` only while Atlas has no duplicates for any schema unique index.
 
-After deployment, `sync-catalogue` runs `pnpm db:generate && pnpm db:sync`, which only creates
-catalogue documents that are missing and never rewrites an existing one, so the admin's dashboard
-edits survive a deploy ([ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md)).
-If the repository's `DATABASE_URL` secret is missing, that job warns and skips the sync; a green
-deploy alone does not prove the catalogue was updated. Follow
+After the Worker is live, `deploy`'s trailing steps run `pnpm db:generate && pnpm db:sync`, which
+only creates catalogue documents that are missing and never rewrites an existing one, so the
+admin's dashboard edits survive a deploy
+([ADR 0007](adr/0007-the-database-owns-the-catalogue-after-first-publish.md)).
+If the repository's `DATABASE_URL` secret is missing, that step warns and skips the sync; a green
+deploy alone does not prove the catalogue was updated. A red `Deploy` whose "Deploy the Worker"
+step is green means the sync or the index push failed after the Worker went live: the deploy
+stands, and the catalogue needs the manual sync or the index fix below. Follow
 [seeding vs syncing](../packages/database/README.md#seeding-vs-syncing) for manual publication,
 including the hand-run `db:sync -- --overwrite` a field-shape change needs. `db:seed` and `db:reset` are local-only.
 The first admin: sign up through the storefront, then run `db:role` with the Atlas prefix as
 [roles](../packages/database/README.md#roles) shows. `db:role` bootstraps that first admin; every
 later promotion and demotion happens on the dashboard's user detail page.
 
-The same job then runs `pnpm db:indexes` when `SYNC_SCHEMA_INDEXES` is `true`, and warns and skips
+The next step runs `pnpm db:indexes` when `SYNC_SCHEMA_INDEXES` is `true`, and warns and skips
 otherwise. It checks for duplicates read-only and pushes only if none are found. The push then
 creates every schema index Atlas lacks and drops every index the schema does not declare. It changes
 no documents. A failed check lists the duplicate documents by `_id` only, and a failed push's own
 output is withheld, so the job log never carries key values. Resolve the documents and rerun the
-job. A
-schema index change reaches production this way, after the deploy that ships it. See
+`Deploy` job; it redeploys the same image first, then retries the sync and the push. A schema index
+change reaches production this way, after the deploy that ships it. See
 [indexes](../packages/database/README.md#indexes) before adding a unique index or creating one by
 hand in Atlas.
 
@@ -112,16 +129,20 @@ running:
    host database and `NODE_ENV=test`; the production image does not contain `pino-pretty`, so
    development logging is unsuitable for this path.
 3. Run `pnpm --filter server exec wrangler dev` from the repository root; `apps/server` has the
-   equivalent `dev:worker` script.
+   equivalent `dev:worker` script. With wrangler 4.157.0 (miniflare 5.20261103.0-beta) it logs
+   "Creating a container with explicitly configured Docker privileges … SYS_ADMIN … /dev/fuse":
+   that is miniflare's built-in local FUSE privilege set, not `wrangler.jsonc`, local only and
+   expected.
 
 Wrangler serves the last built client assets. Rebuild after changing them. Local branch checks
 do not replace the [E2E suite](../apps/e2e/README.md).
 
 ## Manual deployment and recovery
 
-The fallback from the repository root is `pnpm deploy:app`. It needs Docker and either a local
-Wrangler login (`pnpm --filter server exec wrangler login`) or deployment credentials in the
-environment. It does not run the CI checks or the post-deploy catalogue sync for you: use the
+The fallback from the repository root is `pnpm deploy:app`. It builds the image from the
+Dockerfile, so it needs Docker, and either a local Wrangler login
+(`pnpm --filter server exec wrangler login`) or deployment credentials in the environment. It does
+not run the CI checks or the post-deploy catalogue sync for you: use the
 [verification guide](agents/verification.md) and complete the sync when required.
 
 After deployment, check `/api/v1/health`, a product deep link, an image, and sign-in/cart behavior

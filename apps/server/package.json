@@ -12,6 +12,7 @@
     "type-check:worker": "wrangler types worker/worker-configuration.d.ts --include-env=false && tsc -p worker/tsconfig.json --noEmit",
     "start": "node dist/index.js",
     "deploy": "wrangler deploy",
+    "deploy:ci": "wrangler deploy --config wrangler.ci.jsonc",
     "dev:worker": "wrangler dev",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run"

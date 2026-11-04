@@ -98,10 +98,10 @@ DATABASE_URL='mongodb+srv://...' pnpm db:sync -- --overwrite
 `dotenv` never overrides an already-set variable, so the prefix wins over this workspace's `.env`
 and no production credential has to be written to a file.
 
-CI runs the default for you: the `sync-catalogue` job in `.github/workflows/ci.yml` needs `deploy`
-and runs `db:sync` without the flag against the `DATABASE_URL` repository secret, so a deploy can
-only add to the catalogue. Without that secret the job logs a warning and skips, so the catalogue
-simply stays a manual step rather than failing a good deploy.
+CI runs the default for you: the last steps of the `deploy` job in `.github/workflows/ci.yml`
+run `db:sync` without the flag against the `DATABASE_URL` repository secret once the Worker is
+live, so a deploy can only add to the catalogue. Without that secret the step logs a warning and
+skips, so the catalogue simply stays a manual step rather than failing a good deploy.
 
 A breaking shape change can leave new code unable to read old rows, or a reverted reader unable
 to read synced rows. Deployment precedes sync, so compatibility matters during that interval.
@@ -161,7 +161,7 @@ It keeps its own list of the schema's unique indexes and fails if that list diff
 Add a new `@unique` or `@@unique` to `UNIQUE_INDEXES` in the same change.
 
 `pnpm db:indexes` runs that check and pushes only if it passes. That is how an index change
-reaches production: the `sync-catalogue` job runs it after `db:sync` once the
+reaches production: the `deploy` job runs it after `db:sync` once the
 `SYNC_SCHEMA_INDEXES` repository variable is `true` (see the
 [deployment runbook](../../docs/deployment.md#normal-deployment)). When existing data blocks a new
 unique index, the check fails the job before anything is pushed. Look up each reported document in
