@@ -30,10 +30,10 @@ type AuthSessionDTO = {
 const EMAIL_UNIQUE_INDEX = "email_1";
 const EMAIL_TAKEN = "An account with this email already exists.";
 
-const isEmailTakenError = (err: unknown): boolean =>
+export const isEmailTakenError = (err: unknown): boolean =>
   isUniqueConstraintError(err) && err.meta?.target === EMAIL_UNIQUE_INDEX;
 
-const emailTakenError = () =>
+export const emailTakenError = () =>
   new AppError(EMAIL_TAKEN, ErrorCode.DUPLICATE_ENTRY, undefined, [
     { code: "duplicate", message: EMAIL_TAKEN, path: ["body", "email"] },
   ]);

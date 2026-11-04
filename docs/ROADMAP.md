@@ -173,11 +173,7 @@ needs, and group 2 the loading pattern, so the order detail page needs no loadin
 Unblocks: the delivered-purchase check for reviews (group 7), the gateway's event trail (group 8),
 status timings in analytics (group 9).
 
-Human first: a short design pass for the shopper's order detail page and timeline. The account
-area's profile and security pages are placeholder cards today, so this pass sets the account area's
-pattern. `/account/profile` is where a password reset now lands
-([#355](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/355)), so its placeholder card
-is the first thing a recovered shopper sees. A change-password form on the security page has its parts: `PATCH /auth/updateMyPassword` with `AuthUpdatePasswordRequestSchema`, the signup strength
+Human first: a short design pass for the shopper's order detail page and timeline. The account area shares this pattern. A change-password form on the security page has its parts: `PATCH /auth/updateMyPassword` with `AuthUpdatePasswordRequestSchema`, the signup strength
 meter and hint the reset page reuses, and the rule that a password write ends every other session
 ([ADR 0012](adr/0012-a-password-reset-link-works-once-and-is-stored-only-as-its-hash.md)). The
 security page also closes a gap reported in

@@ -48,6 +48,26 @@ describe("PATCH /api/v1/users/updateMe", () => {
     expect(res.body.data.name).toBe("Renamed");
   });
 
+  it("reports a taken email on the email field", async () => {
+    const user = await createUser();
+    const other = await createUser({ email: "taken@example.com" });
+    const res = await request(app)
+      .patch("/api/v1/users/updateMe")
+      .set("Cookie", authCookie(user.id))
+      .send({ email: other.email });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatchObject({
+      code: ErrorCode.DUPLICATE_ENTRY,
+      details: [
+        {
+          path: ["body", "email"],
+          message: "An account with this email already exists.",
+        },
+      ],
+    });
+  });
+
   it("rejects an unknown field", async () => {
     const user = await createUser();
 

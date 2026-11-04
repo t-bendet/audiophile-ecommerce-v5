@@ -109,7 +109,7 @@ shared body schema and show local field validation errors inline. Their mutation
 
 A detail matches when its `path` starts with `"body"` and the rest, joined with `"."`, is a
 registered field name such as `shippingAddress.zipCode`. Details are mapped for any error code,
-not only `VALIDATION_ERROR`: a taken email at signup is a `DUPLICATE_ENTRY` with a detail at
+not only `VALIDATION_ERROR`: a taken email at signup or profile update is a `DUPLICATE_ENTRY` with a detail at
 `["body", "email"]`, so it shows under the email field. Unmatched validation messages are written
 for developers and never shown; every other code's message is written for shoppers and is the
 toast fallback. Server field errors use the `onSubmit` error key, so editing the field clears
@@ -138,6 +138,10 @@ the toast title "Reset failed". Pending is the disabled submit with a `Spinner` 
 `useResetPassword` settles the cache like `useLogin`, then the form navigates to `/account/profile`
 and toasts "Password updated". A signed-in shopper who opens a link is sent to the profile by the
 auth layout loader, like the other auth pages.
+
+The profile page edits name and email using the shared update schema. It sends only changed fields,
+puts the returned user in the authenticated-user cache, and toasts "Profile updated"; the account
+menu and signed-in email therefore update immediately.
 
 The four auth pages render inside [`AuthLayout`](src/components/layouts/auth-layout.tsx), built to
 the [design note](../../docs/research/auth-layout-design.md). From `lg` up it is a split pane: a
