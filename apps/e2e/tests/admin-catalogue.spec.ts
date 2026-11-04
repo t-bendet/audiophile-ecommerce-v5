@@ -88,6 +88,7 @@ test.describe("an admin editing the catalogue", () => {
       await form.getByLabel("Price", { exact: true }).fill(String(edited));
       await expect(save).toBeEnabled();
       await save.click();
+      await expect(page.getByText("Product saved")).toBeVisible();
       await expect(save).toBeDisabled();
       await expect(form.getByLabel("Price", { exact: true })).toHaveValue(
         String(edited),

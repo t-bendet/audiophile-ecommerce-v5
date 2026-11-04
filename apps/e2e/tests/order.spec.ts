@@ -14,6 +14,8 @@ test.describe.configure({ lock: ORDERS_LOCK });
 const openCheckoutWith = async (page: Page, product: CatalogueProduct) => {
   await page.goto(`/product/${product.slug}`);
   await page.getByRole("button", { name: "add to cart" }).click();
+  // A full page load would cancel the add if it were still in flight.
+  await expect(page.getByRole("button", { name: "Open cart" })).toHaveText("1");
   await page.goto("/checkout");
 };
 
