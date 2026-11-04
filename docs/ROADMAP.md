@@ -158,8 +158,6 @@ the group block.
 
 ### 3. Order tracking, history and notifications
 
-- Order tracking: status updates visible to the shopper. There is no shopper order detail route
-  (the query hooks exist, unused); the order card shows a status line.
 - Customer notifications on order status change. Sent from the code that writes the history entry,
   through the transport
   [ADR 0011](adr/0011-email-leaves-through-one-transport-that-node-env-selects.md) shipped: a

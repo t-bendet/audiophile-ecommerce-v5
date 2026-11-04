@@ -1,3 +1,7 @@
+import { Link } from "react-router";
+import { paths } from "@/config/paths";
+import { shortOrderId } from "../order-id";
+import { OrderStatusBadge } from "./order-status-badge";
 import currencyFormatter from "@/utils/formatters";
 import { OrderDTO } from "@repo/domain";
 
@@ -14,13 +18,18 @@ export function OrderCard({ order }: { order: OrderDTO }) {
       className="rounded-lg border p-4 text-neutral-900"
     >
       <header className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id={headingId} className="font-bold">
-          Ordered {dateFormatter.format(order.createdAt)}
-        </h2>
-        <p className="text-sm text-neutral-600">
-          {statusLabel(order.status)} · {order.paymentMethod} ·{" "}
-          {statusLabel(order.paymentStatus)}
-        </p>
+        <div>
+          <h2 id={headingId} className="font-bold">
+            <Link to={paths.account.orderDetail.getHref(order.id)}>
+              Order {shortOrderId(order.id)} ›
+            </Link>
+          </h2>
+          <p className="text-sm text-neutral-600">
+            Ordered {dateFormatter.format(order.createdAt)} ·{" "}
+            {order.paymentMethod} · {statusLabel(order.paymentStatus)}
+          </p>
+        </div>
+        <OrderStatusBadge status={order.status} />
       </header>
 
       <ul className="divide-y">

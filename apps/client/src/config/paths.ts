@@ -73,6 +73,10 @@ export const paths = {
       path: "/account/orders",
       getHref: () => "/account/orders",
     },
+    orderDetail: {
+      path: "/account/orders/:orderId",
+      getHref: (orderId: string) => `/account/orders/${orderId}`,
+    },
     // addresses: {},
     // paymentMethods: {},
     // settings: {},

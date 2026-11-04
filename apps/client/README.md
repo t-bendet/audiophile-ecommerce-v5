@@ -243,7 +243,7 @@ is not the current implementation.
 [`UserAreaLayout`](src/components/layouts/user-area-layout.tsx) uses the content layout's
 type scale and neutral text for the account heading and signed-in email. Profile, Security and
 Orders are `NavLink` tabs with an underline; prefix matching keeps Orders active on nested routes.
-The route content renders below the navigation rather than inside a Tabs primitive.
+The route content renders below the navigation rather than inside a Tabs primitive. The nested order detail route awaits its order in the loader and displays the stored status history. The shopper and admin views share `OrderStatusBadge` and the shortened order ID.
 
 ## Admin dashboard
 
@@ -302,8 +302,7 @@ the starting point until the refetched one is at least as recent, so the options
 meanwhile. A refused move keeps the admin's chosen values.
 
 The status pills are [`Badge`](src/components/ui/badge.tsx) variants named after the statuses in
-lower case, rendered through [`status-badges.tsx`](src/features/admin/orders/components/status-badges.tsx)
-everywhere an order status or payment status appears. `badge`, `select` and `table` follow the
+lower case. [`OrderStatusBadge`](src/features/orders/components/order-status-badge.tsx) is shared by shopper and admin views; the admin payment status uses [`status-badges.tsx`](src/features/admin/orders/components/status-badges.tsx). `badge`, `select` and `table` follow the
 registry's `new-york-v4` output with the design note's corrections: `cn` from `@/lib/cn`, the
 `radix-ui` umbrella package, and `badgeVariants` kept module-private like `buttonVariants`.
 

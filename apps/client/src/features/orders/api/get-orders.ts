@@ -20,7 +20,6 @@ import {
 import {
   queryOptions,
   useMutation,
-  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import cartKeys from "../../cart/api/cart-keys";
@@ -86,10 +85,6 @@ export const getOrderQueryOptions = (orderId: string) =>
     queryFn: ({ signal }: TBaseRequestParams) => getOrder({ orderId, signal }),
   });
 
-export const useOrder = (orderId: string) => {
-  return useQuery(getOrderQueryOptions(orderId));
-};
-
 // ** ListOrders
 
 type TListOrders = TBaseHandler<
@@ -128,9 +123,3 @@ export const listOrdersQueryOptions = (
     queryFn: ({ signal }: TBaseRequestParams) =>
       listOrders({ ...filters, signal }),
   });
-
-export const useOrders = (
-  filters: OrderQueryParams = { page: DEFAULT_PAGE, limit: DEFAULT_LIMIT },
-) => {
-  return useQuery(listOrdersQueryOptions(filters));
-};

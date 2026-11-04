@@ -1,3 +1,4 @@
+import { OrderStatusBadge } from "@/features/orders/components/order-status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -26,7 +27,7 @@ import {
   statusLabel,
   type FulfilmentStatuses,
 } from "../transitions";
-import { OrderStatusBadge, PaymentStatusBadge } from "./status-badges";
+import { PaymentStatusBadge } from "./status-badges";
 
 const overline = "text-xs font-bold tracking-600 uppercase text-neutral-500";
 
