@@ -13,7 +13,7 @@ RUN apt-get update \
 WORKDIR /app
 
 FROM base AS pruner
-RUN npm install -g turbo@^2.10
+RUN npm install -g turbo@^2.11
 COPY . .
 RUN turbo prune server --docker
 
