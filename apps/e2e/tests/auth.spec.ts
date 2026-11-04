@@ -89,8 +89,8 @@ test("the anonymous menu login row works by pointer and keyboard", async ({
 
   await page.goto("/");
   await trigger.focus();
-  await page.keyboard.press("Enter");
   await page.keyboard.press("ArrowDown");
+  await expect(login).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/auth/login");
 });
@@ -101,9 +101,21 @@ test("account menu rows work by pointer and keyboard", async ({
 }) => {
   await signUpFreshShopper();
   const links = [
-    { name: "Profile", path: "/account/profile" },
-    { name: "Security", path: "/account/security" },
-    { name: "Orders", path: "/account/orders" },
+    {
+      name: "Profile",
+      path: "/account/profile",
+      readyText: "Profile Information",
+    },
+    {
+      name: "Security",
+      path: "/account/security",
+      readyText: "Security Information",
+    },
+    {
+      name: "Orders",
+      path: "/account/orders",
+      readyText: "You have no orders yet.",
+    },
   ];
 
   for (const [index, link] of links.entries()) {
@@ -116,6 +128,10 @@ test("account menu rows work by pointer and keyboard", async ({
     expect(box).not.toBeNull();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await expect(page).toHaveURL(link.path);
+    await expect(
+      page.getByText(link.readyText, { exact: true }).first(),
+    ).toBeVisible();
+    await expect(item).toBeHidden();
     await trigger.click();
     await expect(
       page.getByRole("menuitem", { name: link.name }),
@@ -123,8 +139,7 @@ test("account menu rows work by pointer and keyboard", async ({
 
     await page.goto("/");
     await trigger.focus();
-    await page.keyboard.press("Enter");
-    await page.keyboard.press("Home");
+    await page.keyboard.press("ArrowDown");
     await expect(
       page.getByRole("menuitem", { name: links[0]!.name }),
     ).toBeFocused();

@@ -51,8 +51,10 @@ top of the viewport and dims the content between the nav and the footer to 40% a
 nothing, and it also covers the root middleware's `/users/me` wait. A full page load shows
 `RootHydrateFallback` instead, because the router runs the loaders before the first render. Read the
 route's data from `useParams`, never from the pending navigation's location: a suspense query for
-the destination's key would suspend the old page and the pending state would never show. The
-storefront uses no skeletons; [`ui/skeleton.tsx`](src/components/ui/skeleton.tsx) is for the admin
+the destination's key would suspend the old page and the pending state would never show. A failed lazy route import ends the pending state and shows the route boundary inside the
+content layout; a failed content-layout import shows the main fallback. Eager parent routes own
+these boundaries so a failed lazy match cannot hide its own boundary behind the hydration fallback.
+The storefront uses no skeletons; [`ui/skeleton.tsx`](src/components/ui/skeleton.tsx) is for the admin
 pages. The section fallbacks under `SafeRenderWithErrorBlock` stay as a safety net. The
 [design note](../../docs/research/storefront-loading-and-dialogs-design.md) records the decision;
 order detail, wishlist and search results follow the same pattern when they are built.
