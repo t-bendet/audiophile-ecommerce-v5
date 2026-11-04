@@ -20,23 +20,23 @@ export default function AnonymousUserDropdown() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-white text-black" align="center">
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem asChild className="cursor-pointer">
           <NavLink
             to={paths.auth.login.path}
-            className={({ isActive }) => (isActive ? "text-primary-500" : "")}
+            className="[&[aria-current=page]]:text-primary-500"
           >
             Log in
+            <LogInIcon className="ml-auto size-4 text-primary-500" />
           </NavLink>
-          <LogInIcon className="ml-auto size-4 text-primary-500" />
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <NavLink
             to={paths.auth.signup.path}
-            className={({ isActive }) => (isActive ? "text-primary-500" : "")}
+            className="[&[aria-current=page]]:text-primary-500"
           >
             Sign up
+            <IdCardLanyard className="ml-auto size-4 text-primary-500" />
           </NavLink>
-          <IdCardLanyard className="ml-auto size-4 text-primary-500" />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

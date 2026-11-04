@@ -22,7 +22,7 @@ test.describe("an admin", () => {
   test("reaches the dashboard from the account menu", async ({ page }) => {
     await page.goto("/");
     await openUserMenu(page);
-    await page.getByRole("link", { name: "Admin" }).click();
+    await page.getByRole("menuitem", { name: "Admin" }).click();
 
     await expect(page).toHaveURL("/admin");
     await expect(statsHeading(page)).toBeVisible();
@@ -202,7 +202,7 @@ test.describe("an admin", () => {
       storageState: { cookies: [], origins: [] },
     });
     const shopperPage = await shopperContext.newPage();
-    const adminItem = shopperPage.getByRole("link", {
+    const adminItem = shopperPage.getByRole("menuitem", {
       name: "Admin",
       exact: true,
     });
@@ -228,7 +228,7 @@ test.describe("an admin", () => {
     await shopperPage.goto("/");
     await openUserMenu(shopperPage);
     await expect(
-      shopperPage.getByRole("link", { name: "Orders" }),
+      shopperPage.getByRole("menuitem", { name: "Orders" }),
     ).toBeVisible();
     await expect(adminItem).toHaveCount(0);
     await shopperContext.close();
@@ -304,8 +304,8 @@ test.describe("a shopper", () => {
     await page.goto("/");
     await openUserMenu(page);
 
-    await expect(page.getByRole("link", { name: "Orders" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Admin" })).toHaveCount(0);
+    await expect(page.getByRole("menuitem", { name: "Orders" })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "Admin" })).toHaveCount(0);
   });
 });
 

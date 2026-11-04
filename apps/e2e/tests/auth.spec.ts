@@ -74,6 +74,71 @@ test("a shopper who logs out from the account menu lands on the home page as a g
   await expect(page).toHaveURL("/auth/login?redirectTo=%2Fcheckout");
 });
 
+test("the anonymous menu login row works by pointer and keyboard", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const trigger = page.getByRole("button", { name: "Open anonymous menu" });
+  await trigger.click();
+  const login = page.getByRole("menuitem", { name: "Log in" });
+  await expect(login).toHaveAttribute("href", "/auth/login");
+  const box = await login.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await expect(page).toHaveURL("/auth/login");
+
+  await page.goto("/");
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL("/auth/login");
+});
+
+test("account menu rows work by pointer and keyboard", async ({
+  page,
+  signUpFreshShopper,
+}) => {
+  await signUpFreshShopper();
+  const links = [
+    { name: "Profile", path: "/account/profile" },
+    { name: "Security", path: "/account/security" },
+    { name: "Orders", path: "/account/orders" },
+  ];
+
+  for (const [index, link] of links.entries()) {
+    await page.goto("/");
+    const trigger = page.getByRole("button", { name: "Open user menu" });
+    await trigger.click();
+    const item = page.getByRole("menuitem", { name: link.name });
+    await expect(item).toHaveAttribute("href", link.path);
+    const box = await item.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await expect(page).toHaveURL(link.path);
+    await trigger.click();
+    await expect(
+      page.getByRole("menuitem", { name: link.name }),
+    ).toHaveAttribute("aria-current", "page");
+
+    await page.goto("/");
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Home");
+    await expect(
+      page.getByRole("menuitem", { name: links[0]!.name }),
+    ).toBeFocused();
+    for (let i = 0; i < index; i++) {
+      await page.keyboard.press("ArrowDown");
+      await expect(
+        page.getByRole("menuitem", { name: links[i + 1]!.name }),
+      ).toBeFocused();
+    }
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(link.path);
+  }
+});
+
 const requestResetLink = async (page: Page, email: string) => {
   await page.getByRole("textbox", { name: "Email" }).fill(email);
   await page.getByRole("button", { name: "Send reset link" }).click();
