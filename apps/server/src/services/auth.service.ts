@@ -90,10 +90,14 @@ export class AuthService {
   /**
    * Sign a JWT token for a user
    */
-  private signToken(id: string): string {
-    return jwt.sign({ id }, env.JWT_SECRET, {
-      expiresIn: env.JWT_EXPIRES_IN,
-    });
+  private signToken(id: string, passwordChangedAt: Date | null): string {
+    return jwt.sign(
+      { id, passwordChangedAt: passwordChangedAt?.getTime() ?? null },
+      env.JWT_SECRET,
+      {
+        expiresIn: env.JWT_EXPIRES_IN,
+      },
+    );
   }
 
   /**
@@ -121,7 +125,7 @@ export class AuthService {
       });
 
     // Generate token
-    const token = this.signToken(user.id);
+    const token = this.signToken(user.id, user.passwordChangedAt);
     const userDTO = this.toDTO(user);
     return {
       user: userDTO,
@@ -170,7 +174,7 @@ export class AuthService {
     }
 
     // Generate token
-    const token = this.signToken(user.id);
+    const token = this.signToken(user.id, user.passwordChangedAt);
 
     // Remove password from returned user object
     const { password: _, ...userWithoutPassword } = user;
@@ -206,6 +210,14 @@ export class AuthService {
       throw new AppError(
         "Your current password is wrong.",
         ErrorCode.INVALID_CREDENTIALS,
+        undefined,
+        [
+          {
+            code: "invalid",
+            message: "Your current password is wrong.",
+            path: ["body", "currentPassword"],
+          },
+        ],
       );
     }
 
@@ -219,6 +231,14 @@ export class AuthService {
       throw new AppError(
         "Your current password is wrong.",
         ErrorCode.INVALID_CREDENTIALS,
+        undefined,
+        [
+          {
+            code: "invalid",
+            message: "Your current password is wrong.",
+            path: ["body", "currentPassword"],
+          },
+        ],
       );
     }
 
@@ -232,7 +252,7 @@ export class AuthService {
     });
 
     // Generate new token
-    const token = this.signToken(updatedUser.id);
+    const token = this.signToken(updatedUser.id, updatedUser.passwordChangedAt);
     const userDTO = this.toDTO(updatedUser);
 
     return {
@@ -306,7 +326,7 @@ export class AuthService {
     // Signed after the write, so `passwordChangedAt` does not end this session.
     return {
       user: this.toDTO(updatedUser),
-      token: this.signToken(updatedUser.id),
+      token: this.signToken(updatedUser.id, updatedUser.passwordChangedAt),
     };
   }
 
@@ -383,10 +403,12 @@ export class AuthService {
 
     // //* 4) check if user changed password after the token was issued
     if (currentUser.passwordChangedAt) {
-      const hasPasswordChanged = await prisma.user.isPasswordChangedAfter(
-        decoded.iat!,
-        currentUser.passwordChangedAt,
-      );
+      // Older tokens have only second-resolution iat; new tokens carry the exact password version.
+      const hasPasswordChanged =
+        decoded.passwordChangedAt === undefined
+          ? decoded.iat! * 1000 < currentUser.passwordChangedAt.getTime()
+          : decoded.passwordChangedAt !==
+            currentUser.passwordChangedAt.getTime();
       if (hasPasswordChanged) {
         throw new AppError(
           "User recently changed password! Please log in to again",

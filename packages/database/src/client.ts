@@ -52,9 +52,7 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
           );
           args.data.password = hashedPassword;
           args.data.passwordConfirm = hashedPassword;
-          //*  subtract 1 second, because the JWT can be created faster then saving the document,
-          //* and then the changedPasswordAfter function will fail the auth process
-          args.data.passwordChangedAt = new Date(Date.now() - 1000);
+          args.data.passwordChangedAt = new Date();
         }
         return query(args);
       },
@@ -67,21 +65,6 @@ const fullyExtendedClient = clientWithProductExtensions.$extends({
         userPassword: string,
       ) {
         return await bcrypt.compare(candidatePassword, userPassword);
-      },
-      isPasswordChangedAfter: async function (
-        JWTTimestamp: number,
-        passwordChangedAt: Date,
-      ) {
-        if (passwordChangedAt) {
-          const changedTimestamp = parseInt(
-            (passwordChangedAt.getTime() / 1000).toString(),
-            10,
-          );
-
-          return JWTTimestamp < changedTimestamp;
-        }
-        // False means NOT changed
-        return false;
       },
     },
   },

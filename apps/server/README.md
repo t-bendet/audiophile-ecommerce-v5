@@ -166,7 +166,12 @@ and one detail at `["body", "token"]`; it is not `INVALID_TOKEN`, which the clie
 session. A deactivated account answers `ACCOUNT_DEACTIVATED` like login. Success sets the auth cookie
 as login does and answers the user. The password write moves `passwordChangedAt`, so
 `validateTokenAndGetUser` refuses every session signed in before the reset with `UNAUTHORIZED`; the
-new cookie is signed after the write and survives. The route has no limiter of its own:
+new cookie carries the new timestamp and survives. New tokens carry this exact timestamp, while
+legacy tokens use their second-resolution `iat`; the same rule applies to password changes.
+A wrong current password has a detail at `body.currentPassword`, and a mismatched confirmation
+has one at `body.passwordConfirm`. A wrong current password leaves the auth cookie intact,
+so the shopper can correct it and retry; a failed login still clears the cookie. The reset route
+has no limiter of its own:
 `passwordResetLimiter` is one store, so sharing it would let three forgot requests lock the reset
 out, and the token carries 256 bits; the global `apiLimiter` still applies.
 

@@ -53,9 +53,10 @@ route tests read the outbox directly and compare the token's hash with the store
 The write must stay `update`, not `updateMany`: the database client hashes the password and stamps
 `passwordChangedAt` only in its `update` hook.
 
-`passwordChangedAt` is set one second in the past and a JWT's `iat` has one-second resolution, so a
-session signed within the same second as the reset can survive it. Route tests that need an earlier
-session backdate it with `staleAuthCookie`.
+`passwordChangedAt` records the write time. New session tokens carry that exact value and are
+valid only while it matches the stored value; older tokens without it use their `iat` as a
+fallback. This ends sessions issued immediately before a password write while keeping its newly
+issued session valid.
 
 Every later password write inherits the session-ending rule through the same hook, so a
 change-password form on top of `PATCH /auth/updateMyPassword` ends the user's other sessions

@@ -110,7 +110,7 @@ test("account menu rows work by pointer and keyboard", async ({
     {
       name: "Security",
       path: "/account/security",
-      readyText: "Security Information",
+      readyText: "Change password",
     },
     {
       name: "Orders",
@@ -305,4 +305,55 @@ test("a shopper resets the password from the emailed link, the link works once, 
     password: newPassword,
   });
   await expect(page).toHaveURL("/account/profile");
+});
+
+test("changing a password keeps this device signed in and signs out another", async ({
+  page,
+  browser,
+  signUpFreshShopper,
+}) => {
+  const shopper = await signUpFreshShopper();
+  const otherContext = await browser.newContext();
+  try {
+    const other = await otherContext.newPage();
+    await other.goto("/auth/login");
+    await signInThroughForm(other, shopper);
+    await expect(other).toHaveURL("/account/profile");
+
+    await page.goto("/account/security");
+    await page.getByLabel("Current password").fill("wrong-password");
+    await page
+      .getByLabel("New password", { exact: true })
+      .fill("new-pass-2222");
+    await page.getByLabel("Confirm new password").fill("different-password");
+    await page.getByRole("button", { name: "Update password" }).click();
+    const confirm = page
+      .getByRole("group")
+      .filter({ has: page.getByLabel("Confirm new password") });
+    await expect(confirm.getByRole("alert")).toHaveText(
+      "Password and PasswordConfirm must match!",
+    );
+    await page.getByLabel("Confirm new password").fill("new-pass-2222");
+    await page.getByRole("button", { name: "Update password" }).click();
+    const current = page
+      .getByRole("group")
+      .filter({ has: page.getByLabel("Current password") });
+    await expect(current.getByRole("alert")).toHaveText(
+      "Your current password is wrong.",
+    );
+    await expect(page.getByLabel("Current password")).toBeFocused();
+    await page.getByLabel("Current password").fill(shopper.password);
+    await page.getByRole("button", { name: "Update password" }).click();
+    await expect(page.getByText("Password updated")).toBeVisible();
+    await expect(
+      page.getByText("Every other device has been signed out."),
+    ).toBeVisible();
+    await expect(page.getByLabel("Current password")).toHaveValue("");
+    await page.goto("/account/profile");
+    await expect(page).toHaveURL("/account/profile");
+    await other.goto("/account/profile");
+    await expect(other).toHaveURL(/\/auth\/login/);
+  } finally {
+    await otherContext.close();
+  }
 });
