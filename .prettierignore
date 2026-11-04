@@ -11,3 +11,5 @@ test-results/
 blob-report/
 .playwright-mcp/
 .playwright-cli/
+# Skills are vendored by `npx skills add`; upstream bytes keep skills-lock.json hashes valid.
+.agents/skills/

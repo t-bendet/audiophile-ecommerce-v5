@@ -2,8 +2,8 @@
 
 Decided 2026-11-02 in the prototype session for [#352](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/352).
 This is the document #354, #355 and #356 follow for anything visual. The prototype itself is the
-primary source: branch
-[`prototype/352-auth-layout-design`](https://github.com/t-bendet/audiophile-ecommerce-v5/tree/prototype/352-auth-layout-design),
+primary source: tag
+[`prototype-352`](https://github.com/t-bendet/audiophile-ecommerce-v5/tree/prototype-352),
 route `/prototype/auth`, run with `pnpm dev:client`. It is throwaway code and is never merged.
 
 ## Verdict

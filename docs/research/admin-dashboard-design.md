@@ -2,8 +2,8 @@
 
 Decided 2026-11-01 in the prototype session for [#320](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/320).
 This is the document #322 to #326 follow for anything visual. The prototype itself is the primary
-source: branch
-[`prototype/320-admin-dashboard-design`](https://github.com/t-bendet/audiophile-ecommerce-v5/tree/prototype/320-admin-dashboard-design),
+source: tag
+[`prototype-320`](https://github.com/t-bendet/audiophile-ecommerce-v5/tree/prototype-320),
 route `/prototype/admin`, run with `pnpm dev:client`. It is throwaway code and is never merged.
 
 ## Verdict
