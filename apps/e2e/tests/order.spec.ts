@@ -172,10 +172,24 @@ test("account orders shows the empty state, then every order newest first", asyn
   signUpFreshShopper,
   placeOrder,
 }) => {
-  await signUpFreshShopper();
+  const shopper = await signUpFreshShopper();
   const [first, second] = await catalogue.products();
 
   await page.goto("/account/orders");
+  await expect(
+    page.getByRole("heading", { name: "Your account", level: 1 }),
+  ).toBeVisible();
+  await expect(page.getByText(`Signed in as ${shopper.email}`)).toBeVisible();
+  const accountNav = page.getByRole("navigation", { name: "Account" });
+  await expect(
+    accountNav.getByRole("link", { name: "Orders" }),
+  ).toHaveAttribute("aria-current", "page");
+  await accountNav.getByRole("link", { name: "Profile" }).click();
+  await expect(page).toHaveURL("/account/profile");
+  await expect(
+    accountNav.getByRole("link", { name: "Profile" }),
+  ).toHaveAttribute("aria-current", "page");
+  await accountNav.getByRole("link", { name: "Orders" }).click();
   await expect(page.getByText("You have no orders yet.")).toBeVisible();
   await expect(page.getByRole("article")).toHaveCount(0);
 

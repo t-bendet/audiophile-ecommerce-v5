@@ -69,3 +69,25 @@ test.describe("a guest", () => {
     await expect(page).toHaveURL(`/product/${product.slug}`);
   });
 });
+
+test("account navigation fits on a phone", async ({ page }) => {
+  await page.goto("/account/orders");
+  const nav = page.getByRole("navigation", { name: "Account" });
+  const links = nav.getByRole("link");
+  await expect(links).toHaveCount(3);
+  const navBox = await nav.boundingBox();
+  expect(navBox).not.toBeNull();
+  for (const name of ["Profile", "Security", "Orders"]) {
+    const link = nav.getByRole("link", { name });
+    await expect(link).toBeVisible();
+    const box = await link.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(navBox!.x);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(navBox!.x + navBox!.width);
+  }
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(
+    await page.evaluate(() => document.documentElement.clientWidth),
+  );
+});

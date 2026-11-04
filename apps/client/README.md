@@ -238,6 +238,13 @@ the query configuration and boundaries described above. The
 [historical middleware proposal](docs/error-middleware-proposal.md) records earlier ideas; it
 is not the current implementation.
 
+## Account layout
+
+[`UserAreaLayout`](src/components/layouts/user-area-layout.tsx) uses the content layout's
+type scale and neutral text for the account heading and signed-in email. Profile, Security and
+Orders are `NavLink` tabs with an underline; prefix matching keeps Orders active on nested routes.
+The route content renders below the navigation rather than inside a Tabs primitive.
+
 ## Admin dashboard
 
 `/admin` is a lazy-loaded route group registered in [`router.tsx`](src/app/router.tsx) as a

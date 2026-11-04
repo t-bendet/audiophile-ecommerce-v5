@@ -183,10 +183,7 @@ Human first: a short design pass for the shopper's order detail page and timelin
 area's profile and security pages are placeholder cards today, so this pass sets the account area's
 pattern. `/account/profile` is where a password reset now lands
 ([#355](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/355)), so its placeholder card
-is the first thing a recovered shopper sees. The "Account Settings" heading in `UserAreaLayout`
-sets no colour on the storefront's white body text and is invisible, a finding of
-[#359](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/359) nothing has fixed, so the pass gives the
-account area its colours. A change-password form on the security page has its parts: `PATCH /auth/updateMyPassword` with `AuthUpdatePasswordRequestSchema`, the signup strength
+is the first thing a recovered shopper sees. A change-password form on the security page has its parts: `PATCH /auth/updateMyPassword` with `AuthUpdatePasswordRequestSchema`, the signup strength
 meter and hint the reset page reuses, and the rule that a password write ends every other session
 ([ADR 0012](adr/0012-a-password-reset-link-works-once-and-is-stored-only-as-its-hash.md)). The
 security page also closes a gap reported in
@@ -364,10 +361,7 @@ Run `/prototype` with this brief:
 Design question: what does a shopper's order detail page show, with its status timeline and
 tracking, and what pattern do the account area's profile, security and orders pages share?
 
-Facts: /account is UserAreaLayout under the content layout: an "Account Settings" h1, a "Logged in
-as" line and Profile, Security and Orders tabs over a nested Outlet. The h1 sets no colour on the
-body's white text-neutral-100 and is invisible (#359). The active tab is the pathname minus
-"/account/", so a nested /account/orders/:orderId selects no tab. Signup and login without a
+Facts: Signup and login without a
 redirectTo, the user menu and a password reset (#355, with a "Password updated" toast) all land on
 /account/profile, a card holding the name in an h1; the security page is a card reading "Security
 Information" twice. The orders page lists OrderCard articles (date, a status, payment method and
@@ -387,8 +381,7 @@ page. A new route awaits in its loader under PendingOutlet's progress bar (ADR 0
 confirmation is a ui/dialog placement (ADR 0014).
 
 Decide: the order detail page's URL and layout and how a card links to it; the timeline's events,
-how its actor reads to a shopper, and where tracking and carrier appear; the account shell, its
-colours and its tabs on a nested route; what the profile page shows a recovered shopper and
+how its actor reads to a shopper, and where tracking and carrier appear; what the profile page shows a recovered shopper and
 whether name and email are edited there; the change-password form and what it says about other
 sessions; self-deactivation (confirmation, password re-entry, the sole-admin refusal, where the
 shopper lands); whether the status email links to the order detail page.
