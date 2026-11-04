@@ -47,26 +47,26 @@ export default function LoggedInUserDropdown() {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <Separator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <NavLink
               to={paths.account.profile.path}
-              className={({ isActive }) => (isActive ? "text-primary-500" : "")}
+              className="[&[aria-current=page]]:text-primary-500"
             >
               Profile
             </NavLink>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <NavLink
               to={paths.account.security.path}
-              className={({ isActive }) => (isActive ? "text-primary-500" : "")}
+              className="[&[aria-current=page]]:text-primary-500"
             >
               Security
             </NavLink>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <NavLink
               to={paths.account.orders.path}
-              className={({ isActive }) => (isActive ? "text-primary-500" : "")}
+              className="[&[aria-current=page]]:text-primary-500"
             >
               Orders
             </NavLink>
@@ -75,16 +75,14 @@ export default function LoggedInUserDropdown() {
         {user.role === "ADMIN" && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <NavLink
                 to={paths.admin.root.getHref()}
-                className={({ isActive }) =>
-                  isActive ? "text-primary-500" : ""
-                }
+                className="[&[aria-current=page]]:text-primary-500"
               >
                 Admin
+                <LayoutDashboard className="ml-auto size-4 text-primary-500" />
               </NavLink>
-              <LayoutDashboard className="ml-auto size-4 text-primary-500" />
             </DropdownMenuItem>
           </>
         )}
