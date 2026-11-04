@@ -48,12 +48,16 @@ describe("UpdateOrderStatusRequestSchema", () => {
   it("parses a valid orderId and status", () => {
     const parsed = UpdateOrderStatusRequestSchema.parse({
       params: { orderId: VALID_ORDER_ID },
-      body: { status: "SHIPPED" },
+      body: { status: "SHIPPED", carrier: " DHL ", trackingNumber: " 123 " },
       query: {},
     });
 
     expect(parsed.params).toEqual({ orderId: VALID_ORDER_ID });
-    expect(parsed.body).toEqual({ status: "SHIPPED" });
+    expect(parsed.body).toEqual({
+      status: "SHIPPED",
+      carrier: "DHL",
+      trackingNumber: "123",
+    });
   });
 
   it("rejects a malformed orderId with a ZodError", () => {

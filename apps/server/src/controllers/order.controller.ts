@@ -100,9 +100,11 @@ export const updateOrderStatus: ValidatedHandler = defineHandler(
   UpdateOrderStatusRequestSchema,
   async (req, res) => {
     const { orderId } = req.verified.params;
-    const { status } = req.verified.body;
-
-    const dto = await orderService.updateOrderStatus(orderId, status);
+    const dto = await orderService.updateOrderStatus(
+      orderId,
+      req.user!.id,
+      req.verified.body,
+    );
     res.status(200).json(createSingleItemResponse(dto));
   },
 );

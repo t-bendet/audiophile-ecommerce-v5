@@ -33,6 +33,8 @@ Use `pnpm test:e2e` and the [E2E guide](../../apps/e2e/README.md) rather than re
 Before changing the MongoDB version, read [ADR 0004](../../docs/adr/0004-local-mongodb-is-a-docker-replica-set-on-8-2.md).
 The Docker image and the route-test setup's `MONGODB_VERSION` must stay aligned.
 
+Orders embed an `events` list recording each status, timestamp, actor and optional shipment tracking. Older orders without events are read with a synthesized Pending event; they are not backfilled.
+
 ## Scripts
 
 Run from the repo root; each wraps the matching script here through Turbo, except `db:role`,

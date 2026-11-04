@@ -185,10 +185,21 @@ export type OrderItemDTO = z.infer<typeof OrderItemDTOSchema>;
 /**
  * Order DTO - Simplified order for client
  */
+export const OrderEventDTOSchema = z.object({
+  status: OrderStatusSchema,
+  at: z.coerce.date(),
+  actor: z.union([IdValidator("User"), z.literal("system")]),
+  trackingNumber: z.string().nullish(),
+  carrier: z.string().nullish(),
+});
+
+export type OrderEventDTO = z.infer<typeof OrderEventDTOSchema>;
+
 export const OrderDTOSchema = z.object({
   id: IdValidator(),
   userId: IdValidator(),
   items: z.array(OrderItemDTOSchema),
+  events: z.array(OrderEventDTOSchema),
   status: OrderStatusSchema,
   subtotal: z.number().int().nonnegative(),
   shippingCost: z.number().int().nonnegative(),
@@ -245,8 +256,18 @@ export type CreateOrderInput = z.infer<typeof CreateOrderInputSchema>;
 export const UpdateOrderStatusInputSchema = z
   .object({
     status: OrderStatusSchema,
+    trackingNumber: z.string().trim().min(1).max(100).optional(),
+    carrier: z.string().trim().min(1).max(100).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.status === ORDER_STATUS.SHIPPED) {
+      for (const field of ["trackingNumber", "carrier"] as const) {
+        if (!value[field])
+          ctx.addIssue({ code: "custom", path: [field], message: "Required" });
+      }
+    }
+  });
 
 export type UpdateOrderStatusInput = z.infer<
   typeof UpdateOrderStatusInputSchema

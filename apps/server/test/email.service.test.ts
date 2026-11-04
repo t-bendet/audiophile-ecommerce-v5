@@ -12,6 +12,7 @@ const order: OrderDTO = {
   userId: "507f1f77bcf86cd799439012",
   items: [],
   status: "PENDING",
+  events: [],
   subtotal: 0,
   shippingCost: 50,
   tax: 0,

@@ -18,6 +18,7 @@ import {
   OrderItemDTO,
   OrderQueryParams,
   type OrderStatus,
+  type UpdateOrderStatusInput,
   ORDER_STATUS,
   OrderUpdateInput,
   OrderWhereInput,
@@ -60,6 +61,15 @@ export class OrderService extends AbstractCrudService<
       id: entity.id,
       userId: entity.userId,
       items,
+      events: entity.events?.length
+        ? entity.events
+        : [
+            {
+              status: ORDER_STATUS.PENDING,
+              at: entity.createdAt,
+              actor: entity.userId,
+            },
+          ],
       status: entity.status,
       subtotal: entity.subtotal,
       shippingCost: entity.shippingCost,
@@ -126,6 +136,9 @@ export class OrderService extends AbstractCrudService<
           paymentMethod: orderInput.paymentMethod,
           paymentStatus: PAYMENT_STATUS.PENDING,
           status: ORDER_STATUS.PENDING,
+          events: [
+            { status: ORDER_STATUS.PENDING, at: new Date(), actor: userId },
+          ],
         },
       });
 
@@ -267,8 +280,10 @@ export class OrderService extends AbstractCrudService<
    */
   async updateOrderStatus(
     orderId: string,
-    status: OrderStatus,
+    actor: string,
+    input: UpdateOrderStatusInput,
   ): Promise<OrderDTO> {
+    const { status, trackingNumber, carrier } = input;
     const order = await this.findOrderForUpdate(orderId);
 
     if (!canTransitionOrderStatus(order.status, status)) {
@@ -278,12 +293,25 @@ export class OrderService extends AbstractCrudService<
       );
     }
 
-    const updatedOrder = await prisma.order.update({
+    const result = await prisma.order.updateMany({
+      where: { id: orderId, status: order.status },
+      data: {
+        status,
+        events: {
+          push: { status, at: new Date(), actor, trackingNumber, carrier },
+        },
+      },
+    });
+    if (result.count === 0) {
+      throw new AppError(
+        "Order status has changed",
+        ErrorCode.ORDER_ALREADY_PROCESSED,
+      );
+    }
+    const updatedOrder = await prisma.order.findUniqueOrThrow({
       where: { id: orderId },
-      data: { status },
       include: ORDER_INCLUDE,
     });
-
     return this.toDTO(updatedOrder);
   }
 

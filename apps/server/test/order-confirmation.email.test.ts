@@ -22,6 +22,7 @@ const order: OrderDTO = {
     },
   ],
   status: "PENDING",
+  events: [],
   subtotal: 5998,
   shippingCost: 50,
   tax: 1200,

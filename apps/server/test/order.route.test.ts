@@ -1,3 +1,4 @@
+import { prisma } from "@repo/database";
 import { DEFAULT_LIMIT, DEFAULT_PAGE, ErrorCode } from "@repo/domain";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -86,10 +87,35 @@ describe("POST /api/v1/orders", () => {
       tax: 200,
       total: 1250,
     });
+    expect(res.body.data.events).toMatchObject([
+      { status: "PENDING", actor: user.id },
+    ]);
     expect(res.body.data.items).toHaveLength(1);
 
     const cart = await request(app).get("/api/v1/cart").set("Cookie", cookie);
     expect(cart.body.data.items).toEqual([]);
+  });
+
+  it("synthesizes Pending for legacy orders with missing or empty events", async () => {
+    const user = await createUser();
+    const { cookie, res } = await orderFromCart(user.id, 1000);
+    const id = res.body.data.id;
+    for (const update of [
+      { $set: { events: [] } },
+      { $unset: { events: "" } },
+    ]) {
+      await prisma.$runCommandRaw({
+        update: "Order",
+        updates: [{ q: { _id: { $oid: id } }, u: update }],
+      });
+      const read = await request(app)
+        .get(`/api/v1/orders/${id}`)
+        .set("Cookie", cookie);
+      expect(read.status).toBe(200);
+      expect(read.body.data.events).toEqual([
+        { status: "PENDING", at: read.body.data.createdAt, actor: user.id },
+      ]);
+    }
   });
 
   it("carries the product thumbnail resolved to the media host", async () => {
@@ -266,6 +292,62 @@ describe("PATCH /api/v1/orders/:orderId/status", () => {
     expect(res.body.data.status).toBe("PROCESSING");
   });
 
+  it("records shipment tracking and rejects missing tracking", async () => {
+    const user = await createUser();
+    const admin = await createAdmin();
+    const { res: created } = await orderFromCart(user.id, 400);
+    const url = `/api/v1/orders/${created.body.data.id}/status`;
+    const cookie = authCookie(admin.id);
+    await request(app)
+      .patch(url)
+      .set("Cookie", cookie)
+      .send({ status: "PROCESSING" });
+    const missing = await request(app)
+      .patch(url)
+      .set("Cookie", cookie)
+      .send({ status: "SHIPPED" });
+    expect(missing.status).toBe(422);
+    expect(
+      missing.body.error.details.map(
+        (detail: { path: string[] }) => detail.path,
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        ["body", "carrier"],
+        ["body", "trackingNumber"],
+      ]),
+    );
+    const shipped = await request(app)
+      .patch(url)
+      .set("Cookie", cookie)
+      .send({ status: "SHIPPED", carrier: " DHL ", trackingNumber: " 123 " });
+    expect(shipped.status).toBe(200);
+    expect(shipped.body.data.events).toHaveLength(3);
+    expect(shipped.body.data.events[2]).toMatchObject({
+      status: "SHIPPED",
+      actor: admin.id,
+      carrier: "DHL",
+      trackingNumber: "123",
+    });
+  });
+
+  it("allows only one concurrent move from the same status", async () => {
+    const user = await createUser();
+    const admin = await createAdmin();
+    const { res: created } = await orderFromCart(user.id, 400);
+    const url = `/api/v1/orders/${created.body.data.id}/status`;
+    const cookie = authCookie(admin.id);
+    const results = await Promise.all(
+      ["PROCESSING", "CANCELLED"].map((status) =>
+        request(app).patch(url).set("Cookie", cookie).send({ status }),
+      ),
+    );
+    expect(results.map((res) => res.status).sort()).toEqual([200, 400]);
+    expect(results.find((res) => res.status === 400)?.body.error.code).toBe(
+      ErrorCode.ORDER_ALREADY_PROCESSED,
+    );
+  });
+
   it("refuses a move the transition table does not allow", async () => {
     const user = await createUser();
     const admin = await createAdmin();
@@ -274,7 +356,7 @@ describe("PATCH /api/v1/orders/:orderId/status", () => {
     const res = await request(app)
       .patch(`/api/v1/orders/${created.body.data.id}/status`)
       .set("Cookie", authCookie(admin.id))
-      .send({ status: "SHIPPED" });
+      .send({ status: "SHIPPED", carrier: "DHL", trackingNumber: "123" });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatchObject({
