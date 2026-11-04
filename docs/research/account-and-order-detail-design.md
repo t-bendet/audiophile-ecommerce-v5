@@ -1,8 +1,9 @@
 # Account area and order detail design note
 
-Decided 2026-11-04 in the group 3 prototype session (the group had no parent issue when this was
-written; the parent copies these decisions). This is the document the shopper order detail,
-account shell, profile, change-password and self-deactivation tickets follow. The prototype itself
+Decided 2026-11-04 in the group 3 prototype session; the parent issue
+[#437](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/437) copies these decisions.
+This is the document the shopper order detail, account shell, profile, change-password and
+self-deactivation tickets follow. The prototype itself
 is the primary source: tag
 [`prototype-group-3`](https://github.com/t-bendet/audiophile-ecommerce-v5/tree/prototype-group-3),
 on the real `/account/*` routes plus a nested `/account/orders/:orderId`, run with `pnpm dev` and
