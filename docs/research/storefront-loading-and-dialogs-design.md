@@ -1,8 +1,8 @@
 # Storefront loading states and dialogs design note
 
 Decided 2026-11-03 in the prototype session for [#359](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/359).
-This is the document #360, #361 and #362 follow. The prototype itself is the primary source: branch
-[`prototype/359-storefront-loading-and-dialogs`](https://github.com/t-bendet/audiophile-ecommerce-v5/tree/prototype/359-storefront-loading-and-dialogs),
+This is the document #360, #361 and #362 follow. The prototype itself is the primary source: tag
+[`prototype-359`](https://github.com/t-bendet/audiophile-ecommerce-v5/tree/prototype-359),
 on the real storefront routes, run with `pnpm dev` and opened at `/?delay=2000`. Its README explains the
 floating bar. It is throwaway code and is never merged.
 
@@ -123,14 +123,14 @@ Rejected: **B**, bottom drawers with a drag handle, the mini-cart and thank-you 
 The chosen variants already exist as working code on the prototype branch. Lift them, minus the
 prototype's variant switching:
 
-- [`pending.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype/359-storefront-loading-and-dialogs/apps/client/src/components/prototype/storefront-loading/pending.tsx): `ProgressBar`, and the `loading === "A"` branch of
+- [`pending.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype-359/apps/client/src/components/prototype/storefront-loading/pending.tsx): `ProgressBar`, and the `loading === "A"` branch of
   `PrototypeOutlet`, which holds the pending condition and the dim wrapper.
-- [`dialog.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype/359-storefront-loading-and-dialogs/apps/client/src/components/prototype/storefront-loading/dialog.tsx): the primitive, with the `belowNav` prop and the overlay. Keep only the
+- [`dialog.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype-359/apps/client/src/components/prototype/storefront-loading/dialog.tsx): the primitive, with the `belowNav` prop and the overlay. Keep only the
   `sheet-top`, `sheet-top-end` and `centred` placements.
-- [`dialogs.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype/359-storefront-loading-and-dialogs/apps/client/src/components/prototype/storefront-loading/dialogs.tsx): the three surfaces as placed by `PLACEMENTS.A`. The mini-cart's
+- [`dialogs.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype-359/apps/client/src/components/prototype/storefront-loading/dialogs.tsx): the three surfaces as placed by `PLACEMENTS.A`. The mini-cart's
   loading branch there draws skeletons; ship today's spinner instead.
-- [`menu-fallback.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype/359-storefront-loading-and-dialogs/apps/client/src/components/prototype/storefront-loading/menu-fallback.tsx): the `menu === "B"` branch is the greeting fallback.
-- [`app/routes/home/index.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype/359-storefront-loading-and-dialogs/apps/client/src/app/routes/home/index.tsx): the loader's await of
+- [`menu-fallback.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype-359/apps/client/src/components/prototype/storefront-loading/menu-fallback.tsx): the `menu === "B"` branch is the greeting fallback.
+- [`app/routes/home/index.tsx`](https://github.com/t-bendet/audiophile-ecommerce-v5/blob/prototype-359/apps/client/src/app/routes/home/index.tsx): the loader's await of
   the featured product and its three `preload()` calls. Add the showcase to the same `Promise.all`.
 
 ## Findings from the prototype
