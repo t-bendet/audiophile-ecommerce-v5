@@ -32,6 +32,9 @@ Generate the Prisma client with `pnpm db:generate` after a schema change or on a
 
 Documentation-only changes run two tools: `pnpm format:check` (Prettier, which covers Markdown) and `pnpm docs:check` (every relative Markdown link and `#anchor` resolves, so a moved or removed file surfaces here). Instruction consistency has no tool and is a manual read: each guide agrees with [AGENTS.md](../../AGENTS.md) and with the code it describes, every active example matches the implementation, and historical guidance points to the current authority. For routing changes, check both a direct task and a delegated task that starts without its parent's loaded guides.
 
+When comparing CI timings, distinguish a job's duration from the elapsed time since the push:
+the latter includes runner queueing and any preceding gates.
+
 ## CI coverage
 
 The local sequence above corresponds to the workflow's `verify` job; it is not the whole pipeline. CI runs `build`, `lint`, `type-check` and `test` as one `turbo run` graph, so `prisma generate` runs once and the tasks overlap. Only `deploy` restores a Turbo cache; `verify` and `e2e` execute every task on every run. CI also builds the server Docker image and runs Playwright in separate `image` and `e2e` jobs; four jobs in all. On `main`, `image` tags the image by the hash of its inputs and pushes it to the Cloudflare registry unless the registry already holds that tag, in which case it builds nothing; `deploy` waits for all three, deploys that image, then runs `pnpm db:sync` against production and the registry prune listing as its last steps ([deployment runbook](../deployment.md)). Report local checks separately from observed CI results; do not claim an unrun gate passed. Pushes from a cloud session run CI only once the PR exists ([cloud sessions](issue-tracker.md#cloud-sessions)).
