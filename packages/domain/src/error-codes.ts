@@ -9,6 +9,8 @@ export enum ErrorCode {
   // Validation errors
   VALIDATION_ERROR = "VALIDATION_ERROR",
   INVALID_ID = "INVALID_ID",
+  INVALID_BODY = "INVALID_BODY",
+  PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE",
 
   // Resource errors (404, 409)
   NOT_FOUND = "NOT_FOUND",
@@ -63,6 +65,8 @@ export const ERROR_CODE_TO_STATUS: Record<ErrorCode, number> = {
   // Validation errors
   [ErrorCode.VALIDATION_ERROR]: 422,
   [ErrorCode.INVALID_ID]: 400,
+  [ErrorCode.INVALID_BODY]: 400,
+  [ErrorCode.PAYLOAD_TOO_LARGE]: 413,
 
   // Resource errors
   [ErrorCode.NOT_FOUND]: 404,

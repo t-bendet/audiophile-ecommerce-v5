@@ -189,8 +189,10 @@ Raise expected application failures with `new AppError(message, ErrorCode.X)` fr
 the boundary rather than catching and disguising them as client errors.
 
 [`error.middleware.ts`](src/middlewares/error.middleware.ts) normalizes known Prisma,
-JWT, and Zod errors into the shared response envelope. Rejected input uses
-`VALIDATION_ERROR` (422), including middleware validation and the Zod safety net.
+JWT, Zod, and body-parser errors into the shared response envelope. Rejected schema input
+uses `VALIDATION_ERROR` (422), including middleware validation and the Zod safety net.
+Body-parser failures use `PAYLOAD_TOO_LARGE` (413) for oversized bodies and `INVALID_BODY`
+(400) for malformed or unsupported bodies.
 Development responses include stacks; test and production responses omit stacks and
 replace unknown failures with a generic internal-error message. `AppError` messages and
 details are returned, so keep their contents suitable for clients.

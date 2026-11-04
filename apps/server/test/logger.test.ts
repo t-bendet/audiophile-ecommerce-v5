@@ -171,6 +171,24 @@ describe("error boundary logging", () => {
     expect(line.level).toBe(50);
   });
 
+  it("logs an oversized request at warn level", async () => {
+    const { lines, logger, linesReaching } = collectLogLines();
+    const app = express();
+    app.use(pinoHttp({ ...httpLoggerOptions, logger }));
+    app.use(express.json({ limit: "10kb" }));
+    app.use(globalErrorHandler);
+
+    const res = await request(app)
+      .post("/login")
+      .send({ body: "x".repeat(11000) });
+    const [line] = await linesReaching(1);
+
+    expect(res.status).toBe(413);
+    expect(res.body.error.code).toBe(ErrorCode.PAYLOAD_TOO_LARGE);
+    expect(lines).toHaveLength(1);
+    expect(line.level).toBe(40);
+  });
+
   it("keeps the operational flag out of the response body", async () => {
     const { logger } = collectLogLines();
 

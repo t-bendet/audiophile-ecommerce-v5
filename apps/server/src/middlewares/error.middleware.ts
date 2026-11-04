@@ -2,6 +2,10 @@ import { Prisma } from "@repo/database";
 import { AppError, createErrorResponse, ErrorCode } from "@repo/domain";
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
+import {
+  isBodyParserError,
+  toBodyParserAppError,
+} from "../utils/body-parser-errors.js";
 import { env } from "../utils/env.js";
 import {
   isPrismaKnownRequestError,
@@ -63,6 +67,10 @@ const normalizeError = (err: unknown): AppError | unknown => {
   // Already an AppError - use as is
   if (err instanceof AppError) {
     return err;
+  }
+
+  if (isBodyParserError(err)) {
+    return toBodyParserAppError(err);
   }
 
   // Zod validation errors
