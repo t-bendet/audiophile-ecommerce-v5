@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { ROLE } from "@repo/domain";
 import { useState } from "react";
-import { AdminUserFilters } from "../filters";
+import { AdminUserFilters, toSearchParams } from "../filters";
 
 // Radix reserves the empty string for clearing a select, so "any" needs a value.
 const ANY = "ANY";
@@ -29,6 +29,17 @@ export function UsersFilters({ filters, onApply }: UsersFiltersProps) {
   const [active, setActive] = useState<ActiveChoice>(
     filters.active === undefined ? ANY : filters.active ? "true" : "false",
   );
+  const appliedFilters = toSearchParams(filters).toString();
+  const [previousFilters, setPreviousFilters] = useState(appliedFilters);
+
+  if (appliedFilters !== previousFilters) {
+    setPreviousFilters(appliedFilters);
+    setSearch(filters.search ?? "");
+    setRole(filters.role ?? ANY);
+    setActive(
+      filters.active === undefined ? ANY : filters.active ? "true" : "false",
+    );
+  }
 
   const apply = () => {
     onApply({
