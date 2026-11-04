@@ -58,6 +58,6 @@ valid only while it matches the stored value; older tokens without it use their 
 fallback. This ends sessions issued immediately before a password write while keeping its newly
 issued session valid.
 
-Every later password write inherits the session-ending rule through the same hook, so a
-change-password form on top of `PATCH /auth/updateMyPassword` ends the user's other sessions
-without new code. Every emailed link needs `CLIENT_URL`, which the env schema requires.
+Every later password write inherits the session-ending rule through the same hook.
+`PATCH /auth/updateMyPassword` issues a new session after the write, keeping this device signed in
+while ending the user's other sessions. Every emailed link needs `CLIENT_URL`, which the env schema requires.

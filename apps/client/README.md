@@ -57,7 +57,7 @@ these boundaries so a failed lazy match cannot hide its own boundary behind the 
 The storefront uses no skeletons; [`ui/skeleton.tsx`](src/components/ui/skeleton.tsx) is for the admin
 pages. The section fallbacks under `SafeRenderWithErrorBlock` stay as a safety net. The
 [design note](../../docs/research/storefront-loading-and-dialogs-design.md) records the decision;
-order detail, wishlist and search results follow the same pattern when they are built.
+order detail follows it, and wishlist and search results will follow it when built.
 
 Use [`normalizeError`](src/lib/errors/errors.ts) where an error becomes a presentation
 or control-flow decision. It preserves an existing `AppError`, reads server errors from
