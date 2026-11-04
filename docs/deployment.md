@@ -80,7 +80,9 @@ source. Pull requests run checks and build the Docker image without publishing o
 Each merge leaves one more tag in the registry. List them with
 `pnpm --filter server exec wrangler containers images list` and prune by hand with
 `wrangler containers images delete audiophile-apicontainer:<tag>`; nothing deletes automatically.
-Do not delete the tag the container runs: `wrangler containers list --json` shows its digest.
+Tags shorter than a full commit sha predate the image job. Once a sha-tagged deploy has passed
+the post-deploy checks, every short tag, and the stray `audiophile-api-apicontainer` repository,
+can be deleted; after that keep the last few sha tags.
 
 The workflow uses these repository secrets:
 
