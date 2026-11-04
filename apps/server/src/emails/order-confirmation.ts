@@ -20,11 +20,16 @@ const addressLines = (order: OrderDTO): string[] => {
   return [fullName, address, `${city}, ${state} ${zipCode}`, country];
 };
 
-export const orderConfirmationText = (order: OrderDTO): string =>
+export const orderConfirmationText = (
+  order: OrderDTO,
+  clientUrl: string,
+): string =>
   [
     `Hi ${order.shippingAddress.fullName},`,
     "",
     `We have received your order ${order.id}. ${paymentInstructions(order.paymentMethod)}`,
+    "",
+    `View your order: ${clientUrl}/account/orders/${order.id}`,
     "",
     "Items",
     ...order.items.map(
@@ -42,7 +47,10 @@ export const orderConfirmationText = (order: OrderDTO): string =>
     "Thank you for shopping with Audiophile.",
   ].join("\n");
 
-export const orderConfirmationHtml = (order: OrderDTO): string => {
+export const orderConfirmationHtml = (
+  order: OrderDTO,
+  clientUrl: string,
+): string => {
   const items = order.items
     .map(
       (item) =>
@@ -63,6 +71,7 @@ export const orderConfirmationHtml = (order: OrderDTO): string => {
 <h1 style="font-size: 20px;">Thank you for your order</h1>
 <p>Hi ${escapeHtml(order.shippingAddress.fullName)},</p>
 <p>We have received your order <strong>${order.id}</strong>. ${escapeHtml(paymentInstructions(order.paymentMethod))}</p>
+<p><a href="${escapeHtml(`${clientUrl}/account/orders/${order.id}`)}">View your order</a></p>
 <table width="100%" cellpadding="6" cellspacing="0" style="border-collapse: collapse;">
 <thead><tr><th align="left">Item</th><th align="right">Price</th></tr></thead>
 <tbody>${items}</tbody>
@@ -75,10 +84,13 @@ export const orderConfirmationHtml = (order: OrderDTO): string => {
 </html>`;
 };
 
-export const orderConfirmationEmail = (order: OrderDTO): EmailMessage => ({
+export const orderConfirmationEmail = (
+  order: OrderDTO,
+  clientUrl: string,
+): EmailMessage => ({
   to: order.shippingAddress.email,
   subject: `Order received: ${order.id}`,
-  text: orderConfirmationText(order),
-  html: orderConfirmationHtml(order),
+  text: orderConfirmationText(order, clientUrl),
+  html: orderConfirmationHtml(order, clientUrl),
   idempotencyKey: `order-confirmation/${order.id}`,
 });

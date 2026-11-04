@@ -144,8 +144,10 @@ test.describe("an admin shipping an order", () => {
     page,
     admin,
     placeOrderAsFreshShopper,
+    outbox,
+    browser,
   }) => {
-    const { orderId } = await placeOrderAsFreshShopper();
+    const { orderId, shopper } = await placeOrderAsFreshShopper();
     await admin.setOrderStatus(orderId, "PROCESSING");
     await page.goto(`/admin/orders/${orderId}`);
     const fulfilment = page.getByRole("form", { name: "Fulfilment" });
@@ -168,5 +170,27 @@ test.describe("an admin shipping an order", () => {
     await expect(
       fulfilment.getByRole("button", { name: "Copy tracking number" }),
     ).toBeVisible();
+    const messages = await outbox(shopper.email);
+    const email = messages.find(
+      (message) => message.subject === "Your order has shipped",
+    );
+    expect(email?.text).toContain("DHL");
+    expect(email?.text).toContain("ABC123");
+    const link = email?.text.match(/https?:\/\/\S+\/account\/orders\/\S+/)?.[0];
+    expect(link).toBeTruthy();
+    const shopperContext = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+    });
+    const shopperPage = await shopperContext.newPage();
+    await shopperPage.goto(link!);
+    await expect(shopperPage).toHaveURL(/auth\/login\?redirectTo=/);
+    await shopperPage.getByLabel("Email").fill(shopper.email);
+    await shopperPage
+      .getByLabel("Password", { exact: true })
+      .fill(shopper.password);
+    await shopperPage.getByRole("button", { name: "Login" }).click();
+    await expect(shopperPage).toHaveURL(`/account/orders/${orderId}`);
+    await expect(shopperPage.getByText("ABC123")).toBeVisible();
+    await shopperContext.close();
   });
 });

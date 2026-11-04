@@ -1,6 +1,10 @@
 import type { OrderDTO } from "@repo/domain";
 import type { Logger } from "pino";
 import { orderConfirmationEmail } from "../emails/order-confirmation.js";
+import {
+  orderCancelledEmail,
+  orderShippedEmail,
+} from "../emails/order-status.js";
 import { passwordResetEmail } from "../emails/password-reset.js";
 import { emailTransport, type EmailTransport } from "../utils/email.js";
 import { env } from "../utils/env.js";
@@ -18,9 +22,29 @@ export const createEmailService = (
 ) => ({
   async sendOrderConfirmation(order: OrderDTO, log: Logger): Promise<void> {
     try {
-      await transport.send(orderConfirmationEmail(order));
+      await transport.send(orderConfirmationEmail(order, clientUrl));
     } catch (err) {
       log.error({ err, orderId: order.id }, "order confirmation email failed");
+    }
+  },
+
+  async sendOrderStatus(
+    order: OrderDTO,
+    status: OrderDTO["status"],
+    log: Logger,
+  ): Promise<void> {
+    if (status !== "SHIPPED" && status !== "CANCELLED") return;
+    try {
+      await transport.send(
+        status === "SHIPPED"
+          ? orderShippedEmail(order, clientUrl)
+          : orderCancelledEmail(order, clientUrl),
+      );
+    } catch (err) {
+      log.error(
+        { err, orderId: order.id, status },
+        "order status email failed",
+      );
     }
   },
 

@@ -424,10 +424,16 @@ export const disposableProduct = (
 const placeOrder = async (
   api: APIRequestContext,
   product?: Pick<CatalogueProduct, "id">,
+  email = CHECKOUT.shippingAddress.email,
 ): Promise<string> => {
   const productId = product?.id ?? (await seededProducts(api))[0].id;
   await writeData(api, "post", "/api/v1/cart", { productId, quantity: 1 });
-  const response = await api.post("/api/v1/orders", { data: CHECKOUT });
+  const response = await api.post("/api/v1/orders", {
+    data: {
+      ...CHECKOUT,
+      shippingAddress: { ...CHECKOUT.shippingAddress, email },
+    },
+  });
   expect(response.status(), "POST /api/v1/orders").toBe(201);
   const body = (await response.json()) as { data: { id: string } };
   return body.data.id;
@@ -470,7 +476,7 @@ export const test = base.extend<Fixtures>({
         const [product] = await seededProducts(api);
         const orderIds: string[] = [];
         for (let placed = 0; placed < count; placed++) {
-          orderIds.push(await placeOrder(api, product));
+          orderIds.push(await placeOrder(api, product, shopper.email));
         }
         return { shopper, orderIds };
       } finally {

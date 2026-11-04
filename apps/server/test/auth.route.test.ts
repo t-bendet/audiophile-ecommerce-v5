@@ -7,6 +7,7 @@ import {
   createUser,
   expiredAuthCookie,
   resetDatabase,
+  staleAuthCookie,
   tamperedAuthCookie,
   TEST_PASSWORD,
 } from "./helpers/database.js";
@@ -174,6 +175,11 @@ describe("POST /api/v1/auth/login", () => {
 describe("PATCH /api/v1/auth/updateMyPassword", () => {
   it("re-issues a cookie for an authenticated user", async () => {
     const user = await createUser();
+    const legacyCookie = staleAuthCookie(user.id);
+    const legacyBefore = await request(app)
+      .get("/api/v1/users/me")
+      .set("Cookie", legacyCookie);
+    expect(legacyBefore.status).toBe(200);
 
     const login = await request(app)
       .post("/api/v1/auth/login")
@@ -200,7 +206,7 @@ describe("PATCH /api/v1/auth/updateMyPassword", () => {
     expect(old.status).toBe(401);
     const legacy = await request(app)
       .get("/api/v1/users/me")
-      .set("Cookie", authCookie(user.id));
+      .set("Cookie", legacyCookie);
     expect(legacy.status).toBe(401);
 
     const second = await request(app)
