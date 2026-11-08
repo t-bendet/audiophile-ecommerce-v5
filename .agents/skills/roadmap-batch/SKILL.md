@@ -56,7 +56,9 @@ For each approved item, in the approved order:
 1. **Check for duplicates** across open and closed issues (list with `--state all`). A match becomes
    the ticket, reused as is or updated with the user's agreement, and nothing new is filed for it.
 2. **Write the spec** at the chosen depth, keeping the template's own rules: domain vocabulary,
-   the area's ADRs, no file paths or code snippets.
+   the area's ADRs, no file paths or code snippets. Its last acceptance criterion names the roadmap
+   line the ticket removes, quoted, and any roadmap fact the change makes false; the ticket's PR
+   is what keeps the roadmap current, and batch-tickets checks that its diff touched the file.
 3. **Show the draft** and wait for a yes when the interview chose approval.
 4. **File it** per the issue workflow with one type label (`enhancement` for roadmap features) and
    `ready-for-agent`.
