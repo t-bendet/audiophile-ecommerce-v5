@@ -19,19 +19,14 @@ group boundary.
 
 ## How the roadmap is worked
 
-**One group at a time.** A group becomes a parent issue in the shape of
-[#319](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/319): a "decisions that shape
-every slice" section and one sub-issue per vertical slice, linked with native blocking edges. The
-parent issue is where the group's decisions live; this file names the questions, never the answers.
-A slice's PR removes its item line here and corrects any fact its change made false; the group's
-last sub-issue, the closing re-triage, removes the group block. The carrier is an acceptance
-criterion on every slice issue that names the line it removes, as group 3's slices under
-[#437](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/437) carried. The parent's
-"decisions that shape every slice" section states that rule so the ticketing pass copies it into
-each slice, and [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) adds it to every issue it
-files. [batch-tickets](../.agents/skills/batch-tickets/SKILL.md) treats a slice whose diff leaves
-this file untouched as an unmet criterion; under `/implement`, code review's spec axis is where it
-shows. The re-triage's first checklist item is the backstop for a slice that still missed.
+**One group at a time.** A group becomes a parent issue, one sub-issue per vertical slice and a
+closing re-triage, in the shapes the [roadmap group guide](agents/roadmap-group.md) holds; a
+session brief, a wayfinder destination or a hand-written parent points there instead of restating
+them. The parent issue is where the group's decisions live; this file names the questions, never
+the answers. A slice's PR removes its item line here and corrects any fact its change made false;
+the closing re-triage removes the group block. The guide's standing criteria are what
+[batch-tickets](../.agents/skills/batch-tickets/SKILL.md) checks and, under `/implement`, what code
+review's spec axis reads.
 
 **Pick the entry skill by how many decisions the group has open.**
 
@@ -39,7 +34,7 @@ shows. The re-triage's first checklist item is the backstop for a slice that sti
   ([#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340)) was. Run
   [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) only when they should also be shipped in
   the same session; it hands the queue to batch-tickets.
-- One decision or one design pass (group 7): write the parent issue first, then run
+- One decision or one design pass (group 7): write the parent issue from the guide first, then run
   [to-tickets](../.agents/skills/to-tickets/SKILL.md) against it so the human session becomes its
   first sub-issue, labelled `ready-for-human`, and the agent slices are specced in the same pass,
   as [#350](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/350) was for group 1 with
@@ -78,10 +73,8 @@ shows. The re-triage's first checklist item is the backstop for a slice that sti
   shows an assumption was wrong: stop the batch, update the parent issue, re-spec only the slices
   still open.
 - Every group ends with a closing re-triage ticket, blocked by every other slice, so the batch cannot
-  finish without it. Its PR closes the parent and stops at PR open for review. It removes the closed
-  group's block, carries every decision the group settled back into this file and the ADRs, reads
-  every remaining group against what shipped, and states whether the remaining order holds. The
-  checklist under "Closing re-triage" is its acceptance criteria.
+  finish without it. Its PR closes the parent and stops at PR open for review. The checklist under
+  "Closing re-triage" is its acceptance criteria.
 - Every slice ships its own E2E. The test suite is not an epic of its own; group 0 cleared the known
   gaps once ([#341](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/341) to
   [#343](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/343)). A flow only the phone
@@ -392,11 +385,9 @@ groups 5–9 outside this map. Preserve these constraints while exploring:
   agents wire approved secrets through the documented deployment path.
 - The UI prototype uses the shared centred dialog and covers the phone layout.
 
-When the map's decisions are resolved in later sessions, hand off a parent issue
-with decisions that shape every slice, vertical implementation sub-issues, native
-dependencies and E2E acceptance per slice. The first new upload seam stops at PR
-open for review. Include the roadmap's closing re-triage checklist as the last
-ticket, blocked by every slice, with its PR also stopping for review.
+When the map's decisions are resolved in later sessions, hand off a parent issue,
+slices and closing re-triage in the shapes docs/agents/roadmap-group.md holds. Its
+standing block carries the per-slice rules; copy it rather than restating them.
 
 For this charting session, finish with links to the map and named decision tickets,
 the unblocked frontier, research status and the next human session to run. Keep

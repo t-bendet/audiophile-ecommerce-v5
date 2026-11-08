@@ -32,6 +32,7 @@ For cross-package exploration, read [architecture](docs/ARCHITECTURE.md). Packag
 | Deployment, Worker configuration, secrets, or CI changes               | [Deployment runbook](docs/deployment.md)                         |
 | Check selection, build failures, or Node upgrades                      | [Verification guide](docs/agents/verification.md)                |
 | Issues, specs, branches, commits, or PRs                               | [Issue workflow](docs/agents/issue-tracker.md)                   |
+| Roadmap groups: parent issues, slices, closing re-triage               | [Roadmap group guide](docs/agents/roadmap-group.md)              |
 | Issue triage or label changes                                          | [Triage labels](docs/agents/triage-labels.md)                    |
 | Skills or agent instructions                                           | [Writing for agents](.agents/skills/writing-for-agents/SKILL.md) |
 
