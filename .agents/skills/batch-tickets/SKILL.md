@@ -97,6 +97,11 @@ ticket needs slicing, and the batch moves on. _Blocked_ makes it **deferred**.
 Run the checks selected from the verification guide, reading `git diff --stat` and the tail of each
 check's output. Record commands and results.
 
+**Roadmap slice check.** A ticket whose acceptance criteria name a roadmap line (every sub-issue of
+a roadmap group carries one) must show `docs/ROADMAP.md` in `git diff --stat`. If it does not, the
+criterion is unmet: treat it as a failed check and give the fixer the quoted criterion. The group's
+closing re-triage ticket satisfies this by construction.
+
 **On failure**: spawn one fresh fixer subagent with the failing command and the tail of its output
 pasted in, under the same brief rules as the implementer, and re-run the check on its report. Do
 not read source files or full test output yourself; a fix attempt is where the orchestrator's

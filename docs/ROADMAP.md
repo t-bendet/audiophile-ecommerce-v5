@@ -23,8 +23,15 @@ group boundary.
 [#319](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/319): a "decisions that shape
 every slice" section and one sub-issue per vertical slice, linked with native blocking edges. The
 parent issue is where the group's decisions live; this file names the questions, never the answers.
-A slice's PR removes its item line here; the group's last sub-issue, the closing re-triage, removes
-the group block.
+A slice's PR removes its item line here and corrects any fact its change made false; the group's
+last sub-issue, the closing re-triage, removes the group block. The carrier is an acceptance
+criterion on every slice issue that names the line it removes, as group 3's slices under
+[#437](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/437) carried. The parent's
+"decisions that shape every slice" section states that rule so the ticketing pass copies it into
+each slice, and [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) adds it to every issue it
+files. [batch-tickets](../.agents/skills/batch-tickets/SKILL.md) treats a slice whose diff leaves
+this file untouched as an unmet criterion; under `/implement`, code review's spec axis is where it
+shows. The re-triage's first checklist item is the backstop for a slice that still missed.
 
 **Pick the entry skill by how many decisions the group has open.**
 
