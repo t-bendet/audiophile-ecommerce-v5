@@ -18,7 +18,8 @@ Read the [issue workflow](../../../docs/agents/issue-tracker.md) for every track
 pair an issue carries. Candidates come from [the roadmap](../../../docs/ROADMAP.md). The spec
 template lives in [to-spec](../to-spec/SKILL.md); the issue template and blocking-edge rules live in
 [to-tickets](../to-tickets/SKILL.md). Both are user-invoked, so read their files rather than invoking
-them.
+them. The parent, slice tail and closing re-triage shapes live in the
+[roadmap group guide](../../../docs/agents/roadmap-group.md).
 
 ## 1. Interview
 
@@ -51,14 +52,18 @@ Iterate until the user approves a list and its order. That approval is the permi
 
 ## 3. Spec and file
 
+A batch drawn from one roadmap group files that group's parent first, from the guide, and every
+item as its sub-issue; a batch that takes the group's last items files the closing re-triage last,
+blocked by every other sub-issue.
+
 For each approved item, in the approved order:
 
 1. **Check for duplicates** across open and closed issues (list with `--state all`). A match becomes
    the ticket, reused as is or updated with the user's agreement, and nothing new is filed for it.
 2. **Write the spec** at the chosen depth, keeping the template's own rules: domain vocabulary,
-   the area's ADRs, no file paths or code snippets. Its last acceptance criterion names the roadmap
-   line the ticket removes, quoted, and any roadmap fact the change makes false; the ticket's PR
-   is what keeps the roadmap current, and batch-tickets checks that its diff touched the file.
+   the area's ADRs, no file paths or code snippets. Its acceptance criteria end with the guide's
+   standing tail: the E2E and the quoted roadmap line the ticket's PR removes, which batch-tickets
+   checks.
 3. **Show the draft** and wait for a yes when the interview chose approval.
 4. **File it** per the issue workflow with one type label (`enhancement` for roadmap features) and
    `ready-for-agent`.

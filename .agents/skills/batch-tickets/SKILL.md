@@ -36,8 +36,9 @@ The [issue-tracker guide](../../../docs/agents/issue-tracker.md) holds ticket op
      and proceed.
      The **merge policy** is `merge` unless the arguments say `open` (or "stop at PR open"): `merge`
      lands each PR through auto-merge, as in _Land_; `open` leaves every PR open for a human.
-     Under `merge`, a ticket whose body says it stops at PR open (a group's closing re-triage, or
-     the first slice that introduces a new seam) is the exception: its PR is left open for review,
+     Under `merge`, a ticket whose body carries `Merge policy: stop at PR open` (the
+     [roadmap group guide](../../../docs/agents/roadmap-group.md) puts it on a group's closing
+     re-triage and on the first slice that introduces a new seam) is the exception: its PR is left open for review,
      and the tickets it blocks are **deferred** until that review lands.
      Under `open` each ticket must be unblocked by every other ticket in the queue (check with
      **Count open blockers** in the issue-tracker guide), because a blocked ticket would branch from
@@ -97,8 +98,8 @@ ticket needs slicing, and the batch moves on. _Blocked_ makes it **deferred**.
 Run the checks selected from the verification guide, reading `git diff --stat` and the tail of each
 check's output. Record commands and results.
 
-**Roadmap slice check.** A ticket whose acceptance criteria name a roadmap line (every sub-issue of
-a roadmap group carries one) must show `docs/ROADMAP.md` in `git diff --stat`. If it does not, the
+**Roadmap slice check.** A ticket whose acceptance criteria quote a roadmap line (every sub-issue of
+a roadmap group carries one, per the roadmap group guide) must show `docs/ROADMAP.md` in `git diff --stat`. If it does not, the
 criterion is unmet: treat it as a failed check and give the fixer the quoted criterion. The group's
 closing re-triage ticket satisfies this by construction.
 
