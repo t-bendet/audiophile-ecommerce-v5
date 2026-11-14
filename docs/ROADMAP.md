@@ -25,14 +25,14 @@ session brief, a wayfinder destination or a hand-written parent points there ins
 them. The parent issue is where the group's decisions live; this file names the questions, never
 the answers. A slice's PR removes its item line here and corrects any fact its change made false;
 the closing re-triage removes the group block. The guide's standing criteria are what
-[batch-tickets](../.agents/skills/batch-tickets/SKILL.md) checks and, under `mattpocock-skills:implement`, what code
+`t-bendet-skills:batch-tickets` checks and, under `mattpocock-skills:implement`, what code
 review's spec axis reads.
 
 **Pick the entry skill by how many decisions the group has open.**
 
 - No open decision: write the issues directly from this file, as group 0
   ([#340](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/340)) was. Run
-  [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) only when they should also be shipped in
+  `t-bendet-skills:roadmap-batch` only when they should also be shipped in
   the same session; it hands the queue to batch-tickets.
 - One decision or one design pass (group 7): write the parent issue from the guide first, then run
   `mattpocock-skills:to-tickets` against it so the human session becomes its
@@ -45,7 +45,7 @@ review's spec axis reads.
   `mattpocock-skills:prototype` for a UI question,
   `mattpocock-skills:grilling` for semantics. Its close amends the slices the
   decision changed; then the slice numbers go to
-  [batch-tickets](../.agents/skills/batch-tickets/SKILL.md), or the parent number alone, which it
+  `t-bendet-skills:batch-tickets`, or the parent number alone, which it
   resolves to the open sub-issues in blocking order.
 - Several interlocking decisions of different kinds (groups 4, 5, 6, 8): open a
   `mattpocock-skills:wayfinder` map for that group only. Group 4 is the model

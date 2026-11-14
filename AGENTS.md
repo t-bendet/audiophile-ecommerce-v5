@@ -21,19 +21,20 @@ For cross-package exploration, read [architecture](docs/ARCHITECTURE.md). Packag
 
 ## Task guides
 
-| Before working on…                                                     | Read                                                |
-| ---------------------------------------------------------------------- | --------------------------------------------------- |
-| Server routes, validation, services, logging, or route tests           | [Server guide](apps/server/README.md)               |
-| Client UI, data fetching, errors, routing, or client tests             | [Client guide](apps/client/README.md)               |
-| Shared schemas, DTOs, exports, domain terminology, or design decisions | [Domain guide](docs/agents/domain.md)               |
-| Database schema/client generation, seeding, sync, or MongoDB versions  | [Database guide](packages/database/README.md)       |
-| E2E tests, failures, traces, or Playwright agent regeneration          | [E2E guide](apps/e2e/README.md)                     |
-| Catalogue images, image keys, import, or publication                   | [Media guide](packages/media/README.md)             |
-| Deployment, Worker configuration, secrets, or CI changes               | [Deployment runbook](docs/deployment.md)            |
-| Check selection, build failures, or Node upgrades                      | [Verification guide](docs/agents/verification.md)   |
-| Issues, specs, branches, commits, or PRs                               | [Issue workflow](docs/agents/issue-tracker.md)      |
-| Roadmap groups: parent issues, slices, closing re-triage               | [Roadmap group guide](docs/agents/roadmap-group.md) |
-| Issue triage or label changes                                          | [Triage labels](docs/agents/triage-labels.md)       |
-| Skills or agent instructions                                           | The `mattpocock-skills:writing-for-agents` skill    |
+| Before working on…                                                     | Read                                                                            |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Server routes, validation, services, logging, or route tests           | [Server guide](apps/server/README.md)                                           |
+| Client UI, data fetching, errors, routing, or client tests             | [Client guide](apps/client/README.md)                                           |
+| Shared schemas, DTOs, exports, domain terminology, or design decisions | [Domain guide](docs/agents/domain.md)                                           |
+| Database schema/client generation, seeding, sync, or MongoDB versions  | [Database guide](packages/database/README.md)                                   |
+| E2E tests, failures, traces, or Playwright agent regeneration          | [E2E guide](apps/e2e/README.md)                                                 |
+| Catalogue images, image keys, import, or publication                   | [Media guide](packages/media/README.md)                                         |
+| Deployment, Worker configuration, secrets, or CI changes               | [Deployment runbook](docs/deployment.md)                                        |
+| Check selection, build failures, or Node upgrades                      | [Verification guide](docs/agents/verification.md)                               |
+| Issues, specs, branches, commits, or PRs                               | [Issue workflow](docs/agents/issue-tracker.md)                                  |
+| Roadmap groups: parent issues, slices, closing re-triage               | [Roadmap group guide](docs/agents/roadmap-group.md), [roadmap](docs/ROADMAP.md) |
+| Issue triage or label changes                                          | [Triage labels](docs/agents/triage-labels.md)                                   |
+| UI or loading prototypes                                               | [Prototype harness guide](docs/agents/prototype-harness.md)                     |
+| Skills or agent instructions                                           | The `mattpocock-skills:writing-for-agents` skill                                |
 
-Repo-specific task skills live in `.agents/skills`; Claude aliases share those sources. The shared engineering skills come from the `mattpocock-skills` plugin and are named `mattpocock-skills:<name>`; a person types `/mattpocock-skills:<name>` in Claude Code and `$mattpocock-skills:<name>` in Codex. A delegated agent should read the relevant task guides too. Research documents record past investigations; follow their current-guide links for implementation and operations. Local environment variables are documented in each workspace's `.env.example`.
+Repo-specific task skills live in `.agents/skills`; Claude aliases share those sources. Two plugins supply the rest, named `<plugin>:<name>`: `mattpocock-skills` for the shared engineering skills, and `t-bendet-skills` for `batch-tickets`, `roadmap-batch` and `prototype-harness`, which read this repo's facts from the guides above. A person types `/<plugin>:<name>` in Claude Code and `$<plugin>:<name>` in Codex. A delegated agent should read the relevant task guides too. Research documents record past investigations; follow their current-guide links for implementation and operations. Local environment variables are documented in each workspace's `.env.example`.

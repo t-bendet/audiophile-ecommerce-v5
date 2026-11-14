@@ -39,6 +39,10 @@ the latter includes runner queueing and any preceding gates.
 
 The local sequence above corresponds to the workflow's `verify` job; it is not the whole pipeline. CI runs `build`, `lint`, `type-check` and `test` as one `turbo run` graph, so `prisma generate` runs once and the tasks overlap. Only `deploy` restores a Turbo cache; `verify` and `e2e` execute every task on every run. CI also builds the server Docker image and runs Playwright in separate `image` and `e2e` jobs; four jobs in all. On `main`, `image` tags the image by the hash of its inputs and pushes it to the Cloudflare registry unless the registry already holds that tag, in which case it builds nothing; `deploy` waits for all three, deploys that image, then runs `pnpm db:sync` against production and the registry prune listing as its last steps ([deployment runbook](../deployment.md)). Report local checks separately from observed CI results; do not claim an unrun gate passed. Pushes from a cloud session run CI only once the PR exists ([cloud sessions](issue-tracker.md#cloud-sessions)).
 
+## After a merge
+
+Once the `deploy` job finishes, `curl -fsS https://audiophile.t-bendet.com/api/v1/health` returns 200. The [deployment runbook](../deployment.md) lists the fuller post-deploy checks.
+
 ## Node upgrades
 
 [.nvmrc](../../.nvmrc) and [apps/server/Dockerfile](../../apps/server/Dockerfile) must name the same major. Raise them together and run:
