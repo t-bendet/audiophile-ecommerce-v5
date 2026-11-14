@@ -1,3 +1,5 @@
 [agents]
 default_subagent_model = "gpt-6.1-terra"
 default_subagent_reasoning_effort = "medium"
+[plugins."mattpocock-skills@mattpocock"]
+enabled = true
