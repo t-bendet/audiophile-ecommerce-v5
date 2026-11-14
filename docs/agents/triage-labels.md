@@ -18,6 +18,6 @@ Labels in this repository fall into three families. A triaged issue carries one 
 
 ## Workflow labels
 
-`wayfinder:map` marks the single parent issue holding notes, decisions and fog; `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, and `wayfinder:task` mark its child tickets by type. These are decisions, not implementation work, so they never combine with a state label. The [wayfinder skill](../../.agents/skills/wayfinder/SKILL.md) owns their use.
+`wayfinder:map` marks the single parent issue holding notes, decisions and fog; `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, and `wayfinder:task` mark its child tickets by type. These are decisions, not implementation work, so they never combine with a state label. The `mattpocock-skills:wayfinder` skill owns their use.
 
 Read the [issue workflow](issue-tracker.md) for tracker operations. PRs are not a feature-request triage surface in this repo.

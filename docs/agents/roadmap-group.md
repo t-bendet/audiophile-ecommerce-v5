@@ -8,14 +8,14 @@ written by hand points here instead of restating them.
 
 Who reads which issue:
 
-- [to-tickets](../../.agents/skills/to-tickets/SKILL.md) fetches the parent and writes the slices
+- `mattpocock-skills:to-tickets` fetches the parent and writes the slices
   from it, so the parent's **standing block** is what reaches every slice.
 - [roadmap-batch](../../.agents/skills/roadmap-batch/SKILL.md) files parent, slices and re-triage
   from these templates.
 - [batch-tickets](../../.agents/skills/batch-tickets/SKILL.md) reads a slice body for two things:
   the quoted roadmap line (its diff must touch `docs/ROADMAP.md`) and the fixed phrase
   `Merge policy: stop at PR open`.
-- `/implement` reads the same criteria through code review's spec axis.
+- `mattpocock-skills:implement` reads the same criteria through code review's spec axis.
 
 Tracker operations (sub-issues, blocking edges, labels) are in the
 [issue workflow](issue-tracker.md); the label pair is in [triage labels](triage-labels.md).
@@ -62,8 +62,8 @@ them.
 ## Slice issue
 
 A sub-issue of the parent (`--parent`), labels `enhancement` and `ready-for-agent`, blocking edges
-native. The body is to-tickets' issue template; its acceptance criteria end with the standing tail.
-Domain vocabulary, no file paths or snippets, as to-tickets says.
+native. The body is the `mattpocock-skills:to-tickets` issue template; its acceptance criteria end with the standing tail.
+Domain vocabulary, no file paths or snippets, as that skill says.
 
 ```markdown
 **What to build:** <the end-to-end behaviour, from the user's side>

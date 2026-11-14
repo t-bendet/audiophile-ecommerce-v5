@@ -7,7 +7,8 @@
   },
   "enableAllProjectMcpServers": true,
   "enabledPlugins": {
-    "understand-anything@understand-anything": true
+    "understand-anything@understand-anything": true,
+    "mattpocock-skills@claude-plugins-official": true
   },
   "hooks": {
     "SessionStart": [

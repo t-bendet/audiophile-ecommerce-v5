@@ -111,7 +111,7 @@ move on to the next ticket. Never merge red.
 
 ### 5. Land
 
-Read and apply [pr](../pr/SKILL.md) when preparing the PR body, written from the implementer's
+Use the `mattpocock-skills:pr` skill when preparing the PR body, written from the implementer's
 report and `git diff --stat`, not from the diff. Follow attribution rules only when supplied by the session or repository.
 
 ```bash

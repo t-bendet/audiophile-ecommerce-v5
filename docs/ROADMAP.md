@@ -25,7 +25,7 @@ session brief, a wayfinder destination or a hand-written parent points there ins
 them. The parent issue is where the group's decisions live; this file names the questions, never
 the answers. A slice's PR removes its item line here and corrects any fact its change made false;
 the closing re-triage removes the group block. The guide's standing criteria are what
-[batch-tickets](../.agents/skills/batch-tickets/SKILL.md) checks and, under `/implement`, what code
+[batch-tickets](../.agents/skills/batch-tickets/SKILL.md) checks and, under `mattpocock-skills:implement`, what code
 review's spec axis reads.
 
 **Pick the entry skill by how many decisions the group has open.**
@@ -35,20 +35,20 @@ review's spec axis reads.
   [roadmap-batch](../.agents/skills/roadmap-batch/SKILL.md) only when they should also be shipped in
   the same session; it hands the queue to batch-tickets.
 - One decision or one design pass (group 7): write the parent issue from the guide first, then run
-  [to-tickets](../.agents/skills/to-tickets/SKILL.md) against it so the human session becomes its
+  `mattpocock-skills:to-tickets` against it so the human session becomes its
   first sub-issue, labelled `ready-for-human`, and the agent slices are specced in the same pass,
   as [#350](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/350) was for group 1 with
   its research session #351 and its design pass #352, and
   [#358](https://github.com/t-bendet/audiophile-ecommerce-v5/issues/358) for group 2 with its prototype session #359. The
   human ticket runs the matching skill:
-  [research](../.agents/skills/research/SKILL.md) for a provider comparison,
-  [prototype](../.agents/skills/prototype/SKILL.md) for a UI question,
-  [grilling](../.agents/skills/grilling/SKILL.md) for semantics. Its close amends the slices the
+  `mattpocock-skills:research` for a provider comparison,
+  `mattpocock-skills:prototype` for a UI question,
+  `mattpocock-skills:grilling` for semantics. Its close amends the slices the
   decision changed; then the slice numbers go to
   [batch-tickets](../.agents/skills/batch-tickets/SKILL.md), or the parent number alone, which it
   resolves to the open sub-issues in blocking order.
 - Several interlocking decisions of different kinds (groups 4, 5, 6, 8): open a
-  [wayfinder](../.agents/skills/wayfinder/SKILL.md) map for that group only. Group 4 is the model
+  `mattpocock-skills:wayfinder` map for that group only. Group 4 is the model
   case: the upload shape, the variant strategy, the upload path and the category question each
   change the others' answers; one needs research, one a prototype, one is a product call; together
   they exceed one session, and the map's frontier shows which is decidable next while its fog holds
@@ -330,7 +330,7 @@ The human sessions for the next groups, written out so they can start cold.
 Copy this prompt into a fresh session:
 
 ```text
-Use the repository's wayfinder skill (.agents/skills/wayfinder/SKILL.md) to chart
+Use the mattpocock-skills:wayfinder skill to chart
 group 4 of docs/ROADMAP.md: Catalogue growth — uploads, product creation and
 categories. Group 3 is complete; group 4 is next.
 
@@ -349,7 +349,7 @@ for uploads/validation, apps/client/README.md for admin UI, docs/deployment.md f
 secrets, and apps/e2e/README.md for fixtures. Check current code before treating a
 roadmap statement as a fact. Reuse an existing group 4 map if one already exists.
 
-Use grilling and domain-modeling to confirm the destination and map the open
+Use the mattpocock-skills:grilling and mattpocock-skills:domain-modeling skills to confirm the destination and map the open
 decisions breadth-first. Keep these choices open for their decision sessions:
 
 - What does an admin provide for each image role: the existing breakpoint crops,
