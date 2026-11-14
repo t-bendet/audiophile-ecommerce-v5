@@ -24,7 +24,7 @@ Read the glossary entries relevant to your task and use their terms in code, tes
 | A dialog, its placement, or the nav offset                                            | [0014: every dialog is one Radix primitive with a placement](../adr/0014-every-dialog-is-one-radix-primitive-with-a-placement.md)                       |
 | Order status history, event actors, or shipment tracking                              | [0015: order status events are embedded in orders](../adr/0015-order-status-events-are-embedded-in-orders.md)                                           |
 
-Surface a conflict with an existing decision explicitly. For a new settled term or decision, read and apply the [domain-modeling skill](../../.agents/skills/domain-modeling/SKILL.md); it owns glossary and ADR formats. Proposals remain proposals until a decision is made.
+Surface a conflict with an existing decision explicitly. For a new settled term or decision, use the `mattpocock-skills:domain-modeling` skill; it owns glossary and ADR formats. Proposals remain proposals until a decision is made.
 
 ## Shared package conventions
 

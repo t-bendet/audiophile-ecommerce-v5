@@ -4,7 +4,7 @@ description: "Use for a UI or loading prototype comparing several variants live 
 ---
 
 Use this harness when a UI or loading question needs several variants compared live in the
-client. It is a standalone developer tool; the prototype skill can use it independently of its
+client. It is a standalone developer tool; the `mattpocock-skills:prototype` skill can use it independently of its
 other steps.
 
 ## Copy and configure

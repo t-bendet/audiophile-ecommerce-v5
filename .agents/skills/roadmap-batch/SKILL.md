@@ -16,9 +16,10 @@ Read the [issue workflow](../../../docs/agents/issue-tracker.md) for every track
 [cloud sessions](../../../docs/agents/issue-tracker.md#cloud-sessions) subsection first when
 `CLAUDE_CODE_REMOTE=true`, and [triage labels](../../../docs/agents/triage-labels.md) for the label
 pair an issue carries. Candidates come from [the roadmap](../../../docs/ROADMAP.md). The spec
-template lives in [to-spec](../to-spec/SKILL.md); the issue template and blocking-edge rules live in
-[to-tickets](../to-tickets/SKILL.md). Both are user-invoked, so read their files rather than invoking
-them. The parent, slice tail and closing re-triage shapes live in the
+template lives in `mattpocock-skills:to-spec`; the issue template and blocking-edge rules live in
+`mattpocock-skills:to-tickets`. Both are user-invoked, so read their `SKILL.md` files rather than
+invoking them: `skills/engineering/<name>/SKILL.md` under the plugin's `installPath` in
+`~/.claude/plugins/installed_plugins.json`. The parent, slice tail and closing re-triage shapes live in the
 [roadmap group guide](../../../docs/agents/roadmap-group.md).
 
 ## 1. Interview
@@ -28,8 +29,8 @@ Ask all five in one message and wait. Each answer is the user's call; ask again 
 1. **Count**: how many items this batch takes.
 2. **Selection criteria**: independence (no shared files), blast radius, client-only, one codebase
    area, or the user's own picks.
-3. **Spec depth** per issue: the full to-spec template, or acceptance criteria only (the to-tickets
-   issue template).
+3. **Spec depth** per issue: the full `mattpocock-skills:to-spec` template, or acceptance criteria only (the
+   `mattpocock-skills:to-tickets` issue template).
 4. **Approval**: show each drafted issue body for approval before filing, or file directly.
 5. **Merge policy** for the batch: auto-merge on green, or stop at PR open.
 
