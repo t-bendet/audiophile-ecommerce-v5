@@ -22,6 +22,15 @@
   },
   "enabledPlugins": {
     "understand-anything@understand-anything": true,
-    "mattpocock-skills@claude-plugins-official": true
+    "mattpocock-skills@claude-plugins-official": true,
+    "t-bendet-skills@t-bendet": true
+  },
+  "extraKnownMarketplaces": {
+    "t-bendet": {
+      "source": {
+        "source": "github",
+        "repo": "t-bendet/t-bendet-skills"
+      }
+    }
   }
 }

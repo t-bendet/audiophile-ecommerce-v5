@@ -10,15 +10,19 @@ Who reads which issue:
 
 - `mattpocock-skills:to-tickets` fetches the parent and writes the slices
   from it, so the parent's **standing block** is what reaches every slice.
-- [roadmap-batch](../../.agents/skills/roadmap-batch/SKILL.md) files parent, slices and re-triage
+- `t-bendet-skills:roadmap-batch` files parent, slices and re-triage
   from these templates.
-- [batch-tickets](../../.agents/skills/batch-tickets/SKILL.md) reads a slice body for two things:
+- `t-bendet-skills:batch-tickets` reads a slice body for two things:
   the quoted roadmap line (its diff must touch `docs/ROADMAP.md`) and the fixed phrase
   `Merge policy: stop at PR open`.
 - `mattpocock-skills:implement` reads the same criteria through code review's spec axis.
 
 Tracker operations (sub-issues, blocking edges, labels) are in the
 [issue workflow](issue-tracker.md); the label pair is in [triage labels](triage-labels.md).
+
+## Roadmap file
+
+`docs/ROADMAP.md`
 
 ## Parent issue
 

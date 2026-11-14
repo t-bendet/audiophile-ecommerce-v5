@@ -13,6 +13,8 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 - **List a ticket's blockers**: `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '[.[].number]'` (open and closed; the REST form also works in cloud sessions).
 - **Count open blockers**: `gh api repos/<owner>/<repo>/issues/<n> --jq .issue_dependencies_summary.blocked_by` (open blockers only; 0 means startable). `gh issue view <n> --json blockedBy` also lists closed blockers, so filter it: `--jq '[.blockedBy.nodes[] | select(.state == "OPEN")] | length'`.
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
+- **Watch CI**: `gh pr checks <n> --watch`.
+- **Merge a PR**: `gh pr merge <n> --auto --squash`, issued once the PR exists, before the checks finish. GitHub merges when the required checks pass and deletes the head branch; wait for the PR's state to read `MERGED` before touching the branch.
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: post the explanation with `gh issue comment <number> --body "..."`, then `gh issue close <number>`. On an already-closed issue, `gh issue close --comment` drops the comment and still exits 0.
 
@@ -49,9 +51,7 @@ git switch -c <type>/<issue#>-<slug>
 gh pr create --base main --title "..." --body "...Closes #<issue#>"
 ```
 
-To merge on green without waiting, enable auto-merge once the PR exists: `gh pr merge <n> --auto --squash`.
-GitHub merges when the required checks pass and deletes the head branch. The cloud-session route is
-under **Cloud sessions**.
+Merge as in **Merge a PR** under Conventions; the cloud-session route is under **Cloud sessions**.
 
 Commit subjects use the conventional-commit form `<type>: <summary>`, with `<type>` from the branch
 table above. Reference the issue in the commit body and the PR body with `Closes #<issue#>` so GitHub
